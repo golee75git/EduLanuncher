@@ -23,6 +23,7 @@ export type HomeAction =
   | { type: "launch"; tool: ToolItem }
   | { type: "edit"; tool?: ToolItem; createType?: ToolType }
   | { type: "group"; groupType: ToolType }
+  | { type: "pc-urls" }
   | { type: "internal"; id: string; title: string }
   | { type: "settings" };
 
@@ -209,6 +210,15 @@ export function HomePage({ onAction }: HomePageProps) {
                   <div key={group.type}>
                     <div className="mb-1.5 flex items-center gap-1">
                       <h3 className="min-w-0 flex-1 text-[11px] text-quiet">{group.label}</h3>
+                      {group.type === "url" ? (
+                        <button
+                          type="button"
+                          className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+                          onClick={() => onAction({ type: "pc-urls" })}
+                        >
+                          인터넷 즐겨찾기
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"

@@ -12,6 +12,7 @@ import { MemoPage } from "./pages/MemoPage";
 import { NetworkToolPage } from "./pages/NetworkToolPage";
 import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
 import { LaunchError, launchTool } from "./services/launcherService";
@@ -32,6 +33,7 @@ type View =
   | { name: "settings" }
   | { name: "notice-edit" }
   | { name: "tool-group"; groupType: ToolType }
+  | { name: "pc-urls" }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
   | { name: "memo" }
   | { name: "internal"; id: string; title: string };
@@ -268,6 +270,10 @@ export default function App() {
       setView({ name: "tool-group", groupType: action.groupType });
       return;
     }
+    if (action.type === "pc-urls") {
+      setView({ name: "pc-urls" });
+      return;
+    }
     if (action.type === "internal") {
       setView({ name: "internal", id: action.id, title: action.title });
       return;
@@ -315,6 +321,7 @@ export default function App() {
               groupType={view.groupType}
               onBack={() => setView({ name: "home" })}
               onLaunch={(tool) => void handleLaunch(tool)}
+              onPcUrls={() => setView({ name: "pc-urls" })}
               onEdit={(tool, createType) =>
                 setView({
                   name: "tool-edit",
@@ -325,6 +332,7 @@ export default function App() {
               }
             />
           ) : null}
+          {view.name === "pc-urls" ? <PcUrlListPage onBack={() => setView({ name: "home" })} /> : null}
           {view.name === "tool-edit" ? (
             <ToolEditPage
               tool={view.tool}

@@ -272,11 +272,13 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
         </SettingsCard>
 
         <SettingsCard title="프로그램 정보">
-          <p className="text-sm text-desk">
+          <p className="text-xs leading-5 text-quiet">설치 파일 {APP_CONFIG.setupFile}</p>
+          <p className="mt-2 text-sm text-desk">
             {APP_CONFIG.appName} {APP_CONFIG.version}
           </p>
           <p className="mt-2 text-xs leading-5 text-quiet">
-            {APP_CONFIG.appName}의 개인 설정과 바로가기 정보는 이 PC에 저장됩니다.
+            {APP_CONFIG.appName}의 개인 설정과 바로가기 정보는 이 PC에 저장됩니다. 글꼴은 Windows 시스템 글꼴을
+            씁니다. 사이트 칸의 인터넷 즐겨찾기는 이 PC 즐겨찾기 폴더의 .url만 읽습니다.
           </p>
         </SettingsCard>
       </div>

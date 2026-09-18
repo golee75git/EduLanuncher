@@ -9,7 +9,7 @@ const REQUIREMENTS = [
 
 const STEPS = [
   "아래 버튼으로 GitHub Releases의 최신 설치 파일을 받습니다.",
-  "EduLauncher_*_x64-setup.exe 를 실행합니다. 현재 사용자 폴더에 설치됩니다.",
+  `${SITE_CONFIG.setupFile} 또는 ${SITE_CONFIG.setupFileDated} 를 실행합니다. 현재 사용자 폴더에 설치됩니다.`,
   "이미 설치되어 있으면 이전 버전을 교체한 뒤 트레이에서 다시 실행합니다.",
 ] as const;
 
@@ -27,6 +27,11 @@ export function DownloadPage() {
       <section className="card-surface flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold">{SITE_CONFIG.displayName} · Windows</p>
+          <p className="mt-1 text-sm text-quiet">
+            {SITE_CONFIG.setupFile}
+            <br />
+            {SITE_CONFIG.setupFileDated}
+          </p>
           <p className="mt-1 text-sm text-quiet">x64 · 현재 사용자 설치 · WebView2 필요</p>
         </div>
         <a className="btn-primary w-full sm:w-auto" href={SITE_CONFIG.releasesUrl} rel="noreferrer" target="_blank">

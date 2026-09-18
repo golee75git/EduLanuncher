@@ -89,3 +89,8 @@ Purpose: Serialization
 Modified: No
 
 Transitive crates and full license texts are not copied here. See each package registry page and `LICENSES/README.md`.
+
+## Fonts
+
+Bundled font files: none.
+UI stack: Segoe UI Variable, Segoe UI, Malgun Gothic (Windows system fonts, not SIL OFL, not shipped in this repo).

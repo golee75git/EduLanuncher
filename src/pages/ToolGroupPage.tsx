@@ -10,9 +10,10 @@ interface ToolGroupPageProps {
   onBack: () => void;
   onLaunch: (tool: ToolItem) => void;
   onEdit: (tool?: ToolItem, createType?: ToolType) => void;
+  onPcUrls?: () => void;
 }
 
-export function ToolGroupPage({ groupType, onBack, onLaunch, onEdit }: ToolGroupPageProps) {
+export function ToolGroupPage({ groupType, onBack, onLaunch, onEdit, onPcUrls }: ToolGroupPageProps) {
   const tools = useToolStore((state) => state.tools);
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
   const removeTool = useToolStore((state) => state.removeTool);
@@ -34,6 +35,15 @@ export function ToolGroupPage({ groupType, onBack, onLaunch, onEdit }: ToolGroup
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">{toolGroupLabel(groupType)}</h1>
+        {groupType === "url" && onPcUrls ? (
+          <button
+            type="button"
+            className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+            onClick={onPcUrls}
+          >
+            인터넷 즐겨찾기
+          </button>
+        ) : null}
         <button
           type="button"
           className="icon-btn"

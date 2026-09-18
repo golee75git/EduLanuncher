@@ -676,13 +676,128 @@ fn lookup_public_ipv4() -> Result<String, String> {
 }
 
 #[tauri::command]
-fn scan_ipv4_range(start: String, end: String) -> Result<Vec<netutil::HostHit>, String> {
-    netutil::scan_ipv4_range(&start, &end)
+fn scan_ipv4_range(app: AppHandle, start: String, end: String) -> Result<Vec<netutil::HostHit>, String> {
+    netutil::scan_ipv4_range(&app, &start, &end)
 }
 
 #[tauri::command]
-fn scan_cctv_range(start: String, end: String) -> Result<Vec<netutil::HostHit>, String> {
-    netutil::scan_cctv_range(&start, &end)
+fn scan_cctv_range(app: AppHandle, start: String, end: String) -> Result<Vec<netutil::HostHit>, String> {
+    netutil::scan_cctv_range(&app, &start, &end)
+}
+
+const MAX_PC_URLS: usize = 400;
+const MAX_URL_WALK_DEPTH: u32 = 6;
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PcUrlItem {
+    name: String,
+    url: String,
+    folder: String,
+}
+
+fn favorites_dir() -> Result<PathBuf, String> {
+    let profile = std::env::var("USERPROFILE").map_err(|_| "사용자 폴더를 찾지 못했습니다.")?;
+    if profile.is_empty() || profile.contains('\0') {
+        return Err("사용자 폴더가 올바르지 않습니다.".into());
+    }
+    Ok(PathBuf::from(profile).join("Favorites"))
+}
+
+fn path_inside(root: &Path, candidate: &Path) -> bool {
+    let strip = |value: &Path| {
+        value
+            .to_string_lossy()
+            .trim_start_matches("\\\\?\\")
+            .replace('/', "\\")
+            .to_ascii_lowercase()
+    };
+    let root_s = strip(root);
+    let child = strip(candidate);
+    child == root_s || child.starts_with(&(root_s.clone() + "\\"))
+}
+
+fn relative_folder(root: &Path, file: &Path) -> String {
+    let Some(parent) = file.parent() else {
+        return String::new();
+    };
+    let strip = |value: &Path| {
+        value
+            .to_string_lossy()
+            .trim_start_matches("\\\\?\\")
+            .replace('/', "\\")
+    };
+    let root_s = strip(root);
+    let parent_s = strip(parent);
+    parent_s
+        .strip_prefix(&root_s)
+        .unwrap_or("")
+        .trim_start_matches('\\')
+        .replace('\\', "/")
+}
+
+fn collect_pc_urls(root: &Path, dir: &Path, depth: u32, out: &mut Vec<PcUrlItem>) {
+    if depth > MAX_URL_WALK_DEPTH || out.len() >= MAX_PC_URLS {
+        return;
+    }
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        if out.len() >= MAX_PC_URLS {
+            break;
+        }
+        let path = entry.path();
+        let Ok(meta) = fs::symlink_metadata(&path) else {
+            continue;
+        };
+        if meta.file_type().is_symlink() {
+            continue;
+        }
+        if meta.is_dir() {
+            let Ok(canon) = fs::canonicalize(&path) else {
+                continue;
+            };
+            if !path_inside(root, &canon) {
+                continue;
+            }
+            collect_pc_urls(root, &canon, depth + 1, out);
+            continue;
+        }
+        if !meta.is_file() || !is_url_shortcut_file(&path) || meta.len() > 16 * 1024 {
+            continue;
+        }
+        let Ok(bytes) = fs::read(&path) else {
+            continue;
+        };
+        let contents = decode_shortcut_bytes(&bytes);
+        let Some(url) = parse_url_from_shortcut(&contents) else {
+            continue;
+        };
+        let folder = relative_folder(root, &path);
+        out.push(PcUrlItem {
+            name: shortcut_display_name(&path, &url),
+            url,
+            folder,
+        });
+    }
+}
+
+#[tauri::command]
+fn list_pc_url_shortcuts() -> Result<Vec<PcUrlItem>, String> {
+    let root = favorites_dir()?;
+    if !root.is_dir() {
+        return Ok(Vec::new());
+    }
+    let canonical = fs::canonicalize(&root).map_err(|err| err.to_string())?;
+    let mut items = Vec::new();
+    collect_pc_urls(&canonical, &canonical, 0, &mut items);
+    items.sort_by(|left, right| {
+        left.folder
+            .cmp(&right.folder)
+            .then_with(|| left.name.cmp(&right.name))
+    });
+    Ok(items)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -731,7 +846,8 @@ pub fn run() {
             this_pc_ipv4,
             lookup_public_ipv4,
             scan_ipv4_range,
-            scan_cctv_range
+            scan_cctv_range,
+            list_pc_url_shortcuts
         ])
         .setup(|app| {
             setup_tray(app)?;

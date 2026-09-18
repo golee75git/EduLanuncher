@@ -507,3 +507,53 @@ Potential similar products:
 Difference:
 웹에서 로고를 수집하지 않음. 이 PC에 이미 있는 항목의 표시 아이콘만 씀. 타 런처 UI 복제 없음
 
+---
+
+Feature: This PC internet shortcut list
+
+Purpose:
+사이트 칸에서 이 PC Windows 즐겨찾기 폴더의 인터넷 바로가기를 보고 기본 브라우저로 연다
+
+Design source:
+내부 요구사항
+
+Implementation:
+`USERPROFILE\Favorites`만 읽음. `.url`의 `URL=` http(s)만. 깊이·개수·크기 제한. 심볼릭 링크 따라가지 않음. 파비콘·브라우저 프로필 JSON 없음. 클릭 시 opener로 열기. 선택 시에만 런처 사이트 목록에 넣기
+
+External code:
+없음
+
+Potential similar products:
+브라우저 즐겨찾기 창, 탐색기 즐겨찾기 폴더
+
+Difference:
+브라우저 UI 복제 없음. Chrome/Edge Bookmarks 파일 동기화 없음. 공식 로고 복사 없음
+
+PATENT_REVIEW:
+로컬 인터넷 바로가기 파일을 읽어 폴더별로 나열하고 브라우저로 여는 구성
+
+---
+
+Feature: Range check elapsed bar
+
+Purpose:
+네트워크·CCTV 구간 확인이 끝날 때까지 처리 개수와 경과 시간을 보여 답답함을 줄임
+
+Design source:
+내부 요구사항
+
+Implementation:
+기존 ping/554 확인 루프에서 처리한 주소 수를 이벤트로 보냄. 화면은 막대·경과 초·남은 초 추정만 표시. 검색 알고리즘 변경 없음
+
+External code:
+없음
+
+Potential similar products:
+구간 생존 확인 유틸리티의 상태 표시
+
+Difference:
+해당 제품 표·상태바 레이아웃 복제 없음. 기존 패널 카드 안에 막대와 숫자만 추가
+
+PATENT_REVIEW:
+호스트 구간 확인 중 완료 비율과 경과 시간을 표시하는 구성
+

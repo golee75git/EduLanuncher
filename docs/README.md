@@ -8,3 +8,4 @@
 | [IP_DESIGN_LOG.md](IP_DESIGN_LOG.md) | 기능별 출처 |
 | [RELEASE_IP_CHECKLIST.md](RELEASE_IP_CHECKLIST.md) | 배포 전 IP 점검 |
 | [SOURCES.md](SOURCES.md) | 참고 출처 |
+| [../수정기록.txt](../수정기록.txt) | 날짜별 수정 기록 |

@@ -1,0 +1,77 @@
+수정기록 — 교육업무 런처
+작성: 요청자 작업 기록 (2026-09-19)
+
+이 파일은 수정 내용을 남기기 위한 기록이다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-19
+버전: 0.1.22-20260919
+설치 파일: EduLauncher_0.1.22-20260919_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe
+
+한 일
+- 사이트 칸에 「인터넷 즐겨찾기」를 넣음. 이 PC Windows 즐겨찾기 폴더의 .url만 목록으로 보고, 누르면 기본 브라우저로 연다. 원할 때만 런처에 넣는다.
+- 네트워크 구간 검색과 CCTV 검색 중에 처리 개수, 경과 시간, 남은 시간 추정, 막대를 보여 준다.
+- 설정 프로그램 정보와 소개 사이트 설치 안내에 설치 파일명을 적음.
+- 시스템 글꼴 유지. 패키지 추가 없음.
+
+새로 작성한 파일
+- src/pages/PcUrlListPage.tsx
+- src/services/pcUrlListService.ts
+- src/components/RangeCheckBar.tsx
+- 수정기록.txt (이 파일)
+
+재사용한 기존 파일 (최소 수정)
+- src-tauri/src/lib.rs
+- src-tauri/src/netutil.rs
+- src-tauri/tauri.conf.json
+- src/App.tsx
+- src/pages/HomePage.tsx
+- src/pages/ToolGroupPage.tsx
+- src/pages/NetworkToolPage.tsx
+- src/pages/CctvToolPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/pages/DownloadPage.tsx
+- website/src/pages/IntroPage.tsx
+- docs/PRD.md
+- docs/PLAN.md
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+- docs/README.md
+- THIRD_PARTY_NOTICES.md
+
+글꼴
+- 저장소에 woff/ttf 없음.
+- 화면은 Segoe UI Variable, Segoe UI, 맑은 고딕(Windows 시스템 글꼴).
+- SIL OFL 글꼴이 아님. 요청에 따라 시스템 글꼴을 유지함. OFL 파일을 넣지 않음.
+
+라이선스·GPL
+- 이번 작업에서 npm/crate를 추가하지 않음.
+- 직접 의존성: MIT, Apache-2.0, ISC (lucide-react). 직접 GPL/AGPL 없음.
+- 전이 의존성 전부는 이 기록으로 단정하지 않음. THIRD_PARTY_NOTICES.md와 각 패키지 라이선스를 본다.
+- 법적 비침해를 이 파일만으로 보장하지 않는다.
+
+보안
+- 즐겨찾기는 USERPROFILE\Favorites만 읽음. 심볼릭 링크는 따라가지 않음.
+- .url 크기 16KB, 깊이 6, 항목 400개 제한. http(s)만 연다.
+- 파비콘·원격 HTML 수집 없음.
+- 검색 진행 이벤트는 처리 개수·단계 이름만 보냄. ping 원문을 화면에 넣지 않음.
+- 기존처럼 /24보다 넓은 자동 검색 없음.
+
+특허 검토가 필요한 기술적 구성 (청구항 대조는 하지 않음. 특허 문서를 복사·번역하지 않음)
+- 로컬 인터넷 바로가기 파일을 읽어 폴더별로 나열하고 브라우저로 여는 구성
+- 호스트 구간 확인 중 완료 비율과 경과 시간을 표시하는 구성
+전문가 검토를 권장한다. 특허 비침해를 보장한다고 표현하지 않는다.
+
+하지 않은 것
+- APK, Play Store, Vercel, 점수판
+- Chrome/Edge Bookmarks JSON 자동 읽기
+- 외부 라이브러리 추가
+- 시스템 글꼴을 OFL 글꼴로 교체
+
+이전 버전 (설치본)
+- 0.1.21-20260919: Pack, 끌어놓기, 공지, 메모, 할 일, 검색, 백업, Cloudflare 소개 사이트
+- 그 이전: docs/HANDOFF.md 참고

@@ -1,6 +1,6 @@
 # PLAN — 이어서 할 일
 
-기준일: 2026-09-18  
+기준일: 2026-09-19  
 완료된 큰 줄기는 `docs/HANDOFF.md`.
 
 ## 원칙 (모든 작업)
@@ -11,6 +11,11 @@
 - 저작권·특허 이슈를 피하려면 로고 복사·게시판 스크랩·시스템 자동연동을 넣지 않음
 - 새 기능은 `docs/IP_DESIGN_LOG.md` 항목 추가
 - 설치본이 받아야 하는 변경이면 버전 `0.1.x-YYYYMMDD` 올리고 `.\tauri-env.cmd build` 후 GitHub Releases에 `.exe` 업로드
+
+## 2026-09-19에 넣은 것
+
+- 사이트 칸 「인터넷 즐겨찾기」: 이 PC `Favorites`의 `.url`만 표시
+- 네트워크·CCTV 검색 중 처리 개수·경과 시간 막대
 
 ## 다음 후보 (우선 낮은 것부터)
 
@@ -35,3 +40,5 @@
 - Cloudflare Pages에 설치파일 올리기
 - Root directory 없이 저장소 루트를 웹으로 빌드하기 (런처 UI가 웹에 올라감)
 - `_redirects`의 `/* → /index.html` (Workers SPA와 루프)
+- Chrome/Edge 북마크 JSON을 몰래 읽어 동기화하기
+- APK·Play Store·Vercel 점수판 문구를 이 Windows 앱에 넣기

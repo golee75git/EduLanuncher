@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { RangeCheckBar } from "../components/RangeCheckBar";
 import { calculateIpv4Range } from "../services/ipv4Math";
 import {
   loadThisPcIpv4,
@@ -97,6 +98,7 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
         >
           {scanning ? "검색 중..." : "다시 검색"}
         </button>
+        <RangeCheckBar active={scanning} />
         {error ? <p className="text-sm text-desk">{error}</p> : null}
         {!scanning && didScan && hits.length === 0 && !error ? (
           <p className="text-sm text-quiet">

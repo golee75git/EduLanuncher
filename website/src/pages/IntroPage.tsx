@@ -21,6 +21,7 @@ const HOLDS = [
   "기관 공지·공통 알림 Pack",
   "한 장의 메모",
   "주소·파일·바로가기를 패널에 끌어 놓기 (Windows 설치본)",
+  "이 PC Windows 즐겨찾기 폴더의 인터넷 바로가기 보기",
 ] as const;
 
 const DOES_NOT = [
