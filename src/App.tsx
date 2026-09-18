@@ -82,9 +82,9 @@ export default function App() {
   );
 
   const addSiteUrl = useCallback(
-    async (url: string, name?: string) => {
+    async (url: string, name?: string, iconImage?: string) => {
       try {
-        const result = await addDroppedSite(url, name);
+        const result = await addDroppedSite(url, name, iconImage);
         if (result === "updated") {
           toast("바로가기 이름을 페이지 제목으로 바꿨습니다.");
         } else {
@@ -104,7 +104,7 @@ export default function App() {
     async (path: string) => {
       try {
         const shortcut = await readUrlShortcut(path);
-        await addSiteUrl(shortcut.url, shortcut.name);
+        await addSiteUrl(shortcut.url, shortcut.name, shortcut.iconImage);
       } catch (error) {
         toast(error instanceof Error ? error.message : "바로가기를 읽지 못했습니다.");
         await showPanel();

@@ -7,9 +7,9 @@ import { RecentTools } from "../components/RecentTools";
 import { SchoolSearchResult } from "../components/SchoolSearchResult";
 import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
+import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS } from "../data/toolGroups";
-import { getToolIcon } from "../data/toolIcons";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { searchAll, type SearchResults } from "../services/searchService";
 import { hidePanel } from "../services/windowService";
@@ -271,7 +271,6 @@ export function HomePage({ onAction }: HomePageProps) {
             </ResultGroup>
             <ResultGroup title="관련 도구" empty="일치하는 도구가 없습니다.">
               {results.tools.map((hit) => {
-                const Icon = getToolIcon(hit.item.icon);
                 return (
                   <button
                     key={hit.item.id}
@@ -281,7 +280,11 @@ export function HomePage({ onAction }: HomePageProps) {
                       selectedId === `tool:${hit.item.id}` ? "desk-row-active" : ""
                     }`}
                   >
-                    <Icon className="h-4 w-4 text-quiet" />
+                    <ToolGlyph
+                      icon={hit.item.icon}
+                      iconImage={hit.item.iconImage}
+                      className="h-4 w-4 text-quiet"
+                    />
                     <span className="min-w-0 flex-1 truncate">
                       <HighlightText text={hit.item.name} query={query} />
                     </span>

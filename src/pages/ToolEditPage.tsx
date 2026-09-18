@@ -76,6 +76,7 @@ export function ToolEditPage({ tool, createType, onBack }: ToolEditPageProps) {
       type,
       target: target.trim(),
       icon,
+      iconImage: icon === (tool?.icon ?? iconForType(initialType)) ? tool?.iconImage : undefined,
       category,
       favorite,
       keywords: keywords

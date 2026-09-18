@@ -8,6 +8,7 @@ export interface ToolItem {
   type: ToolType;
   target: string;
   icon?: string;
+  iconImage?: string;
   category?: string;
   favorite?: boolean;
   keywords?: string[];

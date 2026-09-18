@@ -1,6 +1,6 @@
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { getToolIcon } from "../data/toolIcons";
+import { ToolGlyph } from "./ToolGlyph";
 import { toolOriginLabel, toolTargetHint, type ToolItem } from "../types/tool";
 
 interface ToolCardProps {
@@ -24,7 +24,6 @@ export function ToolCard({
   onEdit,
   onDelete,
 }: ToolCardProps) {
-  const Icon = getToolIcon(tool.icon);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuUp, setMenuUp] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -95,8 +94,8 @@ export function ToolCard({
         title={tool.target}
         onClick={() => onLaunch(tool)}
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ink-soft text-ink transition-colors duration-150 group-hover:bg-ink group-hover:text-white">
-          <Icon className="h-4 w-4" />
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-ink-soft text-ink transition-colors duration-150 group-hover:bg-ink group-hover:text-white">
+          <ToolGlyph icon={tool.icon} iconImage={tool.iconImage} className="h-4 w-4" />
         </span>
         <span className="min-w-0">
           <span className="block truncate text-[13px] font-medium text-desk">{tool.name}</span>

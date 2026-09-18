@@ -13,6 +13,8 @@ mod netutil;
 mod shortcut;
 #[cfg(windows)]
 mod drop_target;
+#[cfg(windows)]
+mod shell_icon;
 
 #[cfg(windows)]
 #[link(name = "shell32")]
@@ -41,6 +43,8 @@ struct DroppedPathInfo {
     exists: bool,
     kind: String,
     name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    icon_image: Option<String>,
 }
 
 fn reveal_panel(app: &AppHandle) {
@@ -492,9 +496,24 @@ fn shortcut_display_name(path: &Path, url: &str) -> String {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct UrlShortcut {
     url: String,
     name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    icon_image: Option<String>,
+}
+
+fn local_file_icon(path: &Path) -> Option<String> {
+    #[cfg(windows)]
+    {
+        shell_icon::png_data_url(path)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = path;
+        None
+    }
 }
 
 fn pack_paths_from(args: impl IntoIterator<Item = String>) -> Vec<String> {
@@ -554,6 +573,7 @@ fn read_url_shortcut(path: String) -> Result<UrlShortcut, String> {
     Ok(UrlShortcut {
         name: shortcut_display_name(&path, &url),
         url,
+        icon_image: local_file_icon(&path),
     })
 }
 
@@ -576,6 +596,7 @@ fn dropped_path_info(path: String) -> Result<DroppedPathInfo, String> {
                 exists: true,
                 kind,
                 name,
+                icon_image: local_file_icon(&dropped),
             })
         }
         Err(_) => Ok(DroppedPathInfo {
@@ -583,6 +604,7 @@ fn dropped_path_info(path: String) -> Result<DroppedPathInfo, String> {
             exists: false,
             kind: "file".into(),
             name,
+            icon_image: None,
         }),
     }
 }

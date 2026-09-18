@@ -13,7 +13,6 @@ import {
   normalizeLocalPathKey,
   parseInternetShortcut,
   pickDroppedSiteName,
-  readUrlShortcut,
 } from "../services/dropSiteService";
 
 interface DropZoneProps {
@@ -128,6 +127,11 @@ export function DropZone({
           continue;
         }
         if (isUrlShortcutPath(label)) {
+          if (path && isUrlShortcutPath(path)) {
+            callbacks.current.onUrlShortcut(path);
+            handled = true;
+            continue;
+          }
           let url: string | undefined;
           let fileTitle: string | undefined;
           try {
@@ -137,16 +141,7 @@ export function DropZone({
               fileTitle = parsed.name;
             }
           } catch {
-            // Fall back to the native shortcut reader.
-          }
-          if (!url && path && isUrlShortcutPath(path)) {
-            try {
-              const shortcut = await readUrlShortcut(path);
-              url = shortcut.url;
-              fileTitle = shortcut.name;
-            } catch {
-              // Ignore unreadable shortcut files.
-            }
+            // Ignore unreadable shortcut files.
           }
           if (url) {
             callbacks.current.onSiteUrl(

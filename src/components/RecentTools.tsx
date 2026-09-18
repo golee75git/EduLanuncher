@@ -1,7 +1,7 @@
 import { Clock } from "lucide-react";
-import { getToolIcon } from "../data/toolIcons";
 import type { ToolItem } from "../types/tool";
 import { HighlightText } from "./HighlightText";
+import { ToolGlyph } from "./ToolGlyph";
 
 interface RecentToolsProps {
   tools: ToolItem[];
@@ -18,7 +18,6 @@ export function RecentTools({ tools, query = "", selectedId, onLaunch }: RecentT
   return (
     <ul className="space-y-1">
       {tools.map((tool) => {
-        const Icon = getToolIcon(tool.icon);
         const selected = tool.id === selectedId;
         return (
           <li key={tool.id}>
@@ -27,7 +26,11 @@ export function RecentTools({ tools, query = "", selectedId, onLaunch }: RecentT
               onClick={() => onLaunch(tool)}
               className={`desk-row gap-2 ${selected ? "desk-row-active" : ""}`}
             >
-              <Icon className="h-4 w-4 shrink-0 text-quiet" />
+              <ToolGlyph
+                icon={tool.icon}
+                iconImage={tool.iconImage}
+                className="h-4 w-4 shrink-0 text-quiet"
+              />
               <span className="min-w-0 flex-1 truncate">
                 <HighlightText text={tool.name} query={query} />
               </span>

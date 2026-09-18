@@ -482,3 +482,28 @@ Difference:
 시작 메뉴·탐색기·타 런처 액션 패널 복제 없음.
 기존 네 항목 한글 메뉴만 같은 카드 스타일로 표시
 
+---
+
+Feature: Local shell icons on drop
+
+Purpose:
+파일·폴더·프로그램·이 PC의 .url/.lnk를 끌어넣을 때 탐색기가 보여 주는 아이콘을 카드에도 씀
+
+Design source:
+내부 요구사항. Windows SHGetFileInfoW 공식 API
+
+Implementation:
+끌어넣은 로컬 경로의 현재 셸 아이콘만 PNG로 이 PC tools.json에 저장.
+사이트 서버 요청·파비콘 URL·Google 아이콘 API 없음.
+브라우저 탭만 놓으면 경로가 없어 지구본 유지.
+Pack·백업 JSON에는 그림을 넣지 않음 (내장 아이콘 이름만)
+
+External code:
+없음 (Win32 공식 API 호출과 PNG 인코딩만)
+
+Potential similar products:
+탐색기 아이콘 표시, 바로가기 속성
+
+Difference:
+웹에서 로고를 수집하지 않음. 이 PC에 이미 있는 항목의 표시 아이콘만 씀. 타 런처 UI 복제 없음
+

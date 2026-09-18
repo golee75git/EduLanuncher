@@ -54,6 +54,18 @@ export const TOOL_ICON_OPTIONS = [
   { id: "wrench", label: "도구" },
 ] as const;
 
+export function asLocalPngIcon(value?: string): string | undefined {
+  const prefix = "data:image/png;base64,";
+  if (!value || value.length > 40_000 || !value.startsWith(prefix)) {
+    return undefined;
+  }
+  const payload = value.slice(prefix.length);
+  if (!payload || /[^A-Za-z0-9+/=]/.test(payload)) {
+    return undefined;
+  }
+  return value;
+}
+
 export function getToolIcon(name?: string): LucideIcon {
   if (!name) {
     return Wrench;

@@ -1,9 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
+import { asLocalPngIcon } from "../data/toolIcons";
 import { useToolStore } from "../stores/toolStore";
 
 export interface UrlShortcut {
   url: string;
   name: string;
+  iconImage?: string;
 }
 
 export function isUrlShortcutPath(path: string): boolean {
@@ -176,6 +178,7 @@ let addDroppedSiteQueue: Promise<void> = Promise.resolve();
 export async function addDroppedSite(
   url: string,
   name?: string,
+  iconImage?: string,
 ): Promise<"added" | "exists" | "updated"> {
   let finish: () => void = () => undefined;
   const gate = new Promise<void>((resolve) => {
@@ -185,7 +188,7 @@ export async function addDroppedSite(
   addDroppedSiteQueue = gate;
   await previous;
   try {
-    return await addDroppedSiteNow(url, name);
+    return await addDroppedSiteNow(url, name, iconImage);
   } finally {
     finish();
   }
@@ -194,11 +197,13 @@ export async function addDroppedSite(
 async function addDroppedSiteNow(
   url: string,
   name?: string,
+  iconImage?: string,
 ): Promise<"added" | "exists" | "updated"> {
   const target = extractDroppedHttpUrl(url);
   if (!target) {
     throw new Error("http(s) 주소만 넣을 수 있습니다.");
   }
+  const picture = asLocalPngIcon(iconImage);
   const incoming = cleanDropTitle(name);
   const label = pickDroppedSiteName(target, name);
   const existing = useToolStore
@@ -220,6 +225,7 @@ async function addDroppedSiteNow(
     type: "url",
     target,
     icon: "globe",
+    ...(picture ? { iconImage: picture } : {}),
     category: "기타",
     favorite: true,
     keywords: [label, nameFromHttpUrl(target)],
@@ -319,6 +325,7 @@ interface DroppedPathInfo {
   exists: boolean;
   kind: "file" | "folder" | "app";
   name: string;
+  iconImage?: string;
 }
 
 function iconForLocalType(type: "file" | "folder" | "app"): string {
@@ -384,12 +391,14 @@ async function addDroppedPathNow(path: string): Promise<"added" | "exists" | "mi
     return "exists";
   }
   const name = info.name.trim() || "바로가기";
+  const picture = asLocalPngIcon(info.iconImage);
   await useToolStore.getState().addTool({
     id: crypto.randomUUID(),
     name,
     type,
     target: info.path,
     icon: iconForLocalType(type),
+    ...(picture ? { iconImage: picture } : {}),
     category: "기타",
     favorite: true,
     keywords: [name],

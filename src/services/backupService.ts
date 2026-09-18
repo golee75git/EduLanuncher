@@ -215,7 +215,7 @@ export function buildLauncherBackup(): LauncherBackup {
     kind: BACKUP_KIND,
     version: 1,
     exportedAt: new Date().toISOString(),
-    tools: useToolStore.getState().tools,
+    tools: useToolStore.getState().tools.map(({ iconImage: _iconImage, ...tool }) => tool),
     todos: useTodoStore.getState().todos,
     settings: useSettingsStore.getState().settings,
     memo: {
