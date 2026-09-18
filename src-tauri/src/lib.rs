@@ -774,7 +774,7 @@ fn collect_pc_urls(root: &Path, dir: &Path, depth: u32, out: &mut Vec<PcUrlItem>
         let Some(url) = parse_url_from_shortcut(&contents) else {
             continue;
         };
-        let folder = relative_folder(root, &path);
+        let folder = join_folder("Windows", &relative_folder(root, &path));
         out.push(PcUrlItem {
             name: shortcut_display_name(&path, &url),
             url,
@@ -783,15 +783,161 @@ fn collect_pc_urls(root: &Path, dir: &Path, depth: u32, out: &mut Vec<PcUrlItem>
     }
 }
 
+fn join_folder(base: &str, name: &str) -> String {
+    let trimmed = name.trim();
+    if trimmed.is_empty() {
+        return base.to_string();
+    }
+    if base.is_empty() {
+        return trimmed.chars().take(80).collect();
+    }
+    let short: String = trimmed.chars().take(60).collect();
+    format!("{base} / {short}")
+}
+
+fn map_text<'a>(map: &'a serde_json::Map<String, serde_json::Value>, key: &str) -> Option<&'a str> {
+    map.get(key)
+        .and_then(|value| value.as_str())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+}
+
+fn collect_json_urls(value: &serde_json::Value, folder: &str, out: &mut Vec<PcUrlItem>, depth: u32) {
+    if depth > 12 || out.len() >= MAX_PC_URLS {
+        return;
+    }
+    match value {
+        serde_json::Value::Array(items) => {
+            for item in items {
+                collect_json_urls(item, folder, out, depth + 1);
+            }
+        }
+        serde_json::Value::Object(map) => {
+            if map.contains_key("children") {
+                let name = map_text(map, "name").or_else(|| map_text(map, "title")).unwrap_or("");
+                let next = join_folder(folder, name);
+                if let Some(children) = map.get("children") {
+                    collect_json_urls(children, &next, out, depth + 1);
+                }
+                return;
+            }
+            if let Some(raw) = map.get("url").and_then(|item| item.as_str()) {
+                if is_http_url(raw) {
+                    let label = map_text(map, "name")
+                        .or_else(|| map_text(map, "title"))
+                        .filter(|name| {
+                            let lower = name.to_ascii_lowercase();
+                            !lower.starts_with("http") && !name.contains("://") && !lower.starts_with("www.")
+                        })
+                        .map(|name| name.chars().take(80).collect::<String>())
+                        .unwrap_or_else(|| host_label(raw));
+                    out.push(PcUrlItem {
+                        name: label,
+                        url: raw.trim().to_string(),
+                        folder: if folder.is_empty() {
+                            "바로가기".into()
+                        } else {
+                            folder.to_string()
+                        },
+                    });
+                }
+                return;
+            }
+            for nested in map.values() {
+                collect_json_urls(nested, folder, out, depth + 1);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn read_bookmark_json(path: &Path, prefix: &str, out: &mut Vec<PcUrlItem>) {
+    if out.len() >= MAX_PC_URLS {
+        return;
+    }
+    let Ok(meta) = fs::symlink_metadata(path) else {
+        return;
+    };
+    if meta.file_type().is_symlink() || !meta.is_file() || meta.len() > 2 * 1024 * 1024 {
+        return;
+    }
+    let Ok(bytes) = fs::read(path) else {
+        return;
+    };
+    let Ok(value) = serde_json::from_slice::<serde_json::Value>(&bytes) else {
+        return;
+    };
+    collect_json_urls(&value, prefix, out, 0);
+}
+
+fn collect_user_data_bookmarks(label: &str, user_data: &Path, out: &mut Vec<PcUrlItem>) {
+    if !user_data.is_dir() {
+        return;
+    }
+    let Ok(root) = fs::canonicalize(user_data) else {
+        return;
+    };
+    let Ok(entries) = fs::read_dir(&root) else {
+        return;
+    };
+    let mut profiles = 0usize;
+    for entry in entries.flatten() {
+        if profiles >= 8 || out.len() >= MAX_PC_URLS {
+            break;
+        }
+        let path = entry.path();
+        let Ok(meta) = fs::symlink_metadata(&path) else {
+            continue;
+        };
+        if meta.file_type().is_symlink() || !meta.is_dir() {
+            continue;
+        }
+        let Ok(canon) = fs::canonicalize(&path) else {
+            continue;
+        };
+        if !path_inside(&root, &canon) {
+            continue;
+        }
+        let bookmarks = canon.join("Bookmarks");
+        let Ok(file_meta) = fs::symlink_metadata(&bookmarks) else {
+            continue;
+        };
+        if file_meta.file_type().is_symlink() || !file_meta.is_file() {
+            continue;
+        }
+        if !path_inside(&root, &bookmarks) {
+            continue;
+        }
+        profiles += 1;
+        let profile = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("Default");
+        let prefix = if profile.eq_ignore_ascii_case("default") {
+            label.to_string()
+        } else {
+            format!("{label} / {profile}")
+        };
+        read_bookmark_json(&bookmarks, &prefix, out);
+    }
+}
+
 #[tauri::command]
 fn list_pc_url_shortcuts() -> Result<Vec<PcUrlItem>, String> {
-    let root = favorites_dir()?;
-    if !root.is_dir() {
-        return Ok(Vec::new());
-    }
-    let canonical = fs::canonicalize(&root).map_err(|err| err.to_string())?;
     let mut items = Vec::new();
-    collect_pc_urls(&canonical, &canonical, 0, &mut items);
+    let root = favorites_dir()?;
+    if root.is_dir() {
+        if let Ok(canonical) = fs::canonicalize(&root) {
+            collect_pc_urls(&canonical, &canonical, 0, &mut items);
+        }
+    }
+    if let Ok(local) = std::env::var("LOCALAPPDATA") {
+        if !local.is_empty() && !local.contains('\0') {
+            let base = PathBuf::from(local);
+            collect_user_data_bookmarks("Edge", &base.join("Microsoft").join("Edge").join("User Data"), &mut items);
+            collect_user_data_bookmarks("Chrome", &base.join("Google").join("Chrome").join("User Data"), &mut items);
+        }
+    }
     items.sort_by(|left, right| {
         left.folder
             .cmp(&right.folder)

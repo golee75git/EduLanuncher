@@ -215,7 +215,7 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
           >
             {scanning ? "구간 검색 중..." : "이 구간에서 응답 검색"}
           </button>
-          <RangeCheckBar active={scanning} />
+          <RangeCheckBar active={scanning} waitMs={400} plannedTotal={result?.usableHosts} />
           <p className="text-xs leading-5 text-quiet">
             이름은 DNS·컴퓨터 이름에서 가져옵니다. 종류는 이 PC, 기본 게이트웨이(공유기), 이름 규칙으로 추정하며 단정이 아닙니다.
           </p>

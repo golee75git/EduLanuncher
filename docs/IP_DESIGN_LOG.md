@@ -512,25 +512,27 @@ Difference:
 Feature: This PC internet shortcut list
 
 Purpose:
-사이트 칸에서 이 PC Windows 즐겨찾기 폴더의 인터넷 바로가기를 보고 기본 브라우저로 연다
+사이트 칸에서 이 PC에 있는 인터넷 바로가기를 보고 기본 브라우저로 연다
 
 Design source:
 내부 요구사항
 
 Implementation:
-`USERPROFILE\Favorites`만 읽음. `.url`의 `URL=` http(s)만. 깊이·개수·크기 제한. 심볼릭 링크 따라가지 않음. 파비콘·브라우저 프로필 JSON 없음. 클릭 시 opener로 열기. 선택 시에만 런처 사이트 목록에 넣기
+Windows `Favorites`의 `.url`과, 이 PC `%LOCALAPPDATA%` 아래 Edge·Chrome `User Data` 프로필의 `Bookmarks` 파일만 읽음.
+JSON에서 `url` 문자열이 http(s)인 항목과 `children` 배열만 재귀적으로 모음. 쿠키·로그인·방문 기록 파일은 열지 않음.
+파일 크기 2MB, 프로필 8개, 항목 400개, 심볼릭 링크 제외. 파비콘 없음. 클릭 시 opener. 선택 시에만 런처에 넣기
 
 External code:
 없음
 
 Potential similar products:
-브라우저 즐겨찾기 창, 탐색기 즐겨찾기 폴더
+브라우저 즐겨찾기 창
 
 Difference:
-브라우저 UI 복제 없음. Chrome/Edge Bookmarks 파일 동기화 없음. 공식 로고 복사 없음
+브라우저 UI 복제 없음. 공식 로고 복사 없음. 실시간 동기화·클라우드 계정 없음. 메뉴를 눌렀을 때만 로컬 파일 읽기
 
 PATENT_REVIEW:
-로컬 인터넷 바로가기 파일을 읽어 폴더별로 나열하고 브라우저로 여는 구성
+로컬 브라우저 북마크 파일과 인터넷 바로가기 파일을 읽어 폴더별로 나열하고 브라우저로 여는 구성
 
 ---
 
@@ -543,7 +545,7 @@ Design source:
 내부 요구사항
 
 Implementation:
-기존 ping/554 확인 루프에서 처리한 주소 수를 이벤트로 보냄. 화면은 막대·경과 초·남은 초 추정만 표시. 검색 알고리즘 변경 없음
+기존 ping/554 확인 루프에서 처리한 주소 수를 이벤트로 보냄. 화면은 막대와 예상·경과·남은 초를 표시. 시작 직후에도 구간 개수와 대기 시간으로 예상을 보여 줌. 검색 알고리즘 변경 없음
 
 External code:
 없음

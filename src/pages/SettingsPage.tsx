@@ -278,8 +278,18 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
           </p>
           <p className="mt-2 text-xs leading-5 text-quiet">
             {APP_CONFIG.appName}의 개인 설정과 바로가기 정보는 이 PC에 저장됩니다. 글꼴은 Windows 시스템 글꼴을
-            씁니다. 사이트 칸의 인터넷 즐겨찾기는 이 PC 즐겨찾기 폴더의 .url만 읽습니다.
+            씁니다.
           </p>
+        </SettingsCard>
+
+        <SettingsCard title="사용 방법">
+          <p className="text-xs leading-5 text-quiet">설치 파일 {APP_CONFIG.setupFile}</p>
+          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
+            <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다.</li>
+            <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>
+            <li>네트워크·CCTV 검색 중에는 예상·경과·남은 시간이 표시됩니다. 실제 시간과 다를 수 있습니다.</li>
+            <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다.</li>
+          </ul>
         </SettingsCard>
       </div>
     </div>

@@ -70,14 +70,14 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          이 PC의 Windows 즐겨찾기 폴더에 있는 인터넷 바로가기(.url)만 보여 줍니다. Chrome·Edge 북마크 파일은 읽지
-          않습니다. 사이트에서 그림을 받아오지 않습니다.
+          이 PC의 Edge·Chrome 북마크 파일과 Windows 즐겨찾기 폴더의 인터넷 바로가기(.url)를 보여 줍니다. 사이트에서
+          그림을 받아오지 않습니다. 로그인 정보·방문 기록은 읽지 않습니다.
         </p>
         {loading ? <p className="text-sm text-quiet">읽는 중...</p> : null}
         {error ? <p className="text-sm text-desk">{error}</p> : null}
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         {!loading && !error && items.length === 0 ? (
-          <p className="text-sm text-quiet">즐겨찾기 폴더에 인터넷 바로가기가 없습니다.</p>
+          <p className="text-sm text-quiet">주소를 찾지 못했습니다. Edge나 Chrome에 즐겨찾기가 있는지 확인하세요.</p>
         ) : null}
         {groups.map(([folder, rows]) => (
           <section key={folder} className="space-y-1">

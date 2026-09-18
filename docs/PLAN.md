@@ -14,8 +14,8 @@
 
 ## 2026-09-19에 넣은 것
 
-- 사이트 칸 「인터넷 즐겨찾기」: 이 PC `Favorites`의 `.url`만 표시
-- 네트워크·CCTV 검색 중 처리 개수·경과 시간 막대
+- 사이트 칸 「인터넷 즐겨찾기」: 이 PC Edge·Chrome `Bookmarks`와 Windows `Favorites`의 `.url`
+- 네트워크·CCTV 검색 시작부터 예상·경과·남은 시간
 
 ## 다음 후보 (우선 낮은 것부터)
 

@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RangeCheckBar } from "../components/RangeCheckBar";
 import { calculateIpv4Range } from "../services/ipv4Math";
 import {
@@ -20,6 +20,13 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
   const [error, setError] = useState("");
   const [scanning, setScanning] = useState(false);
   const [didScan, setDidScan] = useState(false);
+  const plannedTotal = useMemo(() => {
+    const source = localAddresses[0];
+    if (!source) {
+      return 0;
+    }
+    return calculateIpv4Range(source.ip, source.mask || "24")?.usableHosts ?? 0;
+  }, [localAddresses]);
 
   const runScan = async (adapters: LocalAddress[]) => {
     const source = adapters[0];
@@ -98,7 +105,7 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
         >
           {scanning ? "검색 중..." : "다시 검색"}
         </button>
-        <RangeCheckBar active={scanning} />
+        <RangeCheckBar active={scanning} waitMs={700} plannedTotal={plannedTotal} />
         {error ? <p className="text-sm text-desk">{error}</p> : null}
         {!scanning && didScan && hits.length === 0 && !error ? (
           <p className="text-sm text-quiet">
