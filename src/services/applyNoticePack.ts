@@ -1,3 +1,4 @@
+import { applyLauncherBackup, isLauncherBackup, parseLauncherBackup } from "./backupService";
 import { parseNoticePack, readJsonFile } from "./noticePackService";
 import { describePackApply, parseLauncherPack } from "./launcherPackService";
 import { useNoticeStore } from "../stores/noticeStore";
@@ -37,6 +38,9 @@ export async function applyPackFromPath(path: string): Promise<string> {
 async function applyParsedPack(parsed: unknown): Promise<string> {
   if (!parsed || typeof parsed !== "object") {
     throw new Error("Pack 형식이 올바르지 않습니다.");
+  }
+  if (isLauncherBackup(parsed)) {
+    return applyLauncherBackup(parseLauncherBackup(parsed));
   }
   const source = parsed as Record<string, unknown>;
   if (Array.isArray(source.notices)) {

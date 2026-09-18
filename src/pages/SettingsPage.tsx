@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { APP_CONFIG } from "../config/app";
 import { applyPackFromPath } from "../services/applyNoticePack";
+import { applyLauncherBackup, buildLauncherBackup, parseLauncherBackup } from "../services/backupService";
 import { buildLauncherPack, describePackApply } from "../services/launcherPackService";
 import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/noticePackService";
 import { useNoticeStore } from "../stores/noticeStore";
@@ -24,6 +25,7 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
   const replaceFromPack = useNoticeStore((state) => state.replaceFromPack);
   const [packMessage, setPackMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
+  const [backupMessage, setBackupMessage] = useState("");
 
   return (
     <div className="flex h-full flex-col bg-paper">
@@ -205,6 +207,68 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
           <p className="mt-1 text-xs leading-5 text-quiet">
             향후 오늘 업무 건수와 빠른 실행 버튼을 바탕화면에 표시할 예정입니다.
           </p>
+        </SettingsCard>
+
+        <SettingsCard title="다른 PC로 옮기기">
+          <p className="text-xs leading-5 text-quiet">
+            바로가기, 공지, 메모, 할 일, 표시 설정을 파일로 저장합니다. 프로그램·파일 자체는 복사하지 않습니다.
+            새 PC에 런처를 설치한 뒤 이 파일을 가져오면 됩니다.
+          </p>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              void (async () => {
+                try {
+                  const selected = await save({
+                    defaultPath: "edulauncher-backup.json",
+                    filters: [{ name: "JSON", extensions: ["json"] }],
+                  });
+                  if (typeof selected !== "string") {
+                    return;
+                  }
+                  const path = /\.json$/i.test(selected) ? selected : `${selected}.json`;
+                  const backup = buildLauncherBackup();
+                  await writeJsonFile(path, `${JSON.stringify(backup, null, 2)}\n`);
+                  setBackupMessage("백업 파일을 저장했습니다.");
+                } catch (error) {
+                  setBackupMessage(error instanceof Error ? error.message : "저장하지 못했습니다.");
+                }
+              })();
+            }}
+          >
+            백업 저장
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              void (async () => {
+                try {
+                  const selected = await open({
+                    multiple: false,
+                    filters: [{ name: "JSON", extensions: ["json"] }],
+                  });
+                  if (typeof selected !== "string") {
+                    return;
+                  }
+                  const text = await readJsonFile(selected);
+                  if (text.length > 512 * 1024) {
+                    throw new Error("파일이 너무 큽니다.");
+                  }
+                  const parsed = JSON.parse(text) as unknown;
+                  setBackupMessage(await applyLauncherBackup(parseLauncherBackup(parsed)));
+                } catch (error) {
+                  setBackupMessage(
+                    error instanceof Error ? error.message : "백업을 가져오지 못했습니다.",
+                  );
+                }
+              })();
+            }}
+          >
+            백업 가져오기
+          </button>
+          {backupMessage ? <p className="text-xs text-quiet">{backupMessage}</p> : null}
         </SettingsCard>
 
         <SettingsCard title="프로그램 정보">

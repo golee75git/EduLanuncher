@@ -371,6 +371,28 @@ Difference:
 
 ---
 
+Feature: Local backup for another PC
+
+Purpose:
+이 PC의 바로가기·공지·메모·할 일·표시 설정을 파일로 옮겨 새 PC에서 이어쓰기 위함
+
+Design source:
+내부 요구사항
+
+Implementation:
+설정에서 JSON 내보내기/가져오기. 기존 파일 대화상자·read/write_json_file만 사용. 프로그램·파일 복사는 하지 않음. Pack과 구분하는 kind 필드
+
+External code:
+없음
+
+Potential similar products:
+브라우저 북마크보내기, 앱 설정보내기 일반
+
+Difference:
+클라우드 동기화·프로필 로밍 없음. URL과 설정만 옮기고 로컬 경로는 안내만 함
+
+---
+
 Feature: Home notice board rows
 
 Purpose:
