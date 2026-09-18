@@ -46,6 +46,7 @@ export function ToolGroupPage({ groupType, onBack, onLaunch, onEdit }: ToolGroup
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <FavoriteGrid
           tools={items}
+          layout={groupType === "url" ? "grid" : "list"}
           emptyText="이 종류의 도구가 없습니다. + 버튼으로 추가하세요."
           onLaunch={onLaunch}
           onFavorite={(tool) => void toggleFavorite(tool.id)}

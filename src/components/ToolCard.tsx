@@ -1,12 +1,13 @@
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getToolIcon } from "../data/toolIcons";
-import { toolOriginLabel, type ToolItem } from "../types/tool";
+import { toolOriginLabel, toolTargetHint, type ToolItem } from "../types/tool";
 
 interface ToolCardProps {
   tool: ToolItem;
   selected?: boolean;
   compact?: boolean;
+  layout?: "tile" | "row";
   onLaunch: (tool: ToolItem) => void;
   onFavorite: (tool: ToolItem) => void;
   onEdit: (tool: ToolItem) => void;
@@ -17,6 +18,7 @@ export function ToolCard({
   tool,
   selected = false,
   compact = false,
+  layout = "tile",
   onLaunch,
   onFavorite,
   onEdit,
@@ -25,6 +27,10 @@ export function ToolCard({
   const Icon = getToolIcon(tool.icon);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const isRow = layout === "row";
+  const hint = toolTargetHint(tool);
+  const origin = toolOriginLabel(tool);
+  const subtitle = hint ? `${hint} · ${origin}` : origin;
 
   useEffect(() => {
     if (!menuOpen) {
@@ -42,6 +48,8 @@ export function ToolCard({
   return (
     <div
       className={`group relative rounded-xl border p-2 text-left transition-all duration-150 ${
+        isRow ? "p-1.5" : ""
+      } ${
         selected
           ? "border-ink/40 bg-ink-soft shadow-card ring-1 ring-inset ring-ink/20"
           : "border-line/70 bg-card shadow-card hover:-translate-y-0.5 hover:border-ink/30 hover:shadow-pop"
@@ -53,7 +61,8 @@ export function ToolCard({
     >
       <button
         type="button"
-        className="flex w-full items-center gap-2 pr-5 text-left"
+        className={`flex w-full items-center gap-2 pr-5 text-left ${isRow ? "min-h-9" : ""}`}
+        title={tool.target}
         onClick={() => onLaunch(tool)}
       >
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ink-soft text-ink transition-colors duration-150 group-hover:bg-ink group-hover:text-white">
@@ -61,8 +70,8 @@ export function ToolCard({
         </span>
         <span className="min-w-0">
           <span className="block truncate text-[13px] font-medium text-desk">{tool.name}</span>
-          <span className="mt-0.5 block truncate text-[10px] text-quiet">{toolOriginLabel(tool)}</span>
-          {!compact && tool.description ? (
+          <span className="mt-0.5 block truncate text-[10px] text-quiet">{isRow ? subtitle : origin}</span>
+          {!compact && !isRow && tool.description ? (
             <span className="mt-0.5 line-clamp-1 text-[11px] text-quiet">{tool.description}</span>
           ) : null}
         </span>

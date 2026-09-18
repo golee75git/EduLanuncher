@@ -227,6 +227,7 @@ export function HomePage({ onAction }: HomePageProps) {
                     </div>
                     <FavoriteGrid
                       tools={group.shown}
+                      layout={group.type === "url" ? "grid" : "list"}
                       selectedId={selectedId?.startsWith("fav:") ? selectedId.slice(4) : undefined}
                       onLaunch={(tool) => onAction({ type: "launch", tool })}
                       onFavorite={(tool) => void toggleFavorite(tool.id)}

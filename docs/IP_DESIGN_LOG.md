@@ -393,6 +393,28 @@ Difference:
 
 ---
 
+Feature: Local path tools as list rows
+
+Purpose:
+프로그램·파일·폴더·업무도구를 좁은 3칸 카드 대신 한 줄로 읽어 구분하기 위함
+
+Design source:
+내부 요구사항
+
+Implementation:
+사이트만 3칸 유지. 나머지는 이름+파일명(경로 끝)+Pack/이 PC. 전체 경로는 title만. 시작 메뉴형 큰 아이콘 격자 없음
+
+External code:
+없음
+
+Potential similar products:
+파일 목록, 바로가기 목록
+
+Difference:
+시작 메뉴·탐색기 타일 복제 없음. 홈 3개 제한과 기존 카드 메뉴 유지
+
+---
+
 Feature: Home notice board rows
 
 Purpose:
