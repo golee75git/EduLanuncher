@@ -12,6 +12,7 @@ import { MemoPage } from "./pages/MemoPage";
 import { NetworkToolPage } from "./pages/NetworkToolPage";
 import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { ComputerToolPage } from "./pages/ComputerToolPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
@@ -34,6 +35,7 @@ type View =
   | { name: "notice-edit" }
   | { name: "tool-group"; groupType: ToolType }
   | { name: "pc-urls" }
+  | { name: "computer-tools" }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
   | { name: "memo" }
   | { name: "internal"; id: string; title: string };
@@ -274,6 +276,10 @@ export default function App() {
       setView({ name: "pc-urls" });
       return;
     }
+    if (action.type === "computer-tools") {
+      setView({ name: "computer-tools" });
+      return;
+    }
     if (action.type === "internal") {
       setView({ name: "internal", id: action.id, title: action.title });
       return;
@@ -322,6 +328,7 @@ export default function App() {
               onBack={() => setView({ name: "home" })}
               onLaunch={(tool) => void handleLaunch(tool)}
               onPcUrls={() => setView({ name: "pc-urls" })}
+              onComputerTools={() => setView({ name: "computer-tools" })}
               onEdit={(tool, createType) =>
                 setView({
                   name: "tool-edit",
@@ -333,6 +340,12 @@ export default function App() {
             />
           ) : null}
           {view.name === "pc-urls" ? <PcUrlListPage onBack={() => setView({ name: "home" })} /> : null}
+          {view.name === "computer-tools" ? (
+            <ComputerToolPage
+              onBack={() => setView({ name: "home" })}
+              onLaunch={(tool) => void handleLaunch(tool)}
+            />
+          ) : null}
           {view.name === "tool-edit" ? (
             <ToolEditPage
               tool={view.tool}

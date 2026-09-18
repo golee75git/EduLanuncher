@@ -24,6 +24,7 @@ export type HomeAction =
   | { type: "edit"; tool?: ToolItem; createType?: ToolType }
   | { type: "group"; groupType: ToolType }
   | { type: "pc-urls" }
+  | { type: "computer-tools" }
   | { type: "internal"; id: string; title: string }
   | { type: "settings" };
 
@@ -217,6 +218,15 @@ export function HomePage({ onAction }: HomePageProps) {
                           onClick={() => onAction({ type: "pc-urls" })}
                         >
                           인터넷 즐겨찾기
+                        </button>
+                      ) : null}
+                      {group.type === "internal" ? (
+                        <button
+                          type="button"
+                          className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+                          onClick={() => onAction({ type: "computer-tools" })}
+                        >
+                          컴퓨터도구
                         </button>
                       ) : null}
                       <button

@@ -287,6 +287,7 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
             <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>
+            <li>업무도구 칸의 컴퓨터도구는 이 PC Windows 설정 화면만 엽니다. 원할 때만 런처에 추가합니다.</li>
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다.</li>
           </ul>

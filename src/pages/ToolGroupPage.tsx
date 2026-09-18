@@ -11,9 +11,17 @@ interface ToolGroupPageProps {
   onLaunch: (tool: ToolItem) => void;
   onEdit: (tool?: ToolItem, createType?: ToolType) => void;
   onPcUrls?: () => void;
+  onComputerTools?: () => void;
 }
 
-export function ToolGroupPage({ groupType, onBack, onLaunch, onEdit, onPcUrls }: ToolGroupPageProps) {
+export function ToolGroupPage({
+  groupType,
+  onBack,
+  onLaunch,
+  onEdit,
+  onPcUrls,
+  onComputerTools,
+}: ToolGroupPageProps) {
   const tools = useToolStore((state) => state.tools);
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
   const removeTool = useToolStore((state) => state.removeTool);
@@ -42,6 +50,15 @@ export function ToolGroupPage({ groupType, onBack, onLaunch, onEdit, onPcUrls }:
             onClick={onPcUrls}
           >
             인터넷 즐겨찾기
+          </button>
+        ) : null}
+        {groupType === "internal" && onComputerTools ? (
+          <button
+            type="button"
+            className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+            onClick={onComputerTools}
+          >
+            컴퓨터도구
           </button>
         ) : null}
         <button

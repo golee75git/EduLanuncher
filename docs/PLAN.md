@@ -16,6 +16,7 @@
 
 - 사이트 칸 「인터넷 즐겨찾기」: 이 PC Edge·Chrome `Bookmarks`와 Windows `Favorites`의 `.url`
 - 네트워크·CCTV 검색 시작부터 예상·경과·남은 시간, 검색 중 중지
+- 업무도구 칸 「컴퓨터도구」: 이 PC `System32`의 고정 파일만 열어 이름 바꾸기 등 Windows 설정 화면을 연다. 홈 칸을 늘리지 않음
 
 ## 다음 후보 (우선 낮은 것부터)
 

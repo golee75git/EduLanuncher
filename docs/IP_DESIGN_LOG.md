@@ -584,3 +584,28 @@ Difference:
 PATENT_REVIEW:
 구간 확인 작업을 사용자 요청으로 중단하는 구성
 
+---
+
+Feature: Computer tools list
+
+Purpose:
+학교 전산에서 자주 여는 Windows 설정 화면(컴퓨터 이름 등)을 업무도구 옆에서 바로 열기 위함
+
+Design source:
+내부 요구사항. 홈 칸을 늘리지 않고 업무도구 옆에 목록을 둠
+
+Implementation:
+고정된 `C:\Windows\System32` 파일명만 허용. 기존 `launch_tool`로 exe는 프로그램, cpl/msc는 파일로 연다. 선택 시에만 런처 목록에 추가. 새 도구 유형 없음. 인자·스크립트·ms-settings URL 없음
+
+External code:
+없음
+
+Potential similar products:
+제어판, 설정 앱, 시스템 유틸리티 모음
+
+Difference:
+Windows 설정 앱·제어판 화면을 복제하지 않음. 시작 메뉴형 앱 격자 없음. 이 PC 파일만 열고 이름을 대신 바꾸지 않음
+
+PATENT_REVIEW:
+운영체제 설정 화면을 고정 경로로 열어 주는 구성
+

@@ -3,7 +3,7 @@ export const SITE_CONFIG = {
   displayName: "교육업무 런처",
   githubRepo: "https://github.com/golee75git/EduLanuncher",
   releasesUrl: "https://github.com/golee75git/EduLanuncher/releases/latest",
-  setupFile: "EduLauncher_0.1.24-20260919_x64-setup.exe",
+  setupFile: "EduLauncher_0.1.25-20260919_x64-setup.exe",
   setupFileDated: "EduLauncher_2026-09-19_x64-setup.exe",
 } as const;
 

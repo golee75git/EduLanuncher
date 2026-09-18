@@ -6,6 +6,41 @@
 ---
 
 날짜: 2026-09-19
+버전: 0.1.25-20260919
+설치 파일: EduLauncher_0.1.25-20260919_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe
+
+한 일
+- 업무도구 칸에 컴퓨터도구 목록을 둠. 컴퓨터 이름 바꾸기 등 이 PC Windows 설정 화면만 연다.
+- 홈 칸을 늘리지 않음. 새 도구 유형 없음. 고정된 System32 파일만 실행.
+- 원할 때만 런처 프로그램·파일 칸에 추가.
+- 설정 사용 방법에 한 줄 안내. 설치 파일명 갱신.
+- 시스템 글꼴 유지. 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- src/data/computerTools.ts
+- src/pages/ComputerToolPage.tsx
+
+재사용한 기존 파일
+- src/App.tsx
+- src/pages/HomePage.tsx
+- src/pages/ToolGroupPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/pages/IntroPage.tsx
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: System32 아래 허용 파일명만. 사용자 입력 경로 없음. 이름 변경·권한 상승을 앱이 수행하지 않음.
+특허 검토 대상: 운영체제 설정 화면을 고정 경로로 열어 주는 구성. 청구항 대조 없음.
+
+---
+
+날짜: 2026-09-19
 버전: 0.1.24-20260919
 설치 파일: EduLauncher_0.1.24-20260919_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe
