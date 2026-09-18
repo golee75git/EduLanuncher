@@ -457,3 +457,28 @@ Potential similar products:
 Difference:
 특정 교육청·나이스 게시판 HTML/CSS 복제 없음. Pack으로 넣은 제목·날짜만 표시
 
+---
+
+Feature: List row overflow menu stacking
+
+Purpose:
+목록 오른쪽 점세개 메뉴가 아래 줄에 가리지 않게 함
+
+Design source:
+내부 요구사항. 기존 ToolCard 메뉴 유지
+
+Implementation:
+메뉴가 열린 카드만 z-index를 올리고 호버 이동을 끈다.
+스크롤 아래쪽이면 같은 메뉴를 위로 연다.
+새 컴포넌트·외부 메뉴 라이브러리 없음
+
+External code:
+없음
+
+Potential similar products:
+목록 행 부가 메뉴 일반
+
+Difference:
+시작 메뉴·탐색기·타 런처 액션 패널 복제 없음.
+기존 네 항목 한글 메뉴만 같은 카드 스타일로 표시
+

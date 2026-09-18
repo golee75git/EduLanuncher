@@ -1,5 +1,5 @@
 import { MoreHorizontal } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getToolIcon } from "../data/toolIcons";
 import { toolOriginLabel, toolTargetHint, type ToolItem } from "../types/tool";
 
@@ -26,18 +26,45 @@ export function ToolCard({
 }: ToolCardProps) {
   const Icon = getToolIcon(tool.icon);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuUp, setMenuUp] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const isRow = layout === "row";
   const hint = toolTargetHint(tool);
   const origin = toolOriginLabel(tool);
   const subtitle = hint ? `${hint} · ${origin}` : origin;
+
+  useLayoutEffect(() => {
+    if (!menuOpen) {
+      setMenuUp(false);
+      return;
+    }
+    const card = cardRef.current;
+    if (!card) {
+      return;
+    }
+    let parent: HTMLElement | null = card.parentElement;
+    while (parent) {
+      const overflowY = getComputedStyle(parent).overflowY;
+      if (overflowY === "auto" || overflowY === "scroll") {
+        break;
+      }
+      parent = parent.parentElement;
+    }
+    const bounds = (parent ?? document.documentElement).getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const menuSpace = 148;
+    const overflowsBottom = cardRect.bottom + menuSpace > bounds.bottom;
+    const fitsAbove = cardRect.top - menuSpace >= bounds.top;
+    setMenuUp(overflowsBottom && fitsAbove);
+  }, [menuOpen]);
 
   useEffect(() => {
     if (!menuOpen) {
       return;
     }
     const onPointer = (event: MouseEvent) => {
-      if (!menuRef.current?.contains(event.target as Node)) {
+      if (!cardRef.current?.contains(event.target as Node)) {
         setMenuOpen(false);
       }
     };
@@ -47,12 +74,15 @@ export function ToolCard({
 
   return (
     <div
+      ref={cardRef}
       className={`group relative rounded-xl border p-2 text-left transition-all duration-150 ${
         isRow ? "p-1.5" : ""
-      } ${
+      } ${menuOpen ? "z-30" : ""} ${
         selected
           ? "border-ink/40 bg-ink-soft shadow-card ring-1 ring-inset ring-ink/20"
-          : "border-line/70 bg-card shadow-card hover:-translate-y-0.5 hover:border-ink/30 hover:shadow-pop"
+          : `border-line/70 bg-card shadow-card hover:border-ink/30 hover:shadow-pop ${
+              menuOpen ? "" : "hover:-translate-y-0.5"
+            }`
       }`}
       onContextMenu={(event) => {
         event.preventDefault();
@@ -90,7 +120,9 @@ export function ToolCard({
       {menuOpen ? (
         <div
           ref={menuRef}
-          className="card-surface absolute right-1 top-8 z-20 min-w-28 overflow-hidden py-1 text-sm shadow-pop"
+          className={`card-surface absolute right-1 z-20 min-w-28 overflow-hidden py-1 text-sm shadow-pop ${
+            menuUp ? "bottom-8" : "top-8"
+          }`}
         >
           <button className="block w-full px-3 py-1.5 text-left transition-colors duration-150 hover:bg-ink-soft/60" onClick={() => onLaunch(tool)}>
             실행
