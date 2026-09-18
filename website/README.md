@@ -27,4 +27,4 @@ Workers & Pages → Create → Pages → Connect to Git → `golee75git/EduLanun
 
 설치 파일(.exe)은 Pages에 넣지 않습니다. 다운로드 버튼은 GitHub Releases를 엽니다.
 
-`wrangler.jsonc`의 출력 폴더는 `dist`입니다. 대시보드 Root directory를 `website`로 두면 이 파일이 빌드 설정과 맞습니다.
+`wrangler.jsonc`의 `name`은 Cloudflare 프로젝트 이름 `edulanuncher`와 같고, 출력 폴더는 `./dist`입니다. 대시보드 Root directory를 `website`로 두면 이 파일이 빌드 설정과 맞습니다.
