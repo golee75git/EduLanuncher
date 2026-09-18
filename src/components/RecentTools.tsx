@@ -26,11 +26,13 @@ export function RecentTools({ tools, query = "", selectedId, onLaunch }: RecentT
               onClick={() => onLaunch(tool)}
               className={`desk-row gap-2 ${selected ? "desk-row-active" : ""}`}
             >
-              <ToolGlyph
-                icon={tool.icon}
-                iconImage={tool.iconImage}
-                className="h-4 w-4 shrink-0 text-quiet"
-              />
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                <ToolGlyph
+                  icon={tool.icon}
+                  iconImage={tool.iconImage}
+                  className="h-4 w-4 text-quiet"
+                />
+              </span>
               <span className="min-w-0 flex-1 truncate">
                 <HighlightText text={tool.name} query={query} />
               </span>

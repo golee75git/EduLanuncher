@@ -280,11 +280,13 @@ export function HomePage({ onAction }: HomePageProps) {
                       selectedId === `tool:${hit.item.id}` ? "desk-row-active" : ""
                     }`}
                   >
-                    <ToolGlyph
-                      icon={hit.item.icon}
-                      iconImage={hit.item.iconImage}
-                      className="h-4 w-4 text-quiet"
-                    />
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                      <ToolGlyph
+                        icon={hit.item.icon}
+                        iconImage={hit.item.iconImage}
+                        className="h-4 w-4 text-quiet"
+                      />
+                    </span>
                     <span className="min-w-0 flex-1 truncate">
                       <HighlightText text={hit.item.name} query={query} />
                     </span>

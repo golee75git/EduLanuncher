@@ -1,9 +1,9 @@
 # HANDOFF — 다른 PC·다른 Cursor에서 이어가기
 
-기준일: 2026-09-18  
+기준일: 2026-09-19  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.20-20260918`
+최신 커밋 시점의 앱 버전: `0.1.21-20260919`
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 
@@ -84,7 +84,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - Pack vs 이 PC 표시, 홈 그룹 3개+모두(바로가기만)
 - 다른 PC용 백업 JSON (설정 화면)
 - git 연결, Cloudflare Workers 정적 사이트 (`website/`)
-- GitHub Release에 `0.1.20` 설치파일 업로드
+- GitHub Release에 `0.1.21` 설치파일 업로드
 
 ## 알려진 미완
 

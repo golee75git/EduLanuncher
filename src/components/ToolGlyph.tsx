@@ -11,7 +11,9 @@ export function ToolGlyph({
 }) {
   const image = asLocalPngIcon(iconImage);
   if (image) {
-    return <img src={image} alt="" className={`${className ?? ""} object-contain`} draggable={false} />;
+    return (
+      <img src={image} alt="" className="h-full w-full object-contain" draggable={false} />
+    );
   }
   const Icon = getToolIcon(icon);
   return <Icon className={className} />;
