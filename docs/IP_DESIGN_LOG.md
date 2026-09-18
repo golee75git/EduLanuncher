@@ -349,6 +349,28 @@ Difference:
 
 ---
 
+Feature: Cloudflare Pages product site
+
+Purpose:
+제품 소개, 웹 화면 미리보기, 데스크톱 설치 안내를 정적 사이트로 두기 위함
+
+Design source:
+내부 요구사항. 호스팅은 Cloudflare Pages 문서의 Git 연결·정적 dist 배포
+
+Implementation:
+website/ 별도 Vite+React. 소개·미리보기·다운로드 세 경로. 미리보기는 정적 목업. 설치파일은 GitHub Releases 링크
+
+External code:
+없음. Pages 설정값만 문서화
+
+Potential similar products:
+제품 랜딩 + 다운로드 페이지 일반
+
+Difference:
+타사 런처 스토어·랜딩 레이아웃 복제 없음. 웹은 실행기가 아님을 명시
+
+---
+
 Feature: Home notice board rows
 
 Purpose:
