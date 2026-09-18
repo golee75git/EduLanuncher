@@ -415,6 +415,28 @@ Difference:
 
 ---
 
+Feature: Folder drop path recovery
+
+Purpose:
+탐색기에서 폴더를 놓아도 바로가기에 안 들어가던 문제를 줄이기 위함
+
+Design source:
+내부 요구사항. HTML5는 폴더에 File.path가 없고, OLE 훅이 WebView 재생성 후 빠질 수 있음
+
+Implementation:
+file:// 여러 줄 경로 수집. 패널을 열 때와 시작 후 몇 차례 IDropTarget을 다시 붙임. 폴더 내용을 복사하지 않음
+
+External code:
+없음
+
+Potential similar products:
+파일 끌어놓기 일반
+
+Difference:
+폴더 내용을 런처로 복사하지 않고 경로 바로가기만 추가
+
+---
+
 Feature: Home notice board rows
 
 Purpose:

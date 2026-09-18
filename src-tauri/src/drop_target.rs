@@ -217,13 +217,16 @@ pub fn install(window: &WebviewWindow, app: &AppHandle) -> Result<(), String> {
 }
 
 pub fn install_later(app: AppHandle) {
-    std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(800));
-        let handle = app.clone();
-        let _ = handle.run_on_main_thread(move || {
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = install(&window, &app);
-            }
+    for delay_ms in [800_u64, 2500, 6000] {
+        let app = app.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(delay_ms));
+            let handle = app.clone();
+            let _ = handle.run_on_main_thread(move || {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = install(&window, &app);
+                }
+            });
         });
-    });
+    }
 }

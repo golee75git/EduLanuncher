@@ -294,6 +294,17 @@ export function extractDroppedLocalPath(raw: string): string | null {
   return null;
 }
 
+export function extractDroppedLocalPaths(raw: string): string[] {
+  const paths: string[] = [];
+  for (const line of raw.replace(/^\uFEFF/, "").split(/\r?\n/)) {
+    const path = extractDroppedLocalPath(line);
+    if (path && !paths.some((item) => sameLocalPath(item, path))) {
+      paths.push(path);
+    }
+  }
+  return paths;
+}
+
 export const DROP_PATH_LIMIT = 10;
 
 export interface DroppedPathSummary {

@@ -6,7 +6,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { isPackPath } from "../services/applyNoticePack";
 import {
   droppedFilePath,
-  extractDroppedLocalPath,
+  extractDroppedLocalPaths,
   httpUrlFromDataTransfer,
   isDroppableDrag,
   isUrlShortcutPath,
@@ -162,12 +162,16 @@ export function DropZone({
           handled = true;
         }
       }
-      if (localPaths.length === 0) {
-        const listed = extractDroppedLocalPath(
-          transfer.getData("text/uri-list") || transfer.getData("text/plain") || "",
-        );
-        if (listed) {
-          localPaths.push(listed);
+      const listed = extractDroppedLocalPaths(
+        [
+          transfer.getData("text/uri-list"),
+          transfer.getData("text/plain"),
+          transfer.getData("text/x-moz-url"),
+        ].join("\n"),
+      );
+      for (const listedPath of listed) {
+        if (!localPaths.some((item) => normalizeLocalPathKey(item) === normalizeLocalPathKey(listedPath))) {
+          localPaths.push(listedPath);
           handled = true;
         }
       }

@@ -56,6 +56,10 @@ fn reveal_panel(app: &AppHandle) {
         let _ = window.show();
         let _ = window.set_focus();
         let _ = window.emit("focus-search", ());
+        #[cfg(windows)]
+        {
+            let _ = drop_target::install(&window, app);
+        }
     }
 }
 
