@@ -22,7 +22,7 @@ Frontend-only (no Rust) commands:
 - `npm run build` — `tsc` (typecheck, `noEmit`) then `vite build` to `dist/`
 - `npm run preview` — preview the built frontend
 
-There is no lint script, no test script/framework, and this directory is **not a git repository** (no `.git`).
+There is no lint script and no test script/framework. Git remote is `https://github.com/golee75git/EduLanuncher.git` (`main`). Continue work from `docs/HANDOFF.md`, `docs/PRD.md`, `docs/PLAN.md`.
 
 ### Rebuilding the installer after a change
 
@@ -52,7 +52,8 @@ Pure frontend tweaks visible in `tauri-env.cmd dev` don't need this.
 
 ### The "Pack" system
 
-Packs are the extensibility/distribution mechanism: JSON (or `.edupack`, same format, registered as a Windows file association) files a user can drop onto the app or double-click to import. Two kinds, disambiguated by top-level shape in `applyNoticePack.ts`:
+Packs are the extensibility/distribution mechanism: JSON (or `.edupack`, same format, registered as a Windows file association) files a user can drop onto the app or double-click to import. Three kinds, disambiguated in `applyNoticePack.ts`:
+- **Backup** (`{ kind: "edulauncher-backup" }`) — full local lists for another PC, parsed by `backupService`.
 - **Notice pack** (`{ notices: [...] }`) — org/common alert notices, parsed by `noticePackService.parseNoticePack`, applied via `noticeStore.replaceFromPack`.
 - **Launcher pack** (`{ tools: [...] }`) — shortcuts/sites, parsed by `launcherPackService.parseLauncherPack`, merged via `toolStore.applyLauncherPack` (add-or-update by id, tracks `added`/`updated` counts, tags imported tools with `origin: "pack"` and `packName`).
 

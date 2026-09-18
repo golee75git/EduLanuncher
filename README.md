@@ -24,6 +24,20 @@ npm run tauri dev
 tauri-env.cmd build
 ```
 
-설치 파일:
+설치 파일은 git에 넣지 않습니다. 받은 위치:
 
-`src-tauri/target/release/bundle/nsis/EduLauncher_0.1.0_x64-setup.exe`
+- 빌드 후: `src-tauri/target/release/bundle/nsis/`
+- 배포: [GitHub Releases](https://github.com/golee75git/EduLanuncher/releases/latest)
+
+## 문서 (다른 PC에서 이어서)
+
+- [docs/HANDOFF.md](docs/HANDOFF.md) — 환경, 명령, Cloudflare, 미완
+- [docs/PRD.md](docs/PRD.md) — 제품 요구
+- [docs/PLAN.md](docs/PLAN.md) — 다음 작업
+- [AGENTS.md](AGENTS.md) — Cursor가 여는 안내
+
+Cursor는 이 폴더를 Open Folder 하면 `AGENTS.md`와 `.cursor/rules/`를 읽습니다. 채팅에 `@docs/HANDOFF.md`를 붙이면 됩니다.
+
+## 웹 소개 사이트
+
+`website/` — Cloudflare. 설명은 [website/README.md](website/README.md).

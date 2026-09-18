@@ -1,0 +1,16 @@
+---
+description: Load project handoff docs in every Cursor session
+alwaysApply: true
+---
+
+# Continue from git docs
+
+This repo is EduLauncher. Another machine or Cursor window should use git, not old chat logs.
+
+Read before changing behavior:
+
+- `docs/HANDOFF.md`
+- `docs/PRD.md`
+- `docs/PLAN.md`
+
+Minimal diffs. Korean UI. No third-party launcher clones. No installer binaries in git. Rebuild NSIS when the installed exe cannot pick up the change. Cloudflare site lives in `website/` only.

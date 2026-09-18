@@ -1,0 +1,37 @@
+# PLAN — 이어서 할 일
+
+기준일: 2026-09-18  
+완료된 큰 줄기는 `docs/HANDOFF.md`.
+
+## 원칙 (모든 작업)
+
+- 최소수정. 다른 기능은 그대로
+- UI 문자열·커밋 메시지는 한국어
+- 독립 UI. 타 런처 복제 없음
+- 저작권·특허 이슈를 피하려면 로고 복사·게시판 스크랩·시스템 자동연동을 넣지 않음
+- 새 기능은 `docs/IP_DESIGN_LOG.md` 항목 추가
+- 설치본이 받아야 하는 변경이면 버전 `0.1.x-YYYYMMDD` 올리고 `.\tauri-env.cmd build` 후 GitHub Releases에 `.exe` 업로드
+
+## 다음 후보 (우선 낮은 것부터)
+
+1. **시작 시 검은 콘솔**  
+   `.edupack` 연결용 `reg.exe`가 창을 띄움. `CREATE_NO_WINDOW`로 숨기기. Rust (`src-tauri/src/lib.rs`) + 설치본 재빌드.
+
+2. **기관 공지·공통 알림 「모두」**  
+   바로가기 그룹처럼 홈 3건 + 모두 → 목록 페이지. `NoticeList`는 아직 3건만 자른다. Ask에서 하기로 했으나 미구현.
+
+3. **바탕화면 미니 위젯**  
+   설정에 「준비 중」만 있음. 요청 오기 전에는 손대지 않음.
+
+4. **설치파일 자동 릴리스**  
+   지금은 로컬 빌드 후 `gh release`로 수동 업로드. GitHub Actions(Windows runner + VS)는 선택.
+
+5. **웹 미리보기**  
+   실제 런처를 브라우저에 이식하지 않음. 목업 유지.
+
+## 하지 말 것
+
+- `src-tauri/target`, `node_modules`, `.exe`를 git에 넣기
+- Cloudflare Pages에 설치파일 올리기
+- Root directory 없이 저장소 루트를 웹으로 빌드하기 (런처 UI가 웹에 올라감)
+- `_redirects`의 `/* → /index.html` (Workers SPA와 루프)
