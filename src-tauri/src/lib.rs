@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 
 use serde::Serialize;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
@@ -27,6 +28,8 @@ struct PanelState {
 }
 
 struct StartupPacks(Mutex<Vec<String>>);
+
+struct RangeHalt(Arc<AtomicBool>);
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -676,13 +679,30 @@ fn lookup_public_ipv4() -> Result<String, String> {
 }
 
 #[tauri::command]
-fn scan_ipv4_range(app: AppHandle, start: String, end: String) -> Result<Vec<netutil::HostHit>, String> {
-    netutil::scan_ipv4_range(&app, &start, &end)
+fn scan_ipv4_range(
+    app: AppHandle,
+    halt: tauri::State<RangeHalt>,
+    start: String,
+    end: String,
+) -> Result<Vec<netutil::HostHit>, String> {
+    halt.0.store(false, Ordering::SeqCst);
+    netutil::scan_ipv4_range(&app, &halt.0, &start, &end)
 }
 
 #[tauri::command]
-fn scan_cctv_range(app: AppHandle, start: String, end: String) -> Result<Vec<netutil::HostHit>, String> {
-    netutil::scan_cctv_range(&app, &start, &end)
+fn scan_cctv_range(
+    app: AppHandle,
+    halt: tauri::State<RangeHalt>,
+    start: String,
+    end: String,
+) -> Result<Vec<netutil::HostHit>, String> {
+    halt.0.store(false, Ordering::SeqCst);
+    netutil::scan_cctv_range(&app, &halt.0, &start, &end)
+}
+
+#[tauri::command]
+fn halt_range_check(halt: tauri::State<RangeHalt>) {
+    halt.0.store(true, Ordering::SeqCst);
 }
 
 const MAX_PC_URLS: usize = 400;
@@ -976,6 +996,7 @@ pub fn run() {
         .manage(StartupPacks(Mutex::new(pack_paths_from(
             std::env::args().skip(1),
         ))))
+        .manage(RangeHalt(Arc::new(AtomicBool::new(false))))
         .invoke_handler(tauri::generate_handler![
             hide_panel,
             show_panel,
@@ -993,6 +1014,7 @@ pub fn run() {
             lookup_public_ipv4,
             scan_ipv4_range,
             scan_cctv_range,
+            halt_range_check,
             list_pc_url_shortcuts
         ])
         .setup(|app| {

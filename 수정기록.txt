@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-09-19
+버전: 0.1.24-20260919
+설치 파일: EduLauncher_0.1.24-20260919_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe
+
+한 일
+- 네트워크·CCTV 검색 중 중지. 화면을 나가도 검색을 멈춤. 이미 나간 ping은 짧게 이어질 수 있음.
+- 그때까지 찾은 목록은 보여 줌.
+- 시스템 글꼴 유지. 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- 없음
+
+재사용한 기존 파일
+- src-tauri/src/lib.rs
+- src-tauri/src/netutil.rs
+- src/services/networkService.ts
+- src/pages/NetworkToolPage.tsx
+- src/pages/CctvToolPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. OFL 아님.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 중지는 이 PC 검색 루프 표시만. 외부 네트워크 명령을 새로 넣지 않음.
+특허 검토 대상: 구간 확인 작업을 사용자 요청으로 중단하는 구성. 청구항 대조 없음.
+
+---
+
+날짜: 2026-09-19
 버전: 0.1.23-20260919
 설치 파일: EduLauncher_0.1.23-20260919_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe

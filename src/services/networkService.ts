@@ -34,6 +34,10 @@ export async function scanCctvRange(start: string, end: string): Promise<HostHit
   return invoke<HostHit[]>("scan_cctv_range", { start, end });
 }
 
+export async function haltRangeCheck(): Promise<void> {
+  await invoke("halt_range_check");
+}
+
 export async function writeCsvFile(path: string, contents: string): Promise<void> {
   await invoke("write_csv_file", { path, contents });
 }

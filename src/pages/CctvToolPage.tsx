@@ -1,8 +1,9 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RangeCheckBar } from "../components/RangeCheckBar";
 import { calculateIpv4Range } from "../services/ipv4Math";
 import {
+  haltRangeCheck,
   loadThisPcIpv4,
   scanCctvRange,
   type HostHit,
@@ -20,6 +21,8 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
   const [error, setError] = useState("");
   const [scanning, setScanning] = useState(false);
   const [didScan, setDidScan] = useState(false);
+  const [stopped, setStopped] = useState(false);
+  const haltRef = useRef(false);
   const plannedTotal = useMemo(() => {
     const source = localAddresses[0];
     if (!source) {
@@ -47,13 +50,29 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
     setError("");
     setHits([]);
     setDidScan(false);
+    setStopped(false);
+    haltRef.current = false;
     try {
       setHits(await scanCctvRange(range.firstHost, range.lastHost));
       setDidScan(true);
+      if (haltRef.current) {
+        setStopped(true);
+        setError("검색을 멈췄습니다.");
+      }
     } catch (scanError) {
       setError(nativeMessage(scanError, "CCTV 검색에 실패했습니다."));
     } finally {
       setScanning(false);
+    }
+  };
+
+  const requestHalt = async () => {
+    haltRef.current = true;
+    setStopped(true);
+    try {
+      await haltRangeCheck();
+    } catch {
+      // Browser preview has no native commands.
     }
   };
 
@@ -76,6 +95,7 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
     void load();
     return () => {
       cancelled = true;
+      void haltRangeCheck().catch(() => undefined);
     };
   }, []);
 
@@ -105,9 +125,14 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
         >
           {scanning ? "검색 중..." : "다시 검색"}
         </button>
+        {scanning ? (
+          <button type="button" className="btn-secondary h-11" onClick={() => void requestHalt()}>
+            중지
+          </button>
+        ) : null}
         <RangeCheckBar active={scanning} waitMs={700} plannedTotal={plannedTotal} />
         {error ? <p className="text-sm text-desk">{error}</p> : null}
-        {!scanning && didScan && hits.length === 0 && !error ? (
+        {!scanning && didScan && hits.length === 0 && !error && !stopped ? (
           <p className="text-sm text-quiet">
             CCTV로 보이는 주소가 없습니다. ping이나 554가 막혀 있으면 목록이 비어 있을 수 있습니다.
           </p>

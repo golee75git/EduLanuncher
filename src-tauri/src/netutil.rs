@@ -2,7 +2,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr, TcpStream, UdpSocket};
 use std::process::{Command, Stdio};
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -482,7 +482,10 @@ fn netbios_name(ip: &str) -> Option<String> {
     parse_netbios_name(&decode_console_bytes(&output.stdout))
 }
 
-fn fill_missing_names(app: &AppHandle, hits: &mut [HostHit], found: u32) {
+fn fill_missing_names(app: &AppHandle, halt: &Arc<AtomicBool>, hits: &mut [HostHit], found: u32) {
+    if halt.load(Ordering::Relaxed) {
+        return;
+    }
     let local_names: HashMap<String, String> = this_pc_ipv4()
         .into_iter()
         .filter_map(|item| item.name.map(|name| (item.ip, name)))
@@ -512,8 +515,12 @@ fn fill_missing_names(app: &AppHandle, hits: &mut [HostHit], found: u32) {
         let queue = Arc::clone(&queue);
         let resolved = Arc::clone(&resolved);
         let done = Arc::clone(&done);
+        let halt = Arc::clone(halt);
         let app = app.clone();
         handles.push(thread::spawn(move || loop {
+            if halt.load(Ordering::Relaxed) {
+                break;
+            }
             let ip = {
                 let mut locked = match queue.lock() {
                     Ok(value) => value,
@@ -524,6 +531,9 @@ fn fill_missing_names(app: &AppHandle, hits: &mut [HostHit], found: u32) {
             let Some(ip) = ip else {
                 break;
             };
+            if halt.load(Ordering::Relaxed) {
+                break;
+            }
             if let Some(name) = reverse_dns_name(&ip).or_else(|| netbios_name(&ip)) {
                 let mut map = match resolved.lock() {
                     Ok(value) => value,
@@ -549,7 +559,12 @@ fn fill_missing_names(app: &AppHandle, hits: &mut [HostHit], found: u32) {
     }
 }
 
-pub fn scan_ipv4_range(app: &AppHandle, start: &str, end: &str) -> Result<Vec<HostHit>, String> {
+pub fn scan_ipv4_range(
+    app: &AppHandle,
+    halt: &Arc<AtomicBool>,
+    start: &str,
+    end: &str,
+) -> Result<Vec<HostHit>, String> {
     let start_n = parse_ipv4(start).ok_or("시작 주소가 올바르지 않습니다.")?;
     let end_n = parse_ipv4(end).ok_or("끝 주소가 올바르지 않습니다.")?;
     if start_n > end_n {
@@ -574,8 +589,12 @@ pub fn scan_ipv4_range(app: &AppHandle, start: &str, end: &str) -> Result<Vec<Ho
         let tx = tx.clone();
         let done = Arc::clone(&done);
         let found = Arc::clone(&found);
+        let halt = Arc::clone(halt);
         let app = app.clone();
         handles.push(thread::spawn(move || loop {
+            if halt.load(Ordering::Relaxed) {
+                break;
+            }
             let next = {
                 let mut locked = match queue.lock() {
                     Ok(value) => value,
@@ -586,6 +605,9 @@ pub fn scan_ipv4_range(app: &AppHandle, start: &str, end: &str) -> Result<Vec<Ho
             let Some(value) = next else {
                 break;
             };
+            if halt.load(Ordering::Relaxed) {
+                break;
+            }
             let ip = format_ipv4(value);
             let hit = ping_one(&ip);
             if let Some(hit) = hit {
@@ -610,7 +632,7 @@ pub fn scan_ipv4_range(app: &AppHandle, start: &str, end: &str) -> Result<Vec<Ho
         }
     }
     let found_n = hits.len() as u32;
-    fill_missing_names(app, &mut hits, found_n);
+    fill_missing_names(app, halt, &mut hits, found_n);
     classify_hits(&mut hits);
     hits.sort_by(|left, right| parse_ipv4(&left.ip).cmp(&parse_ipv4(&right.ip)));
     Ok(hits)
@@ -734,7 +756,12 @@ fn cctv_hit(ip: String, ping: Option<HostHit>, rtsp: bool) -> Option<HostHit> {
     }
 }
 
-pub fn scan_cctv_range(app: &AppHandle, start: &str, end: &str) -> Result<Vec<HostHit>, String> {
+pub fn scan_cctv_range(
+    app: &AppHandle,
+    halt: &Arc<AtomicBool>,
+    start: &str,
+    end: &str,
+) -> Result<Vec<HostHit>, String> {
     let start_n = parse_ipv4(start).ok_or("시작 주소가 올바르지 않습니다.")?;
     let end_n = parse_ipv4(end).ok_or("끝 주소가 올바르지 않습니다.")?;
     if start_n > end_n {
@@ -772,8 +799,12 @@ pub fn scan_cctv_range(app: &AppHandle, start: &str, end: &str) -> Result<Vec<Ho
         let skip = skip.clone();
         let done = Arc::clone(&done);
         let found = Arc::clone(&found);
+        let halt = Arc::clone(halt);
         let app = app.clone();
         handles.push(thread::spawn(move || loop {
+            if halt.load(Ordering::Relaxed) {
+                break;
+            }
             let next = {
                 let mut locked = match queue.lock() {
                     Ok(value) => value,
@@ -784,6 +815,9 @@ pub fn scan_cctv_range(app: &AppHandle, start: &str, end: &str) -> Result<Vec<Ho
             let Some(value) = next else {
                 break;
             };
+            if halt.load(Ordering::Relaxed) {
+                break;
+            }
             let ip = format_ipv4(value);
             if skip.iter().any(|item| item == &ip) {
                 let checked = done.fetch_add(1, Ordering::Relaxed) + 1;
@@ -814,7 +848,7 @@ pub fn scan_cctv_range(app: &AppHandle, start: &str, end: &str) -> Result<Vec<Ho
         }
     }
     let found_n = hits.len() as u32;
-    fill_missing_names(app, &mut hits, found_n);
+    fill_missing_names(app, halt, &mut hits, found_n);
     hits.retain(|hit| hit.name.as_deref().is_some_and(looks_like_cctv) || hit.rtsp);
     for hit in &mut hits {
         hit.kind = "cctv".into();

@@ -1,9 +1,10 @@
 import { save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RangeCheckBar } from "../components/RangeCheckBar";
 import { calculateIpv4Range } from "../services/ipv4Math";
 import {
+  haltRangeCheck,
   hostsToCsv,
   loadThisPcIpv4,
   lookupPublicIpv4,
@@ -29,6 +30,8 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
   const [scanError, setScanError] = useState("");
   const [scanning, setScanning] = useState(false);
   const [didScan, setDidScan] = useState(false);
+  const [stopped, setStopped] = useState(false);
+  const haltRef = useRef(false);
   const [exportMessage, setExportMessage] = useState("");
   const result = useMemo(() => calculateIpv4Range(address, prefix), [address, prefix]);
 
@@ -65,10 +68,16 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
     setScanError("");
     setHits([]);
     setDidScan(false);
+    setStopped(false);
+    haltRef.current = false;
     setExportMessage("");
     try {
       setHits(await scanIpv4Range(result.firstHost, result.lastHost));
       setDidScan(true);
+      if (haltRef.current) {
+        setStopped(true);
+        setScanError("검색을 멈췄습니다.");
+      }
     } catch (error) {
       setScanError(nativeMessage(error, "구간 검색에 실패했습니다."));
     } finally {
@@ -95,6 +104,22 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
       setExportMessage(nativeMessage(error, "저장하지 못했습니다."));
     }
   };
+
+  const requestHalt = async () => {
+    haltRef.current = true;
+    setStopped(true);
+    try {
+      await haltRangeCheck();
+    } catch {
+      // Browser preview has no native commands.
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      void haltRangeCheck().catch(() => undefined);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -215,13 +240,18 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
           >
             {scanning ? "구간 검색 중..." : "이 구간에서 응답 검색"}
           </button>
+          {scanning ? (
+            <button type="button" className="btn-secondary h-11" onClick={() => void requestHalt()}>
+              중지
+            </button>
+          ) : null}
           <RangeCheckBar active={scanning} waitMs={400} plannedTotal={result?.usableHosts} />
           <p className="text-xs leading-5 text-quiet">
             이름은 DNS·컴퓨터 이름에서 가져옵니다. 종류는 이 PC, 기본 게이트웨이(공유기), 이름 규칙으로 추정하며 단정이 아닙니다.
           </p>
           {scanError ? <p className="text-sm text-desk">{scanError}</p> : null}
           {exportMessage ? <p className="text-sm text-desk">{exportMessage}</p> : null}
-          {!scanning && !scanError && didScan && hits.length === 0 ? (
+          {!scanning && !stopped && !scanError && didScan && hits.length === 0 ? (
             <p className="text-sm text-quiet">
               응답하는 주소가 없습니다. ICMP가 막혀 있으면 목록이 비어 있을 수 있습니다.
             </p>

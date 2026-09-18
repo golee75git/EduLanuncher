@@ -559,3 +559,28 @@ Difference:
 PATENT_REVIEW:
 호스트 구간 확인 중 완료 비율과 경과 시간을 표시하는 구성
 
+---
+
+Feature: Halt range check
+
+Purpose:
+네트워크·CCTV 구간 확인을 사용자가 중간에 멈춤
+
+Design source:
+내부 요구사항
+
+Implementation:
+검색 시작 시 중지 표시를 끄고, 중지 명령으로 켬. 작업 스레드가 다음 주소를 꺼내기 전에 표시를 읽음. 이미 나간 ping은 끝날 수 있음. 그 시점까지 찾은 목록을 돌려줌. 화면을 나가도 중지 명령을 보냄
+
+External code:
+없음
+
+Potential similar products:
+구간 확인 유틸리티의 정지
+
+Difference:
+해당 제품 UI 복제 없음. 기존 검색 버튼 아래에 중지만 추가
+
+PATENT_REVIEW:
+구간 확인 작업을 사용자 요청으로 중단하는 구성
+
