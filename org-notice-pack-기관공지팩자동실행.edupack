@@ -1,0 +1,21 @@
+{
+  "id": "pack-org-notices",
+  "name": "기관 공지",
+  "version": "0.1.0",
+  "kind": "org",
+  "notices": [
+    {
+      "id": "a4ad3ecb-6251-494e-936a-1ab93408e25f",
+      "kind": "org",
+      "title": "기관공지 pack 실험입니다.",
+      "publishedAt": "2026-09-17",
+      "summary": "기관공지 pack 실험입니다."
+    },
+    {
+      "id": "c50e551d-502d-497b-8014-1e514881ca9a",
+      "kind": "org",
+      "title": "오늘 9.17일 급여일에 런처 갱신합니다.",
+      "publishedAt": "2026-09-17"
+    }
+  ]
+}

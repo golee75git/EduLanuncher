@@ -1,0 +1,72 @@
+import { create } from "zustand";
+import { disable, enable } from "@tauri-apps/plugin-autostart";
+import { DEFAULT_SETTINGS, type AppSettings } from "../types/settings";
+import { loadSettings, saveSettings } from "../services/storageService";
+import { registerShortcut, setLauncherPosition } from "../services/windowService";
+
+interface SettingsState {
+  settings: AppSettings;
+  loaded: boolean;
+  hydrate: (settings: AppSettings) => void;
+  update: (patch: Partial<AppSettings>) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
+}
+
+export const useSettingsStore = create<SettingsState>((set, get) => ({
+  settings: DEFAULT_SETTINGS,
+  loaded: false,
+  hydrate: (settings) => set({ settings, loaded: true }),
+  update: async (patch) => {
+    const settings = { ...get().settings, ...patch };
+    set({ settings });
+    await saveSettings(settings);
+
+    if (patch.launcherPosition) {
+      await setLauncherPosition(settings.launcherPosition);
+    }
+    if (patch.globalShortcut) {
+      await registerShortcut(settings.globalShortcut);
+    }
+    if (patch.autoStart !== undefined) {
+      try {
+        if (patch.autoStart) {
+          if (!import.meta.env.DEV) {
+            await enable();
+          }
+        } else {
+          await disable();
+        }
+      } catch {
+        // Autostart plugin may be unavailable in some environments.
+      }
+    }
+  },
+  completeOnboarding: async () => {
+    const settings = { ...get().settings, onboarded: true };
+    set({ settings });
+    await saveSettings(settings);
+  },
+}));
+
+export async function hydrateSettings(): Promise<AppSettings> {
+  const settings = await loadSettings();
+  useSettingsStore.getState().hydrate(settings);
+  await setLauncherPosition(settings.launcherPosition);
+  try {
+    await registerShortcut(settings.globalShortcut);
+  } catch {
+    // Shortcut may already be registered by Rust defaults.
+  }
+  try {
+    if (settings.autoStart) {
+      if (!import.meta.env.DEV) {
+        await enable();
+      }
+    } else {
+      await disable();
+    }
+  } catch {
+    // Autostart is also applied from Rust setup; ignore frontend sync errors.
+  }
+  return settings;
+}

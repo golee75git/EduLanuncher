@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI Variable", "Segoe UI", "Malgun Gothic", sans-serif;
+  --color-paper: #eef1f3;
+  --color-ink: #146b5e;
+  --color-ink-strong: #0f5147;
+  --color-ink-soft: #e0efec;
+  --color-line: #dde3e6;
+  --color-desk: #1f2a2e;
+  --color-quiet: #5b676c;
+  --color-card: #ffffff;
+
+  --shadow-card: 0 1px 1px 0 rgba(24, 35, 38, 0.04), 0 2px 6px -2px rgba(24, 35, 38, 0.08);
+  --shadow-pop: 0 8px 16px -6px rgba(15, 30, 27, 0.18), 0 2px 6px -2px rgba(15, 30, 27, 0.1);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--color-paper);
+  font-family: var(--font-sans);
+  color: var(--color-desk);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--color-ink);
+}
+
+@layer components {
+  .field-input {
+    @apply mt-1 h-10 w-full rounded-lg border border-line bg-card px-2.5 text-sm text-desk outline-none transition-shadow duration-150 focus:border-ink focus:ring-2 focus:ring-ink-soft;
+  }
+
+  .desk-label {
+    @apply mb-2 text-[11px] font-semibold tracking-wide text-quiet uppercase;
+  }
+
+  .desk-row {
+    @apply flex w-full items-center rounded-lg px-2 py-2 text-left text-sm text-desk transition-colors duration-150 hover:bg-card;
+  }
+
+  .desk-row-active {
+    @apply bg-ink-soft text-ink-strong ring-1 ring-inset ring-ink/15;
+  }
+
+  /* Round, quiet icon buttons used in headers and card corners */
+  .icon-btn {
+    @apply inline-flex items-center justify-center rounded-full p-2 text-quiet transition-colors duration-150 hover:bg-desk/[0.06] hover:text-desk active:bg-desk/10;
+  }
+
+  /* Elevated white surface for cards, panels and dropdowns */
+  .card-surface {
+    @apply rounded-xl border border-line/70 bg-card shadow-card;
+  }
+
+  .btn-primary {
+    @apply inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-ink text-sm font-medium text-white shadow-card transition-colors duration-150 hover:bg-ink-strong active:bg-ink-strong disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-secondary {
+    @apply inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-line bg-card text-sm text-desk transition-colors duration-150 hover:border-ink/30 hover:bg-ink-soft/50 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c5ced3;
+  border-radius: 99px;
+}

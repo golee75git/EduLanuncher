@@ -1,0 +1,16 @@
+---
+description: Rebuild the dated NSIS installer when changes need reinstall
+alwaysApply: true
+---
+
+# Rebuild installer when reinstall is required
+
+After a change that the installed app cannot pick up (Rust/Tauri commands, tray, file association, bundled frontend, settings that only exist in a new exe), rebuild the NSIS setup and tell the user the path. Do not wait to be asked.
+
+Frontend-only tweaks seen in `tauri-env.cmd dev` do not need a new setup. The installed exe does.
+
+Steps:
+- Put today's date in `src-tauri/tauri.conf.json` `version` (`0.1.x-YYYYMMDD`) and window `title` (`교육업무 런처 0.1.x-YYYYMMDD`).
+- Run `.\tauri-env.cmd build`.
+- Copy `EduLauncher_<version>_x64-setup.exe` to `EduLauncher_YYYY-MM-DD_x64-setup.exe` in the same nsis folder.
+- Reply with both paths and that the old install must be replaced.

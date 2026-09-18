@@ -1,0 +1,15 @@
+{
+  "id": "pack-common-alerts",
+  "name": "공통 알림 팩 테스트",
+  "version": "0.1.0",
+  "kind": "alert",
+  "notices": [
+    {
+      "id": "9dd8caf7-a1c0-4706-bc2c-56997764899f",
+      "kind": "alert",
+      "title": "공통 알림 팩 테스트",
+      "publishedAt": "2026-09-17",
+      "summary": "공통 알림 팩 테스트"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "pack-shortcuts",
+  "name": "공통 사이트 아이콘",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "id": "tool-portal",
+      "name": "업무포털",
+      "type": "url",
+      "target": "",
+      "icon": "briefcase"
+    },
+    {
+      "id": "tool-neis",
+      "name": "나이스 바로가기",
+      "type": "url",
+      "target": "",
+      "icon": "school"
+    },
+    {
+      "id": "tool-edufine",
+      "name": "에듀파인 바로가기",
+      "type": "url",
+      "target": "",
+      "icon": "wallet"
+    },
+    {
+      "id": "tool-calendar",
+      "name": "캘린더 바로가기",
+      "type": "url",
+      "target": "https://calendar.google.com/calendar/r/day",
+      "icon": "star"
+    },
+    {
+      "id": "tool-moe",
+      "name": "교육부 바로가기",
+      "type": "url",
+      "target": "https://www.moe.go.kr",
+      "icon": "school"
+    },
+    {
+      "id": "tool-schoolinfo",
+      "name": "학교알리미 바로가기",
+      "type": "url",
+      "target": "https://www.schoolinfo.go.kr",
+      "icon": "fileText"
+    }
+  ]
+}

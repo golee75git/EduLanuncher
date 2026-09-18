@@ -1,0 +1,15 @@
+{
+  "id": "pack-common-alerts",
+  "name": "공통 알림",
+  "version": "0.1.0",
+  "kind": "alert",
+  "notices": [
+    {
+      "id": "alert-sample-1",
+      "kind": "alert",
+      "title": "샘플 알림: 전산실 점검",
+      "summary": "공통 알림은 원문 주소 없이 제목만 넣어도 됩니다.",
+      "publishedAt": "2026-09-17"
+    }
+  ]
+}
