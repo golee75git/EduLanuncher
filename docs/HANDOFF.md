@@ -84,7 +84,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - Pack vs 이 PC 표시, 홈 그룹 3개+모두(바로가기만)
 - 다른 PC용 백업 JSON (설정 화면)
 - git 연결, Cloudflare Workers 정적 사이트 (`website/`)
-- GitHub Release에 `0.1.15` 설치파일 업로드
+- GitHub Release에 `0.1.19` 설치파일 업로드
 
 ## 알려진 미완
 
