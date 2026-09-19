@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Star } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ToolGlyph } from "./ToolGlyph";
 import { toolOriginLabel, toolTargetHint, type ToolItem } from "../types/tool";
@@ -26,6 +26,7 @@ export function ToolCard({
 }: ToolCardProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuUp, setMenuUp] = useState(false);
+  const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const isRow = layout === "row";
@@ -85,12 +86,21 @@ export function ToolCard({
       }`}
       onContextMenu={(event) => {
         event.preventDefault();
+        const card = cardRef.current;
+        if (!card) {
+          return;
+        }
+        const rect = card.getBoundingClientRect();
+        const menuWidth = 112;
+        const x = Math.min(Math.max(8, event.clientX - rect.left), Math.max(8, rect.width - menuWidth));
+        const y = Math.max(8, event.clientY - rect.top);
+        setMenuAt({ x, y });
         setMenuOpen(true);
       }}
     >
       <button
         type="button"
-        className={`flex w-full items-center gap-2 pr-5 text-left ${isRow ? "min-h-9" : ""}`}
+        className={`flex w-full items-center gap-2 pr-12 text-left ${isRow ? "min-h-9" : ""}`}
         title={tool.target}
         onClick={() => onLaunch(tool)}
       >
@@ -107,9 +117,23 @@ export function ToolCard({
       </button>
       <button
         type="button"
+        className="icon-btn absolute right-6 top-0.5 p-1"
+        onClick={(event) => {
+          event.stopPropagation();
+          onFavorite(tool);
+        }}
+        aria-label={tool.favorite ? "홈에서 빼기" : "홈에 두기"}
+      >
+        <Star
+          className={`h-3.5 w-3.5 ${tool.favorite ? "fill-ink text-ink" : "text-quiet"}`}
+        />
+      </button>
+      <button
+        type="button"
         className="icon-btn absolute right-0.5 top-0.5 p-1"
         onClick={(event) => {
           event.stopPropagation();
+          setMenuAt(null);
           setMenuOpen((open) => !open);
         }}
         aria-label="도구 메뉴"
@@ -119,22 +143,44 @@ export function ToolCard({
       {menuOpen ? (
         <div
           ref={menuRef}
-          className={`card-surface absolute right-1 z-20 min-w-28 overflow-hidden py-1 text-sm shadow-pop ${
-            menuUp ? "bottom-8" : "top-8"
+          className={`card-surface absolute z-20 min-w-28 overflow-hidden py-1 text-sm shadow-pop ${
+            menuAt ? "" : menuUp ? "bottom-8 right-1" : "top-8 right-1"
           }`}
+          style={menuAt ? { left: menuAt.x, top: menuAt.y } : undefined}
         >
-          <button className="block w-full px-3 py-1.5 text-left transition-colors duration-150 hover:bg-ink-soft/60" onClick={() => onLaunch(tool)}>
+          <button
+            className="block w-full px-3 py-1.5 text-left transition-colors duration-150 hover:bg-ink-soft/60"
+            onClick={() => {
+              setMenuOpen(false);
+              onLaunch(tool);
+            }}
+          >
             실행
           </button>
-          <button className="block w-full px-3 py-1.5 text-left transition-colors duration-150 hover:bg-ink-soft/60" onClick={() => onFavorite(tool)}>
+          <button
+            className="block w-full px-3 py-1.5 text-left transition-colors duration-150 hover:bg-ink-soft/60"
+            onClick={() => {
+              setMenuOpen(false);
+              onFavorite(tool);
+            }}
+          >
             {tool.favorite ? "즐겨찾기 해제" : "즐겨찾기"}
           </button>
-          <button className="block w-full px-3 py-1.5 text-left transition-colors duration-150 hover:bg-ink-soft/60" onClick={() => onEdit(tool)}>
+          <button
+            className="block w-full px-3 py-1.5 text-left transition-colors duration-150 hover:bg-ink-soft/60"
+            onClick={() => {
+              setMenuOpen(false);
+              onEdit(tool);
+            }}
+          >
             편집
           </button>
           <button
             className="block w-full px-3 py-1.5 text-left text-red-700 transition-colors duration-150 hover:bg-red-50"
-            onClick={() => onDelete(tool)}
+            onClick={() => {
+              setMenuOpen(false);
+              onDelete(tool);
+            }}
           >
             삭제
           </button>

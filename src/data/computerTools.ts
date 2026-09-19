@@ -15,7 +15,7 @@ const ENTRIES: ComputerToolEntry[] = [
     id: "rename-pc",
     name: "컴퓨터 이름 바꾸기",
     hint: "이 PC 이름을 바꾸는 화면을 엽니다. 저장과 재시작은 Windows가 맡습니다.",
-    type: "app",
+    type: "file",
     fileName: "SystemPropertiesComputerName.exe",
   },
   {

@@ -6,6 +6,42 @@
 ---
 
 날짜: 2026-09-19
+버전: 0.1.26-20260919
+설치 파일: EduLauncher_0.1.26-20260919_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe
+
+한 일
+- 컴퓨터 이름 바꾸기를 파일로 열어 권한 확인(740)을 셸에 맡김. 프로그램 실행이 740이면 open_path로 다시 연다.
+- 카드 별로 홈 표시를 바꿈. 우클릭 메뉴는 커서 근처에 연다.
+- 삭제는 확인 후에만 런처 목록에서 뺀다. 프로그램·파일 본체는 그대로.
+- 설정 사용 방법 상단에 설치 파일명·버전. 별·우클릭·삭제 안내.
+- 시스템 글꼴 유지. 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- src/components/RemoveToolDialog.tsx
+
+재사용한 기존 파일
+- src/components/ToolCard.tsx
+- src/data/computerTools.ts
+- src-tauri/src/lib.rs
+- src/App.tsx
+- src/pages/HomePage.tsx
+- src/pages/ToolGroupPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 권한 상승은 Windows UAC. 런처 프로세스를 관리자로 올리지 않음. 삭제는 로컬 목록 JSON만.
+특허 검토 대상: 목록 삭제 전 확인. 관리자 필요 프로그램을 셸로 다시 열기. 청구항 대조 없음.
+
+---
+
+날짜: 2026-09-19
 버전: 0.1.25-20260919
 설치 파일: EduLauncher_0.1.25-20260919_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe

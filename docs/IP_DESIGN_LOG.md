@@ -595,7 +595,7 @@ Design source:
 내부 요구사항. 홈 칸을 늘리지 않고 업무도구 옆에 목록을 둠
 
 Implementation:
-고정된 `C:\Windows\System32` 파일명만 허용. 기존 `launch_tool`로 exe는 프로그램, cpl/msc는 파일로 연다. 선택 시에만 런처 목록에 추가. 새 도구 유형 없음. 인자·스크립트·ms-settings URL 없음
+고정된 `C:\Windows\System32` 파일명만 허용. 이름 바꾸기 exe는 파일로 열어 셸이 권한 확인을 띄울 수 있게 함. 프로그램 실행이 740이면 같은 경로를 `open_path`로 다시 연다. 선택 시에만 런처 목록에 추가. 새 도구 유형 없음. 인자·스크립트·ms-settings URL 없음
 
 External code:
 없음
@@ -608,4 +608,51 @@ Windows 설정 앱·제어판 화면을 복제하지 않음. 시작 메뉴형 �
 
 PATENT_REVIEW:
 운영체제 설정 화면을 고정 경로로 열어 주는 구성
+
+---
+
+Feature: Home pin star
+
+Purpose:
+홈 칸에 둘지 말지를 메뉴 없이 바꾸기 위함
+
+Design source:
+내부 요구사항
+
+Implementation:
+기존 `favorite` 필드와 `toggleFavorite`만 사용. 카드에 별 단추. 오른쪽 클릭 메뉴는 기존과 같고 커서 근처에 염. 목록에서 제거하지 않음
+
+External code:
+없음
+
+Potential similar products:
+즐겨찾기 별 표시가 있는 목록
+
+Difference:
+시작 메뉴·독 레이아웃 복제 없음. 기존 카드에 별만 추가
+
+---
+
+Feature: Confirm shortcut removal
+
+Purpose:
+런처 목록에서 바로가기를 빼기 전에 홈 숨기기와 구분해 확인
+
+Design source:
+내부 요구사항
+
+Implementation:
+삭제 전에 이름과 짧은 안내를 보여 줌. 확인 시에만 `removeTool`. 프로그램·파일 본체는 건드리지 않음. 즐겨찾기 해제에는 확인 없음
+
+External code:
+없음
+
+Potential similar products:
+목록 항목 삭제 확인
+
+Difference:
+탐색기 휴지통·다른 런처 삭제 UI 복제 없음
+
+PATENT_REVIEW:
+목록 항목 삭제 전 확인 안내
 

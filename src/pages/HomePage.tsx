@@ -25,6 +25,7 @@ export type HomeAction =
   | { type: "group"; groupType: ToolType }
   | { type: "pc-urls" }
   | { type: "computer-tools" }
+  | { type: "remove"; tool: ToolItem }
   | { type: "internal"; id: string; title: string }
   | { type: "settings" };
 
@@ -66,7 +67,6 @@ function flattenResults(results: SearchResults): ResultItem[] {
 export function HomePage({ onAction }: HomePageProps) {
   const tools = useToolStore((state) => state.tools);
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
-  const removeTool = useToolStore((state) => state.removeTool);
   const settings = useSettingsStore((state) => state.settings);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -252,7 +252,7 @@ export function HomePage({ onAction }: HomePageProps) {
                       onLaunch={(tool) => onAction({ type: "launch", tool })}
                       onFavorite={(tool) => void toggleFavorite(tool.id)}
                       onEdit={(tool) => onAction({ type: "edit", tool })}
-                      onDelete={(tool) => void removeTool(tool.id)}
+                      onDelete={(tool) => onAction({ type: "remove", tool })}
                     />
                   </div>
                 ))}

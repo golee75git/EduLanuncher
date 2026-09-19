@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { DropZone } from "./components/DropZone";
 import { MemoPad } from "./components/MemoPad";
 import { MissingPathDialog } from "./components/MissingPathDialog";
+import { RemoveToolDialog } from "./components/RemoveToolDialog";
 import { WelcomeOverlay } from "./components/WelcomeOverlay";
 import { HomePage, type HomeAction } from "./pages/HomePage";
 import { CctvToolPage } from "./pages/CctvToolPage";
@@ -49,6 +50,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<View>({ name: "home" });
   const [missing, setMissing] = useState<MissingState | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<ToolItem | null>(null);
   const [notice, setNotice] = useState("");
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
 
@@ -280,6 +282,10 @@ export default function App() {
       setView({ name: "computer-tools" });
       return;
     }
+    if (action.type === "remove") {
+      setRemoveTarget(action.tool);
+      return;
+    }
     if (action.type === "internal") {
       setView({ name: "internal", id: action.id, title: action.title });
       return;
@@ -329,6 +335,7 @@ export default function App() {
               onLaunch={(tool) => void handleLaunch(tool)}
               onPcUrls={() => setView({ name: "pc-urls" })}
               onComputerTools={() => setView({ name: "computer-tools" })}
+              onRemove={(tool) => setRemoveTarget(tool)}
               onEdit={(tool, createType) =>
                 setView({
                   name: "tool-edit",
@@ -384,11 +391,21 @@ export default function App() {
             }}
             onDelete={() => {
               if (missing.tool) {
-                void useToolStore.getState().removeTool(missing.tool.id);
+                setRemoveTarget(missing.tool);
               }
               setMissing(null);
             }}
             onClose={() => setMissing(null)}
+          />
+        ) : null}
+        {removeTarget ? (
+          <RemoveToolDialog
+            tool={removeTarget}
+            onConfirm={() => {
+              void useToolStore.getState().removeTool(removeTarget.id);
+              setRemoveTarget(null);
+            }}
+            onClose={() => setRemoveTarget(null)}
           />
         ) : null}
         {notice ? (

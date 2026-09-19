@@ -375,10 +375,20 @@ fn launch_tool(app: AppHandle, tool_type: String, target: String) -> LaunchResul
                     .map(|_| ())
                     .map_err(|err| err.to_string())
             } else {
-                std::process::Command::new(&target)
-                    .spawn()
-                    .map(|_| ())
-                    .map_err(|err| err.to_string())
+                match std::process::Command::new(&target).spawn() {
+                    Ok(_) => Ok(()),
+                    Err(err) => {
+                        let text = err.to_string();
+                        if text.contains("740") {
+                            app.opener()
+                                .open_path(&target, None::<&str>)
+                                .map(|_| ())
+                                .map_err(|open_err| open_err.to_string())
+                        } else {
+                            Err(text)
+                        }
+                    }
+                }
             };
             match opened {
                 Ok(_) => LaunchResult {

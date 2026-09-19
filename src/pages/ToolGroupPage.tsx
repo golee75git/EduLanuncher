@@ -12,6 +12,7 @@ interface ToolGroupPageProps {
   onEdit: (tool?: ToolItem, createType?: ToolType) => void;
   onPcUrls?: () => void;
   onComputerTools?: () => void;
+  onRemove?: (tool: ToolItem) => void;
 }
 
 export function ToolGroupPage({
@@ -21,10 +22,10 @@ export function ToolGroupPage({
   onEdit,
   onPcUrls,
   onComputerTools,
+  onRemove,
 }: ToolGroupPageProps) {
   const tools = useToolStore((state) => state.tools);
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
-  const removeTool = useToolStore((state) => state.removeTool);
   const items = useMemo(
     () =>
       tools
@@ -78,7 +79,7 @@ export function ToolGroupPage({
           onLaunch={onLaunch}
           onFavorite={(tool) => void toggleFavorite(tool.id)}
           onEdit={(tool) => onEdit(tool)}
-          onDelete={(tool) => void removeTool(tool.id)}
+          onDelete={(tool) => (onRemove ? onRemove(tool) : undefined)}
         />
       </div>
     </div>
