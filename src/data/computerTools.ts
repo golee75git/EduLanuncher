@@ -42,8 +42,8 @@ const ENTRIES: ComputerToolEntry[] = [
   },
   {
     id: "pc-address",
-    name: "이 PC 주소",
-    hint: "이 PC 주소와 공인 주소만 봅니다.",
+    name: "이 PC IP 주소",
+    hint: "사설 IP 주소와 공인 IP 주소만 봅니다.",
     type: "internal",
     view: "pc-address",
   },
@@ -60,6 +60,20 @@ const ENTRIES: ComputerToolEntry[] = [
     hint: "이 PC에 설치된 프로그램 목록을 엽니다.",
     type: "file",
     fileName: "appwiz.cpl",
+  },
+  {
+    id: "control-panel",
+    name: "제어판",
+    hint: "이 PC Windows 제어판을 엽니다.",
+    type: "file",
+    fileName: "control.exe",
+  },
+  {
+    id: "pc-info",
+    name: "시스템 정보",
+    hint: "이 PC 하드웨어·Windows 정보 화면을 엽니다.",
+    type: "file",
+    fileName: "msinfo32.exe",
   },
 ];
 

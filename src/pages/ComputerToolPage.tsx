@@ -47,7 +47,7 @@ export function ComputerToolPage({ onBack, onLaunch, onShowAddress }: ComputerTo
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          이 PC Windows 설정 화면을 열거나, 이 PC 주소와 공인 주소만 봅니다. 이름을 대신 바꾸거나 권한을 올리지
+          이 PC Windows 설정 화면을 열거나, 사설 IP 주소와 공인 IP 주소만 봅니다. 이름을 대신 바꾸거나 권한을 올리지
           않습니다. 설정 화면은 고정된 System32 파일만 실행합니다.
         </p>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}

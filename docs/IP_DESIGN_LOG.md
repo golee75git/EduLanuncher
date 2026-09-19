@@ -729,6 +729,29 @@ Difference:
 Windows 설정 화면을 복제하지 않음. 기존 Network 검색 도구를 바꾸지 않음. 값 두 가지만 표시
 
 PATENT_REVIEW:
-이 PC 주소와 바깥에서 보이는 주소를 나란히 보여 주는 구성
+사설 IP와 공인 IP를 나란히 보여 주는 구성
+
+---
+
+Feature: Control Panel and system info shortcuts
+
+Purpose:
+학교 사무에서 자주 여는 제어판·시스템 정보 화면을 컴퓨터도구에서 바로 열기 위함
+
+Design source:
+내부 요구사항. 인자 없는 System32 파일만
+
+Implementation:
+기존 컴퓨터도구 목록에 `control.exe`, `msinfo32.exe`를 파일로 추가. 새 명령·인자·ms-settings 없음
+
+External code:
+없음
+
+Potential similar products:
+시작 메뉴의 제어판·시스템 정보
+
+Difference:
+시작 메뉴·설정 앱 UI 복제 없음. 고정 경로만 연다
+
 
 

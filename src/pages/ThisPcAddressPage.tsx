@@ -7,7 +7,7 @@ interface ThisPcAddressPageProps {
   onBack: () => void;
 }
 
-export function ThisPcAddressPage({ title = "이 PC 주소", onBack }: ThisPcAddressPageProps) {
+export function ThisPcAddressPage({ title = "이 PC IP 주소", onBack }: ThisPcAddressPageProps) {
   const [localIps, setLocalIps] = useState<string[]>([]);
   const [publicIp, setPublicIp] = useState("");
   const [localNote, setLocalNote] = useState("");
@@ -23,17 +23,17 @@ export function ThisPcAddressPage({ title = "이 PC 주소", onBack }: ThisPcAdd
       const ips = uniqueIps(found.map((item) => item.ip));
       setLocalIps(ips);
       if (ips.length === 0) {
-        setLocalNote("이 PC 주소가 없습니다.");
+        setLocalNote("사설 IP 주소가 없습니다.");
       }
     } catch {
       setLocalIps([]);
-      setLocalNote("런처 앱에서만 이 PC 주소를 읽습니다.");
+      setLocalNote("런처 앱에서만 사설 IP 주소를 읽습니다.");
     }
     try {
       setPublicIp(await lookupPublicIpv4());
     } catch (error) {
       setPublicIp("");
-      setPublicNote(asMessage(error, "공인 주소를 확인하지 못했습니다."));
+      setPublicNote(asMessage(error, "공인 IP 주소를 확인하지 못했습니다."));
     } finally {
       setLoading(false);
     }
@@ -65,11 +65,11 @@ export function ThisPcAddressPage({ title = "이 PC 주소", onBack }: ThisPcAdd
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <section className="card-surface space-y-3 p-3">
           <div>
-            <p className="text-xs text-quiet">이 PC 주소</p>
+            <p className="text-xs text-quiet">사설 IP 주소</p>
             <p className="mt-1 whitespace-pre-line break-all text-sm font-medium text-desk">{localText}</p>
           </div>
           <div>
-            <p className="text-xs text-quiet">공인 주소</p>
+            <p className="text-xs text-quiet">공인 IP 주소</p>
             <p className="mt-1 break-all text-sm font-medium text-desk">{publicText}</p>
           </div>
         </section>
