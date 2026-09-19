@@ -797,6 +797,28 @@ External code:
 PATENT_REVIEW:
 그림 위에 주소 무늬를 합성하는 구성은 아직 미구현. 이 고지가 특허 비침해를 의미하지 않음
 
+---
+
+Feature: 주소 무늬 screen
+
+Purpose:
+이 PC 그림 오른쪽 아래에 http(s) 주소 무늬를 넣고 PNG로 저장
+
+Design source:
+내부 요구사항. 모듈 행렬은 crates.io `qrcode` 0.14.1 (MIT OR Apache-2.0, default-features = false). 그림 읽기·합성·저장은 이 저장소 코드
+
+Implementation:
+`src-tauri/src/url_mark.rs`가 주소 검사 후 모듈 행렬만 반환. 프론트 캔버스가 오른쪽 아래 흰 칸에 그림. PNG만 저장. 원본 그림은 덮지 않음. 인터넷 생성기 없음
+
+External code:
+크레이트 소스를 복사하지 않음. Cargo.toml로 링크만 함. 합성·파일 읽기·base64는 이 저장소에서 작성
+
+Difference:
+외부 QR 웹 서비스·npm 패키지·다른 런처 화면을 쓰지 않음. UI 이름은 주소 무늬
+
+PATENT_REVIEW:
+그림 위에 주소 무늬를 합성하고 PNG로 저장하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 
 
 

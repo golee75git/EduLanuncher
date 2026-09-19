@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { EDUCATION_PACK, mergePackTools, type LauncherPack } from "../data/educationPack";
-import { SAMPLE_TOOLS } from "../data/sampleTools";
+import { SAMPLE_TOOLS, URL_MARK_TOOL } from "../data/sampleTools";
 import { loadTools, saveTools } from "../services/storageService";
 import type { ToolItem } from "../types/tool";
 
@@ -111,9 +111,14 @@ export const useToolStore = create<ToolState>((set, get) => ({
 
 export async function hydrateTools(): Promise<void> {
   const loaded = await loadTools();
-  const tools = withOrigin(loaded);
+  let tools = withOrigin(loaded);
+  let changed = loaded.some((tool) => !tool.origin);
+  if (tools.length > 0 && !tools.some((tool) => tool.id === URL_MARK_TOOL.id)) {
+    tools = [{ ...URL_MARK_TOOL, origin: "local" }, ...tools];
+    changed = true;
+  }
   useToolStore.getState().hydrate(tools);
-  if (loaded.some((tool) => !tool.origin)) {
+  if (changed) {
     await persist(tools);
   }
 }

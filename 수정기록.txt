@@ -6,6 +6,43 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.33-20260920
+설치 파일: EduLauncher_0.1.33-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_0112_x64-setup.exe
+
+한 일
+- crates.io qrcode 0.14.1 (MIT OR Apache-2.0, default-features = false)를 Cargo.toml에 넣음. 전이 의존성 없음.
+- 업무도구 「주소 무늬」: 이 PC PNG/JPEG를 고르고 http(s) 주소를 넣으면 오른쪽 아래 흰 칸에 무늬를 그리고 PNG로 저장. 원본은 그대로. 인터넷 생성기·추가 npm 없음. APK 없음.
+
+새로 작성한 파일
+- src-tauri/src/url_mark.rs
+- src/services/urlMarkService.ts
+- src/pages/UrlMarkPage.tsx
+
+재사용한 기존 파일
+- src-tauri/Cargo.toml, src-tauri/Cargo.lock
+- src-tauri/src/lib.rs
+- src-tauri/tauri.conf.json
+- src/App.tsx
+- src/data/sampleTools.ts
+- src/stores/toolStore.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- THIRD_PARTY_NOTICES.md
+- LICENSES/README.md
+- website/src/config.ts
+- website/src/pages/IntroPage.tsx
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. OFL 아님. 번들 없음.
+라이선스: qrcode 0.14.1은 MIT OR Apache-2.0. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 그림·저장 경로는 대화상자에서 고른 로컬 파일. PNG/JPEG 매직 바이트와 크기 제한. http/https만. 무늬 생성은 이 PC에서만.
+특허 검토 대상: 그림 위에 주소 무늬를 합성하고 PNG로 저장하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.32-20260920
 설치 파일: EduLauncher_0.1.32-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_0047_x64-setup.exe

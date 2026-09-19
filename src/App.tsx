@@ -15,6 +15,7 @@ import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ComputerToolPage } from "./pages/ComputerToolPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
+import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
@@ -374,6 +375,9 @@ export default function App() {
           {view.name === "internal" && (view.id === "cctv" || view.id === "tool-cctv") ? (
             <CctvToolPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && (view.id === "url-mark" || view.id === "tool-url-mark") ? (
+            <UrlMarkPage title={view.title} onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" &&
           view.id !== "network" &&
           view.id !== "tool-network" &&
@@ -382,7 +386,9 @@ export default function App() {
           view.id !== "pc-address" &&
           view.id !== "pc-sys:pc-address" &&
           view.id !== "ie-reset" &&
-          view.id !== "pc-sys:ie-reset" ? (
+          view.id !== "pc-sys:ie-reset" &&
+          view.id !== "url-mark" &&
+          view.id !== "tool-url-mark" ? (
             <InternalPlaceholderPage
               title={view.title}
               onBack={() => setView({ name: "home" })}

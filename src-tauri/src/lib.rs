@@ -12,6 +12,8 @@ use tauri_plugin_opener::OpenerExt;
 
 mod netutil;
 mod shortcut;
+mod url_mark;
+use url_mark::{build_url_mark, read_picture_file, write_png_file};
 #[cfg(windows)]
 mod drop_target;
 #[cfg(windows)]
@@ -1040,6 +1042,9 @@ pub fn run() {
             dropped_path_info,
             write_json_file,
             write_csv_file,
+            build_url_mark,
+            read_picture_file,
+            write_png_file,
             take_startup_pack_paths,
             this_pc_ipv4,
             lookup_public_ipv4,

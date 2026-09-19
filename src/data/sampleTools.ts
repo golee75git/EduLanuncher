@@ -1,5 +1,19 @@
 import type { ToolItem } from "../types/tool";
 
+export const URL_MARK_TOOL: ToolItem = {
+  id: "tool-url-mark",
+  name: "주소 무늬",
+  description: "그림 오른쪽 아래에 주소 무늬를 넣습니다",
+  type: "internal",
+  target: "url-mark",
+  icon: "globe",
+  category: "전산",
+  favorite: true,
+  keywords: ["주소", "무늬", "그림", "png"],
+  usageCount: 0,
+  enabled: true,
+};
+
 export const SAMPLE_TOOLS: ToolItem[] = [
   {
     id: "tool-portal",
@@ -118,4 +132,5 @@ export const SAMPLE_TOOLS: ToolItem[] = [
     usageCount: 0,
     enabled: true,
   },
+  URL_MARK_TOOL,
 ];
