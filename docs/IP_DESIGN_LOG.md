@@ -681,3 +681,28 @@ Difference:
 PATENT_REVIEW:
 미리 정한 몇 가지 화면 색 묶음을 고르는 구성
 
+---
+
+Feature: Home list and all-view columns
+
+Purpose:
+사이트도 한 줄 목록으로 보고, 모두 화면만 1열 또는 2열로 고르기 위함
+
+Design source:
+내부 요구사항. 홈 미리보기는 한 줄 유지
+
+Implementation:
+기존 FavoriteGrid의 한 줄(row) 배치를 기본으로 씀. settings.json의 `listColumns`는 1 또는 2만 허용. 모두 화면(ToolGroupPage)에만 열 수를 넘김. 원격 파비콘은 받지 않음. 아이콘은 기존 로컬 `iconImage`만
+
+External code:
+없음
+
+Potential similar products:
+목록 열 수가 있는 설정 화면
+
+Difference:
+시작 메뉴·독·다른 런처 격자 복제 없음. 홈은 미리보기 한 줄. 열 선택은 모두 화면만
+
+PATENT_REVIEW:
+목록을 한 줄 또는 두 줄로 늘어놓는 일반 배치
+

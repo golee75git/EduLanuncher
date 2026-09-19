@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
-import { DEFAULT_SETTINGS, asPanelSkin, type AppSettings, type PanelSkin } from "../types/settings";
+import { DEFAULT_SETTINGS, asListColumns, asPanelSkin, type AppSettings, type PanelSkin } from "../types/settings";
 import { loadSettings, saveSettings } from "../services/storageService";
 import { registerShortcut, setLauncherPosition } from "../services/windowService";
 
@@ -20,7 +20,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   loaded: false,
   hydrate: (settings) => {
-    const next = { ...settings, panelSkin: asPanelSkin(settings.panelSkin) };
+    const next = {
+      ...settings,
+      panelSkin: asPanelSkin(settings.panelSkin),
+      listColumns: asListColumns(settings.listColumns),
+    };
     paintSkin(next.panelSkin);
     set({ settings: next, loaded: true });
   },
@@ -29,6 +33,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       ...get().settings,
       ...patch,
       panelSkin: asPanelSkin(patch.panelSkin ?? get().settings.panelSkin),
+      listColumns: asListColumns(patch.listColumns ?? get().settings.listColumns),
     };
     set({ settings });
     await saveSettings(settings);

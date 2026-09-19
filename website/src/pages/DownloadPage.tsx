@@ -34,7 +34,7 @@ export function DownloadPage() {
           </p>
           <p className="mt-1 text-sm text-quiet">x64 · 현재 사용자 설치 · WebView2 필요</p>
         </div>
-        <a className="btn-primary w-full sm:w-auto" href={SITE_CONFIG.releasesUrl} rel="noreferrer" target="_blank">
+        <a className="btn-primary w-full sm:w-auto" href={SITE_CONFIG.setupDownloadUrl} rel="noreferrer" target="_blank">
           <Download className="h-4 w-4" />
           최신 설치 파일
         </a>

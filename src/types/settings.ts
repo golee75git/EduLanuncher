@@ -1,5 +1,6 @@
 export type LauncherPosition = "bottom-right" | "center";
 export type PanelSkin = "paper" | "bright" | "dusk";
+export type ListColumns = 1 | 2;
 
 export interface AppSettings {
   autoStart: boolean;
@@ -11,6 +12,7 @@ export interface AppSettings {
   showCompletedTodos: boolean;
   onboarded: boolean;
   panelSkin: PanelSkin;
+  listColumns: ListColumns;
 }
 
 export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: string }> = [
@@ -23,6 +25,10 @@ export function asPanelSkin(value: unknown): PanelSkin {
   return value === "bright" || value === "dusk" ? value : "paper";
 }
 
+export function asListColumns(value: unknown): ListColumns {
+  return value === 2 || value === "2" ? 2 : 1;
+}
+
 export const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   showWindowOnLaunch: false,
@@ -33,5 +39,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showCompletedTodos: false,
   onboarded: false,
   panelSkin: "paper",
+  listColumns: 1,
 };
-

@@ -6,6 +6,43 @@
 ---
 
 날짜: 2026-09-19
+버전: 0.1.28-20260919
+설치 파일: EduLauncher_0.1.28-20260919_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-19_1250_x64-setup.exe
+
+한 일
+- 홈 사이트도 한 줄 목록. 빈 격자 칸을 쓰지 않음.
+- 설정 보기에 모두 목록 1열·2열. 홈 미리보기는 한 줄.
+- 소개 페이지에 설치 파일 받기 주소와 파일명 표시.
+- 시스템 글꼴 유지. 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- 없음 (기존 파일만 수정)
+
+재사용한 기존 파일
+- src/types/settings.ts
+- src/stores/settingsStore.ts
+- src/services/storageService.ts
+- src/services/backupService.ts
+- src/components/FavoriteGrid.tsx
+- src/pages/HomePage.tsx
+- src/pages/ToolGroupPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/pages/IntroPage.tsx
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴(Segoe UI, Malgun Gothic). OFL 아님. 번들 없음. 이번 작업에서 글꼴 파일을 넣지 않음.
+라이선스: 패키지 추가 없음. 직접 의존성은 MIT / Apache-2.0 / ISC. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: listColumns는 1 또는 2만 허용. 사용자 문자열을 CSS 클래스에 넣지 않음. 원격 아이콘 URL을 받지 않음.
+특허 검토 대상: 목록을 1열·2열로 늘어놓는 일반 배치. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-19
 버전: 0.1.27-20260919
 설치 파일: EduLauncher_0.1.27-20260919_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe

@@ -46,15 +46,23 @@ export function IntroPage() {
           프로그램입니다. 평소에는 화면을 가리지 않고, 필요할 때만 엽니다.
         </p>
         <div className="flex flex-wrap gap-3 pt-2">
-          <a className="btn-primary" href="/download">
+          <a className="btn-primary" href={SITE_CONFIG.setupDownloadUrl} rel="noreferrer" target="_blank">
             <Download className="h-4 w-4" />
-            데스크톱 받기
+            설치 파일 받기
+          </a>
+          <a className="btn-secondary" href="/download">
+            설치 안내
           </a>
           <a className="btn-secondary" href="/preview">
             <LayoutPanelTop className="h-4 w-4" />
             웹에서 화면 보기
           </a>
         </div>
+        <p className="text-sm leading-relaxed text-quiet">
+          설치 파일 {SITE_CONFIG.setupFile}
+          <br />
+          날짜 복사본 {SITE_CONFIG.setupFileDated}
+        </p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-3">

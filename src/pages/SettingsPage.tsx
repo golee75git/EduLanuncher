@@ -10,7 +10,7 @@ import { useNoticeStore } from "../stores/noticeStore";
 import { NOTICE_KIND_LABEL } from "../types/notice";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
-import { PANEL_SKIN_OPTIONS, type LauncherPosition, type PanelSkin } from "../types/settings";
+import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -106,6 +106,20 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
               ))}
             </select>
           </label>
+          <label className="block text-sm text-desk">
+            모두 목록 열
+            <select
+              className="field-input"
+              value={settings.listColumns}
+              onChange={(event) =>
+                void update({ listColumns: Number(event.target.value) as ListColumns })
+              }
+            >
+              <option value={1}>1열</option>
+              <option value={2}>2열</option>
+            </select>
+          </label>
+          <p className="text-xs leading-5 text-quiet">홈 미리보기는 한 줄입니다. 모두 화면에만 적용됩니다.</p>
         </SettingsCard>
 
         <SettingsCard title="바로가기 Pack">
@@ -292,7 +306,11 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
         </SettingsCard>
 
         <SettingsCard title="프로그램 정보">
-          <p className="text-xs leading-5 text-quiet">설치 파일 {APP_CONFIG.setupFile}</p>
+          <p className="text-xs leading-5 text-quiet">
+            설치 파일 {APP_CONFIG.setupFile}
+            <br />
+            날짜 복사본 {APP_CONFIG.setupFileDated}
+          </p>
           <p className="mt-2 text-sm text-desk">
             {APP_CONFIG.appName} {APP_CONFIG.version}
           </p>
@@ -304,11 +322,11 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
 
         <SettingsCard title="사용 방법">
           <p className="text-xs leading-5 text-quiet">
-            설치 파일 {APP_CONFIG.setupFile} · {APP_CONFIG.version}
+            설치 파일 {APP_CONFIG.setupFile} · 날짜 복사본 {APP_CONFIG.setupFileDated} · {APP_CONFIG.version}
           </p>
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
             <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다.</li>
-            <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨을 고릅니다.</li>
+            <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨과 모두 목록 1열·2열을 고릅니다.</li>
             <li>카드의 별을 끄면 홈에서만 빠집니다. 목록에서 지우려면 삭제 확인을 거칩니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>

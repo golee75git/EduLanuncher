@@ -6,6 +6,7 @@ interface FavoriteGridProps {
   selectedId?: string;
   emptyText?: string;
   layout?: "grid" | "list";
+  columns?: 1 | 2;
   onLaunch: (tool: ToolItem) => void;
   onFavorite: (tool: ToolItem) => void;
   onEdit: (tool: ToolItem) => void;
@@ -16,7 +17,8 @@ export function FavoriteGrid({
   tools,
   selectedId,
   emptyText = "즐겨찾기 도구가 없습니다. + 버튼으로 추가하세요.",
-  layout = "grid",
+  layout = "list",
+  columns = 1,
   onLaunch,
   onFavorite,
   onEdit,
@@ -28,7 +30,7 @@ export function FavoriteGrid({
 
   if (layout === "list") {
     return (
-      <div className="space-y-1">
+      <div className={columns === 2 ? "grid grid-cols-2 gap-1" : "space-y-1"}>
         {tools.map((tool) => (
           <ToolCard
             key={tool.id}

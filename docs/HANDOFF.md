@@ -3,7 +3,7 @@
 기준일: 2026-09-19  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.27-20260919`
+최신 커밋 시점의 앱 버전: `0.1.28-20260919`
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 
@@ -38,7 +38,7 @@ npm run site:build
 설치 결과:
 
 - `src-tauri/target/release/bundle/nsis/EduLauncher_<version>_x64-setup.exe`
-- 같은 폴더에 `EduLauncher_YYYY-MM-DD_x64-setup.exe` 복사
+- 같은 폴더에 `EduLauncher_YYYY-MM-DD_HHmm_x64-setup.exe` 복사
 - git에 넣지 말고 GitHub Release에 업로드
 
 현재 릴리스: https://github.com/golee75git/EduLanuncher/releases/latest
@@ -84,10 +84,11 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - Pack vs 이 PC 표시, 홈 그룹 3개+모두(바로가기만)
 - 다른 PC용 백업 JSON (설정 화면)
 - git 연결, Cloudflare Workers 정적 사이트 (`website/`)
-- GitHub Release에 `0.1.27` 설치파일 업로드
+- GitHub Release에 `0.1.28` 설치파일 업로드
 - 사이트 칸에서 이 PC Edge·Chrome 북마크와 Windows `.url` 목록
 - 업무도구 칸에서 컴퓨터도구(이 PC Windows 설정 화면)
 - 설정에서 서류·밝은 화면·어두운 화면 스킨
+- 홈 사이트는 한 줄 목록. 모두 화면은 설정에서 1열·2열
 - 네트워크·CCTV 검색 중 예상·경과·남은 시간, 중지
 
 ## 알려진 미완
