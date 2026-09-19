@@ -6,6 +6,34 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.34-20260920
+설치 파일: EduLauncher_0.1.34-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_0822_x64-setup.exe
+
+한 일
+- 바로가기 위에 마우스를 올리면 설명이 나옴. 설명이 없으면 이름. 주소·경로는 말풍선에 넣지 않음.
+- 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- 없음 (기존 파일만 수정)
+
+재사용한 기존 파일
+- src/components/ToolCard.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 말풍선 문구만 바꿈. 주소 문자열을 title에 넣지 않음.
+특허 검토 대상: 해당 없음.
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.33-20260920
 설치 파일: EduLauncher_0.1.33-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_0112_x64-setup.exe

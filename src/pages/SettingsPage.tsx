@@ -329,6 +329,7 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
             <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다.</li>
             <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨과 모두 목록 1열·2열을 고릅니다.</li>
             <li>카드의 별을 끄면 홈에서만 빠집니다. 목록에서 빼려면 빼기 확인을 거칩니다.</li>
+            <li>바로가기 위에 마우스를 올리면 설명이 나옵니다. 설명이 없으면 이름이 나옵니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>
             <li>업무도구 칸의 컴퓨터도구는 이 PC Windows 설정 화면을 열거나, 사설·공인 IP와 익스플로러 설정 복원 확인 화면을 엽니다.</li>

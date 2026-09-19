@@ -33,6 +33,7 @@ export function ToolCard({
   const hint = toolTargetHint(tool);
   const origin = toolOriginLabel(tool);
   const subtitle = hint ? `${hint} · ${origin}` : origin;
+  const hoverText = (tool.description ?? "").trim() || tool.name;
 
   useLayoutEffect(() => {
     if (!menuOpen) {
@@ -101,7 +102,7 @@ export function ToolCard({
       <button
         type="button"
         className={`flex w-full items-center gap-2 pr-12 text-left ${isRow ? "min-h-9" : ""}`}
-        title={tool.target}
+        title={hoverText}
         onClick={() => onLaunch(tool)}
       >
         <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-ink-soft text-ink transition-colors duration-150 group-hover:bg-ink group-hover:text-white">

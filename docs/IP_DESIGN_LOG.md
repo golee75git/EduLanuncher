@@ -819,6 +819,25 @@ Difference:
 PATENT_REVIEW:
 그림 위에 주소 무늬를 합성하고 PNG로 저장하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Shortcut hover text
+
+Purpose:
+바로가기 위에 마우스를 올리면 주소 대신 설명을 보여 줌
+
+Design source:
+내부 요구사항. HTML title만 사용
+
+Implementation:
+`ToolCard` 실행 단추의 title을 설명, 없으면 이름으로. 주소·경로는 넣지 않음
+
+External code:
+없음
+
+PATENT_REVIEW:
+해당 없음
+
 
 
 
