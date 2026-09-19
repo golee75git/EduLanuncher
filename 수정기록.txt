@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-09-19
+버전: 0.1.29-20260919
+설치 파일: EduLauncher_0.1.29-20260919_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-19_1421_x64-setup.exe
+
+한 일
+- 컴퓨터도구에 이 PC 주소 보기. 이 PC 주소와 공인 주소만 표시.
+- Network 구간 검색 화면은 그대로.
+- 시스템 글꼴 유지. 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- src/pages/ThisPcAddressPage.tsx
+
+재사용한 기존 파일
+- src/data/computerTools.ts
+- src/pages/ComputerToolPage.tsx
+- src/App.tsx
+- src/pages/SettingsPage.tsx
+- src/services/networkService.ts (호출만)
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/pages/IntroPage.tsx
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴(Segoe UI, Malgun Gothic). OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 의존성은 MIT / Apache-2.0 / ISC. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 이 PC 주소는 기존 ipconfig 파싱. 공인 주소는 기존 조회 명령만. 새 URL·라이브러리 없음. 화면에 텍스트만 표시.
+특허 검토 대상: 이 PC 주소와 바깥 주소를 나란히 보여 주는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-19
 버전: 0.1.28-20260919
 설치 파일: EduLauncher_0.1.28-20260919_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-19_1250_x64-setup.exe

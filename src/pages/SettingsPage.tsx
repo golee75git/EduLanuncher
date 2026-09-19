@@ -330,7 +330,7 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
             <li>카드의 별을 끄면 홈에서만 빠집니다. 목록에서 지우려면 삭제 확인을 거칩니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>
-            <li>업무도구 칸의 컴퓨터도구는 이 PC Windows 설정 화면만 엽니다. 원할 때만 런처에 추가합니다.</li>
+            <li>업무도구 칸의 컴퓨터도구는 이 PC Windows 설정 화면을 열거나, 이 PC 주소와 공인 주소만 봅니다.</li>
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다.</li>
           </ul>

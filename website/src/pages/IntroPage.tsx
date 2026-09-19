@@ -22,7 +22,7 @@ const HOLDS = [
   "한 장의 메모",
   "주소·파일·바로가기를 패널에 끌어 놓기 (Windows 설치본)",
   "이 PC Edge·Chrome 북마크와 Windows 즐겨찾기 바로가기 보기",
-  "업무도구에서 컴퓨터 이름 등 이 PC Windows 설정 화면 열기",
+  "업무도구에서 컴퓨터 이름·이 PC 주소 등 이 PC 화면 열기",
 ] as const;
 
 const DOES_NOT = [

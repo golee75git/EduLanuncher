@@ -706,3 +706,29 @@ Difference:
 PATENT_REVIEW:
 목록을 한 줄 또는 두 줄로 늘어놓는 일반 배치
 
+---
+
+Feature: This PC address view
+
+Purpose:
+이 PC IPv4와 공인(NAT 바깥) 주소만 바로 보기 위함
+
+Design source:
+내부 요구사항. 구간 검색 화면과 분리
+
+Implementation:
+컴퓨터도구 목록의 한 항목. 기존 `this_pc_ipv4`와 `lookup_public_ipv4`만 호출. 이름·마스크·게이트웨이·구간 검색은 이 화면에 없음. 새 네트워크 API·라이브러리 없음
+
+External code:
+없음
+
+Potential similar products:
+운영체제 네트워크 상태, 공인 IP 확인 사이트
+
+Difference:
+Windows 설정 화면을 복제하지 않음. 기존 Network 검색 도구를 바꾸지 않음. 값 두 가지만 표시
+
+PATENT_REVIEW:
+이 PC 주소와 바깥에서 보이는 주소를 나란히 보여 주는 구성
+
+

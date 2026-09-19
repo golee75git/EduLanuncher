@@ -14,6 +14,7 @@ import { NetworkToolPage } from "./pages/NetworkToolPage";
 import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ComputerToolPage } from "./pages/ComputerToolPage";
+import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
@@ -37,6 +38,7 @@ type View =
   | { name: "tool-group"; groupType: ToolType }
   | { name: "pc-urls" }
   | { name: "computer-tools" }
+  | { name: "pc-address" }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
   | { name: "memo" }
   | { name: "internal"; id: string; title: string };
@@ -351,7 +353,11 @@ export default function App() {
             <ComputerToolPage
               onBack={() => setView({ name: "home" })}
               onLaunch={(tool) => void handleLaunch(tool)}
+              onShowAddress={() => setView({ name: "pc-address" })}
             />
+          ) : null}
+          {view.name === "pc-address" ? (
+            <ThisPcAddressPage onBack={() => setView({ name: "computer-tools" })} />
           ) : null}
           {view.name === "tool-edit" ? (
             <ToolEditPage
@@ -361,6 +367,9 @@ export default function App() {
             />
           ) : null}
           {view.name === "memo" ? <MemoPage onBack={() => setView({ name: "home" })} /> : null}
+          {view.name === "internal" && (view.id === "pc-address" || view.id === "pc-sys:pc-address") ? (
+            <ThisPcAddressPage title={view.title} onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" && (view.id === "network" || view.id === "tool-network") ? (
             <NetworkToolPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -371,7 +380,9 @@ export default function App() {
           view.id !== "network" &&
           view.id !== "tool-network" &&
           view.id !== "cctv" &&
-          view.id !== "tool-cctv" ? (
+          view.id !== "tool-cctv" &&
+          view.id !== "pc-address" &&
+          view.id !== "pc-sys:pc-address" ? (
             <InternalPlaceholderPage
               title={view.title}
               onBack={() => setView({ name: "home" })}

@@ -6,8 +6,9 @@ export interface ComputerToolEntry {
   id: string;
   name: string;
   hint: string;
-  type: Extract<ToolType, "app" | "file">;
-  fileName: string;
+  type: Extract<ToolType, "app" | "file" | "internal">;
+  fileName?: string;
+  view?: "pc-address";
 }
 
 const ENTRIES: ComputerToolEntry[] = [
@@ -40,6 +41,13 @@ const ENTRIES: ComputerToolEntry[] = [
     fileName: "ncpa.cpl",
   },
   {
+    id: "pc-address",
+    name: "이 PC 주소",
+    hint: "이 PC 주소와 공인 주소만 봅니다.",
+    type: "internal",
+    view: "pc-address",
+  },
+  {
     id: "clock",
     name: "날짜와 시간",
     hint: "시계와 표준시 화면을 엽니다.",
@@ -63,7 +71,14 @@ function system32Path(fileName: string): string {
 }
 
 export function computerToolPath(entry: ComputerToolEntry): string {
+  if (!entry.fileName) {
+    return "";
+  }
   return system32Path(entry.fileName);
+}
+
+export function isAddressTool(entry: ComputerToolEntry): boolean {
+  return entry.view === "pc-address";
 }
 
 export function listComputerTools(): ComputerToolEntry[] {
@@ -71,11 +86,27 @@ export function listComputerTools(): ComputerToolEntry[] {
 }
 
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
+  if (isAddressTool(entry)) {
+    return {
+      id: `pc-sys:${entry.id}`,
+      name: entry.name,
+      description: entry.hint,
+      type: "internal",
+      target: "pc-address",
+      icon: "network",
+      category: "전산",
+      favorite: true,
+      keywords: [entry.name, "컴퓨터도구", "아이피", "ip"],
+      usageCount: 0,
+      enabled: true,
+      origin: "local",
+    };
+  }
   return {
     id: `pc-sys:${entry.id}`,
     name: entry.name,
     description: entry.hint,
-    type: entry.type,
+    type: entry.type === "app" ? "app" : "file",
     target: computerToolPath(entry),
     icon: "monitor",
     category: "전산",

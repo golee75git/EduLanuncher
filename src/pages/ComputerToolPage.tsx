@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   computerToolAsItem,
   computerToolPath,
+  isAddressTool,
   listComputerTools,
   sameLocalPath,
 } from "../data/computerTools";
@@ -12,24 +13,28 @@ import type { ToolItem } from "../types/tool";
 interface ComputerToolPageProps {
   onBack: () => void;
   onLaunch: (tool: ToolItem) => void;
+  onShowAddress: () => void;
 }
 
-export function ComputerToolPage({ onBack, onLaunch }: ComputerToolPageProps) {
+export function ComputerToolPage({ onBack, onLaunch, onShowAddress }: ComputerToolPageProps) {
   const tools = useToolStore((state) => state.tools);
   const addTool = useToolStore((state) => state.addTool);
   const [notice, setNotice] = useState("");
 
   const pinToLauncher = async (item: ToolItem) => {
-    const exists = tools.some(
-      (tool) =>
-        (tool.type === "app" || tool.type === "file") && sameLocalPath(tool.target, item.target),
-    );
+    const exists =
+      item.type === "internal"
+        ? tools.some((tool) => tool.type === "internal" && tool.target === item.target)
+        : tools.some(
+            (tool) =>
+              (tool.type === "app" || tool.type === "file") && sameLocalPath(tool.target, item.target),
+          );
     if (exists) {
       setNotice("이미 런처 목록에 있습니다.");
       return;
     }
     await addTool({ ...item, id: crypto.randomUUID() });
-    setNotice("프로그램 또는 파일 칸에 넣었습니다.");
+    setNotice(item.type === "internal" ? "업무도구 칸에 넣었습니다." : "프로그램 또는 파일 칸에 넣었습니다.");
   };
 
   return (
@@ -42,8 +47,8 @@ export function ComputerToolPage({ onBack, onLaunch }: ComputerToolPageProps) {
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          이 PC Windows에 있는 설정 화면만 엽니다. 이름을 대신 바꾸거나 권한을 올리지 않습니다. 고정된
-          System32 파일만 실행합니다.
+          이 PC Windows 설정 화면을 열거나, 이 PC 주소와 공인 주소만 봅니다. 이름을 대신 바꾸거나 권한을 올리지
+          않습니다. 설정 화면은 고정된 System32 파일만 실행합니다.
         </p>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         <ul className="card-surface divide-y divide-line/70">
@@ -54,10 +59,10 @@ export function ComputerToolPage({ onBack, onLaunch }: ComputerToolPageProps) {
                 <button
                   type="button"
                   className="min-w-0 flex-1 rounded-md px-1 py-1 text-left transition-colors duration-150 hover:bg-paper"
-                  onClick={() => onLaunch(item)}
+                  onClick={() => (isAddressTool(entry) ? onShowAddress() : onLaunch(item))}
                 >
                   <span className="block truncate text-sm font-medium text-desk">{entry.name}</span>
-                  <span className="block truncate text-[11px] text-quiet" title={computerToolPath(entry)}>
+                  <span className="block truncate text-[11px] text-quiet" title={computerToolPath(entry) || entry.hint}>
                     {entry.hint}
                   </span>
                 </button>
