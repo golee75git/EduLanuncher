@@ -1,6 +1,7 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { isIeResetTarget } from "../data/computerTools";
 import type { ToolItem } from "../types/tool";
-import { isPathTool, launchNative } from "./windowService";
+import { isPathTool, launchNative, openIeReset } from "./windowService";
 import { useToolStore } from "../stores/toolStore";
 
 export class LaunchError extends Error {
@@ -30,6 +31,20 @@ export async function launchTool(tool: ToolItem): Promise<"internal" | "launched
   }
 
   if (tool.type === "internal") {
+    if (isIeResetTarget(tool.target) || isIeResetTarget(tool.id)) {
+      try {
+        await openIeReset();
+        await useToolStore.getState().markUsed(tool.id);
+        return "launched";
+      } catch (error) {
+        throw new LaunchError(
+          "failed",
+          error instanceof Error ? error.message : "복원 화면을 열 수 없습니다.",
+          undefined,
+          tool,
+        );
+      }
+    }
     await useToolStore.getState().markUsed(tool.id);
     return "internal";
   }

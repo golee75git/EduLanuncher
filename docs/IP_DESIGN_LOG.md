@@ -753,5 +753,31 @@ Potential similar products:
 Difference:
 시작 메뉴·설정 앱 UI 복제 없음. 고정 경로만 연다
 
+---
+
+Feature: Internet Explorer reset confirm
+
+Purpose:
+학교 PC에서 익스플로러 설정을 되돌리는 Windows 확인 화면을 바로 열기 위함
+
+Design source:
+내부 요구사항. 인자 일반화 없음
+
+Implementation:
+프론트는 인자 없이 `open_ie_reset`만 호출. Rust에서 `C:\Windows\System32\rundll32.exe`와 고정 인자 `inetcpl.cpl,ResetIEtoDefaults`만 실행. 사용자 문자열을 명령에 넣지 않음. 확인 전에는 설정을 바꾸지 않음
+
+External code:
+없음
+
+Potential similar products:
+인터넷 옵션의 원래대로 단추
+
+Difference:
+설정 앱·인터넷 옵션 화면을 복제하지 않음. 확인 창만 연다
+
+PATENT_REVIEW:
+운영체제 복원 확인 화면을 고정 호출로 여는 구성
+
+
 
 

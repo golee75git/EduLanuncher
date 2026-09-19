@@ -8,7 +8,7 @@ export interface ComputerToolEntry {
   hint: string;
   type: Extract<ToolType, "app" | "file" | "internal">;
   fileName?: string;
-  view?: "pc-address";
+  view?: "pc-address" | "ie-reset";
 }
 
 const ENTRIES: ComputerToolEntry[] = [
@@ -69,6 +69,13 @@ const ENTRIES: ComputerToolEntry[] = [
     fileName: "control.exe",
   },
   {
+    id: "ie-reset",
+    name: "익스플로러 설정 복원",
+    hint: "설정을 되돌리는 Windows 확인 화면을 엽니다. 확인 전에는 바꾸지 않습니다.",
+    type: "internal",
+    view: "ie-reset",
+  },
+  {
     id: "pc-info",
     name: "시스템 정보",
     hint: "이 PC 하드웨어·Windows 정보 화면을 엽니다.",
@@ -95,22 +102,32 @@ export function isAddressTool(entry: ComputerToolEntry): boolean {
   return entry.view === "pc-address";
 }
 
+export function isIeResetTool(entry: ComputerToolEntry): boolean {
+  return entry.view === "ie-reset";
+}
+
+export function isIeResetTarget(target: string): boolean {
+  return target === "ie-reset" || target === "pc-sys:ie-reset";
+}
+
 export function listComputerTools(): ComputerToolEntry[] {
   return ENTRIES;
 }
 
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
-  if (isAddressTool(entry)) {
+  if (isAddressTool(entry) || isIeResetTool(entry)) {
     return {
       id: `pc-sys:${entry.id}`,
       name: entry.name,
       description: entry.hint,
       type: "internal",
-      target: "pc-address",
-      icon: "network",
+      target: isIeResetTool(entry) ? "ie-reset" : "pc-address",
+      icon: isIeResetTool(entry) ? "monitor" : "network",
       category: "전산",
       favorite: true,
-      keywords: [entry.name, "컴퓨터도구", "아이피", "ip"],
+      keywords: isIeResetTool(entry)
+        ? [entry.name, "컴퓨터도구", "익스플로러", "인터넷"]
+        : [entry.name, "컴퓨터도구", "아이피", "ip"],
       usageCount: 0,
       enabled: true,
       origin: "local",

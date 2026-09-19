@@ -411,6 +411,26 @@ fn launch_tool(app: AppHandle, tool_type: String, target: String) -> LaunchResul
     }
 }
 
+#[tauri::command]
+fn open_ie_reset() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        let rundll = PathBuf::from(r"C:\Windows\System32\rundll32.exe");
+        if !rundll.is_file() {
+            return Err("복원 화면을 열 수 없습니다.".into());
+        }
+        std::process::Command::new(rundll)
+            .arg("inetcpl.cpl,ResetIEtoDefaults")
+            .spawn()
+            .map_err(|err| err.to_string())?;
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        Err("Windows에서만 열 수 있습니다.".into())
+    }
+}
+
 fn is_pack_file(path: &Path) -> bool {
     path.extension()
         .and_then(|ext| ext.to_str())
@@ -1014,6 +1034,7 @@ pub fn run() {
             set_launcher_position,
             register_shortcut,
             launch_tool,
+            open_ie_reset,
             read_json_file,
             read_url_shortcut,
             dropped_path_info,

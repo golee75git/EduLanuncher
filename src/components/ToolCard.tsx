@@ -182,7 +182,7 @@ export function ToolCard({
               onDelete(tool);
             }}
           >
-            삭제
+            빼기
           </button>
         </div>
       ) : null}

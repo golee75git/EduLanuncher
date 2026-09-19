@@ -3,7 +3,7 @@
 기준일: 2026-09-19  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.30-20260919`
+최신 커밋 시점의 앱 버전: `0.1.31-20260919`
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 
@@ -84,9 +84,9 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - Pack vs 이 PC 표시, 홈 그룹 3개+모두(바로가기만)
 - 다른 PC용 백업 JSON (설정 화면)
 - git 연결, Cloudflare Workers 정적 사이트 (`website/`)
-- GitHub Release에 `0.1.30` 설치파일 업로드
+- GitHub Release에 `0.1.31` 설치파일 업로드
 - 사이트 칸에서 이 PC Edge·Chrome 북마크와 Windows `.url` 목록
-- 업무도구 칸에서 컴퓨터도구(이 PC Windows 설정 화면, 이 PC IP 주소·사설/공인 IP, 제어판·시스템 정보)
+- 업무도구 칸에서 컴퓨터도구(이 PC Windows 설정 화면, 이 PC IP 주소·사설/공인 IP, 제어판·시스템 정보, 익스플로러 설정 복원 확인)
 - 설정에서 서류·밝은 화면·어두운 화면 스킨
 - 홈 사이트는 한 줄 목록. 모두 화면은 설정에서 1열·2열
 - 네트워크·CCTV 검색 중 예상·경과·남은 시간, 중지

@@ -28,6 +28,10 @@ export async function launchNative(
   return invoke<LaunchResult>("launch_tool", { toolType, target });
 }
 
+export async function openIeReset(): Promise<void> {
+  await invoke("open_ie_reset");
+}
+
 export function isPathTool(tool: Pick<ToolItem, "type">): boolean {
   return tool.type === "file" || tool.type === "folder" || tool.type === "app";
 }

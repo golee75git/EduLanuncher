@@ -239,11 +239,9 @@ export default function App() {
   const handleLaunch = async (tool: ToolItem) => {
     try {
       if (tool.type === "internal") {
-        setView({ name: "internal", id: tool.target || tool.id, title: tool.name });
-        try {
-          await launchTool(tool);
-        } catch {
-          // 내부 화면은 이미 열었으므로 사용 기록 저장 실패는 무시합니다.
+        const result = await launchTool(tool);
+        if (result === "internal") {
+          setView({ name: "internal", id: tool.target || tool.id, title: tool.name });
         }
         return;
       }
@@ -382,7 +380,9 @@ export default function App() {
           view.id !== "cctv" &&
           view.id !== "tool-cctv" &&
           view.id !== "pc-address" &&
-          view.id !== "pc-sys:pc-address" ? (
+          view.id !== "pc-sys:pc-address" &&
+          view.id !== "ie-reset" &&
+          view.id !== "pc-sys:ie-reset" ? (
             <InternalPlaceholderPage
               title={view.title}
               onBack={() => setView({ name: "home" })}
