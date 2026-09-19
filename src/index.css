@@ -10,9 +10,53 @@
   --color-desk: #1f2a2e;
   --color-quiet: #5b676c;
   --color-card: #ffffff;
+  --color-zone-notice: #e7ecef;
+  --color-zone-alert: #f3eee8;
+  --color-zone-tools: #e4f0ed;
+  --color-zone-todo: #eef0e8;
+  --color-zone-recent: #e8eaf0;
+  --color-scroll: #c5ced3;
 
   --shadow-card: 0 1px 1px 0 rgba(24, 35, 38, 0.04), 0 2px 6px -2px rgba(24, 35, 38, 0.08);
   --shadow-pop: 0 8px 16px -6px rgba(15, 30, 27, 0.18), 0 2px 6px -2px rgba(15, 30, 27, 0.1);
+}
+
+html[data-skin="bright"] {
+  --color-paper: #f7f2e9;
+  --color-ink: #7a4528;
+  --color-ink-strong: #5c321c;
+  --color-ink-soft: #f4e6d6;
+  --color-line: #e5d8c6;
+  --color-desk: #2c241c;
+  --color-quiet: #6d5f52;
+  --color-card: #fffcf7;
+  --color-zone-notice: #f1e6d8;
+  --color-zone-alert: #f6e4d0;
+  --color-zone-tools: #efe4c8;
+  --color-zone-todo: #e8ead4;
+  --color-zone-recent: #eadfd4;
+  --color-scroll: #d4c4b0;
+  --shadow-card: 0 1px 1px 0 rgba(62, 42, 24, 0.05), 0 2px 6px -2px rgba(62, 42, 24, 0.1);
+  --shadow-pop: 0 8px 16px -6px rgba(62, 42, 24, 0.16), 0 2px 6px -2px rgba(62, 42, 24, 0.1);
+}
+
+html[data-skin="dusk"] {
+  --color-paper: #1b2321;
+  --color-ink: #5aa390;
+  --color-ink-strong: #6bb59f;
+  --color-ink-soft: #31403c;
+  --color-line: #3d4a46;
+  --color-desk: #e4ece9;
+  --color-quiet: #9aaba6;
+  --color-card: #262f2c;
+  --color-zone-notice: #222c2e;
+  --color-zone-alert: #2a2c26;
+  --color-zone-tools: #22332f;
+  --color-zone-todo: #2a3128;
+  --color-zone-recent: #252a32;
+  --color-scroll: #4a5854;
+  --shadow-card: 0 1px 1px 0 rgba(0, 0, 0, 0.22), 0 2px 6px -2px rgba(0, 0, 0, 0.28);
+  --shadow-pop: 0 8px 16px -6px rgba(0, 0, 0, 0.42), 0 2px 6px -2px rgba(0, 0, 0, 0.28);
 }
 
 html,
@@ -36,7 +80,7 @@ input[type="checkbox"] {
   }
 
   .desk-label {
-    @apply mb-2 text-[11px] font-semibold tracking-wide text-quiet uppercase;
+    @apply mb-2 text-[14px] font-semibold text-desk;
   }
 
   .desk-row {
@@ -47,14 +91,16 @@ input[type="checkbox"] {
     @apply bg-ink-soft text-ink-strong ring-1 ring-inset ring-ink/15;
   }
 
-  /* Round, quiet icon buttons used in headers and card corners */
   .icon-btn {
     @apply inline-flex items-center justify-center rounded-full p-2 text-quiet transition-colors duration-150 hover:bg-desk/[0.06] hover:text-desk active:bg-desk/10;
   }
 
-  /* Elevated white surface for cards, panels and dropdowns */
   .card-surface {
     @apply rounded-xl border border-line/70 bg-card shadow-card;
+  }
+
+  .zone-block {
+    @apply rounded-xl border border-line/40 p-2.5;
   }
 
   .btn-primary {
@@ -71,6 +117,6 @@ input[type="checkbox"] {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c5ced3;
+  background: var(--color-scroll);
   border-radius: 99px;
 }

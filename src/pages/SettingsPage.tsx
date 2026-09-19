@@ -10,7 +10,7 @@ import { useNoticeStore } from "../stores/noticeStore";
 import { NOTICE_KIND_LABEL } from "../types/notice";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
-import type { LauncherPosition } from "../types/settings";
+import { PANEL_SKIN_OPTIONS, type LauncherPosition, type PanelSkin } from "../types/settings";
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -86,6 +86,26 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
             checked={settings.showCompletedTodos}
             onChange={(showCompletedTodos) => void update({ showCompletedTodos })}
           />
+        </SettingsCard>
+
+        <SettingsCard title="보기">
+          <p className="text-xs leading-5 text-quiet">
+            패널 안 색만 바꿉니다. 창 테두리는 Windows가 그립니다.
+          </p>
+          <label className="block text-sm text-desk">
+            기본 스킨
+            <select
+              className="field-input"
+              value={settings.panelSkin}
+              onChange={(event) => void update({ panelSkin: event.target.value as PanelSkin })}
+            >
+              {PANEL_SKIN_OPTIONS.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label} · {item.hint}
+                </option>
+              ))}
+            </select>
+          </label>
         </SettingsCard>
 
         <SettingsCard title="바로가기 Pack">
@@ -288,6 +308,7 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
           </p>
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
             <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다.</li>
+            <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨을 고릅니다.</li>
             <li>카드의 별을 끄면 홈에서만 빠집니다. 목록에서 지우려면 삭제 확인을 거칩니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>

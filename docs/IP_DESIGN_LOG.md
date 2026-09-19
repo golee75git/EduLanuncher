@@ -656,3 +656,28 @@ Difference:
 PATENT_REVIEW:
 목록 항목 삭제 전 확인 안내
 
+---
+
+Feature: Three panel skins
+
+Purpose:
+패널 분위기를 서류·밝은 화면·어두운 화면으로 고르고, 홈 구역을 읽기 쉽게 나눔
+
+Design source:
+내부 요구사항. 칸마다 색 고르기 없음
+
+Implementation:
+settings.json의 `panelSkin` 세 값만 허용. html data-skin으로 기존 색 토큰을 통째로 바꿈. 홈 구역 제목은 14px 세미볼드. 구역 배경은 스킨별 연한 토큰. 아크릴·블러·커맨드 팔레트 없음. 창 테두리는 OS
+
+External code:
+없음
+
+Potential similar products:
+OS 밝기/어두움 설정, 테마 상점이 있는 런처
+
+Difference:
+시작 메뉴·Fluent·다른 런처 스킨 UI 복제 없음. 이름과 팔레트는 이 패널용으로 정함. 색상표 편집기 없음
+
+PATENT_REVIEW:
+미리 정한 몇 가지 화면 색 묶음을 고르는 구성
+

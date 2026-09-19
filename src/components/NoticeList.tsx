@@ -18,7 +18,7 @@ export function NoticeList({ kind }: NoticeListProps) {
       : "가져온 공지가 없습니다. 설정에서 공지 Pack을 가져오세요.";
 
   return (
-    <section>
+    <section className={`zone-block ${kind === "alert" ? "bg-zone-alert" : "bg-zone-notice"}`}>
       <h2 className="desk-label">{NOTICE_KIND_LABEL[kind]}</h2>
       <div className="card-surface overflow-hidden">
         {visible.length === 0 ? (

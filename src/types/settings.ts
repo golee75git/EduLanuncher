@@ -1,4 +1,5 @@
 export type LauncherPosition = "bottom-right" | "center";
+export type PanelSkin = "paper" | "bright" | "dusk";
 
 export interface AppSettings {
   autoStart: boolean;
@@ -9,6 +10,17 @@ export interface AppSettings {
   recentCount: number;
   showCompletedTodos: boolean;
   onboarded: boolean;
+  panelSkin: PanelSkin;
+}
+
+export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: string }> = [
+  { id: "paper", label: "서류", hint: "차가운 회색 바탕" },
+  { id: "bright", label: "밝은 화면", hint: "따뜻한 서류색 바탕" },
+  { id: "dusk", label: "어두운 화면", hint: "낮은 조명 바탕" },
+];
+
+export function asPanelSkin(value: unknown): PanelSkin {
+  return value === "bright" || value === "dusk" ? value : "paper";
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -20,4 +32,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   recentCount: 5,
   showCompletedTodos: false,
   onboarded: false,
+  panelSkin: "paper",
 };
+

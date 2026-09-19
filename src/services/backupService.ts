@@ -6,7 +6,7 @@ import { useTodoStore } from "../stores/todoStore";
 import { useToolStore } from "../stores/toolStore";
 import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type NoticeItem, type NoticeKind, type StoredNotices } from "../types/notice";
-import { DEFAULT_SETTINGS, type AppSettings, type LauncherPosition } from "../types/settings";
+import { DEFAULT_SETTINGS, asPanelSkin, type AppSettings, type LauncherPosition } from "../types/settings";
 import type { TodoItem } from "../types/todo";
 import type { ToolItem, ToolOrigin, ToolType } from "../types/tool";
 
@@ -190,6 +190,7 @@ function parseSettings(raw: unknown): AppSettings {
     recentCount,
     showCompletedTodos: source.showCompletedTodos === true,
     onboarded: source.onboarded !== false,
+    panelSkin: asPanelSkin(source.panelSkin),
   };
 }
 

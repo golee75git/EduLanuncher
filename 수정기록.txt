@@ -6,6 +6,42 @@
 ---
 
 날짜: 2026-09-19
+버전: 0.1.27-20260919
+설치 파일: EduLauncher_0.1.27-20260919_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe
+
+한 일
+- 설정 보기에 서류·밝은 화면·어두운 화면 스킨 3개. 패널 안 색만 바꿈.
+- 홈 구역 제목을 크고 진하게. 공지·알림·도구·할 일·최근은 연한 배경으로 구분.
+- 칸마다 색 고르기 없음. 시스템 글꼴 유지. 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- 없음 (기존 파일만 수정)
+
+재사용한 기존 파일
+- src/index.css
+- src/types/settings.ts
+- src/stores/settingsStore.ts
+- src/services/storageService.ts
+- src/services/backupService.ts
+- src/pages/SettingsPage.tsx
+- src/pages/HomePage.tsx
+- src/components/NoticeList.tsx
+- src/components/TodoList.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: panelSkin은 세 값만 허용. 임의 색 문자열을 CSS에 넣지 않음.
+특허 검토 대상: 미리 정한 화면 색 묶음을 고르는 구성. 청구항 대조 없음.
+
+---
+
+날짜: 2026-09-19
 버전: 0.1.26-20260919
 설치 파일: EduLauncher_0.1.26-20260919_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-19_x64-setup.exe

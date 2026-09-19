@@ -16,7 +16,7 @@ export function TodoList() {
   const completedCount = todos.filter((todo) => todo.completed).length;
 
   return (
-    <section>
+    <section className="zone-block bg-zone-todo">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="desk-label mb-0">오늘 할 일</h2>
         {completedCount > 0 ? (

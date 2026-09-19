@@ -204,7 +204,7 @@ export function HomePage({ onAction }: HomePageProps) {
           <>
             <NoticeList kind="org" />
             <NoticeList kind="alert" />
-            <section>
+            <section className="zone-block bg-zone-tools">
               <h2 className="desk-label">자주 사용하는 도구</h2>
               <div className="space-y-3">
                 {favoriteGroups.map((group) => (
@@ -259,7 +259,7 @@ export function HomePage({ onAction }: HomePageProps) {
               </div>
             </section>
             <TodoList />
-            <section>
+            <section className="zone-block bg-zone-recent">
               <h2 className="desk-label">최근 사용</h2>
               <RecentTools
                 tools={recents}
@@ -314,7 +314,7 @@ export function HomePage({ onAction }: HomePageProps) {
                 );
               })}
             </ResultGroup>
-            <section>
+            <section className="zone-block bg-zone-recent">
               <h2 className="desk-label">최근 사용</h2>
               <RecentTools
                 tools={results.recents.map((hit) => hit.item)}

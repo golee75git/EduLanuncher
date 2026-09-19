@@ -1,7 +1,7 @@
 import { Store } from "@tauri-apps/plugin-store";
 import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type StoredNotices } from "../types/notice";
-import { DEFAULT_SETTINGS, type AppSettings } from "../types/settings";
+import { DEFAULT_SETTINGS, asPanelSkin, type AppSettings } from "../types/settings";
 import type { TodoItem } from "../types/todo";
 import type { ToolItem } from "../types/tool";
 
@@ -60,7 +60,8 @@ export async function loadSettings(): Promise<AppSettings> {
     await initStorage();
   }
   const stored = await settingsStore?.get<Partial<AppSettings>>("value");
-  return { ...DEFAULT_SETTINGS, ...stored };
+  const merged = { ...DEFAULT_SETTINGS, ...stored };
+  return { ...merged, panelSkin: asPanelSkin(merged.panelSkin) };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
