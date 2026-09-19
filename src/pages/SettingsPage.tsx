@@ -316,7 +316,8 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
           </p>
           <p className="mt-2 text-xs leading-5 text-quiet">
             {APP_CONFIG.appName}의 개인 설정과 바로가기 정보는 이 PC에 저장됩니다. 글꼴은 Windows 시스템 글꼴을
-            씁니다.
+            씁니다. QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 외부 구성 요소 고지는 저장소
+            THIRD_PARTY_NOTICES.md에 있습니다. 특허 비침해를 보장하지 않습니다.
           </p>
         </SettingsCard>
 
@@ -333,6 +334,7 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
             <li>업무도구 칸의 컴퓨터도구는 이 PC Windows 설정 화면을 열거나, 사설·공인 IP와 익스플로러 설정 복원 확인 화면을 엽니다.</li>
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다.</li>
+            <li>QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다.</li>
           </ul>
         </SettingsCard>
       </div>

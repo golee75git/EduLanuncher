@@ -90,6 +90,23 @@ Modified: No
 
 Transitive crates and full license texts are not copied here. See each package registry page and `LICENSES/README.md`.
 
+## Trademarks
+
+QR Code is a registered trademark of DENSO WAVE INCORPORATED.
+This project does not claim ownership of that mark. UI copy prefers 주소 무늬.
+
+## Planned crate (not in this build)
+
+Package: qrcode
+Version: 0.14.1
+Source: https://crates.io/crates/qrcode
+Repository: https://github.com/kennytm/qrcode-rust
+License: MIT OR Apache-2.0
+Purpose: Encode a URL into a module matrix for a future 주소 무늬 screen. Not added to Cargo.toml yet.
+Modified: No
+GPL/AGPL: No
+Patent: This notice does not grant or warrant freedom from third-party patents.
+
 ## Fonts
 
 Bundled font files: none.

@@ -778,6 +778,26 @@ Difference:
 PATENT_REVIEW:
 운영체제 복원 확인 화면을 고정 호출로 여는 구성
 
+---
+
+Feature: QR Code mark and crate notice
+
+Purpose:
+주소 무늬 기능을 넣기 전에 상표·크레이트 라이선스를 고지
+
+Design source:
+내부 요구사항. 크레이트는 아직 빌드에 없음
+
+Implementation:
+THIRD_PARTY_NOTICES.md에 `qrcode` 0.14.1 (MIT OR Apache-2.0) 채택 예정 고지. 설정 프로그램 정보에 QR Code 상표 표기. Cargo.toml 미변경
+
+External code:
+없음 (크레이트 소스 미포함)
+
+PATENT_REVIEW:
+그림 위에 주소 무늬를 합성하는 구성은 아직 미구현. 이 고지가 특허 비침해를 의미하지 않음
+
+
 
 
 

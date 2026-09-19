@@ -1,7 +1,37 @@
 수정기록 — 교육업무 런처
-작성: 요청자 작업 기록 (2026-09-19)
+작성: 요청자 작업 기록 (2026-09-20)
 
 이 파일은 수정 내용을 남기기 위한 기록이다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-20
+버전: 0.1.32-20260920
+설치 파일: EduLauncher_0.1.32-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_0047_x64-setup.exe
+
+한 일
+- QR Code 상표 고지(설정 프로그램 정보·사용 방법).
+- THIRD_PARTY_NOTICES에 crates.io qrcode 0.14.1 (MIT OR Apache-2.0) 채택 예정 고지. Cargo.toml에는 넣지 않음.
+- 주소 무늬 화면은 아직 없음. 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- 없음 (기존 파일만 수정)
+
+재사용한 기존 파일
+- THIRD_PARTY_NOTICES.md
+- LICENSES/README.md
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. OFL 아님. 번들 없음.
+라이선스: 빌드 의존성 추가 없음. 고지한 crate는 MIT OR Apache-2.0. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 고지만. 새 명령·네트워크 호출 없음.
+특허 검토 대상: 그림 위 주소 무늬 합성은 미구현. 이 고지가 특허 비침해를 의미하지 않음.
 
 ---
 
