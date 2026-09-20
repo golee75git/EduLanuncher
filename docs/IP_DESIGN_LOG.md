@@ -1100,3 +1100,69 @@ PATENT_REVIEW:
 이전화면 검색어를 메모리에 두고 되돌리는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
 
+
+---
+
+Feature: Async work map window command
+
+Purpose:
+크게 보기 창이 흰 화면으로 멈추는 문제를 고친다
+
+Design source:
+내부 결함 수정. Tauri 2 공개 문서의 "Windows에서 동기 커맨드로 창을 만들면 교착" 안내
+
+Implementation:
+`open_work_map_window` 커맨드를 `async fn`으로 바꿈. 창 생성 로직은 그대로
+
+External code:
+없음. 외부 코드 복사 없음
+
+Difference:
+새 기능이 아니라 기존 커맨드의 실행 방식만 바꿈
+
+PATENT_REVIEW:
+커맨드 실행 방식 변경. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Mouse-wheel zoom for work map
+
+Purpose:
+패널의 업무 그림과 크게 보기 창을 마우스 휠로 확대·축소한다
+
+Design source:
+내부 요구사항. 브라우저 표준 wheel 이벤트와 CSS 공개 사양
+
+Implementation:
+wheel 이벤트로 배율을 바꾸고 마우스 위치가 제자리에 있도록 스크롤을 보정. 패널은 100~400%, 큰 창은 45~300%. 외부 지도·마인드맵 라이브러리 없음
+
+External code:
+없음. 외부 코드 복사 없음
+
+Difference:
+외부 지도 뷰어·마인드맵 도구의 화면·코드를 가져오지 않음
+
+PATENT_REVIEW:
+휠 입력으로 배율을 바꾸는 일반 기법. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Work picture sits beside the launcher panel
+
+Purpose:
+크게 보기 그림 창을 런처와 같은 높이로 옆에 붙여 본다
+
+Design source:
+내부 요구사항. 기존 패널 위치 계산과 work-map 창
+
+Implementation:
+그림 창 안쪽 크기를 패널 inner_size에 맞춘다. 자리가 있으면 패널 왼쪽, 없으면 오른쪽에 둔다. 패널을 숨기면 그림 창도 숨긴다. 위치만 옮겨 옆에서 나오게 한다. 다른 런처·시작 메뉴 화면을 쓰지 않음
+
+External code:
+없음
+
+Difference:
+외부 런처의 옆면 서랍·스냅 레이아웃 복제가 아님. 이미 있는 두 창의 좌표만 맞춤
+
+PATENT_REVIEW:
+창 둘을 같은 높이로 옆에 두는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음

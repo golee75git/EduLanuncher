@@ -59,9 +59,22 @@ Packs are the extensibility/distribution mechanism: JSON (or `.edupack`, same fo
 
 Both parsers are defensive by design (untrusted input from disk/drag-drop): they silently drop malformed entries rather than throwing, cap string lengths, and only throw when *nothing* usable was found. Example fixtures live in `packs/*.example.json`; sample `.edupack` files sit at repo root.
 
+### 업무자료 (Topics, manuals, work map)
+
+Read-only reference content, separate from the tool/pack system:
+- `src/data/topics.json` (workflow-style task topics), `src/data/manuals/*.json` (e.g. `epki.json`, tree-shaped manuals), and `src/data/education/*mindmap.json` are bundled static data. `topicService.ts` validates/clips `topics.json` and merges in topics derived from manuals via `manualService.ts` (`getManualTopics`); `mindMapService.ts` + `workMapLayout.ts` turn nodes into the work-map layout. Both parsers use the same defensive caps (`MAX_*`) as the pack parsers.
+- Pages: `TopicListPage`, `TopicDetailPage`, `TopicReviewPage`; recently opened topics persist via `recentTopicStore`. `App.tsx`'s `View` union carries `backTo` so leaving a topic restores the previous view (including the home search text).
+- The "크게 보기" work map opens as a second Tauri window labelled `work-map` (`open_work_map_window` / `work_map_root_id` in `lib.rs`, wrapped by `windowService.ts`). `App.tsx` checks `currentWindowLabel() === "work-map"` and renders `WorkMapWindowPage` instead of the panel, so that window shares the same frontend bundle but must skip panel-only bootstrap.
+
 ### Drag-and-drop
 
 `DropZone` + `dropSiteService.ts` accept four input shapes onto the panel: pack files (`.edupack`/`.json`), Windows internet shortcuts (`.url`/`.website`), raw browser drags (URL extracted from `text/html`/`text/uri-list`/`text/x-moz-url`/`text/plain`, in that preference order), and local files/folders/exes (resolved and classified Rust-side via `dropped_path_info`, including `.lnk` shortcut target resolution). `addDroppedSite`/`addDroppedPaths` serialize concurrent drops through a promise queue so rapid multi-item drops don't race on the store.
+
+### Repo conventions (also in `AGENTS.md` / `.cursor/rules/`)
+
+- Minimal diffs; don't touch screens the request didn't mention. No cloning of other launchers' UI, logos, or favicons; no scraping or auto-login of school systems.
+- Don't commit installer `.exe` files (the root-level `EduLauncher_*_x64-setup.exe` are untracked build copies).
+- `website/` is a separate Cloudflare-hosted site (Root directory `website`); it has its own `package.json` and is not part of the Tauri build.
 
 ### IP / provenance logging
 

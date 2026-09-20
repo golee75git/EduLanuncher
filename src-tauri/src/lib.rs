@@ -2,11 +2,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
 use serde::Serialize;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, Size, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_opener::OpenerExt;
 
@@ -83,6 +85,8 @@ fn reveal_panel(app: &AppHandle) {
         let _ = window.show();
         let _ = window.set_focus();
         let _ = window.emit("focus-search", ());
+        show_map_window(app);
+        place_map_next_to_panel(app, &window, false);
         #[cfg(windows)]
         {
             let _ = drop_target::install(&window, app);
@@ -90,7 +94,21 @@ fn reveal_panel(app: &AppHandle) {
     }
 }
 
+fn hide_map_window(app: &AppHandle) {
+    if let Some(map) = app.get_webview_window("work-map") {
+        let _ = map.hide();
+    }
+}
+
+fn show_map_window(app: &AppHandle) {
+    if let Some(map) = app.get_webview_window("work-map") {
+        let _ = map.unminimize();
+        let _ = map.show();
+    }
+}
+
 fn hide_window(app: &AppHandle) {
+    hide_map_window(app);
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.hide();
     }
@@ -99,11 +117,77 @@ fn hide_window(app: &AppHandle) {
 fn toggle_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
         if window.is_visible().unwrap_or(false) {
-            let _ = window.hide();
+            hide_window(app);
         } else {
             reveal_panel(app);
         }
     }
+}
+
+fn map_inner_from_panel(panel: &tauri::WebviewWindow) -> (f64, f64) {
+    let scale = panel.scale_factor().unwrap_or(1.0);
+    let inner = panel
+        .inner_size()
+        .unwrap_or(tauri::PhysicalSize::new(440, 650));
+    (
+        (inner.width as f64 / scale).max(280.0),
+        (inner.height as f64 / scale).max(400.0),
+    )
+}
+
+fn map_slot_beside_panel(
+    panel: &tauri::WebviewWindow,
+    map: &tauri::WebviewWindow,
+) -> Option<(i32, i32, i32, i32)> {
+    let panel_pos = panel.outer_position().ok()?;
+    let panel_size = panel.outer_size().ok()?;
+    let map_size = map.outer_size().ok()?;
+    let monitor = panel
+        .current_monitor()
+        .ok()
+        .flatten()
+        .or_else(|| panel.primary_monitor().ok().flatten())?;
+    let work = monitor.work_area();
+    let gap = 4i32;
+    let start_x = panel_pos.x;
+    let start_y = panel_pos.y;
+    let left_x = panel_pos.x - map_size.width as i32 - gap;
+    let right_x = panel_pos.x + panel_size.width as i32 + gap;
+    let work_left = work.position.x;
+    let work_right = work.position.x + work.size.width as i32;
+    let end_x = if left_x >= work_left {
+        left_x
+    } else if right_x + map_size.width as i32 <= work_right {
+        right_x
+    } else {
+        work_left
+    };
+    Some((start_x, start_y, end_x, start_y))
+}
+
+fn place_map_next_to_panel(app: &AppHandle, panel: &tauri::WebviewWindow, glide: bool) {
+    let Some(map) = app.get_webview_window("work-map") else {
+        return;
+    };
+    let Some((start_x, start_y, end_x, end_y)) = map_slot_beside_panel(panel, &map) else {
+        return;
+    };
+    if !glide || (start_x == end_x && start_y == end_y) {
+        let _ = map.set_position(PhysicalPosition::new(end_x, end_y));
+        return;
+    }
+    let _ = map.set_position(PhysicalPosition::new(start_x, start_y));
+    let moving = map.clone();
+    thread::spawn(move || {
+        let steps = 8u32;
+        for i in 1..=steps {
+            thread::sleep(Duration::from_millis(16));
+            let t = i as f64 / f64::from(steps);
+            let x = start_x + ((end_x - start_x) as f64 * t).round() as i32;
+            let y = start_y + ((end_y - start_y) as f64 * t).round() as i32;
+            let _ = moving.set_position(PhysicalPosition::new(x, y));
+        }
+    });
 }
 
 fn position_panel(window: &tauri::WebviewWindow, mode: &str) {
@@ -327,7 +411,7 @@ fn setup_autostart(app: &tauri::App) {
 }
 
 #[tauri::command]
-fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), String> {
+async fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), String> {
     let id = safe_map_id(&root_id).ok_or_else(|| "그릴 업무를 열 수 없습니다.".to_string())?;
     if let Ok(mut slot) = app.state::<WorkMapFocus>().0.lock() {
         *slot = id.clone();
@@ -335,6 +419,19 @@ fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), String> {
     if let Some(existing) = app.get_webview_window("work-map") {
         let _ = existing.destroy();
     }
+    let panel = app
+        .get_webview_window("main")
+        .ok_or_else(|| "패널을 열 수 없습니다.".to_string())?;
+    let mode = app
+        .state::<PanelState>()
+        .position
+        .lock()
+        .map(|value| value.clone())
+        .unwrap_or_else(|_| "bottom-right".to_string());
+    position_panel(&panel, &mode);
+    let _ = panel.unminimize();
+    let _ = panel.show();
+    let (width, height) = map_inner_from_panel(&panel);
     let url = if cfg!(dev) {
         match &app.config().build.dev_url {
             Some(dev_url) => WebviewUrl::External(dev_url.clone()),
@@ -345,17 +442,19 @@ fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), String> {
     };
     WebviewWindowBuilder::new(&app, "work-map", url)
         .title("업무 그림")
-        .inner_size(920.0, 720.0)
-        .min_inner_size(640.0, 480.0)
-        .resizable(true)
+        .inner_size(width, height)
+        .min_inner_size(280.0, 400.0)
+        .resizable(false)
         .closable(true)
         .visible(true)
-        .skip_taskbar(false)
+        .skip_taskbar(true)
         .build()
         .map_err(|err| err.to_string())?;
     if let Some(created) = app.get_webview_window("work-map") {
+        let _ = created.set_size(Size::Logical(LogicalSize::new(width, height)));
         let _ = created.emit("work-map-root", &id);
     }
+    place_map_next_to_panel(&app, &panel, true);
     Ok(())
 }
 
@@ -407,9 +506,13 @@ fn toggle_panel(app: AppHandle) {
 }
 
 #[tauri::command]
-fn set_launcher_position(state: tauri::State<PanelState>, position: String) {
+fn set_launcher_position(app: AppHandle, state: tauri::State<PanelState>, position: String) {
     if let Ok(mut current) = state.position.lock() {
-        *current = position;
+        *current = position.clone();
+    }
+    if let Some(window) = app.get_webview_window("main") {
+        position_panel(&window, &position);
+        place_map_next_to_panel(&app, &window, false);
     }
 }
 

@@ -7,6 +7,7 @@ interface WorkMapPictureProps {
   query?: string;
   hitIds?: string[];
   compact?: boolean;
+  fill?: boolean;
   onOpen: (topicId: string) => void;
 }
 
@@ -15,6 +16,7 @@ export function WorkMapPicture({
   query = "",
   hitIds = [],
   compact = false,
+  fill = false,
   onOpen,
 }: WorkMapPictureProps) {
   const hitSet = useMemo(() => new Set(hitIds), [hitIds]);
@@ -31,7 +33,7 @@ export function WorkMapPicture({
       viewBox={`0 0 ${layout.width} ${layout.height}`}
       width={compact ? undefined : layout.width}
       height={compact ? undefined : layout.height}
-      className={compact ? "h-[132px] w-full" : "block"}
+      className={compact ? (fill ? "block h-full w-full" : "h-[132px] w-full") : "block"}
       preserveAspectRatio="xMinYMin meet"
     >
       {layout.links.map((link) => {
