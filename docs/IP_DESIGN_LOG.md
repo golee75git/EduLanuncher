@@ -989,4 +989,26 @@ Difference:
 PATENT_REVIEW:
 사용자 폴더 안에서 이름으로 항목을 나열하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Education topic search and work map list
+
+Purpose:
+업무주제를 검색하고, 마인드맵 계층을 목록으로 눌러 상세를 연다
+
+Design source:
+내부 요구사항. 기존 topics.json. 마인드맵은 계층 표만 로컬 JSON으로 옮김
+
+Implementation:
+업무자료 탭 검색결과·업무지도. 접이식 목록, 키보드 이동. 클릭 시 기존 Topic 상세. 원문 금액·기한을 Topic에 합치지 않음. NotebookLM URL 수집 없음. 그래프 라이브러리 없음
+
+External code:
+없음. NotebookLM 화면·로고를 쓰지 않음
+
+Difference:
+마인드맵 캔버스 제품이 아님. 로컬 주제 목록과 접이식 탐색
+
+PATENT_REVIEW:
+계층 목록에서 업무 주제로 이동하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 

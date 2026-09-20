@@ -29,6 +29,7 @@ import { TopicDetailPage } from "./pages/TopicDetailPage";
 import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { isFolderFindTarget } from "./data/computerTools";
+import { logEducationValidation } from "./services/mindMapService";
 import { LaunchError, launchTool } from "./services/launcherService";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
@@ -197,6 +198,7 @@ export default function App() {
         await hydrateMemo();
         await hydrateNotices();
         await hydrateRecentTopics();
+        logEducationValidation();
         if (cancelled) {
           return;
         }

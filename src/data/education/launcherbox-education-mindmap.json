@@ -1,0 +1,433 @@
+{
+  "version": 1,
+  "roots": [
+    {
+      "id": "mm-root",
+      "label": "학교 행정 및 회계 운영 지침",
+      "nodeType": "category",
+      "needsReview": false,
+      "children": [
+        {
+          "id": "mm-topic-003",
+          "label": "학교 정보공시 운영",
+          "nodeType": "topic",
+          "topicId": "TASK-003",
+          "needsReview": false,
+          "children": [
+            {
+              "id": "mm-003-overview",
+              "label": "개요 및 목적",
+              "nodeType": "process",
+              "topicId": "TASK-003",
+              "needsReview": false,
+              "children": [
+                {
+                  "id": "mm-003-overview-right",
+                  "label": "국민 알권리 보장 및 교육 투명성 제고",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-003-overview-law",
+                  "label": "근거: 교육기관 정보공개 특례법",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "resourceId": "RES-TASK-003-LAW-01",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-003-overview-249",
+                  "label": "대상: 관내 초·중·고·특수학교 249개교",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": true,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "mm-003-schedule",
+              "label": "공시 내용 및 일정",
+              "nodeType": "process",
+              "topicId": "TASK-003",
+              "needsReview": false,
+              "children": [
+                {
+                  "id": "mm-003-schedule-range",
+                  "label": "14개 항목 44개 범위(학생·교원 현황 등)",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": true,
+                  "children": []
+                },
+                {
+                  "id": "mm-003-schedule-regular",
+                  "label": "정시공시: 4월, 5월, 9월, 11월",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": true,
+                  "children": []
+                },
+                {
+                  "id": "mm-003-schedule-adhoc",
+                  "label": "수시공시: 학교규칙 등 수시 발생 사항",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": false,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "mm-003-roles",
+              "label": "추진 체계 및 역할",
+              "nodeType": "process",
+              "topicId": "TASK-003",
+              "needsReview": false,
+              "children": [
+                {
+                  "id": "mm-003-roles-moe",
+                  "label": "교육부: 법령 개정 및 지침 보급",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-003-roles-office",
+                  "label": "교육청: 공시자료 수합, 관리 및 검증",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-003-roles-school",
+                  "label": "학교: 공시자료 입력, 제출 및 근거 관리",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-003-roles-keris",
+                  "label": "KERIS: 시스템 구축 및 유지관리",
+                  "nodeType": "process",
+                  "topicId": "TASK-003",
+                  "needsReview": false,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "mm-003-quality",
+              "label": "질 관리 강화",
+              "nodeType": "process",
+              "topicId": "TASK-003",
+              "needsReview": true,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "mm-topic-002",
+          "label": "학교회계 예산편성 및 관리",
+          "nodeType": "topic",
+          "topicId": "TASK-002",
+          "needsReview": false,
+          "children": [
+            {
+              "id": "mm-002-flow",
+              "label": "예산편성 절차",
+              "nodeType": "process",
+              "topicId": "TASK-002",
+              "needsReview": false,
+              "children": []
+            },
+            {
+              "id": "mm-002-change-2025",
+              "label": "2025년 주요 변경사항",
+              "nodeType": "process",
+              "topicId": "TASK-002",
+              "resourceId": "RES-TASK-002-GUIDELINE-01",
+              "needsReview": true,
+              "children": []
+            },
+            {
+              "id": "mm-topic-009",
+              "label": "강사수당 및 원고료 기준",
+              "nodeType": "topic",
+              "topicId": "TASK-009",
+              "needsReview": false,
+              "children": []
+            },
+            {
+              "id": "mm-002-warnings",
+              "label": "재정 운영 유의사항",
+              "nodeType": "process",
+              "topicId": "TASK-002",
+              "needsReview": false,
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "mm-topic-001",
+          "label": "계약 실무 및 감사 사례",
+          "nodeType": "topic",
+          "topicId": "TASK-001",
+          "needsReview": false,
+          "children": [
+            {
+              "id": "mm-001-special",
+              "label": "수의계약 특례 및 확대",
+              "nodeType": "process",
+              "topicId": "TASK-001",
+              "needsReview": false,
+              "children": [
+                {
+                  "id": "mm-001-special-once",
+                  "label": "한시적 특례: 1회 유찰 시 수의계약 가능",
+                  "nodeType": "process",
+                  "topicId": "TASK-001",
+                  "needsReview": true,
+                  "children": []
+                },
+                {
+                  "id": "mm-001-special-deposit",
+                  "label": "보증금 인하 및 검사·대가지급 기간 단축",
+                  "nodeType": "process",
+                  "topicId": "TASK-001",
+                  "needsReview": true,
+                  "children": []
+                },
+                {
+                  "id": "mm-001-special-quote",
+                  "label": "2인 견적 범위: 공사 4억, 소기업 물품 1억 등 확대",
+                  "nodeType": "process",
+                  "topicId": "TASK-001",
+                  "needsReview": true,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-g1",
+                  "label": "2025년/2026년 학교회계 사례중심 맞춤형 컨설팅 자료",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-GUIDELINE-01",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-g2",
+                  "label": "지방자치단체 입찰 및 계약 집행기준",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-GUIDELINE-02",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-l1",
+                  "label": "지방계약법 시행령",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-LAW-01",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-l2",
+                  "label": "중소기업제품 구매촉진법",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-LAW-02",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-l3",
+                  "label": "울산/경기 공립학교회계 규칙",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-LAW-03",
+                  "needsReview": false,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "mm-001-practice",
+              "label": "계약 관리 실무",
+              "nodeType": "process",
+              "topicId": "TASK-001",
+              "needsReview": false,
+              "children": [
+                {
+                  "id": "mm-001-practice-2step",
+                  "label": "2단계 입찰: 규격·가격 동시 입찰 및 평가",
+                  "nodeType": "process",
+                  "topicId": "TASK-001",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-001-practice-direct",
+                  "label": "직접생산확인증명서: 1천만원 이상 용역·물품",
+                  "nodeType": "process",
+                  "topicId": "TASK-001",
+                  "needsReview": true,
+                  "children": []
+                },
+                {
+                  "id": "mm-001-practice-book",
+                  "label": "지역서점 활성화: 인증 업체 적극 활용",
+                  "nodeType": "process",
+                  "topicId": "TASK-001",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-001-practice-insure",
+                  "label": "4대보험 완납증명: 대금 지급 시 확인(1천만원 초과)",
+                  "nodeType": "process",
+                  "topicId": "TASK-001",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-f1",
+                  "label": "품의서",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-FORM-01",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-f2",
+                  "label": "규격서",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-FORM-02",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-f3",
+                  "label": "산출내역서",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-FORM-03",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-f4",
+                  "label": "계약이행 통합서약서(1종)",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-FORM-04",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-f5",
+                  "label": "승낙사항",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-FORM-05",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-f6",
+                  "label": "4대보험 완납증명서",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-FORM-06",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-f7",
+                  "label": "지출결의서",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-FORM-07",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-s1",
+                  "label": "K-에듀파인",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-SYSTEM-01",
+                  "needsReview": false,
+                  "children": []
+                },
+                {
+                  "id": "mm-res-001-s2",
+                  "label": "지정정보처리장치(G2B, S2B)",
+                  "nodeType": "resource",
+                  "topicId": "TASK-001",
+                  "resourceId": "RES-TASK-001-SYSTEM-02",
+                  "needsReview": false,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "mm-001-audit",
+              "label": "주요 감사 지적사례",
+              "nodeType": "process",
+              "topicId": "TASK-001",
+              "resourceId": "RES-TASK-001-AUDIT-01",
+              "needsReview": true,
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relations": [
+    { "from": "mm-root", "to": "mm-topic-003", "type": "contains", "source": "mindmap", "needsReview": false },
+    { "from": "mm-root", "to": "mm-topic-002", "type": "contains", "source": "mindmap", "needsReview": false },
+    { "from": "mm-root", "to": "mm-topic-001", "type": "contains", "source": "mindmap", "needsReview": false },
+    { "from": "mm-topic-002", "to": "mm-topic-009", "type": "related", "source": "mindmap", "needsReview": false },
+    { "from": "mm-topic-002", "to": "mm-002-flow", "type": "contains", "source": "mindmap", "needsReview": false },
+    { "from": "mm-topic-002", "to": "mm-002-warnings", "type": "contains", "source": "mindmap", "needsReview": false },
+    { "from": "TASK-001", "to": "세출예산 집행품의", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-001", "to": "대금 지급", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-001", "to": "공사 계약", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-002", "to": "기본지침 수립", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-002", "to": "세출예산 집행", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-002", "to": "결산 관리", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-003", "to": "예결산 확정", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-003", "to": "대국민 공시", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-003", "to": "교육통계 조사", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-004", "to": "학사일정 수립", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-004", "to": "복무 승인", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-004", "to": "지방공무원 복무", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-005", "to": "문서 작성 및 분류", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-005", "to": "홈페이지 게시 검토", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-005", "to": "개인정보보호", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-006", "to": "민원 접수", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-006", "to": "제증명 교부", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-006", "to": "정보공개 청구", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-007", "to": "성과목표 수립", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-007", "to": "근무성적평정", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-007", "to": "교원 교원능력개발평가", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-008", "to": "시설물 유지관리 계획", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-008", "to": "시설 보수공사", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-008", "to": "공유재산 관리", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-009", "to": "연수 및 교육계획 수립", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-009", "to": "지출 원천징수", "type": "related", "source": "topic-json", "needsReview": true },
+    { "from": "TASK-009", "to": "원고료 지급", "type": "related", "source": "topic-json", "needsReview": true }
+  ]
+}

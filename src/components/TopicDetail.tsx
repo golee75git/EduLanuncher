@@ -25,7 +25,7 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
         <div className="mt-1">
           <StatusBadge status={topic.status} needsReview={topic.needsReview} />
         </div>
-        <p className="mt-2 text-sm leading-6 text-desk">{topic.description}</p>
+        {topic.description ? <p className="mt-2 text-sm leading-6 text-desk">{topic.description}</p> : null}
       </section>
 
       {topic.workflow.length > 0 ? (
@@ -34,6 +34,22 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
           <WorkflowView steps={topic.workflow} />
         </section>
       ) : null}
+
+      {topic.exampleQuestions.length > 0 ? (
+        <section>
+          <h3 className="desk-label">대표 질문</h3>
+          <ul className="list-disc space-y-1.5 pl-4 text-sm leading-6 text-desk">
+            {topic.exampleQuestions.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section>
+        <h3 className="desk-label">관련 자료</h3>
+        <ResourceTabs topic={topic} />
+      </section>
 
       {topic.warnings.length > 0 ? (
         <section>
@@ -45,11 +61,6 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
           </ul>
         </section>
       ) : null}
-
-      <section>
-        <h3 className="desk-label">관련 자료</h3>
-        <ResourceTabs topic={topic} />
-      </section>
 
       <RelatedTopics topics={related} onOpen={onOpenRelated} />
 

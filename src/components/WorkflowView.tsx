@@ -15,6 +15,9 @@ export function WorkflowView({ steps }: WorkflowViewProps) {
           <div className="rounded-lg border border-line bg-card px-2.5 py-2 text-sm leading-5 text-desk">
             <span className="mr-1.5 text-[11px] text-quiet">{step.order}</span>
             {step.title}
+            {step.description ? (
+              <p className="mt-1 text-xs leading-5 text-quiet">{step.description}</p>
+            ) : null}
           </div>
           {index < steps.length - 1 ? (
             <p className="py-1 text-center text-[11px] text-quiet" aria-hidden>

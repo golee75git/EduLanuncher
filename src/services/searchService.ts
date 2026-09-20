@@ -105,11 +105,15 @@ export interface TopicSearchHit {
 const TOPIC_SCORE = {
   titleExact: 800,
   titlePartial: 700,
+  category: 650,
   official: 600,
+  workflow: 580,
   general: 500,
   beginner: 400,
+  related: 380,
   example: 300,
   resourceTitle: 200,
+  resourceOrg: 150,
   resourceBody: 100,
 } as const;
 
@@ -186,11 +190,26 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
   for (const topic of topics) {
     const titleScore = topicTitleScore(q, topic.title);
     if (titleScore === TOPIC_SCORE.titleExact) {
-      hits.push({ item: topic, score: titleScore, reason: "제목 완전일치" });
+      hits.push({ item: topic, score: titleScore, reason: "일치 항목: 제목 정확 일치" });
       continue;
     }
     if (titleScore === TOPIC_SCORE.titlePartial) {
-      hits.push({ item: topic, score: titleScore, reason: "제목 부분일치" });
+      hits.push({ item: topic, score: titleScore, reason: "일치 항목: 제목" });
+      continue;
+    }
+
+    if (pieces.some((piece) => containsFold(topic.category, piece) || containsFold(topic.subcategory, piece))) {
+      hits.push({
+        item: topic,
+        score: TOPIC_SCORE.category,
+        reason: `일치 항목: 분류 \`${topic.subcategory || topic.category}\``,
+      });
+      continue;
+    }
+
+    const official = bestKeywordMatch(pieces, topic.keywords.official);
+    if (official) {
+      hits.push({ item: topic, score: TOPIC_SCORE.official, reason: `일치 항목: 공식용어 \`${official}\`` });
       continue;
     }
 
@@ -200,38 +219,27 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
     if (flowHit) {
       hits.push({
         item: topic,
-        score: TOPIC_SCORE.official,
-        reason: `"${flowHit.title}" 키워드 일치`,
+        score: TOPIC_SCORE.workflow,
+        reason: `일치 항목: 처리절차 \`${flowHit.title}\``,
       });
-      continue;
-    }
-
-    const official = bestKeywordMatch(pieces, topic.keywords.official);
-    if (official) {
-      hits.push({ item: topic, score: TOPIC_SCORE.official, reason: `"${official}" 키워드 일치` });
       continue;
     }
 
     const general = bestKeywordMatch(pieces, topic.keywords.general);
     if (general) {
-      hits.push({ item: topic, score: TOPIC_SCORE.general, reason: `"${general}" 키워드 일치` });
+      hits.push({ item: topic, score: TOPIC_SCORE.general, reason: `일치 항목: 일반 검색어 \`${general}\`` });
       continue;
     }
 
     const beginner = bestKeywordMatch(pieces, topic.keywords.beginner);
     if (beginner) {
-      hits.push({ item: topic, score: TOPIC_SCORE.beginner, reason: `"${beginner}" 키워드 일치` });
+      hits.push({ item: topic, score: TOPIC_SCORE.beginner, reason: `일치 항목: 초보자 질문 \`${beginner}\`` });
       continue;
     }
 
     const related = bestKeywordMatch(pieces, topic.keywords.related);
     if (related) {
-      hits.push({ item: topic, score: TOPIC_SCORE.beginner - 20, reason: `"${related}" 키워드 일치` });
-      continue;
-    }
-
-    if (pieces.some((piece) => containsFold(topic.description, piece))) {
-      hits.push({ item: topic, score: TOPIC_SCORE.example + 20, reason: "설명 일치" });
+      hits.push({ item: topic, score: TOPIC_SCORE.related, reason: `일치 항목: 관련 검색어 \`${related}\`` });
       continue;
     }
 
@@ -242,7 +250,7 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
       hits.push({
         item: topic,
         score: TOPIC_SCORE.example,
-        reason: `"${q}" 관련 질문 일치`,
+        reason: `일치 항목: 초보자 질문 \`${example}\``,
       });
       continue;
     }
@@ -254,24 +262,38 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
       hits.push({
         item: topic,
         score: TOPIC_SCORE.resourceTitle,
-        reason: "자료 제목 일치",
+        reason: `일치 항목: 자료 제목 \`${resourceTitle.title}\``,
       });
       continue;
     }
 
-    const resourceBody = topic.resources.find((resource) =>
+    const resourceOrg = topic.resources.find((resource) =>
       pieces.some(
-        (piece) =>
-          containsFold(resource.summary, piece) ||
-          containsFold(resource.document, piece) ||
-          containsFold(resource.pages, piece),
+        (piece) => containsFold(resource.organization, piece) || containsFold(resource.document, piece),
       ),
+    );
+    if (resourceOrg) {
+      hits.push({
+        item: topic,
+        score: TOPIC_SCORE.resourceOrg,
+        reason: `일치 항목: 출처 \`${resourceOrg.document || resourceOrg.organization}\``,
+      });
+      continue;
+    }
+
+    if (pieces.some((piece) => containsFold(topic.description, piece))) {
+      hits.push({ item: topic, score: TOPIC_SCORE.resourceBody, reason: "일치 항목: 설명" });
+      continue;
+    }
+
+    const resourceBody = topic.resources.find((resource) =>
+      pieces.some((piece) => containsFold(resource.summary, piece) || containsFold(resource.pages, piece)),
     );
     if (resourceBody) {
       hits.push({
         item: topic,
         score: TOPIC_SCORE.resourceBody,
-        reason: "자료 본문 일치",
+        reason: "일치 항목: 자료 본문",
       });
     }
   }

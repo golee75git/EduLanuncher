@@ -1,5 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import { TopicSearch } from "../components/TopicSearch";
+import {
+  listMindMapReviewNodes,
+  topicsMissingFromMindMap,
+  validateEducationData,
+} from "../services/mindMapService";
 import { getTopics, listNeedsReview } from "../services/topicService";
 
 interface TopicReviewPageProps {
@@ -8,7 +13,11 @@ interface TopicReviewPageProps {
 }
 
 export function TopicReviewPage({ onBack, onOpen }: TopicReviewPageProps) {
-  const items = listNeedsReview(getTopics());
+  const topics = getTopics();
+  const items = listNeedsReview(topics);
+  const mapIssues = validateEducationData(topics);
+  const reviewNodes = listMindMapReviewNodes();
+  const missing = topicsMissingFromMindMap(topics);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-paper">
@@ -28,6 +37,32 @@ export function TopicReviewPage({ onBack, onOpen }: TopicReviewPageProps) {
         ) : (
           <TopicSearch items={items} onOpen={onOpen} />
         )}
+        <section className="mt-5 space-y-2">
+          <h2 className="desk-label">마인드맵과 Topic JSON</h2>
+          {reviewNodes.length > 0 ? (
+            <ul className="list-disc space-y-1 pl-4 text-xs leading-5 text-quiet">
+              {reviewNodes.map((node) => (
+                <li key={node.id}>
+                  {node.id}: {node.label}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {mapIssues.length > 0 ? (
+            <ul className="list-disc space-y-1 pl-4 text-xs leading-5 text-quiet">
+              {mapIssues.map((issue) => (
+                <li key={`${issue.id}-${issue.reason}`}>
+                  {issue.id}: {issue.reason}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-quiet">연결 오류는 없습니다. 원문 미확인 노드와 제목형 관련업무만 남습니다.</p>
+          )}
+          <p className="text-xs text-quiet">
+            마인드맵 미포함: {missing.map((topic) => topic.id).join(", ")}
+          </p>
+        </section>
       </div>
     </div>
   );

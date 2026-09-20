@@ -75,17 +75,13 @@ function asStringList(value: unknown, maxItems: number, maxLen: number): string[
   return out;
 }
 
-function lawSearchUrl(title: string): string {
-  return `https://www.law.go.kr/lsSc.do?menuId=1&query=${encodeURIComponent(title)}`;
-}
-
 const KNOWN_SITE_URL: Record<string, string> = {
   "학교알리미(schoolinfo.go.kr)": "https://www.schoolinfo.go.kr/",
   "지정정보처리장치(G2B, S2B)": "https://www.g2b.go.kr/",
   "교육시설 통합정보망(keiis.kr)": "https://www.keiis.go.kr/",
 };
 
-function officialUrl(type: ResourceType, title: string, rawUrl: unknown): string {
+function officialUrl(title: string, rawUrl: unknown): string {
   const fromFile = asHttpUrl(rawUrl);
   if (fromFile) {
     return fromFile;
@@ -93,9 +89,6 @@ function officialUrl(type: ResourceType, title: string, rawUrl: unknown): string
   const known = KNOWN_SITE_URL[title];
   if (known) {
     return asHttpUrl(known);
-  }
-  if (type === "law") {
-    return asHttpUrl(lawSearchUrl(title));
   }
   return "";
 }
@@ -140,7 +133,8 @@ function parseWorkflow(value: unknown): WorkflowStep[] {
       return;
     }
     const order = typeof row.order === "number" && Number.isFinite(row.order) ? row.order : index + 1;
-    steps.push({ order, title });
+    const description = clip(asText(row.description), MAX_TEXT);
+    steps.push(description ? { order, title, description } : { order, title });
   });
   return steps.sort((a, b) => a.order - b.order).slice(0, MAX_STEPS);
 }
@@ -165,7 +159,7 @@ function parseResource(value: unknown): TopicResource | null {
     document: clip(asText(row.document), MAX_TITLE),
     publishedAt: clip(asText(row.publishedAt), 80),
     pages: clip(asText(row.pages), 120),
-    url: officialUrl(type, title, row.url),
+    url: officialUrl(title, row.url ?? row.sourceUrl),
     status: asStatus(row.status),
     needsReview: asBool(row.needsReview),
   };

@@ -30,6 +30,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       {resource.publishedAt ? (
         <p className="text-[11px] text-quiet">{resource.publishedAt}</p>
       ) : null}
+      {resource.document ? <p className="text-[11px] text-quiet">{resource.document}</p> : null}
       {resource.pages ? <p className="text-[11px] text-quiet">원문 {resource.pages}</p> : null}
       {resource.url ? (
         <button
@@ -40,7 +41,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           원문 보기
         </button>
       ) : (
-        <p className="mt-2 text-[11px] text-quiet">원문 주소 없음</p>
+        <p className="mt-2 text-[11px] text-quiet">원문 링크 미등록</p>
       )}
     </article>
   );

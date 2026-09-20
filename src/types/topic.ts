@@ -25,6 +25,7 @@ export interface TopicKeywords {
 export interface WorkflowStep {
   order: number;
   title: string;
+  description?: string;
 }
 
 export interface TopicResource {
