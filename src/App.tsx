@@ -48,7 +48,7 @@ import type { NoticeItem, NoticePack } from "./types/notice";
 import type { ToolItem, ToolType } from "./types/tool";
 
 type View =
-  | { name: "home" }
+  | { name: "home"; search?: string }
   | { name: "settings" }
   | { name: "notice-edit" }
   | { name: "notices" }
@@ -56,7 +56,7 @@ type View =
   | { name: "tool-group"; groupType: ToolType }
   | { name: "pc-urls" }
   | { name: "computer-tools" }
-  | { name: "topics" }
+  | { name: "topics"; search?: string }
   | { name: "topic-review" }
   | { name: "topic"; topicId: string; backTo: View }
   | { name: "pc-address" }
@@ -71,6 +71,14 @@ function currentWindowLabel(): string {
   } catch {
     return "main";
   }
+}
+
+function clipSearch(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const text = value.replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 120).trim();
+  return text || undefined;
 }
 
 interface MissingState {
@@ -201,6 +209,12 @@ export default function App() {
     const unlisteners: Array<() => void> = [];
 
     const bootstrap = async () => {
+      if (mapWindow) {
+        if (!cancelled) {
+          setReady(true);
+        }
+        return;
+      }
       try {
         await initStorage();
         const settings = await hydrateSettings();
@@ -213,7 +227,7 @@ export default function App() {
         if (cancelled) {
           return;
         }
-        if (!mapWindow && (settings.showWindowOnLaunch || !settings.onboarded)) {
+        if (settings.showWindowOnLaunch || !settings.onboarded) {
           await showPanel();
         }
       } finally {
@@ -282,6 +296,10 @@ export default function App() {
         setMissing(null);
         return;
       }
+      if (view.name === "topic") {
+        setView(view.backTo);
+        return;
+      }
       if (view.name !== "home") {
         setView({ name: "home" });
         return;
@@ -289,7 +307,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [missing, view.name]);
+  }, [missing, view]);
 
   const handleLaunch = async (tool: ToolItem) => {
     try {
@@ -355,7 +373,7 @@ export default function App() {
       return;
     }
     if (action.type === "topic") {
-      openTopic(action.topicId, { name: "home" });
+      openTopic(action.topicId, { name: "home", search: clipSearch(action.search) });
       return;
     }
     if (action.type === "notices") {
@@ -406,7 +424,7 @@ export default function App() {
     >
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
         <div className="min-h-0 flex-1 overflow-hidden">
-          {view.name === "home" ? <HomePage onAction={handleAction} /> : null}
+          {view.name === "home" ? <HomePage onAction={handleAction} search={view.search} /> : null}
           {view.name === "settings" ? (
             <SettingsPage
               onBack={() => setView({ name: "home" })}
@@ -464,8 +482,11 @@ export default function App() {
           ) : null}
           {view.name === "topics" ? (
             <TopicListPage
+              search={view.search}
               onBack={() => setView({ name: "home" })}
-              onOpen={(topicId) => openTopic(topicId, { name: "topics" })}
+              onOpen={(topicId, search) =>
+                openTopic(topicId, { name: "topics", search: clipSearch(search) })
+              }
             />
           ) : null}
           {view.name === "topic-review" ? (

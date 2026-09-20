@@ -12,8 +12,6 @@ function findRoot(id: string): MindMapNode | undefined {
 export function WorkMapWindowPage() {
   const [rootId, setRootId] = useState("");
   const [scale, setScale] = useState(1);
-  const [shift, setShift] = useState({ x: 16, y: 16 });
-  const [drag, setDrag] = useState<{ x: number; y: number; ox: number; oy: number } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -48,31 +46,12 @@ export function WorkMapWindowPage() {
           축소
         </button>
       </header>
-      <p className="px-3 pb-1 text-[11px] text-quiet">상자를 누르면 패널에 자세한 업무가 열립니다. 빈 곳을 끌면 이동합니다.</p>
-      <div
-        className="min-h-0 flex-1 overflow-hidden"
-        onPointerDown={(event) => {
-          if (event.target !== event.currentTarget && (event.target as HTMLElement).tagName !== "svg") {
-            return;
-          }
-          setDrag({ x: event.clientX, y: event.clientY, ox: shift.x, oy: shift.y });
-        }}
-        onPointerMove={(event) => {
-          if (!drag) {
-            return;
-          }
-          setShift({
-            x: drag.ox + (event.clientX - drag.x),
-            y: drag.oy + (event.clientY - drag.y),
-          });
-        }}
-        onPointerUp={() => setDrag(null)}
-        onPointerLeave={() => setDrag(null)}
-      >
+      <p className="px-3 pb-1 text-[11px] text-quiet">상자를 누르면 패널에 자세한 업무가 열립니다. 확대·축소와 스크롤로 봅니다.</p>
+      <div className="min-h-0 flex-1 overflow-auto bg-paper">
         {root ? (
           <div
-            className="h-full w-full origin-top-left"
-            style={{ transform: `translate(${shift.x}px, ${shift.y}px) scale(${scale})` }}
+            className="origin-top-left p-2"
+            style={{ transform: `scale(${scale})` }}
           >
             <WorkMapPicture root={root} compact={false} onOpen={(topicId) => void revealTopicFromMap(topicId)} />
           </div>

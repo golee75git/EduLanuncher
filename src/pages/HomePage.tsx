@@ -41,7 +41,7 @@ export type HomeAction =
   | { type: "computer-tools" }
   | { type: "pc-folders"; query?: string }
   | { type: "topics" }
-  | { type: "topic"; topicId: string }
+  | { type: "topic"; topicId: string; search?: string }
   | { type: "notices" }
   | { type: "notice-item"; item?: NoticeItem }
   | { type: "remove"; tool: ToolItem }
@@ -50,6 +50,7 @@ export type HomeAction =
 
 interface HomePageProps {
   onAction: (action: HomeAction) => void;
+  search?: string;
 }
 
 type ResultItem =
@@ -105,12 +106,12 @@ function flattenResults(
   return [...topics, ...schools, ...tools, ...recents, ...folders];
 }
 
-export function HomePage({ onAction }: HomePageProps) {
+export function HomePage({ onAction, search = "" }: HomePageProps) {
   const tools = useToolStore((state) => state.tools);
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
   const settings = useSettingsStore((state) => state.settings);
   const recentTopicItems = useRecentTopicStore((state) => state.items);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(search);
   const [folderHits, setFolderHits] = useState<UserFolderHit[]>([]);
   const [folderBusy, setFolderBusy] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -265,7 +266,7 @@ export function HomePage({ onAction }: HomePageProps) {
       return;
     }
     if (item.kind === "topic" || item.kind === "recent-topic") {
-      onAction({ type: "topic", topicId: item.topicId });
+      onAction({ type: "topic", topicId: item.topicId, search: query });
       return;
     }
     if (item.kind === "pc-file") {
@@ -430,7 +431,7 @@ export function HomePage({ onAction }: HomePageProps) {
                       : undefined
                 }
                 onLaunch={(tool) => onAction({ type: "launch", tool })}
-                onOpenTopic={(topicId) => onAction({ type: "topic", topicId })}
+                onOpenTopic={(topicId) => onAction({ type: "topic", topicId, search: query })}
               />
             </section>
           </>
@@ -444,13 +445,13 @@ export function HomePage({ onAction }: HomePageProps) {
                   <WorkMapPreview
                     query={query}
                     hitIds={topicHits.map((hit) => hit.item.id)}
-                    onOpen={(topicId) => onAction({ type: "topic", topicId })}
+                    onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
                   />
                   <TopicSearch
                     items={topicHits}
                     selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
                     query={query}
-                    onOpen={(topicId) => onAction({ type: "topic", topicId })}
+                    onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
                   />
                 </>
               ) : null}
@@ -508,7 +509,7 @@ export function HomePage({ onAction }: HomePageProps) {
                       : undefined
                 }
                 onLaunch={(tool) => onAction({ type: "launch", tool })}
-                onOpenTopic={(topicId) => onAction({ type: "topic", topicId })}
+                onOpenTopic={(topicId) => onAction({ type: "topic", topicId, search: query })}
               />
             </section>
             <section>

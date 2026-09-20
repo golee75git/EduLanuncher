@@ -339,7 +339,15 @@ fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), String> {
         let _ = existing.set_focus();
         return Ok(());
     }
-    WebviewWindowBuilder::new(&app, "work-map", WebviewUrl::App("index.html".into()))
+    let url = if cfg!(dev) {
+        match &app.config().build.dev_url {
+            Some(dev_url) => WebviewUrl::External(dev_url.clone()),
+            None => WebviewUrl::App("/".into()),
+        }
+    } else {
+        WebviewUrl::App("/".into())
+    };
+    WebviewWindowBuilder::new(&app, "work-map", url)
         .title("업무 그림")
         .inner_size(920.0, 720.0)
         .min_inner_size(640.0, 480.0)
@@ -348,6 +356,9 @@ fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), String> {
         .skip_taskbar(false)
         .build()
         .map_err(|err| err.to_string())?;
+    if let Some(created) = app.get_webview_window("work-map") {
+        let _ = created.emit("work-map-root", &id);
+    }
     Ok(())
 }
 

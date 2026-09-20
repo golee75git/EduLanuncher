@@ -1055,4 +1055,48 @@ Difference:
 PATENT_REVIEW:
 계층을 그림으로 그리고 다른 창에서 항목을 여는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Extra window loads without panel store
+
+Purpose:
+크게 보기 창이 패널과 같은 저장소를 열다가 비어 보이지 않게 한다
+
+Design source:
+내부 요구사항. 기존 work-map 창과 정적 매뉴얼 JSON
+
+Implementation:
+work-map 창은 화면만 그리고 plugin-store 초기화를 건너뜀. SVG는 배치 크기만큼 그린다. 개발 중에는 패널과 같은 개발 주소를 연다
+
+External code:
+없음
+
+Difference:
+외부 마인드맵 창·브라우저 복제가 아님
+
+PATENT_REVIEW:
+같은 프로그램을 두 창으로 나누는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Restore last search after topic detail
+
+Purpose:
+검색에서 연 업무를 닫으면 방금 보던 검색 화면이 다시 나오게 한다
+
+Design source:
+내부 요구사항. 기존 View 전환
+
+Implementation:
+home·topics 화면에 검색어를 잠깐 두고 상세의 뒤로와 Escape가 그 화면으로 돌아간다. 검색어는 파일에 쓰지 않음. 제어 문자 제거, 120자 제한
+
+External code:
+없음
+
+Difference:
+검색 기록 DB·클라우드 동기화가 아님
+
+PATENT_REVIEW:
+이전화면 검색어를 메모리에 두고 되돌리는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 

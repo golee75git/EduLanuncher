@@ -29,7 +29,9 @@ export function WorkMapPicture({
       role="img"
       aria-label={`${root.label} 업무 그림`}
       viewBox={`0 0 ${layout.width} ${layout.height}`}
-      className={compact ? "h-[132px] w-full" : "h-full w-full"}
+      width={compact ? undefined : layout.width}
+      height={compact ? undefined : layout.height}
+      className={compact ? "h-[132px] w-full" : "block"}
       preserveAspectRatio="xMinYMin meet"
     >
       {layout.links.map((link) => {

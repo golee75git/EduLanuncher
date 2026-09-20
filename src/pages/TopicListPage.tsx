@@ -10,14 +10,16 @@ import { RESOURCE_TYPE_LABEL, RESOURCE_TYPES, type ResourceType } from "../types
 
 interface TopicListPageProps {
   onBack: () => void;
-  onOpen: (topicId: string) => void;
+  onOpen: (topicId: string, search?: string) => void;
+  search?: string;
 }
 
 type Tab = "results" | "map";
 
-export function TopicListPage({ onBack, onOpen }: TopicListPageProps) {
+export function TopicListPage({ onBack, onOpen, search = "" }: TopicListPageProps) {
   const [tab, setTab] = useState<Tab>("results");
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(search);
+  const openItem = (topicId: string) => onOpen(topicId, query);
   const [category, setCategory] = useState("all");
   const [resourceType, setResourceType] = useState<"all" | ResourceType>("all");
   const [reviewOnly, setReviewOnly] = useState(false);
@@ -131,7 +133,7 @@ export function TopicListPage({ onBack, onOpen }: TopicListPageProps) {
                   <WorkMapPreview
                     query={query}
                     hitIds={hits.map((hit) => hit.item.id)}
-                    onOpen={onOpen}
+                    onOpen={openItem}
                   />
                 ) : null}
                 <div className="space-y-2">
@@ -144,7 +146,7 @@ export function TopicListPage({ onBack, onOpen }: TopicListPageProps) {
                         topic={hit.item}
                         reason={hit.reason}
                         query={query}
-                        onOpen={onOpen}
+                        onOpen={openItem}
                       />
                     ))
                   )}
@@ -156,7 +158,7 @@ export function TopicListPage({ onBack, onOpen }: TopicListPageProps) {
                   <h2 className="desk-label">{name}</h2>
                   <div className="space-y-2">
                     {items.map((topic) => (
-                      <TopicResultCard key={topic.id} topic={topic} onOpen={onOpen} />
+                      <TopicResultCard key={topic.id} topic={topic} onOpen={openItem} />
                     ))}
                   </div>
                 </section>
@@ -166,7 +168,7 @@ export function TopicListPage({ onBack, onOpen }: TopicListPageProps) {
         </>
       ) : (
         <div className="mt-3 min-h-0 flex-1 overflow-y-auto px-3 pb-3">
-          <WorkMapList onOpen={onOpen} />
+          <WorkMapList onOpen={openItem} />
         </div>
       )}
     </div>
