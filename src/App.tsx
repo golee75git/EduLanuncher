@@ -19,6 +19,7 @@ import { NoticeItemPage } from "./pages/NoticeItemPage";
 import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ComputerToolPage } from "./pages/ComputerToolPage";
+import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
@@ -27,6 +28,7 @@ import { ToolGroupPage } from "./pages/ToolGroupPage";
 import { TopicDetailPage } from "./pages/TopicDetailPage";
 import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
+import { isFolderFindTarget } from "./data/computerTools";
 import { LaunchError, launchTool } from "./services/launcherService";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
@@ -55,6 +57,7 @@ type View =
   | { name: "topic-review" }
   | { name: "topic"; topicId: string; backTo: View }
   | { name: "pc-address" }
+  | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
   | { name: "memo" }
   | { name: "internal"; id: string; title: string };
@@ -267,6 +270,10 @@ export default function App() {
 
   const handleLaunch = async (tool: ToolItem) => {
     try {
+      if (tool.type === "internal" && isFolderFindTarget(tool.target || tool.id)) {
+        setView({ name: "pc-folder-find", backTo: { name: "home" } });
+        return;
+      }
       if (tool.type === "internal") {
         const result = await launchTool(tool);
         if (result === "internal") {
@@ -314,6 +321,10 @@ export default function App() {
     }
     if (action.type === "computer-tools") {
       setView({ name: "computer-tools" });
+      return;
+    }
+    if (action.type === "pc-folders") {
+      setView({ name: "pc-folder-find", query: action.query, backTo: { name: "home" } });
       return;
     }
     if (action.type === "topics") {
@@ -419,6 +430,9 @@ export default function App() {
               onBack={() => setView({ name: "home" })}
               onLaunch={(tool) => void handleLaunch(tool)}
               onShowAddress={() => setView({ name: "pc-address" })}
+              onShowFolderFind={() =>
+                setView({ name: "pc-folder-find", backTo: { name: "computer-tools" } })
+              }
             />
           ) : null}
           {view.name === "topics" ? (
@@ -443,6 +457,12 @@ export default function App() {
           {view.name === "pc-address" ? (
             <ThisPcAddressPage onBack={() => setView({ name: "computer-tools" })} />
           ) : null}
+          {view.name === "pc-folder-find" ? (
+            <PcFolderFindPage
+              initialQuery={view.query ?? ""}
+              onBack={() => setView(view.backTo ?? { name: "home" })}
+            />
+          ) : null}
           {view.name === "tool-edit" ? (
             <ToolEditPage
               tool={view.tool}
@@ -463,6 +483,9 @@ export default function App() {
           {view.name === "internal" && (view.id === "url-mark" || view.id === "tool-url-mark") ? (
             <UrlMarkPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && isFolderFindTarget(view.id) ? (
+            <PcFolderFindPage onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" &&
           view.id !== "network" &&
           view.id !== "tool-network" &&
@@ -473,7 +496,8 @@ export default function App() {
           view.id !== "ie-reset" &&
           view.id !== "pc-sys:ie-reset" &&
           view.id !== "url-mark" &&
-          view.id !== "tool-url-mark" ? (
+          view.id !== "tool-url-mark" &&
+          !isFolderFindTarget(view.id) ? (
             <InternalPlaceholderPage
               title={view.title}
               onBack={() => setView({ name: "home" })}

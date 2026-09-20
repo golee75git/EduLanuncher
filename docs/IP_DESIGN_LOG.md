@@ -967,4 +967,26 @@ Difference:
 PATENT_REVIEW:
 로컬 목록에 출처 표시를 두고 파일에서 고른 줄을 더하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: User folder name find
+
+Purpose:
+이 사용자 폴더에서 파일·폴더 **이름**만 찾아 연다. 홈 검색 맨 아래와 컴퓨터도구 전용 화면
+
+Design source:
+내부 요구사항. 기존 USERPROFILE·path_inside·깊이 제한 패턴
+
+Implementation:
+고정 루트(바탕화면·문서·다운로드, 선택 시 사진·음악·동영상). 이름 접기(소문자·공백 제거) 후 정확/접두/포함 점수. 내용 미열람. 심볼릭 링크 제외. 검색어에 경로 문자 거부. 홈은 5건, 전용 화면은 40건. 중지는 네트워크 검색과 다른 AtomicBool. 열기는 기존 launch_tool
+
+External code:
+없음. Everything·Windows 검색·시작 메뉴 UI/로고/인덱서를 쓰지 않음
+
+Difference:
+디스크 전체 검색·내용 색인이 아님. 이 사용자 알려진 폴더의 이름만 봄
+
+PATENT_REVIEW:
+사용자 폴더 안에서 이름으로 항목을 나열하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 

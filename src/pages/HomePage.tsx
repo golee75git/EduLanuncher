@@ -15,6 +15,13 @@ import { setSearchFocusHandler } from "../services/focusBus";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
 import { getTopicById, getTopics } from "../services/topicService";
 import { TopicSearch } from "../components/TopicSearch";
+import {
+  findUserFolderNames,
+  haltUserFolderFind,
+  USER_FOLDER_HOME_LIMIT,
+  userFolderAsTool,
+  type UserFolderHit,
+} from "../services/userFolderSearch";
 import { hidePanel } from "../services/windowService";
 import { getSchools } from "../stores/schoolStore";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
@@ -31,6 +38,7 @@ export type HomeAction =
   | { type: "group"; groupType: ToolType }
   | { type: "pc-urls" }
   | { type: "computer-tools" }
+  | { type: "pc-folders"; query?: string }
   | { type: "topics" }
   | { type: "topic"; topicId: string }
   | { type: "notices" }
@@ -48,7 +56,8 @@ type ResultItem =
   | { kind: "school"; id: string; school: SchoolItem }
   | { kind: "tool"; id: string; tool: ToolItem }
   | { kind: "recent"; id: string; tool: ToolItem }
-  | { kind: "recent-topic"; id: string; topicId: string };
+  | { kind: "recent-topic"; id: string; topicId: string }
+  | { kind: "pc-file"; id: string; hit: UserFolderHit };
 
 function todayLabel(): string {
   const now = new Date();
@@ -59,6 +68,7 @@ function flattenResults(
   topicHits: TopicSearchHit[],
   results: SearchResults,
   recentUse: RecentUseItem[],
+  folderHits: UserFolderHit[],
 ): ResultItem[] {
   const topics: ResultItem[] = topicHits.map((hit) => ({
     kind: "topic",
@@ -86,7 +96,12 @@ function flattenResults(
         ? { kind: "recent" as const, id: `recent:${item.tool.id}`, tool: item.tool }
         : { kind: "recent-topic" as const, id: `recent-topic:${item.topic.id}`, topicId: item.topic.id },
     );
-  return [...topics, ...schools, ...tools, ...recents];
+  const folders: ResultItem[] = folderHits.map((hit) => ({
+    kind: "pc-file" as const,
+    id: `pc-file:${hit.path}`,
+    hit,
+  }));
+  return [...topics, ...schools, ...tools, ...recents, ...folders];
 }
 
 export function HomePage({ onAction }: HomePageProps) {
@@ -95,6 +110,8 @@ export function HomePage({ onAction }: HomePageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const recentTopicItems = useRecentTopicStore((state) => state.items);
   const [query, setQuery] = useState("");
+  const [folderHits, setFolderHits] = useState<UserFolderHit[]>([]);
+  const [folderBusy, setFolderBusy] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeSchool, setActiveSchool] = useState<SchoolItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -166,8 +183,8 @@ export function HomePage({ onAction }: HomePageProps) {
       .slice(0, settings.recentCount);
   }, [query, recentUse, recentUseAll, settings.recentCount]);
   const flat = useMemo(
-    () => flattenResults(topicHits, results, recentUseMatched),
-    [topicHits, results, recentUseMatched],
+    () => flattenResults(topicHits, results, recentUseMatched, folderHits),
+    [topicHits, results, recentUseMatched, folderHits],
   );
   const idleItems: ResultItem[] = useMemo(
     () => [
@@ -203,6 +220,41 @@ export function HomePage({ onAction }: HomePageProps) {
     }
   }, [query]);
 
+  useEffect(() => {
+    const needle = query.trim();
+    if (needle.length < 2) {
+      setFolderHits([]);
+      setFolderBusy(false);
+      void haltUserFolderFind();
+      return;
+    }
+    let cancelled = false;
+    setFolderBusy(true);
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const found = await findUserFolderNames(needle, false, USER_FOLDER_HOME_LIMIT);
+          if (!cancelled) {
+            setFolderHits(found);
+          }
+        } catch {
+          if (!cancelled) {
+            setFolderHits([]);
+          }
+        } finally {
+          if (!cancelled) {
+            setFolderBusy(false);
+          }
+        }
+      })();
+    }, 300);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      void haltUserFolderFind();
+    };
+  }, [query]);
+
   const activate = (item: ResultItem | undefined) => {
     if (!item) {
       return;
@@ -213,6 +265,10 @@ export function HomePage({ onAction }: HomePageProps) {
     }
     if (item.kind === "topic" || item.kind === "recent-topic") {
       onAction({ type: "topic", topicId: item.topicId });
+      return;
+    }
+    if (item.kind === "pc-file") {
+      onAction({ type: "launch", tool: userFolderAsTool(item.hit) });
       return;
     }
     onAction({ type: "launch", tool: item.tool });
@@ -280,7 +336,7 @@ export function HomePage({ onAction }: HomePageProps) {
         </div>
       </header>
 
-      <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
+      <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="학교·업무·도구·이 PC 폴더" />
 
       <div className="mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3">
         {activeSchool ? (
@@ -445,6 +501,48 @@ export function HomePage({ onAction }: HomePageProps) {
                 onLaunch={(tool) => onAction({ type: "launch", tool })}
                 onOpenTopic={(topicId) => onAction({ type: "topic", topicId })}
               />
+            </section>
+            <section>
+              <div className="mb-1.5 flex items-center gap-1">
+                <h2 className="min-w-0 flex-1 desk-label">이 PC 폴더</h2>
+                {query.trim().length >= 2 ? (
+                  <button
+                    type="button"
+                    className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+                    onClick={() => onAction({ type: "pc-folders", query: query.trim() })}
+                  >
+                    더 보기
+                  </button>
+                ) : null}
+              </div>
+              {query.trim().length < 2 ? (
+                <p className="text-sm text-quiet">두 글자 이상이면 바탕화면·문서·다운로드에서 이름을 찾습니다.</p>
+              ) : folderBusy && folderHits.length === 0 ? (
+                <p className="text-sm text-quiet">찾는 중...</p>
+              ) : folderHits.length === 0 ? (
+                <p className="text-sm text-quiet">이름이 일치하는 항목이 없습니다.</p>
+              ) : (
+                <div className="space-y-1">
+                  {folderHits.map((hit) => (
+                    <button
+                      key={hit.path}
+                      type="button"
+                      title={hit.path}
+                      onClick={() => onAction({ type: "launch", tool: userFolderAsTool(hit) })}
+                      className={`desk-row ${
+                        selectedId === `pc-file:${hit.path}` ? "desk-row-active" : ""
+                      }`}
+                    >
+                      <span className="min-w-0 flex-1 truncate">
+                        <HighlightText text={hit.name} query={query} />
+                      </span>
+                      <span className="ml-2 shrink-0 text-xs text-quiet">
+                        {hit.zone} · {hit.kind === "folder" ? "폴더" : "파일"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </section>
           </>
         ) : null}

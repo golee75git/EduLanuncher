@@ -6,6 +6,41 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.41-20260920
+설치 파일: EduLauncher_0.1.41-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_1439_x64-setup.exe
+
+한 일
+- 홈 검색 맨 아래에 「이 PC 폴더」. 두 글자 이상, 약 300ms 후, 최대 5줄. 바탕화면·문서·다운로드의 이름만.
+- 컴퓨터도구 「이 PC 폴더 찾기」와 더 보기. 사진·음악·동영상은 그 화면에서만 켬. 내용은 읽지 않음.
+- C:\ 전체·내용 색인·Everything/시작 메뉴 복제 없음. 패키지 추가 없음.
+
+새로 작성한 파일
+- src-tauri/src/user_folder.rs
+- src/services/userFolderSearch.ts
+- src/pages/PcFolderFindPage.tsx
+
+재사용한 기존 파일
+- src-tauri/src/lib.rs
+- src/data/computerTools.ts
+- src/pages/ComputerToolPage.tsx
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/App.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts, IntroPage.tsx
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴(Segoe UI, Malgun Gothic). SIL OFL 아님. 번들 없음. 새로 글꼴 파일 없음.
+라이선스: 패키지 추가 없음. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: USERPROFILE 아래 고정 칸만. 심볼릭 링크 제외. 프로필 밖 경로 거부. 검색어 경로 문자 거부. 내용 미열람. 검색어·결과 비저장. 읽기만. 공용 PC 문서 이름이 결과에 나올 수 있음.
+특허 검토 대상: 사용자 폴더에서 이름으로 항목을 나열하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.40-20260920
 설치 파일: EduLauncher_0.1.40-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_1126_x64-setup.exe

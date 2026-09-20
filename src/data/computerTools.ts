@@ -8,7 +8,7 @@ export interface ComputerToolEntry {
   hint: string;
   type: Extract<ToolType, "app" | "file" | "internal">;
   fileName?: string;
-  view?: "pc-address" | "ie-reset";
+  view?: "pc-address" | "ie-reset" | "pc-folder-find";
 }
 
 const ENTRIES: ComputerToolEntry[] = [
@@ -76,6 +76,13 @@ const ENTRIES: ComputerToolEntry[] = [
     view: "ie-reset",
   },
   {
+    id: "pc-folder-find",
+    name: "이 PC 폴더 찾기",
+    hint: "바탕화면·문서·다운로드에서 이름을 찾습니다. 내용은 읽지 않습니다.",
+    type: "internal",
+    view: "pc-folder-find",
+  },
+  {
     id: "pc-info",
     name: "시스템 정보",
     hint: "이 PC 하드웨어·Windows 정보 화면을 엽니다.",
@@ -110,24 +117,39 @@ export function isIeResetTarget(target: string): boolean {
   return target === "ie-reset" || target === "pc-sys:ie-reset";
 }
 
+export function isFolderFindTool(entry: ComputerToolEntry): boolean {
+  return entry.view === "pc-folder-find";
+}
+
+export function isFolderFindTarget(target: string): boolean {
+  return target === "pc-folder-find" || target === "pc-sys:pc-folder-find";
+}
+
 export function listComputerTools(): ComputerToolEntry[] {
   return ENTRIES;
 }
 
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
-  if (isAddressTool(entry) || isIeResetTool(entry)) {
+  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry)) {
+    const target = isIeResetTool(entry)
+      ? "ie-reset"
+      : isFolderFindTool(entry)
+        ? "pc-folder-find"
+        : "pc-address";
     return {
       id: `pc-sys:${entry.id}`,
       name: entry.name,
       description: entry.hint,
       type: "internal",
-      target: isIeResetTool(entry) ? "ie-reset" : "pc-address",
-      icon: isIeResetTool(entry) ? "monitor" : "network",
+      target,
+      icon: "folder",
       category: "전산",
       favorite: true,
-      keywords: isIeResetTool(entry)
-        ? [entry.name, "컴퓨터도구", "익스플로러", "인터넷"]
-        : [entry.name, "컴퓨터도구", "아이피", "ip"],
+      keywords: isFolderFindTool(entry)
+        ? [entry.name, "컴퓨터도구", "문서", "다운로드", "바탕"]
+        : isIeResetTool(entry)
+          ? [entry.name, "컴퓨터도구", "익스플로러", "인터넷"]
+          : [entry.name, "컴퓨터도구", "아이피", "ip"],
       usageCount: 0,
       enabled: true,
       origin: "local",

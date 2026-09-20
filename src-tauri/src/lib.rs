@@ -13,6 +13,7 @@ use tauri_plugin_opener::OpenerExt;
 mod netutil;
 mod shortcut;
 mod url_mark;
+mod user_folder;
 use url_mark::{build_url_mark, read_picture_file, write_png_file};
 #[cfg(windows)]
 mod drop_target;
@@ -32,6 +33,8 @@ struct PanelState {
 struct StartupPacks(Mutex<Vec<String>>);
 
 struct RangeHalt(Arc<AtomicBool>);
+
+struct FolderWalkHalt(Arc<AtomicBool>);
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -737,6 +740,21 @@ fn halt_range_check(halt: tauri::State<RangeHalt>) {
     halt.0.store(true, Ordering::SeqCst);
 }
 
+#[tauri::command]
+fn find_user_folder_names(
+    halt: tauri::State<FolderWalkHalt>,
+    query: String,
+    include_media: bool,
+    limit: u32,
+) -> Result<Vec<user_folder::UserFolderHit>, String> {
+    user_folder::find_names(&query, include_media, limit as usize, &halt.0)
+}
+
+#[tauri::command]
+fn halt_user_folder_find(halt: tauri::State<FolderWalkHalt>) {
+    halt.0.store(true, Ordering::SeqCst);
+}
+
 const MAX_PC_URLS: usize = 400;
 const MAX_URL_WALK_DEPTH: u32 = 6;
 
@@ -1029,6 +1047,7 @@ pub fn run() {
             std::env::args().skip(1),
         ))))
         .manage(RangeHalt(Arc::new(AtomicBool::new(false))))
+        .manage(FolderWalkHalt(Arc::new(AtomicBool::new(false))))
         .invoke_handler(tauri::generate_handler![
             hide_panel,
             show_panel,
@@ -1051,6 +1070,8 @@ pub fn run() {
             scan_ipv4_range,
             scan_cctv_range,
             halt_range_check,
+            find_user_folder_names,
+            halt_user_folder_find,
             list_pc_url_shortcuts
         ])
         .setup(|app| {
