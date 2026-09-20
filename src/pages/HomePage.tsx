@@ -15,6 +15,7 @@ import { setSearchFocusHandler } from "../services/focusBus";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
 import { getTopicById, getTopics } from "../services/topicService";
 import { TopicSearch } from "../components/TopicSearch";
+import { WorkMapPreview } from "../components/WorkMapPreview";
 import {
   findUserFolderNames,
   haltUserFolderFind,
@@ -439,12 +440,19 @@ export function HomePage({ onAction }: HomePageProps) {
           <>
             <ResultGroup title="업무 주제" empty="일치하는 업무가 없습니다.">
               {topicHits.length > 0 ? (
-                <TopicSearch
-                  items={topicHits}
-                  selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
-                  query={query}
-                  onOpen={(topicId) => onAction({ type: "topic", topicId })}
-                />
+                <>
+                  <WorkMapPreview
+                    query={query}
+                    hitIds={topicHits.map((hit) => hit.item.id)}
+                    onOpen={(topicId) => onAction({ type: "topic", topicId })}
+                  />
+                  <TopicSearch
+                    items={topicHits}
+                    selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
+                    query={query}
+                    onOpen={(topicId) => onAction({ type: "topic", topicId })}
+                  />
+                </>
               ) : null}
             </ResultGroup>
             <ResultGroup title="학교" empty="일치하는 학교가 없습니다.">

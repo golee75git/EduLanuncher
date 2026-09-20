@@ -32,6 +32,22 @@ export async function openIeReset(): Promise<void> {
   await invoke("open_ie_reset");
 }
 
+export async function openWorkMapWindow(rootId: string): Promise<void> {
+  await invoke("open_work_map_window", { rootId });
+}
+
+export async function readWorkMapRootId(): Promise<string> {
+  try {
+    return await invoke<string>("work_map_root_id");
+  } catch {
+    return "";
+  }
+}
+
+export async function revealTopicFromMap(topicId: string): Promise<void> {
+  await invoke("reveal_topic", { topicId });
+}
+
 export function isPathTool(tool: Pick<ToolItem, "type">): boolean {
   return tool.type === "file" || tool.type === "folder" || tool.type === "app";
 }

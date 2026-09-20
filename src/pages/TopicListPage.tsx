@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { SearchBar } from "../components/SearchBar";
 import { TopicResultCard } from "../components/TopicResultCard";
 import { WorkMapList } from "../components/WorkMapList";
+import { WorkMapPreview } from "../components/WorkMapPreview";
 import { searchTopics } from "../services/searchService";
 import { getTopics } from "../services/topicService";
 import { RESOURCE_TYPE_LABEL, RESOURCE_TYPES, type ResourceType } from "../types/topic";
@@ -126,6 +127,13 @@ export function TopicListPage({ onBack, onOpen }: TopicListPageProps) {
             {searching ? (
               <section>
                 <h2 className="desk-label">업무 주제</h2>
+                {hits.length > 0 ? (
+                  <WorkMapPreview
+                    query={query}
+                    hitIds={hits.map((hit) => hit.item.id)}
+                    onOpen={onOpen}
+                  />
+                ) : null}
                 <div className="space-y-2">
                   {hits.length === 0 ? (
                     <p className="text-sm text-quiet">일치하는 업무가 없습니다.</p>

@@ -1,3 +1,4 @@
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "react";
@@ -28,6 +29,7 @@ import { ToolGroupPage } from "./pages/ToolGroupPage";
 import { TopicDetailPage } from "./pages/TopicDetailPage";
 import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
+import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { isFolderFindTarget } from "./data/computerTools";
 import { logEducationValidation } from "./services/mindMapService";
 import { LaunchError, launchTool } from "./services/launcherService";
@@ -63,6 +65,14 @@ type View =
   | { name: "memo" }
   | { name: "internal"; id: string; title: string };
 
+function currentWindowLabel(): string {
+  try {
+    return getCurrentWindow().label;
+  } catch {
+    return "main";
+  }
+}
+
 interface MissingState {
   message: string;
   tool?: ToolItem;
@@ -77,6 +87,7 @@ export default function App() {
   const [packPick, setPackPick] = useState<NoticePack | null>(null);
   const [notice, setNotice] = useState("");
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
+  const mapWindow = currentWindowLabel() === "work-map";
 
   const toast = useCallback((message: string) => {
     setNotice(message);
@@ -202,7 +213,7 @@ export default function App() {
         if (cancelled) {
           return;
         }
-        if (settings.showWindowOnLaunch || !settings.onboarded) {
+        if (!mapWindow && (settings.showWindowOnLaunch || !settings.onboarded)) {
           await showPanel();
         }
       } finally {
@@ -226,6 +237,14 @@ export default function App() {
             void handleLaunch(tool);
           }
         }),
+        await listen<string>("open-topic", (event) => {
+          const topicId = event.payload;
+          if (!topicId) {
+            return;
+          }
+          void useRecentTopicStore.getState().markUsed(topicId);
+          setView({ name: "topic", topicId, backTo: { name: "home" } });
+        }),
         await listen<string>("apply-notice-pack", (event) => {
           void applyPackPath(event.payload);
         }),
@@ -236,9 +255,11 @@ export default function App() {
       }
       unlisteners.push(...listeners);
       try {
-        const pending = await invoke<string[]>("take_startup_pack_paths");
-        for (const path of pending) {
-          void applyPackPath(path);
+        if (currentWindowLabel() !== "work-map") {
+          const pending = await invoke<string[]>("take_startup_pack_paths");
+          for (const path of pending) {
+            void applyPackPath(path);
+          }
         }
       } catch {
         // Command is unavailable in browser preview.
@@ -369,6 +390,10 @@ export default function App() {
         불러오는 중...
       </div>
     );
+  }
+
+  if (mapWindow) {
+    return <WorkMapWindowPage />;
   }
 
   return (

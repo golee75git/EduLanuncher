@@ -1033,4 +1033,26 @@ Difference:
 PATENT_REVIEW:
 계층 JSON에서 검색하고 같은 항목 상세를 여는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Local work-tree picture and extra window
+
+Purpose:
+검색된 업무의 가지를 그림으로 보고, 필요할 때 큰 창에서 본다
+
+Design source:
+내부 요구사항. 기존 MindMapNode JSON과 패널 스킨 색
+
+Implementation:
+자체 SVG 상자·꺾은 선. 미리보기는 홈 검색·업무자료 검색 상단. 크게 보기는 Tauri `work-map` 창. React Flow/D3/Markmap 없음. 노드 id는 영문·숫자·하이픈만 허용
+
+External code:
+없음. ChatGPT·NotebookLM 화면을 쓰지 않음
+
+Difference:
+외부 마인드맵 제품·생성기 연동이 아님. 로컬 JSON을 상자 그림으로 표시
+
+PATENT_REVIEW:
+계층을 그림으로 그리고 다른 창에서 항목을 여는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 

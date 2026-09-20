@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use serde::Serialize;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_opener::OpenerExt;
 
@@ -35,6 +35,21 @@ struct StartupPacks(Mutex<Vec<String>>);
 struct RangeHalt(Arc<AtomicBool>);
 
 struct FolderWalkHalt(Arc<AtomicBool>);
+
+struct WorkMapFocus(Mutex<String>);
+
+fn safe_map_id(raw: &str) -> Option<String> {
+    let cleaned: String = raw
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric() || *ch == '-' || *ch == '_')
+        .take(80)
+        .collect();
+    if cleaned.is_empty() {
+        None
+    } else {
+        Some(cleaned)
+    }
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -309,6 +324,63 @@ fn setup_autostart(app: &tauri::App) {
     }
 
     let _ = app.autolaunch().enable();
+}
+
+#[tauri::command]
+fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), String> {
+    let id = safe_map_id(&root_id).ok_or_else(|| "그릴 업무를 열 수 없습니다.".to_string())?;
+    if let Ok(mut slot) = app.state::<WorkMapFocus>().0.lock() {
+        *slot = id.clone();
+    }
+    if let Some(existing) = app.get_webview_window("work-map") {
+        let _ = existing.emit("work-map-root", &id);
+        let _ = existing.unminimize();
+        let _ = existing.show();
+        let _ = existing.set_focus();
+        return Ok(());
+    }
+    WebviewWindowBuilder::new(&app, "work-map", WebviewUrl::App("index.html".into()))
+        .title("업무 그림")
+        .inner_size(920.0, 720.0)
+        .min_inner_size(640.0, 480.0)
+        .resizable(true)
+        .visible(true)
+        .skip_taskbar(false)
+        .build()
+        .map_err(|err| err.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn work_map_root_id(app: AppHandle) -> String {
+    app.state::<WorkMapFocus>()
+        .0
+        .lock()
+        .map(|value| value.clone())
+        .unwrap_or_default()
+}
+
+#[tauri::command]
+fn reveal_topic(app: AppHandle, topic_id: String) -> Result<(), String> {
+    let id = safe_map_id(&topic_id).ok_or_else(|| "항목을 열 수 없습니다.".to_string())?;
+    if let Some(window) = app.get_webview_window("main") {
+        let position = app
+            .state::<PanelState>()
+            .position
+            .lock()
+            .map(|value| value.clone())
+            .unwrap_or_else(|_| "bottom-right".to_string());
+        position_panel(&window, &position);
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+        let _ = window.emit("open-topic", id);
+        #[cfg(windows)]
+        {
+            let _ = drop_target::install(&window, &app);
+        }
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -1048,12 +1120,16 @@ pub fn run() {
         ))))
         .manage(RangeHalt(Arc::new(AtomicBool::new(false))))
         .manage(FolderWalkHalt(Arc::new(AtomicBool::new(false))))
+        .manage(WorkMapFocus(Mutex::new(String::new())))
         .invoke_handler(tauri::generate_handler![
             hide_panel,
             show_panel,
             toggle_panel,
             set_launcher_position,
             register_shortcut,
+            open_work_map_window,
+            work_map_root_id,
+            reveal_topic,
             launch_tool,
             open_ie_reset,
             read_json_file,

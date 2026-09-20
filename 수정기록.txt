@@ -6,6 +6,43 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.44-20260920
+설치 파일: EduLauncher_0.1.44-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_1713_x64-setup.exe
+
+한 일
+- 홈 검색 「업무 주제」와 업무자료 검색결과 상단에 업무 그림(자체 SVG).
+- 크게 보기: 별도 창에서 같은 그림. 상자를 누르면 패널 상세.
+- ChatGPT 화면·React Flow/D3 없음. 같은 매뉴얼 JSON.
+
+새로 작성한 파일
+- src/services/workMapLayout.ts
+- src/components/WorkMapPicture.tsx
+- src/components/WorkMapPreview.tsx
+- src/pages/WorkMapWindowPage.tsx
+
+재사용한 기존 파일
+- src/App.tsx
+- src/pages/HomePage.tsx
+- src/pages/TopicListPage.tsx
+- src/pages/SettingsPage.tsx
+- src/services/windowService.ts
+- src-tauri/src/lib.rs
+- src-tauri/capabilities/default.json
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts, IntroPage.tsx
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴(Segoe UI, Malgun Gothic). SIL OFL 아님. 번들 없음.
+라이선스: 패키지·crate 추가 없음. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 창 루트 id는 영문·숫자·하이픈만. eval 없음. 인증서 파일 접근 없음.
+특허 검토 대상: 계층을 그림으로 그리고 다른 창에서 항목을 여는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.43-20260920
 설치 파일: EduLauncher_0.1.43-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_1648_x64-setup.exe
