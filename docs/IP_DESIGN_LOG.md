@@ -1188,3 +1188,25 @@ Difference:
 
 PATENT_REVIEW:
 배율과 스크롤을 맞추는 일반 기법. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Work picture window pointer drag move
+
+Purpose:
+크게 보기 창에서 마우스 끌기로 그림 칸을 옮긴다
+
+Design source:
+내부 요구사항. 기존 크게 보기 창의 overflow 스크롤
+
+Implementation:
+그림 칸에서 왼쪽 단추를 누른 채 움직이면 scrollLeft·scrollTop을 바꾼다. 조금 움직인 뒤에만 옮기고, 그때는 상자 누르기를 열지 않는다. 외부 지도·캔버스 라이브러리 없음
+
+External code:
+없음
+
+Difference:
+외부 지도 뷰어 끌기 UI를 베끼지 않음
+
+PATENT_REVIEW:
+포인터로 스크롤 위치를 바꾸는 일반 기법. 청구항 대조 없음. 특허 비침해를 보장하지 않음

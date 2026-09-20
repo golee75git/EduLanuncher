@@ -6,6 +6,44 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.52-20260920
+설치 파일: EduLauncher_0.1.52-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_2220_x64-setup.exe
+
+한 일
+- 크게 보기 창에서 마우스 끌기로 그림을 옮긴다.
+- 조금 움직인 뒤에는 상자 누르기로 상세를 열지 않는다.
+
+새로 작성한 파일
+- 없음
+
+재사용한 기존 파일
+- src/pages/WorkMapWindowPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/pages/IntroPage.tsx
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+글꼴
+- Windows 시스템 글꼴. OFL 글꼴 파일 추가 없음
+
+라이선스
+- 패키지 추가 없음. GPL 신규 도입 없음
+
+보안
+- 끌기는 창 안 스크롤만 바꿈. 바깥 주소·파일을 열지 않음
+
+PATENT_REVIEW
+- 포인터로 스크롤 위치를 바꾸는 일반 기법. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.51-20260920
 설치 파일: EduLauncher_0.1.51-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_2211_x64-setup.exe

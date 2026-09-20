@@ -23,6 +23,8 @@ export function WorkMapWindowPage() {
   const viewRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef(1);
   const anchorRef = useRef<{ x: number; y: number; ratio: number } | null>(null);
+  const dragRef = useRef<{ x: number; y: number; sl: number; st: number; moved: boolean } | null>(null);
+  const skipOpenRef = useRef(false);
   scaleRef.current = scale;
 
   const zoomTo = (next: number, x: number, y: number) => {
@@ -75,9 +77,52 @@ export function WorkMapWindowPage() {
       zoomTo(scaleRef.current * factor, event.clientX - rect.left, event.clientY - rect.top);
     };
     view.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    const onDown = (event: PointerEvent) => {
+      if (event.button !== 0) {
+        return;
+      }
+      dragRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+        sl: view.scrollLeft,
+        st: view.scrollTop,
+        moved: false,
+      };
+      skipOpenRef.current = false;
+      view.setPointerCapture(event.pointerId);
+    };
+    const onMove = (event: PointerEvent) => {
+      const drag = dragRef.current;
+      if (!drag) {
+        return;
+      }
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
+      if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 6) {
+        return;
+      }
+      drag.moved = true;
+      skipOpenRef.current = true;
+      view.scrollLeft = drag.sl - dx;
+      view.scrollTop = drag.st - dy;
+    };
+    const onUp = (event: PointerEvent) => {
+      if (view.hasPointerCapture(event.pointerId)) {
+        view.releasePointerCapture(event.pointerId);
+      }
+      dragRef.current = null;
+    };
+    view.addEventListener("pointerdown", onDown);
+    view.addEventListener("pointermove", onMove);
+    view.addEventListener("pointerup", onUp);
+    view.addEventListener("pointercancel", onUp);
     return () => {
       observer.disconnect();
       view.removeEventListener("wheel", onWheel, { capture: true });
+      view.removeEventListener("pointerdown", onDown);
+      view.removeEventListener("pointermove", onMove);
+      view.removeEventListener("pointerup", onUp);
+      view.removeEventListener("pointercancel", onUp);
     };
   }, []);
 
@@ -110,15 +155,21 @@ export function WorkMapWindowPage() {
           확대
         </button>
       </header>
-      <p className="px-3 pb-1 text-[11px] text-quiet">상자를 누르면 패널에 자세한 업무가 열립니다. 확대·축소 단추나 마우스 휠로 크기를 바꿉니다.</p>
-      <div ref={viewRef} className="min-h-0 flex-1 overflow-auto bg-paper">
+      <p className="px-3 pb-1 text-[11px] text-quiet">상자를 누르면 패널에 자세한 업무가 열립니다. 확대·축소 단추나 마우스 휠로 크기를 바꾸고, 끌어서 옮깁니다.</p>
+      <div ref={viewRef} className="min-h-0 flex-1 cursor-grab overflow-auto bg-paper active:cursor-grabbing">
         {root ? (
           <div style={{ width: boxW, height: boxH }}>
             <WorkMapPicture
               root={root}
               compact={false}
               fill
-              onOpen={(topicId) => void revealTopicFromMap(topicId)}
+              onOpen={(topicId) => {
+                if (skipOpenRef.current) {
+                  skipOpenRef.current = false;
+                  return;
+                }
+                void revealTopicFromMap(topicId);
+              }}
             />
           </div>
         ) : (
