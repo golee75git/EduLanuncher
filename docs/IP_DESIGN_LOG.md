@@ -934,7 +934,7 @@ Design source:
 내부 요구사항. 날짜는 이 PC 달력. 캘린더는 공식 https 주소만
 
 Implementation:
-할 날에 YYYY-MM-DD만 저장. 화면 이름은 오늘(9.20)처럼 그날 시계로 붙임. 백업 JSON에도 상대 말(오늘)을 넣지 않음. 캘린더는 `launchQuickUrl`로 고정 주소만 염. 계정 연동·일정 읽기 없음
+할 날에 YYYY-MM-DD만 저장. 화면 이름은 오늘(9.20)처럼 그날 시계로 붙임. 백업 JSON에도 상대 말(오늘)을 넣지 않음. 캘린더 단추는 오늘·내일·모레 줄 오른쪽에 두고, 누르면 고정 https만 고른다. `launchQuickUrl`로 연다. 계정 연동·일정 읽기 없음
 
 External code:
 없음. 구글·네이버 화면·로고를 쓰지 않음

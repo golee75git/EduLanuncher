@@ -60,16 +60,41 @@ export function TodoList() {
             </button>
           ))}
         </div>
-        {completedCount > 0 ? (
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+          {completedCount > 0 ? (
+            <button
+              type="button"
+              className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+              onClick={() => updateSettings({ showCompletedTodos: !showCompleted })}
+            >
+              {showCompleted ? "완료 숨기기" : "완료 보기"}
+            </button>
+          ) : null}
           <button
             type="button"
-            className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
-            onClick={() => updateSettings({ showCompletedTodos: !showCompleted })}
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors duration-150 ${
+              showSites ? "bg-ink-soft text-desk" : "text-quiet hover:bg-ink-soft hover:text-ink"
+            }`}
+            onClick={() => setShowSites((open) => !open)}
           >
-            {showCompleted ? "완료 숨기기" : "완료 보기"}
+            캘린더
           </button>
-        ) : null}
+        </div>
       </div>
+      {showSites ? (
+        <div className="mb-2 flex flex-wrap justify-end gap-1">
+          {CALENDAR_SITES.map((site) => (
+            <button
+              key={site.url}
+              type="button"
+              className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+              onClick={() => openSite(site.url)}
+            >
+              {site.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {visible.length === 0 ? (
         <p className="text-sm text-quiet">이 날의 할 일이 없습니다.</p>
       ) : (
@@ -124,30 +149,6 @@ export function TodoList() {
           할 일 추가
         </button>
       )}
-      <div className="mt-1.5">
-        {showSites ? (
-          <div className="flex flex-wrap gap-1">
-            {CALENDAR_SITES.map((site) => (
-              <button
-                key={site.url}
-                type="button"
-                className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
-                onClick={() => openSite(site.url)}
-              >
-                {site.label}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="rounded-full px-2 py-0.5 text-[11px] font-medium text-quiet transition-colors duration-150 hover:bg-ink-soft hover:text-ink"
-            onClick={() => setShowSites(true)}
-          >
-            캘린더 열기
-          </button>
-        )}
-      </div>
     </section>
   );
 }
