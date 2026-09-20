@@ -1210,3 +1210,25 @@ Difference:
 
 PATENT_REVIEW:
 포인터로 스크롤 위치를 바꾸는 일반 기법. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Work picture window stable pane and box click
+
+Purpose:
+크게 보기 그림이 깜빡이지 않게 하고, 상자 누르기로 패널 상세를 연다
+
+Design source:
+내부 요구사항. 기존 크게 보기 창
+
+Implementation:
+칸 크기는 스크롤이 없는 바깥 틀에서만 잰다. 그림 상자는 그 칸에 배율을 곱한 정수 픽셀이다. 포인터 잡기는 조금 움직인 뒤에만 한다. 상자 클릭은 SVG onClick이 그대로 패널 열기로 간다
+
+External code:
+없음
+
+Difference:
+외부 지도 뷰어의 안정화·클릭 처리를 베끼지 않음
+
+PATENT_REVIEW:
+칸 크기와 스크롤을 나누는 일반 화면 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음

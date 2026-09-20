@@ -6,6 +6,43 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.53-20260920
+설치 파일: EduLauncher_0.1.53-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_2232_x64-setup.exe
+
+한 일
+- 크게 보기 그림 떨림: 칸 크기를 스크롤바와 나누어 잰다.
+- 상자 누르기는 조금 움직이기 전에는 상세를 연다. 포인터 잡기는 끌기가 시작된 뒤에만 한다.
+
+새로 작성한 파일
+- 없음
+
+재사용한 기존 파일
+- src/pages/WorkMapWindowPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+글꼴
+- Windows 시스템 글꼴. OFL 글꼴 파일 추가 없음
+
+라이선스
+- 패키지 추가 없음. GPL 신규 도입 없음
+
+보안
+- 클릭은 이미 있는 reveal_topic만 호출. 바깥 주소를 새로 열지 않음
+
+PATENT_REVIEW
+- 칸 크기와 스크롤을 나누는 일반 화면 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.52-20260920
 설치 파일: EduLauncher_0.1.52-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_2220_x64-setup.exe

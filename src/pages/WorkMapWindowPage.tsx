@@ -11,6 +11,7 @@ function findRoot(id: string): MindMapNode | undefined {
 
 const MIN_SCALE = 0.45;
 const MAX_SCALE = 3;
+const DRAG_START = 6;
 
 function clampScale(value: number): number {
   return Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
@@ -20,12 +21,15 @@ export function WorkMapWindowPage() {
   const [rootId, setRootId] = useState("");
   const [scale, setScale] = useState(1);
   const [pane, setPane] = useState({ w: 0, h: 0 });
+  const frameRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<HTMLDivElement>(null);
   const scaleRef = useRef(1);
+  const paneRef = useRef(pane);
   const anchorRef = useRef<{ x: number; y: number; ratio: number } | null>(null);
   const dragRef = useRef<{ x: number; y: number; sl: number; st: number; moved: boolean } | null>(null);
   const skipOpenRef = useRef(false);
   scaleRef.current = scale;
+  paneRef.current = pane;
 
   const zoomTo = (next: number, x: number, y: number) => {
     const current = scaleRef.current;
@@ -61,22 +65,30 @@ export function WorkMapWindowPage() {
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
     const view = viewRef.current;
-    if (!view) {
+    if (!frame || !view) {
       return;
     }
-    const sync = () => setPane({ w: view.clientWidth, h: view.clientHeight });
+    const sync = () => {
+      const w = Math.max(1, Math.round(frame.clientWidth));
+      const h = Math.max(1, Math.round(frame.clientHeight));
+      const prev = paneRef.current;
+      if (prev.w === w && prev.h === h) {
+        return;
+      }
+      setPane({ w, h });
+    };
     sync();
     const observer = new ResizeObserver(sync);
-    observer.observe(view);
+    observer.observe(frame);
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
       const rect = view.getBoundingClientRect();
       const factor = event.deltaY < 0 ? 1.15 : 1 / 1.15;
       zoomTo(scaleRef.current * factor, event.clientX - rect.left, event.clientY - rect.top);
     };
-    view.addEventListener("wheel", onWheel, { passive: false, capture: true });
     const onDown = (event: PointerEvent) => {
       if (event.button !== 0) {
         return;
@@ -89,7 +101,6 @@ export function WorkMapWindowPage() {
         moved: false,
       };
       skipOpenRef.current = false;
-      view.setPointerCapture(event.pointerId);
     };
     const onMove = (event: PointerEvent) => {
       const drag = dragRef.current;
@@ -98,11 +109,14 @@ export function WorkMapWindowPage() {
       }
       const dx = event.clientX - drag.x;
       const dy = event.clientY - drag.y;
-      if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 6) {
-        return;
+      if (!drag.moved) {
+        if (Math.abs(dx) + Math.abs(dy) < DRAG_START) {
+          return;
+        }
+        drag.moved = true;
+        skipOpenRef.current = true;
+        view.setPointerCapture(event.pointerId);
       }
-      drag.moved = true;
-      skipOpenRef.current = true;
       view.scrollLeft = drag.sl - dx;
       view.scrollTop = drag.st - dy;
     };
@@ -112,6 +126,7 @@ export function WorkMapWindowPage() {
       }
       dragRef.current = null;
     };
+    view.addEventListener("wheel", onWheel, { passive: false, capture: true });
     view.addEventListener("pointerdown", onDown);
     view.addEventListener("pointermove", onMove);
     view.addEventListener("pointerup", onUp);
@@ -138,8 +153,8 @@ export function WorkMapWindowPage() {
   }, [scale]);
 
   const root = useMemo(() => (rootId ? findRoot(rootId) : undefined), [rootId]);
-  const boxW = Math.max(1, pane.w) * scale;
-  const boxH = Math.max(1, pane.h) * scale;
+  const boxW = Math.max(1, Math.round(pane.w * scale));
+  const boxH = Math.max(1, Math.round(pane.h * scale));
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-paper">
@@ -156,25 +171,27 @@ export function WorkMapWindowPage() {
         </button>
       </header>
       <p className="px-3 pb-1 text-[11px] text-quiet">상자를 누르면 패널에 자세한 업무가 열립니다. 확대·축소 단추나 마우스 휠로 크기를 바꾸고, 끌어서 옮깁니다.</p>
-      <div ref={viewRef} className="min-h-0 flex-1 cursor-grab overflow-auto bg-paper active:cursor-grabbing">
-        {root ? (
-          <div style={{ width: boxW, height: boxH }}>
-            <WorkMapPicture
-              root={root}
-              compact={false}
-              fill
-              onOpen={(topicId) => {
-                if (skipOpenRef.current) {
-                  skipOpenRef.current = false;
-                  return;
-                }
-                void revealTopicFromMap(topicId);
-              }}
-            />
-          </div>
-        ) : (
-          <p className="p-3 text-sm text-quiet">그릴 업무가 없습니다.</p>
-        )}
+      <div ref={frameRef} className="min-h-0 flex-1">
+        <div ref={viewRef} className="h-full w-full cursor-grab overflow-auto bg-paper">
+          {root ? (
+            <div style={{ width: boxW, height: boxH }}>
+              <WorkMapPicture
+                root={root}
+                compact={false}
+                fill
+                onOpen={(topicId) => {
+                  if (skipOpenRef.current) {
+                    skipOpenRef.current = false;
+                    return;
+                  }
+                  void revealTopicFromMap(topicId);
+                }}
+              />
+            </div>
+          ) : (
+            <p className="p-3 text-sm text-quiet">그릴 업무가 없습니다.</p>
+          )}
+        </div>
       </div>
     </div>
   );
