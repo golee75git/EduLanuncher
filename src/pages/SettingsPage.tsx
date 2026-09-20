@@ -7,8 +7,7 @@ import { launchQuickUrl } from "../services/launcherService";
 import { applyLauncherBackup, buildLauncherBackup, parseLauncherBackup } from "../services/backupService";
 import { buildLauncherPack, describePackApply } from "../services/launcherPackService";
 import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/noticePackService";
-import { useNoticeStore } from "../stores/noticeStore";
-import { NOTICE_KIND_LABEL } from "../types/notice";
+import type { NoticePack } from "../types/notice";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
 import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
@@ -17,14 +16,14 @@ interface SettingsPageProps {
   onBack: () => void;
   onWriteNotices: () => void;
   onTopicReview: () => void;
+  onNoticePack: (pack: NoticePack) => void;
 }
 
-export function SettingsPage({ onBack, onWriteNotices, onTopicReview }: SettingsPageProps) {
+export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePack }: SettingsPageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const update = useSettingsStore((state) => state.update);
   const applyEducationPack = useToolStore((state) => state.applyEducationPack);
   const tools = useToolStore((state) => state.tools);
-  const replaceFromPack = useNoticeStore((state) => state.replaceFromPack);
   const [packMessage, setPackMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
   const [backupMessage, setBackupMessage] = useState("");
@@ -154,7 +153,12 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview }: Settings
                   if (typeof selected !== "string") {
                     return;
                   }
-                  setPackMessage(await applyPackFromPath(selected));
+                  const result = await applyPackFromPath(selected);
+                  if (result.mode === "notice-pick") {
+                    onNoticePack(result.pack);
+                    return;
+                  }
+                  setPackMessage(result.message);
                 } catch (error) {
                   setPackMessage(error instanceof Error ? error.message : "Pack을 가져오지 못했습니다.");
                 }
@@ -194,17 +198,13 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview }: Settings
           {packMessage ? <p className="text-xs text-quiet">{packMessage}</p> : null}
         </SettingsCard>
 
-        <SettingsCard title="기관 공지·공통 알림">
+        <SettingsCard title="공지">
           <p className="text-xs leading-5 text-quiet">
-            작성 화면에서 구분을 고릅니다. 공지 Pack과 알림 Pack은 따로 저장·가져오기 되며, 한쪽을 가져와도 다른 쪽은 유지됩니다.
-            메신저로 받은 .edupack 파일을 누르거나 런처에 놓아도 바로 적용됩니다.
+            홈 공지 한 칸에 기관(담당자)과 부서 안내가 함께 보입니다. Pack은 고른 항목만 더하고, 이미 있는 id는
+            건너뜁니다. 이 PC에서 넣기·수정·빼기가 됩니다. 게시판을 읽어 오지 않습니다.
           </p>
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={onWriteNotices}
-          >
-            공지·알림 작성
+          <button type="button" className="btn-primary" onClick={onWriteNotices}>
+            공지 Pack 작성
           </button>
           <button
             type="button"
@@ -222,9 +222,7 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview }: Settings
                     return;
                   }
                   const parsed = JSON.parse(await readJsonFile(selected)) as unknown;
-                  const pack = parseNoticePack(parsed);
-                  const count = await replaceFromPack(pack);
-                  setNoticeMessage(`${NOTICE_KIND_LABEL[pack.kind]} ${count}건을 갱신했습니다.`);
+                  onNoticePack(parseNoticePack(parsed));
                 } catch (error) {
                   setNoticeMessage(
                     error instanceof Error ? error.message : "Pack을 가져오지 못했습니다.",
@@ -350,6 +348,7 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview }: Settings
             <li>업무도구의 주소 무늬는 이 PC 그림 오른쪽 아래에 주소를 넣고 PNG로 저장합니다. http 또는 https만 됩니다.</li>
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다.</li>
+            <li>홈 공지는 한 칸입니다. 줄마다 기관(담당자) 또는 부서를 표시합니다. 넣기·모두에서 수정·빼기가 됩니다. Pack은 고른 항목만 더하고 이미 있는 항목은 건너뜁니다. 원문 주소가 있으면 브라우저만 엽니다.</li>
             <li>홈 할 일은 오늘·내일·모레를 고른 뒤 넣습니다. 파일에는 달력 날짜만 남고, 화면에는 오늘(9.20)처럼 보입니다. 지난 날짜의 미완료는 오늘 칸에 남습니다.</li>
             <li>할 일 칸 오늘·내일·모레 줄 오른쪽의 캘린더를 누르면 구글·네이버 공식 누리집을 고릅니다. 일정은 가져오지 않습니다.</li>
             <li>최근 사용에는 실행한 바로가기와 열어 본 업무주제만 남습니다. 검색창에 친 말은 넣지 않습니다.</li>

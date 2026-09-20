@@ -16,7 +16,7 @@ interface NoticePackPageProps {
 
 export function NoticePackPage({ onBack }: NoticePackPageProps) {
   const storedNotices = useNoticeStore((state) => state.notices);
-  const replaceFromPack = useNoticeStore((state) => state.replaceFromPack);
+  const addFromPack = useNoticeStore((state) => state.addFromPack);
   const [kind, setKind] = useState<NoticeKind>("org");
   const [packName, setPackName] = useState(NOTICE_KIND_LABEL.org);
   const [notices, setNotices] = useState<NoticeItem[]>(
@@ -87,12 +87,15 @@ export function NoticePackPage({ onBack }: NoticePackPageProps) {
       const path = /\.(edupack|json)$/i.test(selected) ? selected : `${selected}.edupack`;
       await writeJsonFile(path, `${JSON.stringify(pack, null, 2)}\n`);
       if (alsoApply) {
-        await replaceFromPack(pack);
+        await addFromPack(
+          pack,
+          pack.notices.map((item) => item.id),
+        );
       }
       setError("");
       setMessage(
         alsoApply
-          ? `${NOTICE_KIND_LABEL[kind]} Pack을 저장하고 이 PC에 적용했습니다.`
+          ? `${NOTICE_KIND_LABEL[kind]} Pack을 저장하고 이 PC 목록에 없는 항목만 넣었습니다.`
           : `${NOTICE_KIND_LABEL[kind]} Pack 파일을 저장했습니다.`,
       );
     } catch (saveError) {
@@ -107,11 +110,11 @@ export function NoticePackPage({ onBack }: NoticePackPageProps) {
         <button type="button" className="icon-btn" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="text-[15px] font-semibold text-desk">공지·알림 작성</h1>
+        <h1 className="text-[15px] font-semibold text-desk">공지 Pack 작성</h1>
       </header>
       <div className="flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          기관 공지와 공통 알림은 따로 저장됩니다. .edupack 파일을 메신저로 보내면 직원이 눌러 바로 적용할 수 있습니다.
+          기관(담당자)과 부서는 Pack 파일 종류만 다릅니다. 직원이 가져오면 고른 항목만 공지 칸에 더해집니다.
         </p>
         <label className="block text-sm text-desk">
           <span className="mb-1 block">구분</span>
@@ -125,8 +128,8 @@ export function NoticePackPage({ onBack }: NoticePackPageProps) {
               setMessage("");
             }}
           >
-            <option value="org">기관 공지</option>
-            <option value="alert">공통 알림</option>
+            <option value="org">{NOTICE_KIND_LABEL.org} (담당자)</option>
+            <option value="alert">{NOTICE_KIND_LABEL.alert}</option>
           </select>
         </label>
         <label className="block text-sm text-desk">
@@ -147,7 +150,7 @@ export function NoticePackPage({ onBack }: NoticePackPageProps) {
           />
         </label>
         <label className="block text-sm text-desk">
-          <span className="mb-1 block">원문 주소{kind === "alert" ? " (선택)" : ""}</span>
+          <span className="mb-1 block">원문 주소 (선택)</span>
           <input
             value={url}
             onChange={(event) => setUrl(event.target.value)}

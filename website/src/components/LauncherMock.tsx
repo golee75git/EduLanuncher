@@ -5,9 +5,9 @@ const GROUPS = [
 ] as const;
 
 const NOTICES = [
-  { title: "1학기 학사 일정 안내", date: "09.12" },
-  { title: "개인정보 보호 교육", date: "09.08" },
-  { title: "공용 PC 점검 일정", date: "09.03" },
+  { mark: "기관", title: "1학기 학사 일정 안내", date: "09.12" },
+  { mark: "기관", title: "개인정보 보호 교육", date: "09.08" },
+  { mark: "부서", title: "공용 PC 점검 일정", date: "09.03" },
 ] as const;
 
 export function LauncherMock() {
@@ -34,14 +34,17 @@ export function LauncherMock() {
       </div>
       <div className="mt-3 min-h-0 flex-1 space-y-4 overflow-hidden px-3 pb-3">
         <section>
-          <h2 className="mb-2 text-[11px] font-semibold tracking-wide text-quiet uppercase">기관 공지</h2>
+          <h2 className="mb-2 text-[11px] font-semibold tracking-wide text-quiet uppercase">공지</h2>
           <div className="overflow-hidden rounded-lg border border-line bg-card">
             {NOTICES.map((row) => (
               <div
                 key={row.title}
                 className="flex items-center justify-between gap-2 border-b border-line px-3 py-2 last:border-b-0"
               >
-                <span className="truncate text-sm">{row.title}</span>
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <span className="shrink-0 text-[10px] text-quiet">{row.mark}</span>
+                  <span className="truncate text-sm">{row.title}</span>
+                </span>
                 <span className="shrink-0 text-xs text-quiet">{row.date}</span>
               </div>
             ))}

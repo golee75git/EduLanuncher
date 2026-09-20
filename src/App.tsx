@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { DropZone } from "./components/DropZone";
 import { MemoPad } from "./components/MemoPad";
 import { MissingPathDialog } from "./components/MissingPathDialog";
+import { NoticePackPick } from "./components/NoticePackPick";
+import { RemoveNoticeDialog } from "./components/RemoveNoticeDialog";
 import { RemoveToolDialog } from "./components/RemoveToolDialog";
 import { HomeJumpButton } from "./components/HomeJumpButton";
 import { WelcomeOverlay } from "./components/WelcomeOverlay";
@@ -12,6 +14,8 @@ import { CctvToolPage } from "./pages/CctvToolPage";
 import { InternalPlaceholderPage } from "./pages/InternalPlaceholderPage";
 import { MemoPage } from "./pages/MemoPage";
 import { NetworkToolPage } from "./pages/NetworkToolPage";
+import { NoticeAllPage } from "./pages/NoticeAllPage";
+import { NoticeItemPage } from "./pages/NoticeItemPage";
 import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ComputerToolPage } from "./pages/ComputerToolPage";
@@ -31,16 +35,19 @@ import { showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { hydrateMemo } from "./stores/memoStore";
-import { hydrateNotices } from "./stores/noticeStore";
+import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
 import { hydrateRecentTopics, useRecentTopicStore } from "./stores/recentTopicStore";
 import { hydrateTodos, useTodoStore } from "./stores/todoStore";
 import { hydrateTools, useToolStore } from "./stores/toolStore";
+import type { NoticeItem, NoticePack } from "./types/notice";
 import type { ToolItem, ToolType } from "./types/tool";
 
 type View =
   | { name: "home" }
   | { name: "settings" }
   | { name: "notice-edit" }
+  | { name: "notices" }
+  | { name: "notice-item"; item?: NoticeItem; backTo?: View }
   | { name: "tool-group"; groupType: ToolType }
   | { name: "pc-urls" }
   | { name: "computer-tools" }
@@ -62,6 +69,8 @@ export default function App() {
   const [view, setView] = useState<View>({ name: "home" });
   const [missing, setMissing] = useState<MissingState | null>(null);
   const [removeTarget, setRemoveTarget] = useState<ToolItem | null>(null);
+  const [removeNotice, setRemoveNotice] = useState<NoticeItem | null>(null);
+  const [packPick, setPackPick] = useState<NoticePack | null>(null);
   const [notice, setNotice] = useState("");
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
 
@@ -73,7 +82,12 @@ export default function App() {
   const applyPackPath = useCallback(
     async (path: string) => {
       try {
-        toast(await applyNoticePackFromPath(path));
+        const result = await applyNoticePackFromPath(path);
+        if (result.mode === "notice-pick") {
+          setPackPick(result.pack);
+        } else {
+          toast(result.message);
+        }
         setView({ name: "home" });
         await showPanel();
       } catch (error) {
@@ -87,7 +101,12 @@ export default function App() {
   const applyPackText = useCallback(
     async (contents: string) => {
       try {
-        toast(await applyPackFromText(contents));
+        const result = await applyPackFromText(contents);
+        if (result.mode === "notice-pick") {
+          setPackPick(result.pack);
+        } else {
+          toast(result.message);
+        }
         setView({ name: "home" });
         await showPanel();
       } catch (error) {
@@ -305,6 +324,14 @@ export default function App() {
       openTopic(action.topicId, { name: "home" });
       return;
     }
+    if (action.type === "notices") {
+      setView({ name: "notices" });
+      return;
+    }
+    if (action.type === "notice-item") {
+      setView({ name: "notice-item", item: action.item, backTo: { name: "home" } });
+      return;
+    }
     if (action.type === "remove") {
       setRemoveTarget(action.tool);
       return;
@@ -347,10 +374,25 @@ export default function App() {
               onBack={() => setView({ name: "home" })}
               onWriteNotices={() => setView({ name: "notice-edit" })}
               onTopicReview={() => setView({ name: "topic-review" })}
+              onNoticePack={(pack) => {
+                setPackPick(pack);
+                setView({ name: "home" });
+              }}
             />
           ) : null}
           {view.name === "notice-edit" ? (
             <NoticePackPage onBack={() => setView({ name: "settings" })} />
+          ) : null}
+          {view.name === "notices" ? (
+            <NoticeAllPage
+              onBack={() => setView({ name: "home" })}
+              onAdd={() => setView({ name: "notice-item", backTo: { name: "notices" } })}
+              onEdit={(item) => setView({ name: "notice-item", item, backTo: { name: "notices" } })}
+              onRemove={setRemoveNotice}
+            />
+          ) : null}
+          {view.name === "notice-item" ? (
+            <NoticeItemPage item={view.item} onBack={() => setView(view.backTo ?? { name: "home" })} />
           ) : null}
           {view.name === "tool-group" ? (
             <ToolGroupPage
@@ -445,6 +487,8 @@ export default function App() {
               onClick={() => {
                 setMissing(null);
                 setRemoveTarget(null);
+                setRemoveNotice(null);
+                setPackPick(null);
                 setView({ name: "home" });
               }}
             />
@@ -477,6 +521,26 @@ export default function App() {
               setRemoveTarget(null);
             }}
             onClose={() => setRemoveTarget(null)}
+          />
+        ) : null}
+        {removeNotice ? (
+          <RemoveNoticeDialog
+            item={removeNotice}
+            onConfirm={() => {
+              void useNoticeStore.getState().removeNotice(removeNotice.id);
+              setRemoveNotice(null);
+            }}
+            onClose={() => setRemoveNotice(null)}
+          />
+        ) : null}
+        {packPick ? (
+          <NoticePackPick
+            pack={packPick}
+            onClose={() => setPackPick(null)}
+            onAdded={(count) => {
+              setPackPick(null);
+              toast(count > 0 ? `공지 ${count}건을 넣었습니다.` : "넣을 항목이 없습니다.");
+            }}
           />
         ) : null}
         {notice ? (

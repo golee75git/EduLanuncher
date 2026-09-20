@@ -54,7 +54,7 @@ Pure frontend tweaks visible in `tauri-env.cmd dev` don't need this.
 
 Packs are the extensibility/distribution mechanism: JSON (or `.edupack`, same format, registered as a Windows file association) files a user can drop onto the app or double-click to import. Three kinds, disambiguated in `applyNoticePack.ts`:
 - **Backup** (`{ kind: "edulauncher-backup" }`) — full local lists for another PC, parsed by `backupService`.
-- **Notice pack** (`{ notices: [...] }`) — org/common alert notices, parsed by `noticePackService.parseNoticePack`, applied via `noticeStore.replaceFromPack`.
+- **Notice pack** (`{ notices: [...] }`) — org/alert (화면에서는 기관/부서). `noticePackService.parseNoticePack` 후 고른 항목만 `noticeStore.addFromPack`
 - **Launcher pack** (`{ tools: [...] }`) — shortcuts/sites, parsed by `launcherPackService.parseLauncherPack`, merged via `toolStore.applyLauncherPack` (add-or-update by id, tracks `added`/`updated` counts, tags imported tools with `origin: "pack"` and `packName`).
 
 Both parsers are defensive by design (untrusted input from disk/drag-drop): they silently drop malformed entries rather than throwing, cap string lengths, and only throw when *nothing* usable was found. Example fixtures live in `packs/*.example.json`; sample `.edupack` files sit at repo root.

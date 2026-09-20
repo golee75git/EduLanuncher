@@ -3,7 +3,7 @@ import type { NoticePack } from "../types/notice";
 /** 담당자가 편집해 직원에게 배포하는 예시. 게시판 수집 없음. */
 export const SAMPLE_NOTICE_PACK: NoticePack = {
   id: "pack-org-notices",
-  name: "기관 공지",
+  name: "기관 담당자 공지",
   version: "0.1.0",
   kind: "org",
   notices: [

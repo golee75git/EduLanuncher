@@ -145,6 +145,8 @@ function parseNotices(raw: unknown): StoredNotices {
       kind: asKind(row.kind),
       title,
       publishedAt,
+      origin: row.origin === "pack" ? "pack" : "local",
+      ...(asText(row.packName) ? { packName: asText(row.packName) } : {}),
       ...(asText(row.summary) ? { summary: asText(row.summary) } : {}),
       ...(asText(row.url) ? { url: asText(row.url) } : {}),
       ...(asText(row.expiresAt) ? { expiresAt: asText(row.expiresAt) } : {}),

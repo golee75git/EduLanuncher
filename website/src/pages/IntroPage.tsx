@@ -18,7 +18,7 @@ const FEATURES = [
 
 const HOLDS = [
   "사이트, 프로그램, 파일, 폴더 바로가기",
-  "기관 공지·공통 알림 Pack",
+  "기관 공지 Pack",
   "한 장의 메모",
   "주소·파일·바로가기를 패널에 끌어 놓기 (Windows 설치본)",
   "이 PC Edge·Chrome 북마크와 Windows 즐겨찾기 바로가기 보기",

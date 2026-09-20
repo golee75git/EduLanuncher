@@ -20,6 +20,7 @@ import { getSchools } from "../stores/schoolStore";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
+import type { NoticeItem } from "../types/notice";
 import type { SchoolItem } from "../types/school";
 import type { ToolItem, ToolType } from "../types/tool";
 import type { RecentUseItem } from "../components/RecentTools";
@@ -32,6 +33,8 @@ export type HomeAction =
   | { type: "computer-tools" }
   | { type: "topics" }
   | { type: "topic"; topicId: string }
+  | { type: "notices" }
+  | { type: "notice-item"; item?: NoticeItem }
   | { type: "remove"; tool: ToolItem }
   | { type: "internal"; id: string; title: string }
   | { type: "settings" };
@@ -290,8 +293,10 @@ export function HomePage({ onAction }: HomePageProps) {
 
         {!searching && !activeSchool ? (
           <>
-            <NoticeList kind="org" />
-            <NoticeList kind="alert" />
+            <NoticeList
+              onAll={() => onAction({ type: "notices" })}
+              onAdd={() => onAction({ type: "notice-item" })}
+            />
             <section className="zone-block bg-zone-tools">
               <h2 className="desk-label">자주 사용하는 도구</h2>
               <div className="space-y-3">

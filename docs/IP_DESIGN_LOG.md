@@ -116,7 +116,7 @@ Design source:
 내부 요구사항
 
 Implementation:
-로컬 JSON 가져오기. 클릭 시 원문 URL만 브라우저로 연다. 게시판 수집·로그인 없음. 담당자 작성 화면에서 기관 공지/공통 알림을 구분해 Pack 파일을 만듦
+로컬 JSON 가져오기. 클릭 시 원문 URL만 브라우저로 연다. 게시판 수집·로그인 없음. Pack 작성 화면에서 기관(담당자)/부서를 구분해 파일을 만듦. 직원이 가져오면 고른 항목만 이 PC 목록에 더함.
 
 External code:
 없음
@@ -125,7 +125,7 @@ Potential similar products:
 그룹웨어 위젯, 피드 리더
 
 Difference:
-약속된 Pack 파일만 교체 갱신. 스크래핑·실시간 동기화·게시판 UI 복제 없음. .edupack 클릭·드롭으로 적용. 시작 시 HKCU에 설치본 연결
+약속된 Pack 파일에서 고른 항목만 추가. 같은 id는 건너뜀. 스크래핑·실시간 동기화·게시판 UI 복제 없음. .edupack 클릭·드롭 후 선택. 시작 시 HKCU에 설치본 연결
 
 ---
 
@@ -440,13 +440,13 @@ Difference:
 Feature: Home notice board rows
 
 Purpose:
-기관 공지·공통 알림을 홈에서 제목과 날짜만 보이게 정리
+기관 공지와 공통 알림을 홈 한 칸에서 제목·날짜와 기관/부서 표시로 정리
 
 Design source:
 내부 요구사항
 
 Implementation:
-테두리 칸 안에 제목 왼쪽·날짜 오른쪽 한 줄. 홈 3개 유지. Pack 원문 링크만 열림. 게시판 수집·조회수·첨부 아이콘 없음
+테두리 칸 안에 기관/부서 표시, 제목, 날짜. 홈 3개. 모두 목록에서 넣기·수정·빼기. Pack은 고르기 추가. 게시판 수집·조회수·첨부 아이콘 없음
 
 External code:
 없음
@@ -455,7 +455,7 @@ Potential similar products:
 학교 홈페이지 게시판, 인트라넷 공지 목록
 
 Difference:
-특정 교육청·나이스 게시판 HTML/CSS 복제 없음. Pack으로 넣은 제목·날짜만 표시
+특정 교육청·나이스 게시판 HTML/CSS 복제 없음. Pack 또는 이 PC에서 넣은 제목·날짜만 표시
 
 ---
 
@@ -945,7 +945,26 @@ Difference:
 PATENT_REVIEW:
 날짜를 붙여 할 일을 나누고 외부 캘린더 사이트를 여는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
 
+Feature: Single local notice list with source mark
 
+Purpose:
+홈 공지를 한 칸으로 두고, 기관(담당자)과 부서를 줄에 표시하며 이 PC에서 넣기·수정·빼기
+
+Design source:
+내부 요구사항. 기존 NoticeItem.kind(org/alert)를 화면 이름만 기관/부서로 씀
+
+Implementation:
+한 목록. Pack은 같은 id를 건너뛰고 고른 항목만 추가. origin pack/local. 클릭 시 적어 둔 http(s)만 염. 게시판 수집·권한 서버 없음
+
+External code:
+없음
+
+Difference:
+피드 동기화가 아님. 이 PC JSON 목록
+
+PATENT_REVIEW:
+로컬 목록에 출처 표시를 두고 파일에서 고른 줄을 더하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
 
