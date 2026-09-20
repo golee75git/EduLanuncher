@@ -333,25 +333,22 @@ fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), String> {
         *slot = id.clone();
     }
     if let Some(existing) = app.get_webview_window("work-map") {
-        let _ = existing.emit("work-map-root", &id);
-        let _ = existing.unminimize();
-        let _ = existing.show();
-        let _ = existing.set_focus();
-        return Ok(());
+        let _ = existing.destroy();
     }
     let url = if cfg!(dev) {
         match &app.config().build.dev_url {
             Some(dev_url) => WebviewUrl::External(dev_url.clone()),
-            None => WebviewUrl::App("/".into()),
+            None => WebviewUrl::App("index.html".into()),
         }
     } else {
-        WebviewUrl::App("/".into())
+        WebviewUrl::App("index.html".into())
     };
     WebviewWindowBuilder::new(&app, "work-map", url)
         .title("업무 그림")
         .inner_size(920.0, 720.0)
         .min_inner_size(640.0, 480.0)
         .resizable(true)
+        .closable(true)
         .visible(true)
         .skip_taskbar(false)
         .build()

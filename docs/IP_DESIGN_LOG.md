@@ -1066,7 +1066,7 @@ Design source:
 내부 요구사항. 기존 work-map 창과 정적 매뉴얼 JSON
 
 Implementation:
-work-map 창은 화면만 그리고 plugin-store 초기화를 건너뜀. SVG는 배치 크기만큼 그린다. 개발 중에는 패널과 같은 개발 주소를 연다
+work-map 창은 화면만 그리고 plugin-store 초기화를 건너뜀. SVG는 배치 크기만큼 그린다. 설치본은 패널과 같이 index.html을 연다. 이미 있는 창은 지우고 다시 연다. 개발 중에는 패널과 같은 개발 주소를 연다
 
 External code:
 없음
