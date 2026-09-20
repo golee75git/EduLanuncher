@@ -15,9 +15,10 @@ import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type Panel
 interface SettingsPageProps {
   onBack: () => void;
   onWriteNotices: () => void;
+  onTopicReview: () => void;
 }
 
-export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
+export function SettingsPage({ onBack, onWriteNotices, onTopicReview }: SettingsPageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const update = useSettingsStore((state) => state.update);
   const applyEducationPack = useToolStore((state) => state.applyEducationPack);
@@ -305,6 +306,15 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
           {backupMessage ? <p className="text-xs text-quiet">{backupMessage}</p> : null}
         </SettingsCard>
 
+        <SettingsCard title="업무자료">
+          <p className="text-xs leading-5 text-quiet">
+            홈 검색 또는 업무도구의 업무자료에서 주제를 찾습니다. 최신 여부 확인이 필요한 항목만 따로 볼 수 있습니다.
+          </p>
+          <button type="button" className="btn-secondary" onClick={onTopicReview}>
+            검토가 필요한 업무자료
+          </button>
+        </SettingsCard>
+
         <SettingsCard title="프로그램 정보">
           <p className="text-xs leading-5 text-quiet">
             설치 파일 {APP_CONFIG.setupFile}
@@ -332,6 +342,8 @@ export function SettingsPage({ onBack, onWriteNotices }: SettingsPageProps) {
             <li>바로가기 위에 마우스를 올리면 설명이 나옵니다. 설명이 없으면 이름이 나옵니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>
+            <li>홈 검색에 업무를 적으면 관련 주제가 바로가기보다 먼저 나옵니다.</li>
+            <li>업무도구 칸의 업무자료에서 주제 목록을 보고 자료 유형별로 확인할 수 있습니다.</li>
             <li>업무도구 칸의 컴퓨터도구는 이 PC Windows 설정 화면을 열거나, 사설·공인 IP와 익스플로러 설정 복원 확인 화면을 엽니다.</li>
             <li>업무도구의 주소 무늬는 이 PC 그림 오른쪽 아래에 주소를 넣고 PNG로 저장합니다. http 또는 https만 됩니다.</li>
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>

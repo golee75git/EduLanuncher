@@ -6,6 +6,55 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.35-20260920
+설치 파일: EduLauncher_0.1.35-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_0943_x64-setup.exe
+
+한 일
+- 홈 검색 결과에 교육행정 업무주제(Topic)를 바로가기보다 먼저 보여 줌.
+- 업무도구 칸에 「업무자료」 진입점을 넣음. 설정에서 검토 필요 항목만 모음.
+- 로컬 JSON만 읽음. AI 검색 없음. 원문 주소는 http/https만 바깥에서 염.
+- 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- src/types/topic.ts
+- src/data/topics.json
+- src/services/topicService.ts
+- src/components/TopicSearch.tsx
+- src/components/TopicCard.tsx
+- src/components/TopicDetail.tsx
+- src/components/WorkflowView.tsx
+- src/components/ResourceTabs.tsx
+- src/components/ResourceCard.tsx
+- src/components/SourceBadge.tsx
+- src/components/StatusBadge.tsx
+- src/components/RelatedTopics.tsx
+- src/pages/TopicListPage.tsx
+- src/pages/TopicDetailPage.tsx
+- src/pages/TopicReviewPage.tsx
+
+재사용한 기존 파일
+- src/services/searchService.ts
+- src/pages/HomePage.tsx
+- src/pages/ToolGroupPage.tsx
+- src/pages/SettingsPage.tsx
+- src/App.tsx
+- src/components/SearchBar.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/pages/IntroPage.tsx
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, Malgun Gothic). SIL OFL 아님. 번들 글꼴 파일 없음. 새로 OFL 글꼴을 넣지 않음(최소수정).
+라이선스: 패키지 추가 없음. 직접 GPL/AGPL 없음. 기존 npm은 MIT/Apache-2.0/ISC. qrcode 0.14.1은 MIT OR Apache-2.0. 비침해 보장하지 않음.
+보안: JSON은 길이·형식 검사 후 사용. 원문 열기는 http/https만. javascript: 등 거부. 학교 시스템 스크랩·자동로그인 없음.
+특허 검토 대상: 키워드로 업무주제를 묶어 보여주는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.34-20260920
 설치 파일: EduLauncher_0.1.34-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_0822_x64-setup.exe

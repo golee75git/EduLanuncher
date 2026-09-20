@@ -1,0 +1,1247 @@
+[
+  {
+    "id": "TASK-001",
+    "title": "물품·용역 구매 계약 및 수의계약",
+    "category": "학교회계",
+    "subcategory": "계약 및 물품·자산관리",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "예산확인 및 품의"
+      },
+      {
+        "order": 2,
+        "title": "기초금액 조사 및 수의계약 검토"
+      },
+      {
+        "order": 3,
+        "title": "업체 서류 검증(등기부/직접생산)"
+      },
+      {
+        "order": 4,
+        "title": "계약 체결 및 에듀파인 원인행위 등록"
+      },
+      {
+        "order": 5,
+        "title": "검수"
+      },
+      {
+        "order": 6,
+        "title": "대금 지급"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "수의계약",
+        "지출원인행위",
+        "지정정보처리장치",
+        "검사검수",
+        "계약이행통합서약서"
+      ],
+      "general": [
+        "물건 사기",
+        "도서 구입",
+        "통학버스 계약",
+        "업체 서류 받기",
+        "승낙사항"
+      ],
+      "beginner": [
+        "학교에서 컴퓨터나 책 사려면 어떻게 하나요",
+        "4대보험 증명서 안 받아도 되나요",
+        "각서 통합 되었나요"
+      ],
+      "related": [
+        "기초금액",
+        "견적서",
+        "4대보험 완납증명서",
+        "물품선정위원회",
+        "포인트 세입조치"
+      ]
+    },
+    "exampleQuestions": [
+      "1천만원 이하 물품 구매 시 4대보험 완납증명서가 생략되나요?",
+      "수의계약 시 제출받는 각서가 1종으로 통합되었나요?",
+      "도서 구매 시 견적 금액으로 기초금액을 잡으면 왜 안 되나요?",
+      "에듀파인 원인행위는 언제 입력해야 하나요?",
+      "500만원 이상 비품 구매 시 물품선정위원회를 안 거치면 어떻게 되나요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-001-GUIDELINE-01",
+        "type": "guideline",
+        "title": "2025년/2026년 학교회계 사례중심 맞춤형 컨설팅 자료",
+        "summary": "컨설팅지침",
+        "organization": "울산광역시교육청",
+        "document": "2025년/2026년 학교회계 사례중심 맞춤형 컨설팅 자료",
+        "publishedAt": "2025년 / 2026년",
+        "pages": "p.5~6, p.15, p.24, p.39, p.44",
+        "status": "unknown",
+        "needsReview": true
+      },
+      {
+        "id": "RES-TASK-001-AUDIT-01",
+        "type": "audit",
+        "title": "2025년/2026년 학교회계 사례중심 맞춤형 컨설팅 자료",
+        "summary": "감사사례",
+        "organization": "울산광역시교육청",
+        "document": "2025년/2026년 학교회계 사례중심 맞춤형 컨설팅 자료",
+        "publishedAt": "2025년 / 2026년",
+        "pages": "p.5~6, p.15, p.24, p.39, p.44",
+        "status": "unknown",
+        "needsReview": true
+      },
+      {
+        "id": "RES-TASK-001-LAW-01",
+        "type": "law",
+        "title": "지방계약법 시행령",
+        "document": "지방계약법 시행령",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-GUIDELINE-02",
+        "type": "guideline",
+        "title": "지방자치단체 입찰 및 계약 집행기준",
+        "document": "지방자치단체 입찰 및 계약 집행기준",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-LAW-02",
+        "type": "law",
+        "title": "중소기업제품 구매촉진법",
+        "document": "중소기업제품 구매촉진법",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-LAW-03",
+        "type": "law",
+        "title": "울산/경기 공립학교회계 규칙",
+        "document": "울산/경기 공립학교회계 규칙",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-FORM-01",
+        "type": "form",
+        "title": "품의서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-FORM-02",
+        "type": "form",
+        "title": "규격서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-FORM-03",
+        "type": "form",
+        "title": "산출내역서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-FORM-04",
+        "type": "form",
+        "title": "계약이행 통합서약서(1종)",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-FORM-05",
+        "type": "form",
+        "title": "승낙사항",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-FORM-06",
+        "type": "form",
+        "title": "4대보험 완납증명서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-FORM-07",
+        "type": "form",
+        "title": "지출결의서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-SYSTEM-01",
+        "type": "system",
+        "title": "K-에듀파인",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-001-SYSTEM-02",
+        "type": "system",
+        "title": "지정정보처리장치(G2B, S2B)",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "세출예산 집행품의",
+      "대금 지급",
+      "공사 계약"
+    ],
+    "warnings": [
+      "2025.11.14.부터 수의계약 각서 11종이 '계약이행 통합서약서' 1종으로 통합. 추정가격 1천만원 이하 물품·용역 대가지급 시 4대보험 완납증명서 생략. 법인 계약 시 등기부등본 대표자 직무정지 확인. 도서구매 시 도서정가제 준수(면세). 500만원 이상 비품 물품선정위원회 사전 구성.",
+      "지역별 승낙사항 편철 생략 기준 금액(울산 100만원/200만원 vs 경기 100만원 미만) 차이 재확인 필요"
+    ],
+    "status": "unknown",
+    "needsReview": true
+  },
+  {
+    "id": "TASK-002",
+    "title": "학교회계 예산 편성 및 변경 (추경·성립전·이전용)",
+    "category": "학교회계",
+    "subcategory": "예산관리",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "예산지침 시달 및 계획 수립"
+      },
+      {
+        "order": 2,
+        "title": "교직원 예산요구서 수합·조정"
+      },
+      {
+        "order": 3,
+        "title": "학운위 예산안 제출(회계연도 개시 30일 전)"
+      },
+      {
+        "order": 4,
+        "title": "심의·확정(개시 5일 전)"
+      },
+      {
+        "order": 5,
+        "title": "확정 후 10일 이내 공개 및 K-에듀파인 보고"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "세출예산 전용",
+        "성립전예산",
+        "출납폐쇄기한",
+        "명시이월",
+        "본예산 심의"
+      ],
+      "general": [
+        "예산 바꾸기",
+        "돈 미리 쓰기",
+        "2월 말 예산 마감",
+        "예산 이월"
+      ],
+      "beginner": [
+        "학운위 심의 없이 예산 목을 바꿀 수 있나요",
+        "3월에 지난 연도 추경 할 수 있나요",
+        "성립전 예산은 언제 쓰나요"
+      ],
+      "related": [
+        "원가통계비목",
+        "예산현액",
+        "간주처리",
+        "목적사업비",
+        "학교운영위원회"
+      ]
+    },
+    "exampleQuestions": [
+      "동일한 세부사업 안에서 원가통계비목 간 예산 금액을 바꿔서 써도 되나요?",
+      "2월 28일이 지난 3월에 성립전예산이나 추경을 입력할 수 있나요?",
+      "목적사업비 공문이 왔는데 아직 돈이 안 들어왔어도 성립전예산으로 쓸 수 있나요?",
+      "학교운영위원회에 본예산안은 언제까지 제출해야 하나요?",
+      "업무추진비 예산이 모자란데 추경할 때 금액을 늘릴 수 있나요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-002-GUIDELINE-01",
+        "type": "guideline",
+        "title": "2026학년도 학교회계 예산편성 기본지침",
+        "summary": "예산편성지침",
+        "organization": "울산광역시교육청 / 경기도교육청",
+        "document": "2026학년도 학교회계 예산편성 기본지침",
+        "publishedAt": "2025년 / 2026년",
+        "pages": "p.2~3, p.12, p.20, p.81, p.101",
+        "status": "unknown",
+        "needsReview": true
+      },
+      {
+        "id": "RES-TASK-002-AUDIT-01",
+        "type": "audit",
+        "title": "2025/2026 컨설팅 자료",
+        "summary": "감사사례",
+        "organization": "울산광역시교육청 / 경기도교육청",
+        "document": "2025/2026 컨설팅 자료",
+        "publishedAt": "2025년 / 2026년",
+        "pages": "p.2~3, p.12, p.20, p.81, p.101",
+        "status": "unknown",
+        "needsReview": true
+      },
+      {
+        "id": "RES-TASK-002-LAW-01",
+        "type": "law",
+        "title": "초·중등교육법 제30조의2",
+        "document": "초·중등교육법 제30조의2",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-002-LAW-02",
+        "type": "law",
+        "title": "울산/경기 공립학교회계 규칙",
+        "document": "울산/경기 공립학교회계 규칙",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-002-FORM-01",
+        "type": "form",
+        "title": "세입·세출 예산서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-002-FORM-02",
+        "type": "form",
+        "title": "예산 총칙",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-002-FORM-03",
+        "type": "form",
+        "title": "세출예산 이(전)용 명세서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-002-FORM-04",
+        "type": "form",
+        "title": "이월 명세서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-002-SYSTEM-01",
+        "type": "system",
+        "title": "K-에듀파인 학교회계 예산관리시스템",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "기본지침 수립",
+      "세출예산 집행",
+      "결산 관리"
+    ],
+    "warnings": [
+      "회계연도 종료일(2월 말일) 이후 추가경정예산 편성(성립전예산, 간주처리, 명시이월 포함) 금지. 예산 전용은 인건비·시설비 제외 동일 정책사업 내 단위사업 간 목, 동일 세부사업 내 목간 가능(추경 반영 불가, 예산현액 관리). 용도 미지정 경비 성립전 집행 금지."
+    ],
+    "status": "unknown",
+    "needsReview": false
+  },
+  {
+    "id": "TASK-003",
+    "title": "초·중등학교 정보공시(정시·수시) 운영",
+    "category": "정보 및 민원",
+    "subcategory": "정보공시",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "정보공시 계획 수립 및 연수"
+      },
+      {
+        "order": 2,
+        "title": "항목별 작성자 근거자료 대조 및 입력"
+      },
+      {
+        "order": 3,
+        "title": "학교 총괄자 검증 및 제출"
+      },
+      {
+        "order": 4,
+        "title": "교육(지원)청 검증"
+      },
+      {
+        "order": 5,
+        "title": "학교알리미 공시 및 상/하반기 점검"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "학교정보공시",
+        "정시공시",
+        "수시공시",
+        "학교알리미",
+        "정보공개특례법"
+      ],
+      "general": [
+        "학교 정보 공개",
+        "4월 공시",
+        "예산서 공시",
+        "결산서 공시"
+      ],
+      "beginner": [
+        "진도표도 정보공시에 올려야 하나요",
+        "예산서는 몇 월 공시에 올리나요",
+        "정보공시 오류 수정은 어떻게 하나요"
+      ],
+      "related": [
+        "나이스 입력시스템",
+        "근거자료",
+        "자체점검표",
+        "현장점검"
+      ]
+    },
+    "exampleQuestions": [
+      "교과별 교과진도 운영계획도 정보공시 입력 대상인가요?",
+      "학교회계 예산서와 결산서는 각각 몇 월 공시에 올리나요?",
+      "정보공시 자료를 입력할 때 근거자료는 반드시 확인해야 하나요?",
+      "정보공시 정시 차수는 연간 몇 번 진행되나요?",
+      "정보공시 입력 오기로 인한 오류 수정은 어떻게 하나요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-003-GUIDELINE-01",
+        "type": "guideline",
+        "title": "2024년 초‧중등학교 정보공시 운영 기본계획",
+        "summary": "기본계획 / 지침",
+        "organization": "경기도교육청 / 교육부",
+        "document": "2024년 초‧중등학교 정보공시 운영 기본계획",
+        "publishedAt": "2024년",
+        "pages": "p.1~15",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-003-LAW-01",
+        "type": "law",
+        "title": "교육관련기관의 정보공개에 관한 특례법 및 시행령",
+        "document": "교육관련기관의 정보공개에 관한 특례법 및 시행령",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-003-FORM-01",
+        "type": "form",
+        "title": "정보공시 항목별 입력표",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-003-FORM-02",
+        "type": "form",
+        "title": "자체점검표",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-003-FORM-03",
+        "type": "form",
+        "title": "근거자료 확인서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-003-SYSTEM-01",
+        "type": "system",
+        "title": "4세대 지능형 나이스 정보공시 시스템",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-003-SYSTEM-02",
+        "type": "system",
+        "title": "학교알리미(schoolinfo.go.kr)",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "예결산 확정",
+      "대국민 공시",
+      "교육통계 조사"
+    ],
+    "warnings": [
+      "법령 개정(2023.12.26. 시행)으로 '4-다. 교과별(학년별) 교과진도 운영 계획' 항목 삭제됨. 예산서는 5월 정시공시, 결산서는 9월 정시공시에 공시함. 4세대 지능형 나이스 입력시스템 사용."
+    ],
+    "status": "unknown",
+    "needsReview": false
+  },
+  {
+    "id": "TASK-004",
+    "title": "교원 휴가 및 복무 관리",
+    "category": "복무 및 인사·평가",
+    "subcategory": "교원 복무",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "교원 나이스(NEIS) 근무상황 신청"
+      },
+      {
+        "order": 2,
+        "title": "학사일정 및 휴가일수 검토"
+      },
+      {
+        "order": 3,
+        "title": "학교장 결재 및 승인"
+      },
+      {
+        "order": 4,
+        "title": "근무상황부 전산 관리"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "교원휴가업무처리요령",
+        "공무외 국외여행",
+        "근무상황부",
+        "교원 복무 특례"
+      ],
+      "general": [
+        "선생님 연가",
+        "방학 중 해외여행",
+        "나이스 휴가 신청",
+        "지참 결근"
+      ],
+      "beginner": [
+        "방학 때 해외여행 가려면 연가를 써야 하나요",
+        "41조 연수랑 국외여행 휴가는 어떻게 다른가요"
+      ],
+      "related": [
+        "하기휴업일",
+        "동기휴업일",
+        "교육공무원법 제41조",
+        "지참",
+        "병가"
+      ]
+    },
+    "exampleQuestions": [
+      "방학 동안 해외여행을 가려고 하는데 연가 일수에서 차감되나요?",
+      "교육공무원법 제41조 연수로 해외여행을 갈 수 있나요?",
+      "교원 근무상황부는 어디에 등록하고 관리하나요?",
+      "아침 출근 시간에 늦을 것 같으면 어떻게 처리해야 하나요?",
+      "교원의 휴가에 관한 특례 법적 근거는 무엇인가요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-004-LAW-01",
+        "type": "law",
+        "title": "교원휴가업무처리요령 (교육부예규 제13호)",
+        "summary": "행정규칙 / 예규",
+        "organization": "교육부",
+        "document": "교원휴가업무처리요령 (교육부예규 제13호)",
+        "publishedAt": "2014년 (2014.4.29 개정)",
+        "pages": "본문 조문",
+        "status": "old",
+        "needsReview": true
+      },
+      {
+        "id": "RES-TASK-004-LAW-02",
+        "type": "law",
+        "title": "국가공무원 복무규정 제24조의2",
+        "document": "국가공무원 복무규정 제24조의2",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-004-LAW-03",
+        "type": "law",
+        "title": "교육공무원법 제41조",
+        "document": "교육공무원법 제41조",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-004-FORM-01",
+        "type": "form",
+        "title": "근무상황부(나이스 전자서식)",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-004-FORM-02",
+        "type": "form",
+        "title": "공무외 국외여행 신거서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-004-SYSTEM-01",
+        "type": "system",
+        "title": "4세대 지능형 나이스(NEIS) 대국민/복무시스템",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "학사일정 수립",
+      "복무 승인",
+      "지방공무원 복무"
+    ],
+    "warnings": [
+      "방학(휴업일) 중 공무외 국외여행도 복무규정 휴가일수 범위 내에서 실시해야 함. 교육공무원법 제41조 연수와 공무외 국외여행 구분 적용. 출근시간 미도착 시 사전 신고 필수(미출근 시 지참/결근 처리).",
+      "2014년 예규 기준 소스이므로 최신 복무규정 개정 여부 확인 필요"
+    ],
+    "status": "old",
+    "needsReview": true
+  },
+  {
+    "id": "TASK-005",
+    "title": "교육부 정보보안 및 비공개 업무자료 관리",
+    "category": "정보 및 민원",
+    "subcategory": "정보보안",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "비공개 업무자료 분류"
+      },
+      {
+        "order": 2,
+        "title": "내부망 PC/지급 저장매체/기관 메일로만 처리"
+      },
+      {
+        "order": 3,
+        "title": "외주 용역 시 제안요청서 누출금지정보 지정"
+      },
+      {
+        "order": 4,
+        "title": "외부 게시 전 사전 검토 및 정기 점검"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "정보보안기본지침",
+        "비공개업무자료",
+        "누출금지정보",
+        "보안성검토"
+      ],
+      "general": [
+        "업무자료 보안",
+        "홈페이지 자료 게시",
+        "외주업체 보안 각서"
+      ],
+      "beginner": [
+        "학교 자료를 개인 메일로 보내도 되나요",
+        "홈페이지에 공문 올릴 때 주의할 점은 무엇인가요"
+      ],
+      "related": [
+        "기관 전자우편",
+        "개인정보 유출",
+        "용역계약 보안",
+        "보안점검"
+      ]
+    },
+    "exampleQuestions": [
+      "비공개 업무자료를 개인 메일이나 USB로 보관해도 되나요?",
+      "용역업체와 계약할 때 제안요청서에 꼭 포함해야 하는 누출금지정보는 무엇인가요?",
+      "홈페이지에 공문서나 자료를 올릴 때 어떤 보안 검토를 거쳐야 하나요?",
+      "학교 현장에서 비공개 업무자료 관리 책임자는 누구인가요?",
+      "외주 용역사업 종료 시 저장매체 자료 삭제 확인은 어떻게 하나요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-005-GUIDELINE-01",
+        "type": "guideline",
+        "title": "행정규칙 > 교육부 정보보안 기본지침",
+        "summary": "행정규칙 / 지침",
+        "organization": "교육부",
+        "document": "행정규칙 > 교육부 정보보안 기본지침",
+        "publishedAt": "2024년 / 2025년",
+        "pages": "제13조, 제64조, 제68조",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-005-LAW-01",
+        "type": "law",
+        "title": "개인정보 보호법",
+        "document": "개인정보 보호법",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-005-LAW-02",
+        "type": "law",
+        "title": "보안업무규정",
+        "document": "보안업무규정",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-005-FORM-01",
+        "type": "form",
+        "title": "정보화사업 보안서약서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-005-FORM-02",
+        "type": "form",
+        "title": "누출금지정보 목록",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-005-FORM-03",
+        "type": "form",
+        "title": "보안성검토 신청서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-005-SYSTEM-01",
+        "type": "system",
+        "title": "기관 전자우편",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-005-SYSTEM-02",
+        "type": "system",
+        "title": "공직자통합메일",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-005-SYSTEM-03",
+        "type": "system",
+        "title": "K-에듀파인 업무관리",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "문서 작성 및 분류",
+      "홈페이지 게시 검토",
+      "개인정보보호"
+    ],
+    "warnings": [
+      "비공개 업무자료는 상용 메일/개인 저장매체 유출 금지. 용역계약 시 IP주소, 망구성도, 계정/비번, 취약점 결과, 개인정보 등을 누출금지정보로 지정. 외부 홈페이지 무단 게시 금지. 교육현장 비공개 자료는 학교장 책임 하 관리."
+    ],
+    "status": "unknown",
+    "needsReview": false
+  },
+  {
+    "id": "TASK-006",
+    "title": "민원 처리기간 계산 및 제증명 발급",
+    "category": "정보 및 민원",
+    "subcategory": "민원행정",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "민원 신청 접수"
+      },
+      {
+        "order": 2,
+        "title": "민원 유형 판단(NEIS/장부확인/팩스민원)"
+      },
+      {
+        "order": 3,
+        "title": "처리기간 계산(즉시 3시간/5일이하 8시간단위/6일이상 일단위)"
+      },
+      {
+        "order": 4,
+        "title": "발급 및 교부"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "민원처리기간",
+        "제증명발급",
+        "팩스민원",
+        "어디서나교육민원",
+        "나이스민원"
+      ],
+      "general": [
+        "졸업증명서 발급",
+        "생활기록부 떼기",
+        "팩스 민원",
+        "민원 처리 시간"
+      ],
+      "beginner": [
+        "주민센터에서 학교 제증명을 신청할 수 있나요",
+        "민원 처리시간은 어떻게 계산하나요"
+      ],
+      "related": [
+        "즉시민원",
+        "근무시간 계산",
+        "나이스 제증명",
+        "고객지원"
+      ]
+    },
+    "exampleQuestions": [
+      "민원 처리기간 '즉시'의 정확한 시간 기준은 무엇인가요?",
+      "가까운 주민센터에서 학교 졸업증명서를 발급받으려면 어떤 절차를 거치나요?",
+      "5일 이하 민원의 처리기간은 어떻게 계산하나요?",
+      "나이스를 통한 온라인 제증명 발급 종류에는 무엇이 있나요?",
+      "팩스민원 신청 시 필요한 서식은 무엇인가요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-006-NOTICE-01",
+        "type": "notice",
+        "title": "2026학년도 학교 업무매뉴얼[행정] 개정 내역(1차)",
+        "summary": "업무매뉴얼 개정내역",
+        "organization": "경기도교육청",
+        "document": "2026학년도 학교 업무매뉴얼[행정] 개정 내역(1차)",
+        "publishedAt": "2026년",
+        "pages": "p.5~9",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-006-LAW-01",
+        "type": "law",
+        "title": "민원 처리에 관한 법률",
+        "document": "민원 처리에 관한 법률",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-006-GUIDELINE-01",
+        "type": "guideline",
+        "title": "어디서나 교육민원 처리제 운영 지침",
+        "document": "어디서나 교육민원 처리제 운영 지침",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-006-FORM-01",
+        "type": "form",
+        "title": "다른 행정기관 등을 이용한 민원사항 신청서(팩스민원 신청서)",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-006-SYSTEM-01",
+        "type": "system",
+        "title": "4세대 지능형 나이스 민원발급시스템",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-006-SYSTEM-02",
+        "type": "system",
+        "title": "어디서나 교육민원(FAX민원)",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "민원 접수",
+      "제증명 교부",
+      "정보공개 청구"
+    ],
+    "warnings": [
+      "처리기간 계산단위 준수: 즉시(3시간 이내 근무시간 내), 5일 이하(8시간 단위 근무시간 내), 6일 이상(하루 단위). 팩스민원은 학교/주민센터 방문 신청서 작성 후 발급."
+    ],
+    "status": "unknown",
+    "needsReview": false
+  },
+  {
+    "id": "TASK-007",
+    "title": "지방공무원 성과평가지표 관리",
+    "category": "복무 및 인사·평가",
+    "subcategory": "지방공무원 성과평가",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "성과평가 계획 수립"
+      },
+      {
+        "order": 2,
+        "title": "부서공통과제(소통·협업, 교육훈련, 연가) 실적 등록"
+      },
+      {
+        "order": 3,
+        "title": "NEIS 상시학습 및 연가 사용률 일괄 추출"
+      },
+      {
+        "order": 4,
+        "title": "성과평가위원회 심의 및 등급 확정"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "지방공무원성과평가",
+        "소통과협업",
+        "상시학습충족률",
+        "연가사용률",
+        "근무성적평정"
+      ],
+      "general": [
+        "공무원 성과급",
+        "상시학습 점수",
+        "협업 실적 결재",
+        "연가 사용 목표"
+      ],
+      "beginner": [
+        "상시학습 시간을 어떻게 채워야 성과평가 만점을 받나요",
+        "협업 실적 보고서는 언제까지 결재받아야 하나요"
+      ],
+      "related": [
+        "성과기술서",
+        "다면평가",
+        "성희롱예방교육",
+        "초과근무 감축"
+      ]
+    },
+    "exampleQuestions": [
+      "지방공무원 성과평가에서 '소통과 협업' 실적은 언제까지 결재받아야 인정되나요?",
+      "NEIS 상시학습 충족을 위해 이수해야 하는 3가지 필수 항목은 무엇인가요?",
+      "성희롱 예방교육을 안 들으면 성과평가 점수가 차감되나요?",
+      "목표 연가사용일수는 며칠 기준인가요?",
+      "결원업무대행이나 신설교 근무 시 성과평가 가점을 받을 수 있나요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-007-GUIDELINE-01",
+        "type": "guideline",
+        "title": "붙임 4 2024년 지방공무원 성과평가지표(교육지원청)",
+        "summary": "평가지표 지침",
+        "organization": "경기도교육청",
+        "document": "붙임 4 2024년 지방공무원 성과평가지표(교육지원청)",
+        "publishedAt": "2024년",
+        "pages": "p.2~24",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-007-LAW-01",
+        "type": "law",
+        "title": "지방공무원 평정규칙",
+        "document": "지방공무원 평정규칙",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-007-GUIDELINE-02",
+        "type": "guideline",
+        "title": "경기도교육청 지방공무원 성과평가 기본계획",
+        "document": "경기도교육청 지방공무원 성과평가 기본계획",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-007-FORM-01",
+        "type": "form",
+        "title": "조직문화 진단 결과보고서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-007-FORM-02",
+        "type": "form",
+        "title": "소통간담회 결과보고서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-007-FORM-03",
+        "type": "form",
+        "title": "협업 결과보고서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-007-SYSTEM-01",
+        "type": "system",
+        "title": "4세대 지능형 나이스(NEIS) 인사/상시학습/연가 관리",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "성과목표 수립",
+      "근무성적평정",
+      "교원 교원능력개발평가"
+    ],
+    "warnings": [
+      "소통·협업 평가는 반기별 내부결재 완료 문서만 인정(상반기 6/30, 하반기 12/31 기준). 교육훈련은 NEIS 상시학습(3가지 항목 모두 충족) 및 성희롱 예방교육 이수 필수. 연가사용률 목표(13일 기준) 관리."
+    ],
+    "status": "unknown",
+    "needsReview": false
+  },
+  {
+    "id": "TASK-008",
+    "title": "학교건축 및 시설 안전점검",
+    "category": "학교시설 및 재산",
+    "subcategory": "시설 및 공유재산 관리",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "정기 안전점검 계획 수립(해빙기/여름철/겨울철)"
+      },
+      {
+        "order": 2,
+        "title": "전문기관 또는 자체 점검단 점검 실시"
+      },
+      {
+        "order": 3,
+        "title": "교육시설통합정보망 결과 등록"
+      },
+      {
+        "order": 4,
+        "title": "보수·보강 조치 및 정밀안전진단"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "학교건축표준업무매뉴얼",
+        "교육시설안전점검",
+        "정밀안전진단",
+        "교육시설법"
+      ],
+      "general": [
+        "학교 건물 점검",
+        "해빙기 점검",
+        "운동장 유해성 검사",
+        "학교 공사 매뉴얼"
+      ],
+      "beginner": [
+        "해빙기 안전점검은 몇 월에 하나요",
+        "학교 건물 균열이 생기면 어디에 신고하나요"
+      ],
+      "related": [
+        "한국교육시설안전원",
+        "내진보강",
+        "화재예방사업",
+        "안전성평가"
+      ]
+    },
+    "exampleQuestions": [
+      "계절별 학교 시설물 안전점검은 연간 몇 회 실시해야 하나요?",
+      "'2025 학교건축 표준업무매뉴얼'의 주요 개정 취지는 무엇인가요?",
+      "학교건축 공사 추진 시 안전성평가는 언제 실시하나요?",
+      "교육시설통합정보망에는 점검 결과를 언제까지 입력해야 하나요?",
+      "소방안전점검 및 '안전점검의 날' 운영 기준은 무엇인가요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-008-MANUAL-01",
+        "type": "manual",
+        "title": "학교건축 표준업무매뉴얼(2025)",
+        "summary": "매뉴얼 안내",
+        "organization": "한국교육시설안전원 / 교육부",
+        "document": "학교건축 표준업무매뉴얼(2025)",
+        "publishedAt": "2025년",
+        "pages": "연구자료 웹페이지 및 매뉴얼",
+        "status": "unknown",
+        "needsReview": true
+      },
+      {
+        "id": "RES-TASK-008-GUIDELINE-01",
+        "type": "guideline",
+        "title": "학교건축 표준업무매뉴얼(2025)",
+        "summary": "안전지침",
+        "organization": "한국교육시설안전원 / 교육부",
+        "document": "학교건축 표준업무매뉴얼(2025)",
+        "publishedAt": "2025년",
+        "pages": "연구자료 웹페이지 및 매뉴얼",
+        "status": "unknown",
+        "needsReview": true
+      },
+      {
+        "id": "RES-TASK-008-LAW-01",
+        "type": "law",
+        "title": "교육시설 등의 안전 및 유지관리에 관한 법률(교육시설법)",
+        "document": "교육시설 등의 안전 및 유지관리에 관한 법률(교육시설법)",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-008-LAW-02",
+        "type": "law",
+        "title": "시설물안전법",
+        "document": "시설물안전법",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-008-FORM-01",
+        "type": "form",
+        "title": "계절별 시설물 안전점검표",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-008-FORM-02",
+        "type": "form",
+        "title": "소방안전 점검표",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-008-FORM-03",
+        "type": "form",
+        "title": "안전점검의 날 결과보고서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-008-SYSTEM-01",
+        "type": "system",
+        "title": "교육시설 통합정보망(keiis.kr)",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-008-SYSTEM-02",
+        "type": "system",
+        "title": "교육시설 공제정보망",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "시설물 유지관리 계획",
+      "시설 보수공사",
+      "공유재산 관리"
+    ],
+    "warnings": [
+      "2016년 매뉴얼을 전면 개정한 '2025 학교건축 표준업무매뉴얼' 기준 준수. 계절별 안전점검 및 소방안전·안전점검의 날(매월) 이행 관리. 5년 주기 정밀안전진단 및 내진보강 점검.",
+      "상세 본문 전문은 PDF 첨부파일로 제공되어 개별 건축 절차 및 세부 조문 원문 확인 필요"
+    ],
+    "status": "unknown",
+    "needsReview": true
+  },
+  {
+    "id": "TASK-009",
+    "title": "교육강사수당 및 기타 운영수당 집행",
+    "category": "학교회계",
+    "subcategory": "예산집행",
+    "workflow": [
+      {
+        "order": 1,
+        "title": "강사 위촉 및 강의계획 수립"
+      },
+      {
+        "order": 2,
+        "title": "강사 자격 기준 검토 및 등급(특별 I, II / 일반 I, II) 결정"
+      },
+      {
+        "order": 3,
+        "title": "강의 실시 및 출강부 확인"
+      },
+      {
+        "order": 4,
+        "title": "원천징수(소득세/지방소득세) 후 수당 지급"
+      }
+    ],
+    "keywords": {
+      "official": [
+        "교육강사수당",
+        "강사료기준",
+        "원고료지급기준",
+        "동일강사중복출강",
+        "소속기관수당지급금지"
+      ],
+      "general": [
+        "외부강사 수당",
+        "강사료 계산",
+        "원고료 단가",
+        "학교 선생님 강사비"
+      ],
+      "beginner": [
+        "학교 교사가 자기 학교 연수 강사로 나오면 강사료를 줄 수 있나요",
+        "강사료 원천징수는 몇 % 하나요"
+      ],
+      "related": [
+        "원가통계비목(운영수당)",
+        "보결수당",
+        "세미나 주발표자 수당",
+        "원천세"
+      ]
+    },
+    "exampleQuestions": [
+      "외부 강사를 초빙했을 때 강사수당 등급 기준은 어떻게 나누어지나요?",
+      "동일한 강사가 하루에 2번 강의할 때 수당 계산은 어떻게 하나요?",
+      "소속 학교 교직원이 자기 학교 행사에서 강의할 때 강사수당을 지급할 수 있나요?",
+      "원고료 지급 기준단가(A4 1매당)는 얼마인가요?",
+      "강사수당 지급 시 소득세 원천징수 기준은 어떻게 되나요?"
+    ],
+    "resources": [
+      {
+        "id": "RES-TASK-009-GUIDELINE-01",
+        "type": "guideline",
+        "title": "2025학년도/2026학년도 학교회계 예산편성 기본지침 - 교육강사수당",
+        "summary": "예산지침 기준단가",
+        "organization": "경기도교육청",
+        "document": "2025학년도/2026학년도 학교회계 예산편성 기본지침 - 교육강사수당",
+        "publishedAt": "2025년 / 2026년",
+        "pages": "p.172, p.197~199",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-009-GUIDELINE-02",
+        "type": "guideline",
+        "title": "지방자치단체 교육비특별회계 세출예산 집행기준",
+        "document": "지방자치단체 교육비특별회계 세출예산 집행기준",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-009-GUIDELINE-03",
+        "type": "guideline",
+        "title": "경기도교육청 학교회계 예산편성 기본지침",
+        "document": "경기도교육청 학교회계 예산편성 기본지침",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-009-FORM-01",
+        "type": "form",
+        "title": "강사위촉서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-009-FORM-02",
+        "type": "form",
+        "title": "강의확인서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-009-FORM-03",
+        "type": "form",
+        "title": "강사수당 지급결의서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-009-FORM-04",
+        "type": "form",
+        "title": "원고료 산출내역서",
+        "status": "unknown",
+        "needsReview": false
+      },
+      {
+        "id": "RES-TASK-009-SYSTEM-01",
+        "type": "system",
+        "title": "K-에듀파인 지출관리시스템",
+        "status": "unknown",
+        "needsReview": false
+      }
+    ],
+    "relatedTopics": [
+      "연수 및 교육계획 수립",
+      "지출 원천징수",
+      "원고료 지급"
+    ],
+    "warnings": [
+      "강사수당 기준단가: 특별 I(기본 40만원/초과 20만원), 특별 II(기본 30만원/초과 15만원), 일반 I(기본 20만원/초과 10만원), 일반 II(기본 13만원/초과 6만원). 동일강사 1일 중복출강 시 교육내용이 다르거나 대기시간 1시간 이상인 경우 최초 1시간 각각 인정. 자기 소속 학교 주관 업무 참여 공무원에게 기타 운영수당 지급 금지."
+    ],
+    "status": "unknown",
+    "needsReview": false
+  }
+]

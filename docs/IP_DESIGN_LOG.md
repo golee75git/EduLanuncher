@@ -838,6 +838,28 @@ External code:
 PATENT_REVIEW:
 해당 없음
 
+---
+
+Feature: Education work topics
+
+Purpose:
+학교 사무 직원이 문서 이름이 아니라 궁금한 말로 업무주제를 찾고, 처리 흐름과 자료 유형을 주제 단위로 본다
+
+Design source:
+내부 요구사항. 원본 안내는 이 저장소 `HelpMake/EDU` JSON. 화면·검색 점수는 이 저장소에서 작성
+
+Implementation:
+번들 JSON을 `topicService`가 검사해 읽음. 검색은 제목·키워드·예시 질문·자료 제목 순. 홈 검색 결과 맨 위와 업무도구 「업무자료」에서 연다. http/https 주소만 바깥에서 연다. AI 호출 없음
+
+External code:
+없음. 다른 런처 화면을 베끼지 않음
+
+Difference:
+바로가기 실행기가 아니라 업무주제 카드가 먼저 나온다. 자료 PDF 목록을 검색 첫 화면에 펼치지 않음
+
+PATENT_REVIEW:
+키워드로 업무를 묶어 보여주는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 
 
 

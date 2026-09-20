@@ -11,7 +11,9 @@ import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
-import { searchAll, type SearchResults } from "../services/searchService";
+import { searchAll, searchTopics, type SearchResults, type TopicSearchHit } from "../services/searchService";
+import { getTopics } from "../services/topicService";
+import { TopicSearch } from "../components/TopicSearch";
 import { hidePanel } from "../services/windowService";
 import { getSchools } from "../stores/schoolStore";
 import { useSettingsStore } from "../stores/settingsStore";
@@ -25,6 +27,8 @@ export type HomeAction =
   | { type: "group"; groupType: ToolType }
   | { type: "pc-urls" }
   | { type: "computer-tools" }
+  | { type: "topics" }
+  | { type: "topic"; topicId: string }
   | { type: "remove"; tool: ToolItem }
   | { type: "internal"; id: string; title: string }
   | { type: "settings" };
@@ -34,6 +38,7 @@ interface HomePageProps {
 }
 
 type ResultItem =
+  | { kind: "topic"; id: string; topicId: string }
   | { kind: "school"; id: string; school: SchoolItem }
   | { kind: "tool"; id: string; tool: ToolItem }
   | { kind: "recent"; id: string; tool: ToolItem };
@@ -43,7 +48,12 @@ function todayLabel(): string {
   return `${now.getMonth() + 1}월 ${now.getDate()}일`;
 }
 
-function flattenResults(results: SearchResults): ResultItem[] {
+function flattenResults(topicHits: TopicSearchHit[], results: SearchResults): ResultItem[] {
+  const topics: ResultItem[] = topicHits.map((hit) => ({
+    kind: "topic",
+    id: `topic:${hit.item.id}`,
+    topicId: hit.item.id,
+  }));
   const schools: ResultItem[] = results.schools.map((hit) => ({
     kind: "school",
     id: `school:${hit.item.id}`,
@@ -61,7 +71,7 @@ function flattenResults(results: SearchResults): ResultItem[] {
       id: `recent:${hit.item.id}`,
       tool: hit.item,
     }));
-  return [...schools, ...tools, ...recents];
+  return [...topics, ...schools, ...tools, ...recents];
 }
 
 export function HomePage({ onAction }: HomePageProps) {
@@ -74,6 +84,7 @@ export function HomePage({ onAction }: HomePageProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const schools = useMemo(() => getSchools(), []);
+  const topicList = useMemo(() => getTopics(), []);
   const favoriteGroups = useMemo(
     () =>
       TOOL_GROUPS.map((group) => {
@@ -97,7 +108,8 @@ export function HomePage({ onAction }: HomePageProps) {
     [tools, settings.recentCount],
   );
   const results = useMemo(() => searchAll(query, tools, schools), [query, tools, schools]);
-  const flat = useMemo(() => flattenResults(results), [results]);
+  const topicHits = useMemo(() => searchTopics(query, topicList), [query, topicList]);
+  const flat = useMemo(() => flattenResults(topicHits, results), [topicHits, results]);
   const idleItems: ResultItem[] = useMemo(
     () => [
       ...favorites.map((tool) => ({ kind: "tool" as const, id: `fav:${tool.id}`, tool })),
@@ -130,6 +142,10 @@ export function HomePage({ onAction }: HomePageProps) {
     }
     if (item.kind === "school") {
       setActiveSchool(item.school);
+      return;
+    }
+    if (item.kind === "topic") {
+      onAction({ type: "topic", topicId: item.topicId });
       return;
     }
     onAction({ type: "launch", tool: item.tool });
@@ -221,13 +237,22 @@ export function HomePage({ onAction }: HomePageProps) {
                         </button>
                       ) : null}
                       {group.type === "internal" ? (
-                        <button
-                          type="button"
-                          className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
-                          onClick={() => onAction({ type: "computer-tools" })}
-                        >
-                          컴퓨터도구
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+                            onClick={() => onAction({ type: "topics" })}
+                          >
+                            업무자료
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+                            onClick={() => onAction({ type: "computer-tools" })}
+                          >
+                            컴퓨터도구
+                          </button>
+                        </>
                       ) : null}
                       <button
                         type="button"
@@ -274,6 +299,15 @@ export function HomePage({ onAction }: HomePageProps) {
 
         {searching && !activeSchool ? (
           <>
+            <ResultGroup title="업무 주제" empty="일치하는 업무가 없습니다.">
+              {topicHits.length > 0 ? (
+                <TopicSearch
+                  items={topicHits}
+                  selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
+                  onOpen={(topicId) => onAction({ type: "topic", topicId })}
+                />
+              ) : null}
+            </ResultGroup>
             <ResultGroup title="학교" empty="일치하는 학교가 없습니다.">
               {results.schools.map((hit) => (
                 <button

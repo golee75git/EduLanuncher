@@ -13,6 +13,7 @@ interface ToolGroupPageProps {
   onEdit: (tool?: ToolItem, createType?: ToolType) => void;
   onPcUrls?: () => void;
   onComputerTools?: () => void;
+  onTopics?: () => void;
   onRemove?: (tool: ToolItem) => void;
 }
 
@@ -23,6 +24,7 @@ export function ToolGroupPage({
   onEdit,
   onPcUrls,
   onComputerTools,
+  onTopics,
   onRemove,
 }: ToolGroupPageProps) {
   const tools = useToolStore((state) => state.tools);
@@ -53,6 +55,15 @@ export function ToolGroupPage({
             onClick={onPcUrls}
           >
             인터넷 즐겨찾기
+          </button>
+        ) : null}
+        {groupType === "internal" && onTopics ? (
+          <button
+            type="button"
+            className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+            onClick={onTopics}
+          >
+            업무자료
           </button>
         ) : null}
         {groupType === "internal" && onComputerTools ? (

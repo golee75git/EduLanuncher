@@ -19,6 +19,9 @@ import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
+import { TopicDetailPage } from "./pages/TopicDetailPage";
+import { TopicListPage } from "./pages/TopicListPage";
+import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { LaunchError, launchTool } from "./services/launcherService";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
@@ -39,6 +42,9 @@ type View =
   | { name: "tool-group"; groupType: ToolType }
   | { name: "pc-urls" }
   | { name: "computer-tools" }
+  | { name: "topics" }
+  | { name: "topic-review" }
+  | { name: "topic"; topicId: string; backTo: View }
   | { name: "pc-address" }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
   | { name: "memo" }
@@ -283,6 +289,14 @@ export default function App() {
       setView({ name: "computer-tools" });
       return;
     }
+    if (action.type === "topics") {
+      setView({ name: "topics" });
+      return;
+    }
+    if (action.type === "topic") {
+      setView({ name: "topic", topicId: action.topicId, backTo: { name: "home" } });
+      return;
+    }
     if (action.type === "remove") {
       setRemoveTarget(action.tool);
       return;
@@ -324,6 +338,7 @@ export default function App() {
             <SettingsPage
               onBack={() => setView({ name: "home" })}
               onWriteNotices={() => setView({ name: "notice-edit" })}
+              onTopicReview={() => setView({ name: "topic-review" })}
             />
           ) : null}
           {view.name === "notice-edit" ? (
@@ -336,6 +351,7 @@ export default function App() {
               onLaunch={(tool) => void handleLaunch(tool)}
               onPcUrls={() => setView({ name: "pc-urls" })}
               onComputerTools={() => setView({ name: "computer-tools" })}
+              onTopics={() => setView({ name: "topics" })}
               onRemove={(tool) => setRemoveTarget(tool)}
               onEdit={(tool, createType) =>
                 setView({
@@ -353,6 +369,25 @@ export default function App() {
               onBack={() => setView({ name: "home" })}
               onLaunch={(tool) => void handleLaunch(tool)}
               onShowAddress={() => setView({ name: "pc-address" })}
+            />
+          ) : null}
+          {view.name === "topics" ? (
+            <TopicListPage
+              onBack={() => setView({ name: "home" })}
+              onOpen={(topicId) => setView({ name: "topic", topicId, backTo: { name: "topics" } })}
+            />
+          ) : null}
+          {view.name === "topic-review" ? (
+            <TopicReviewPage
+              onBack={() => setView({ name: "settings" })}
+              onOpen={(topicId) => setView({ name: "topic", topicId, backTo: { name: "topic-review" } })}
+            />
+          ) : null}
+          {view.name === "topic" ? (
+            <TopicDetailPage
+              topicId={view.topicId}
+              onBack={() => setView(view.backTo)}
+              onOpenRelated={(topicId) => setView({ ...view, topicId })}
             />
           ) : null}
           {view.name === "pc-address" ? (

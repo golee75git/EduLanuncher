@@ -24,6 +24,7 @@ const HOLDS = [
   "이 PC Edge·Chrome 북마크와 Windows 즐겨찾기 바로가기 보기",
   "업무도구에서 컴퓨터 이름·이 PC IP 주소·제어판·익스플로러 설정 복원 등 이 PC 화면 열기",
   "업무도구에서 이 PC 그림에 주소 무늬를 넣어 PNG로 저장",
+  "홈 검색과 업무자료에서 교육행정 업무주제 찾기",
 ] as const;
 
 const DOES_NOT = [
