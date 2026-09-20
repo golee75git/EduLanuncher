@@ -1232,3 +1232,25 @@ Difference:
 
 PATENT_REVIEW:
 칸 크기와 스크롤을 나누는 일반 화면 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Topic detail previous-screen jump
+
+Purpose:
+업무 상세 오른쪽 아래에 이전화면을 두고 직전 화면으로 바로 간다
+
+Design source:
+내부 요구사항. 기존 처음 화면 단추와 상세 위쪽 뒤로
+
+Implementation:
+처음 화면과 같은 알약 단추에 글자만 이전화면. 누르면 이미 있는 backTo 화면으로 간다. 위쪽 화살표 뒤로는 그대로 둔다
+
+External code:
+없음
+
+Difference:
+외부 앱의 하단 이중 탐색 막대를 베끼지 않음
+
+PATENT_REVIEW:
+화면 전환 단추 배치. 청구항 대조 없음. 특허 비침해를 보장하지 않음

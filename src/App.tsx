@@ -554,7 +554,10 @@ export default function App() {
         </div>
         {view.name === "home" ? <MemoPad onOpen={() => setView({ name: "memo" })} /> : null}
         {view.name !== "home" ? (
-          <div className="absolute bottom-3 right-3 z-40">
+          <div className="absolute bottom-3 right-3 z-40 flex items-center gap-1">
+            {view.name === "topic" ? (
+              <HomeJumpButton label="이전화면" onClick={() => setView(view.backTo)} />
+            ) : null}
             <HomeJumpButton
               onClick={() => {
                 setMissing(null);
