@@ -32,6 +32,7 @@ import { initStorage } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { hydrateMemo } from "./stores/memoStore";
 import { hydrateNotices } from "./stores/noticeStore";
+import { hydrateRecentTopics, useRecentTopicStore } from "./stores/recentTopicStore";
 import { hydrateTodos, useTodoStore } from "./stores/todoStore";
 import { hydrateTools, useToolStore } from "./stores/toolStore";
 import type { ToolItem, ToolType } from "./types/tool";
@@ -173,6 +174,7 @@ export default function App() {
         await hydrateTodos();
         await hydrateMemo();
         await hydrateNotices();
+        await hydrateRecentTopics();
         if (cancelled) {
           return;
         }
@@ -269,6 +271,11 @@ export default function App() {
     }
   };
 
+  const openTopic = (topicId: string, backTo: View) => {
+    void useRecentTopicStore.getState().markUsed(topicId);
+    setView({ name: "topic", topicId, backTo });
+  };
+
   const handleAction = (action: HomeAction) => {
     if (action.type === "launch") {
       void handleLaunch(action.tool);
@@ -295,7 +302,7 @@ export default function App() {
       return;
     }
     if (action.type === "topic") {
-      setView({ name: "topic", topicId: action.topicId, backTo: { name: "home" } });
+      openTopic(action.topicId, { name: "home" });
       return;
     }
     if (action.type === "remove") {
@@ -375,20 +382,20 @@ export default function App() {
           {view.name === "topics" ? (
             <TopicListPage
               onBack={() => setView({ name: "home" })}
-              onOpen={(topicId) => setView({ name: "topic", topicId, backTo: { name: "topics" } })}
+              onOpen={(topicId) => openTopic(topicId, { name: "topics" })}
             />
           ) : null}
           {view.name === "topic-review" ? (
             <TopicReviewPage
               onBack={() => setView({ name: "settings" })}
-              onOpen={(topicId) => setView({ name: "topic", topicId, backTo: { name: "topic-review" } })}
+              onOpen={(topicId) => openTopic(topicId, { name: "topic-review" })}
             />
           ) : null}
           {view.name === "topic" ? (
             <TopicDetailPage
               topicId={view.topicId}
               onBack={() => setView(view.backTo)}
-              onOpenRelated={(topicId) => setView({ ...view, topicId })}
+              onOpenRelated={(topicId) => openTopic(topicId, view.backTo)}
             />
           ) : null}
           {view.name === "pc-address" ? (

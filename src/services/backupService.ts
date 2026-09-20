@@ -7,6 +7,7 @@ import { useToolStore } from "../stores/toolStore";
 import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type NoticeItem, type NoticeKind, type StoredNotices } from "../types/notice";
 import { DEFAULT_SETTINGS, asListColumns, asPanelSkin, type AppSettings, type LauncherPosition } from "../types/settings";
+import { asDueYmd } from "./todoDate";
 import type { TodoItem } from "../types/todo";
 import type { ToolItem, ToolOrigin, ToolType } from "../types/tool";
 
@@ -109,11 +110,13 @@ function parseTodos(raw: unknown): TodoItem[] {
     if (!id || !title) {
       continue;
     }
+    const dueDate = asDueYmd(row.dueDate);
     todos.push({
       id,
       title,
       completed: row.completed === true,
       createdAt: asText(row.createdAt) || new Date().toISOString(),
+      ...(dueDate ? { dueDate } : {}),
     });
   }
   return todos;

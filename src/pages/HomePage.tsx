@@ -12,15 +12,17 @@ import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
-import { searchAll, searchTopics, type SearchResults, type TopicSearchHit } from "../services/searchService";
-import { getTopics } from "../services/topicService";
+import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
+import { getTopicById, getTopics } from "../services/topicService";
 import { TopicSearch } from "../components/TopicSearch";
 import { hidePanel } from "../services/windowService";
 import { getSchools } from "../stores/schoolStore";
+import { useRecentTopicStore } from "../stores/recentTopicStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
 import type { SchoolItem } from "../types/school";
 import type { ToolItem, ToolType } from "../types/tool";
+import type { RecentUseItem } from "../components/RecentTools";
 
 export type HomeAction =
   | { type: "launch"; tool: ToolItem }
@@ -42,14 +44,19 @@ type ResultItem =
   | { kind: "topic"; id: string; topicId: string }
   | { kind: "school"; id: string; school: SchoolItem }
   | { kind: "tool"; id: string; tool: ToolItem }
-  | { kind: "recent"; id: string; tool: ToolItem };
+  | { kind: "recent"; id: string; tool: ToolItem }
+  | { kind: "recent-topic"; id: string; topicId: string };
 
 function todayLabel(): string {
   const now = new Date();
   return `${now.getMonth() + 1}월 ${now.getDate()}일`;
 }
 
-function flattenResults(topicHits: TopicSearchHit[], results: SearchResults): ResultItem[] {
+function flattenResults(
+  topicHits: TopicSearchHit[],
+  results: SearchResults,
+  recentUse: RecentUseItem[],
+): ResultItem[] {
   const topics: ResultItem[] = topicHits.map((hit) => ({
     kind: "topic",
     id: `topic:${hit.item.id}`,
@@ -65,13 +72,17 @@ function flattenResults(topicHits: TopicSearchHit[], results: SearchResults): Re
     id: `tool:${hit.item.id}`,
     tool: hit.item,
   }));
-  const recents: ResultItem[] = results.recents
-    .filter((hit) => !results.tools.some((tool) => tool.item.id === hit.item.id))
-    .map((hit) => ({
-      kind: "recent" as const,
-      id: `recent:${hit.item.id}`,
-      tool: hit.item,
-    }));
+  const recents: ResultItem[] = recentUse
+    .filter((item) =>
+      item.kind === "tool"
+        ? !results.tools.some((hit) => hit.item.id === item.tool.id)
+        : !topicHits.some((hit) => hit.item.id === item.topic.id),
+    )
+    .map((item) =>
+      item.kind === "tool"
+        ? { kind: "recent" as const, id: `recent:${item.tool.id}`, tool: item.tool }
+        : { kind: "recent-topic" as const, id: `recent-topic:${item.topic.id}`, topicId: item.topic.id },
+    );
   return [...topics, ...schools, ...tools, ...recents];
 }
 
@@ -79,6 +90,7 @@ export function HomePage({ onAction }: HomePageProps) {
   const tools = useToolStore((state) => state.tools);
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
   const settings = useSettingsStore((state) => state.settings);
+  const recentTopicItems = useRecentTopicStore((state) => state.items);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeSchool, setActiveSchool] = useState<SchoolItem | null>(null);
@@ -100,23 +112,74 @@ export function HomePage({ onAction }: HomePageProps) {
     () => favoriteGroups.flatMap((group) => group.shown),
     [favoriteGroups],
   );
-  const recents = useMemo(
-    () =>
-      tools
-        .filter((tool) => tool.lastUsedAt && tool.enabled !== false)
-        .sort((a, b) => new Date(b.lastUsedAt ?? 0).getTime() - new Date(a.lastUsedAt ?? 0).getTime())
-        .slice(0, settings.recentCount),
-    [tools, settings.recentCount],
+  const recentUseAll = useMemo(() => {
+    const fromTools: RecentUseItem[] = tools
+      .filter((tool) => tool.lastUsedAt && tool.enabled !== false)
+      .map((tool) => ({
+        kind: "tool" as const,
+        id: tool.id,
+        usedAt: tool.lastUsedAt ?? "",
+        tool,
+      }));
+    const fromTopics: RecentUseItem[] = [];
+    for (const row of recentTopicItems) {
+      const topic = getTopicById(row.id);
+      if (!topic) {
+        continue;
+      }
+      fromTopics.push({ kind: "topic", id: topic.id, usedAt: row.usedAt, topic });
+    }
+    return [...fromTools, ...fromTopics].sort(
+      (a, b) => new Date(b.usedAt).getTime() - new Date(a.usedAt).getTime(),
+    );
+  }, [tools, recentTopicItems]);
+  const recentUse = useMemo(
+    () => recentUseAll.slice(0, settings.recentCount),
+    [recentUseAll, settings.recentCount],
   );
   const results = useMemo(() => searchAll(query, tools, schools), [query, tools, schools]);
   const topicHits = useMemo(() => searchTopics(query, topicList), [query, topicList]);
-  const flat = useMemo(() => flattenResults(topicHits, results), [topicHits, results]);
+  const recentUseMatched = useMemo(() => {
+    const q = query.trim();
+    if (!q) {
+      return recentUse;
+    }
+    return recentUseAll
+      .filter((item) => {
+        if (item.kind === "tool") {
+          return (
+            scoreText(
+              q,
+              item.tool.name,
+              item.tool.description,
+              item.tool.category,
+              item.tool.target,
+              ...(item.tool.keywords ?? []),
+            ) > 0
+          );
+        }
+        return searchTopics(q, [item.topic]).length > 0;
+      })
+      .slice(0, settings.recentCount);
+  }, [query, recentUse, recentUseAll, settings.recentCount]);
+  const flat = useMemo(
+    () => flattenResults(topicHits, results, recentUseMatched),
+    [topicHits, results, recentUseMatched],
+  );
   const idleItems: ResultItem[] = useMemo(
     () => [
       ...favorites.map((tool) => ({ kind: "tool" as const, id: `fav:${tool.id}`, tool })),
-      ...recents.map((tool) => ({ kind: "recent" as const, id: `idle-recent:${tool.id}`, tool })),
+      ...recentUse.map((item) =>
+        item.kind === "tool"
+          ? { kind: "recent" as const, id: `idle-recent:${item.tool.id}`, tool: item.tool }
+          : {
+              kind: "recent-topic" as const,
+              id: `idle-recent-topic:${item.topic.id}`,
+              topicId: item.topic.id,
+            },
+      ),
     ],
-    [favorites, recents],
+    [favorites, recentUse],
   );
   const navigable = query.trim() ? flat : idleItems;
 
@@ -145,7 +208,7 @@ export function HomePage({ onAction }: HomePageProps) {
       setActiveSchool(item.school);
       return;
     }
-    if (item.kind === "topic") {
+    if (item.kind === "topic" || item.kind === "recent-topic") {
       onAction({ type: "topic", topicId: item.topicId });
       return;
     }
@@ -296,11 +359,16 @@ export function HomePage({ onAction }: HomePageProps) {
             <section className="zone-block bg-zone-recent">
               <h2 className="desk-label">최근 사용</h2>
               <RecentTools
-                tools={recents}
+                items={recentUse}
                 selectedId={
-                  selectedId?.startsWith("idle-recent:") ? selectedId.slice("idle-recent:".length) : undefined
+                  selectedId?.startsWith("idle-recent-topic:")
+                    ? selectedId.slice("idle-recent-topic:".length)
+                    : selectedId?.startsWith("idle-recent:")
+                      ? selectedId.slice("idle-recent:".length)
+                      : undefined
                 }
                 onLaunch={(tool) => onAction({ type: "launch", tool })}
+                onOpenTopic={(topicId) => onAction({ type: "topic", topicId })}
               />
             </section>
           </>
@@ -360,12 +428,17 @@ export function HomePage({ onAction }: HomePageProps) {
             <section className="zone-block bg-zone-recent">
               <h2 className="desk-label">최근 사용</h2>
               <RecentTools
-                tools={results.recents.map((hit) => hit.item)}
+                items={recentUseMatched}
                 query={query}
                 selectedId={
-                  selectedId?.startsWith("recent:") ? selectedId.slice("recent:".length) : undefined
+                  selectedId?.startsWith("recent-topic:")
+                    ? selectedId.slice("recent-topic:".length)
+                    : selectedId?.startsWith("recent:")
+                      ? selectedId.slice("recent:".length)
+                      : undefined
                 }
                 onLaunch={(tool) => onAction({ type: "launch", tool })}
+                onOpenTopic={(topicId) => onAction({ type: "topic", topicId })}
               />
             </section>
           </>

@@ -882,6 +882,69 @@ Difference:
 PATENT_REVIEW:
 단계를 상자로 나열하는 구성, 공식 사이트 검색 연결. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Recent opened topics
+
+Purpose:
+홈의 최근 사용에 실행한 바로가기와 함께, 열어 본 업무주제만 시간 순으로 보여 줌
+
+Design source:
+내부 요구사항. 검색창에 친 말은 저장하지 않음
+
+Implementation:
+주제 상세를 열 때 `recent-topics.json`에 id와 시각만 저장. 홈에서 바로가기의 lastUsedAt과 섞어 설정 개수만큼 표시
+
+External code:
+없음
+
+Difference:
+검색어 기록·자동완성이 아님. 연 주제만 남김
+
+PATENT_REVIEW:
+최근 연 항목 목록. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Settings intro site link
+
+Purpose:
+설정 하단에서 이 프로그램 소개 웹 주소를 연다
+
+Design source:
+내부 요구사항. Cloudflare `website/` 소개 페이지
+
+Implementation:
+`APP_CONFIG.siteUrl`을 설정 하단에 그대로 보여 주고 `launchQuickUrl`로 연다
+
+External code:
+없음
+
+PATENT_REVIEW:
+해당 없음
+
+---
+
+Feature: Dated local todos and calendar site open
+
+Purpose:
+홈 할 일을 오늘·내일·모레에 나눠 적고, 구글·네이버 캘린더 누리집만 연다
+
+Design source:
+내부 요구사항. 날짜는 이 PC 달력. 캘린더는 공식 https 주소만
+
+Implementation:
+할 날에 YYYY-MM-DD만 저장. 화면 이름은 오늘(9.20)처럼 그날 시계로 붙임. 백업 JSON에도 상대 말(오늘)을 넣지 않음. 캘린더는 `launchQuickUrl`로 고정 주소만 염. 계정 연동·일정 읽기 없음
+
+External code:
+없음. 구글·네이버 화면·로고를 쓰지 않음
+
+Difference:
+클라우드 할 일·캘린더 동기화가 아님. 이 PC 목록과 사이트 열기만 함
+
+PATENT_REVIEW:
+날짜를 붙여 할 일을 나누고 외부 캘린더 사이트를 여는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 
 
 

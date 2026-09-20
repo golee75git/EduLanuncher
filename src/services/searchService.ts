@@ -18,7 +18,7 @@ function normalize(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, "");
 }
 
-function scoreText(query: string, ...fields: Array<string | undefined>): number {
+export function scoreText(query: string, ...fields: Array<string | undefined>): number {
   const q = normalize(query);
   if (!q) {
     return 0;

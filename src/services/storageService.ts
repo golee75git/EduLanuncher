@@ -2,6 +2,7 @@ import { Store } from "@tauri-apps/plugin-store";
 import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type StoredNotices } from "../types/notice";
 import { DEFAULT_SETTINGS, asListColumns, asPanelSkin, type AppSettings } from "../types/settings";
+import type { RecentTopicItem } from "../types/recentTopic";
 import type { TodoItem } from "../types/todo";
 import type { ToolItem } from "../types/tool";
 
@@ -10,6 +11,7 @@ let todosStore: Store | null = null;
 let settingsStore: Store | null = null;
 let memoStore: Store | null = null;
 let noticesStore: Store | null = null;
+let recentTopicsStore: Store | null = null;
 
 async function getStore(path: string): Promise<Store> {
   return Store.load(path);
@@ -21,6 +23,7 @@ export async function initStorage(): Promise<void> {
   settingsStore = await getStore("settings.json");
   memoStore = await getStore("memo.json");
   noticesStore = await getStore("notices.json");
+  recentTopicsStore = await getStore("recent-topics.json");
 }
 
 export async function loadTools(): Promise<ToolItem[]> {
@@ -110,4 +113,25 @@ export async function saveNotices(value: StoredNotices): Promise<void> {
   }
   await noticesStore?.set("value", value);
   await noticesStore?.save();
+}
+
+export async function loadRecentTopics(): Promise<RecentTopicItem[]> {
+  if (!recentTopicsStore) {
+    await initStorage();
+  }
+  const items = await recentTopicsStore?.get<RecentTopicItem[]>("items");
+  if (!Array.isArray(items)) {
+    return [];
+  }
+  return items.filter(
+    (item) => item && typeof item.id === "string" && typeof item.usedAt === "string" && item.id && item.usedAt,
+  );
+}
+
+export async function saveRecentTopics(items: RecentTopicItem[]): Promise<void> {
+  if (!recentTopicsStore) {
+    await initStorage();
+  }
+  await recentTopicsStore?.set("items", items);
+  await recentTopicsStore?.save();
 }

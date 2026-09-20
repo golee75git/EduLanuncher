@@ -6,6 +6,72 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.38-20260920
+설치 파일: EduLauncher_0.1.38-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_1045_x64-setup.exe
+
+한 일
+- 할 일: 오늘(9.20)·내일·모레를 고른 뒤 넣음. 파일·백업에는 YYYY-MM-DD만 저장. 날짜 없는 기존 항목은 오늘로 봄. 지난 미완료는 오늘 칸에 남김.
+- 캘린더 열기: 구글·네이버 공식 https 누리집만 염. 일정 동기화·로그인 연동 없음.
+- 패키지 추가 없음.
+
+새로 작성한 파일
+- src/services/todoDate.ts
+- src/data/calendarSites.ts
+
+재사용한 기존 파일
+- src/types/todo.ts
+- src/stores/todoStore.ts
+- src/data/sampleTodos.ts
+- src/components/TodoList.tsx
+- src/services/backupService.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴(Segoe UI, Malgun Gothic). SIL OFL 아님. 번들 없음. 새로 글꼴 파일 없음.
+라이선스: 패키지 추가 없음. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 할 날짜는 로컬 YYYY-MM-DD만. 캘린더는 고정 https만. 계정·일정 API 없음.
+특허 검토 대상: 날짜를 붙여 할 일을 나누고 외부 캘린더 사이트를 여는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-20
+버전: 0.1.37-20260920
+설치 파일: EduLauncher_0.1.37-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_1026_x64-setup.exe
+
+한 일
+- 최근 사용: 실행한 바로가기와 열어 본 업무주제만 시간 순으로 표시. 검색창에 친 말은 넣지 않음.
+- 설정 하단: 소개 사이트 주소를 보여 주고 브라우저로 엶.
+
+새로 작성한 파일
+- src/types/recentTopic.ts
+- src/stores/recentTopicStore.ts
+
+재사용한 기존 파일
+- src/App.tsx
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/components/RecentTools.tsx
+- src/services/storageService.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음. 새로 글꼴 파일 없음.
+라이선스: 패키지 추가 없음. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 주제 최근 사용은 id와 시각만 이 PC에 저장. 검색어 저장 없음. 소개 사이트는 https만.
+특허 검토 대상: 최근 연 항목 목록. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.36-20260920
 설치 파일: EduLauncher_0.1.36-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_1002_x64-setup.exe

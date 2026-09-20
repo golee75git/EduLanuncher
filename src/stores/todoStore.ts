@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { SAMPLE_TODOS } from "../data/sampleTodos";
+import { asDueYmd, localYmd } from "../services/todoDate";
 import { loadTodos, saveTodos } from "../services/storageService";
 import type { TodoItem } from "../types/todo";
 
@@ -8,7 +9,7 @@ interface TodoState {
   loaded: boolean;
   hydrate: (todos: TodoItem[]) => void;
   seedIfEmpty: () => Promise<void>;
-  addTodo: (title: string) => Promise<void>;
+  addTodo: (title: string, dueDate: string) => Promise<void>;
   toggleTodo: (id: string) => Promise<void>;
   removeTodo: (id: string) => Promise<void>;
 }
@@ -24,17 +25,19 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     set({ todos: SAMPLE_TODOS });
     await saveTodos(SAMPLE_TODOS);
   },
-  addTodo: async (title) => {
+  addTodo: async (title, dueDate) => {
     const trimmed = title.trim();
     if (!trimmed) {
       return;
     }
+    const dueDateYmd = asDueYmd(dueDate) ?? localYmd();
     const todos = [
       {
         id: crypto.randomUUID(),
         title: trimmed,
         completed: false,
         createdAt: new Date().toISOString(),
+        dueDate: dueDateYmd,
       },
       ...get().todos,
     ];

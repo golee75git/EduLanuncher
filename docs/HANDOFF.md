@@ -3,7 +3,7 @@
 기준일: 2026-09-20  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.36-20260920`
+최신 커밋 시점의 앱 버전: `0.1.38-20260920`
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 
@@ -53,7 +53,7 @@ npm run site:build
 | `packs/` | Pack 예시 JSON |
 | `docs/` | PRD, PLAN, HANDOFF, IP 로그 |
 
-데이터(설치 후): 앱 데이터 `tools.json`, `todos.json`, `settings.json`, `memo.json`, `notices.json`.
+데이터(설치 후): 앱 데이터 `tools.json`, `todos.json`, `settings.json`, `memo.json`, `notices.json`, `recent-topics.json`.
 
 Pack 분기 (`src/services/applyNoticePack.ts`):
 
@@ -84,7 +84,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - Pack vs 이 PC 표시, 홈 그룹 3개+모두(바로가기만)
 - 다른 PC용 백업 JSON (설정 화면)
 - git 연결, Cloudflare Workers 정적 사이트 (`website/`)
-- GitHub Release에 `0.1.36` 설치파일 업로드
+- GitHub Release에 `0.1.38` 설치파일 업로드
 - 사이트 칸에서 이 PC Edge·Chrome 북마크와 Windows `.url` 목록
 - 업무도구 칸에서 컴퓨터도구(이 PC Windows 설정 화면, 이 PC IP 주소·사설/공인 IP, 제어판·시스템 정보, 익스플로러 설정 복원 확인)
 - 업무도구 「주소 무늬」(이 PC 그림 + http(s) 주소 → PNG)
@@ -94,6 +94,9 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - 네트워크·CCTV 검색 중 예상·경과·남은 시간, 중지
 - 홈 검색·업무도구 「업무자료」: 교육행정 업무주제를 로컬 JSON에서 찾음. 자료 카드보다 주제 카드가 먼저 나옴
 - 처음 화면 단추. 법령·학교알리미·나라장터·교육시설 통합정보망은 공식 주소만 염. 처리 흐름은 상자 순서
+- 최근 사용: 바로가기와 열어 본 업무주제. 검색어 문구는 저장하지 않음
+- 설정 하단 소개 사이트 주소
+- 할 일 오늘(날짜)·내일·모레. 저장은 YYYY-MM-DD. 캘린더는 구글·네이버 공식 주소만 염
 
 ## 알려진 미완
 

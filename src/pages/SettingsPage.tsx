@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { APP_CONFIG } from "../config/app";
 import { applyPackFromPath } from "../services/applyNoticePack";
+import { launchQuickUrl } from "../services/launcherService";
 import { applyLauncherBackup, buildLauncherBackup, parseLauncherBackup } from "../services/backupService";
 import { buildLauncherPack, describePackApply } from "../services/launcherPackService";
 import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/noticePackService";
@@ -349,8 +350,27 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview }: Settings
             <li>업무도구의 주소 무늬는 이 PC 그림 오른쪽 아래에 주소를 넣고 PNG로 저장합니다. http 또는 https만 됩니다.</li>
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다.</li>
+            <li>홈 할 일은 오늘·내일·모레를 고른 뒤 넣습니다. 파일에는 달력 날짜만 남고, 화면에는 오늘(9.20)처럼 보입니다. 지난 날짜의 미완료는 오늘 칸에 남습니다.</li>
+            <li>할 일 칸의 캘린더 열기는 구글·네이버 공식 누리집만 엽니다. 일정은 가져오지 않습니다.</li>
+            <li>최근 사용에는 실행한 바로가기와 열어 본 업무주제만 남습니다. 검색창에 친 말은 넣지 않습니다.</li>
+            <li>설정 맨 아래 소개 사이트에서 설치 안내 웹 주소를 엽니다.</li>
             <li>QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다.</li>
           </ul>
+        </SettingsCard>
+
+        <SettingsCard title="소개 사이트">
+          <p className="text-xs leading-5 text-quiet">
+            설치 안내와 프로그램 설명을 웹에서 볼 수 있습니다.
+            <br />
+            {APP_CONFIG.siteUrl}
+          </p>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => void launchQuickUrl(APP_CONFIG.siteUrl)}
+          >
+            소개 사이트 열기
+          </button>
         </SettingsCard>
       </div>
     </div>
