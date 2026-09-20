@@ -31,10 +31,14 @@ export function WorkMapPicture({
       role="img"
       aria-label={`${root.label} 업무 그림`}
       viewBox={`0 0 ${layout.width} ${layout.height}`}
-      width={compact ? undefined : layout.width}
-      height={compact ? undefined : layout.height}
-      className={compact ? (fill ? "block h-full w-full" : "h-[132px] w-full") : "block"}
-      preserveAspectRatio="xMinYMin meet"
+      className={
+        compact
+          ? fill
+            ? "block h-full w-full"
+            : "h-[132px] w-full"
+          : "block h-full w-full"
+      }
+      preserveAspectRatio={fill || !compact ? "xMidYMid meet" : "xMinYMin meet"}
     >
       {layout.links.map((link) => {
         const from = byId.get(link.from);

@@ -98,11 +98,13 @@ export function WorkMapWindowPage() {
       <p className="px-3 pb-1 text-[11px] text-quiet">상자를 누르면 패널에 자세한 업무가 열립니다. 마우스 휠로 확대·축소하고 스크롤바로 움직입니다.</p>
       <div ref={viewRef} className="min-h-0 flex-1 overflow-auto bg-paper">
         {root ? (
-          <div
-            className="p-2"
-            style={{ zoom: scale }}
-          >
-            <WorkMapPicture root={root} compact={false} onOpen={(topicId) => void revealTopicFromMap(topicId)} />
+          <div className="h-full w-full" style={{ zoom: scale }}>
+            <WorkMapPicture
+              root={root}
+              compact={false}
+              fill
+              onOpen={(topicId) => void revealTopicFromMap(topicId)}
+            />
           </div>
         ) : (
           <p className="p-3 text-sm text-quiet">그릴 업무가 없습니다.</p>

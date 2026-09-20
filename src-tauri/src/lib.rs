@@ -124,7 +124,7 @@ fn toggle_window(app: &AppHandle) {
     }
 }
 
-fn map_inner_from_panel(panel: &tauri::WebviewWindow) -> (f64, f64) {
+fn panel_inner_logical(panel: &tauri::WebviewWindow) -> (f64, f64) {
     let scale = panel.scale_factor().unwrap_or(1.0);
     let inner = panel
         .inner_size()
@@ -135,13 +135,35 @@ fn map_inner_from_panel(panel: &tauri::WebviewWindow) -> (f64, f64) {
     )
 }
 
-fn map_slot_beside_panel(
-    panel: &tauri::WebviewWindow,
-    map: &tauri::WebviewWindow,
-) -> Option<(i32, i32, i32, i32)> {
+fn map_inner_from_panel(panel: &tauri::WebviewWindow) -> (f64, f64) {
+    let (pw, ph) = panel_inner_logical(panel);
+    let want = (pw * 1.4).max(320.0);
+    let scale = panel.scale_factor().unwrap_or(1.0);
+    let Some(pos) = panel.outer_position().ok() else {
+        return (want, ph);
+    };
+    let Some(outer) = panel.outer_size().ok() else {
+        return (want, ph);
+    };
+    let Some(monitor) = panel
+        .current_monitor()
+        .ok()
+        .flatten()
+        .or_else(|| panel.primary_monitor().ok().flatten())
+    else {
+        return (want, ph);
+    };
+    let work = monitor.work_area();
+    let gap = 4i32;
+    let left = pos.x - work.position.x - gap;
+    let right = work.position.x + work.size.width as i32 - pos.x - outer.width as i32 - gap;
+    let cap = (left.max(right).max(280) as f64) / scale;
+    (want.min(cap).max(280.0), ph)
+}
+
+fn map_end_x(panel: &tauri::WebviewWindow, map_outer_width: u32) -> Option<i32> {
     let panel_pos = panel.outer_position().ok()?;
     let panel_size = panel.outer_size().ok()?;
-    let map_size = map.outer_size().ok()?;
     let monitor = panel
         .current_monitor()
         .ok()
@@ -149,44 +171,55 @@ fn map_slot_beside_panel(
         .or_else(|| panel.primary_monitor().ok().flatten())?;
     let work = monitor.work_area();
     let gap = 4i32;
-    let start_x = panel_pos.x;
-    let start_y = panel_pos.y;
-    let left_x = panel_pos.x - map_size.width as i32 - gap;
+    let left_x = panel_pos.x - map_outer_width as i32 - gap;
     let right_x = panel_pos.x + panel_size.width as i32 + gap;
     let work_left = work.position.x;
     let work_right = work.position.x + work.size.width as i32;
-    let end_x = if left_x >= work_left {
-        left_x
-    } else if right_x + map_size.width as i32 <= work_right {
-        right_x
+    if left_x >= work_left {
+        Some(left_x)
+    } else if right_x + map_outer_width as i32 <= work_right {
+        Some(right_x)
     } else {
-        work_left
-    };
-    Some((start_x, start_y, end_x, start_y))
+        Some(work_left)
+    }
 }
 
 fn place_map_next_to_panel(app: &AppHandle, panel: &tauri::WebviewWindow, glide: bool) {
     let Some(map) = app.get_webview_window("work-map") else {
         return;
     };
-    let Some((start_x, start_y, end_x, end_y)) = map_slot_beside_panel(panel, &map) else {
+    let (end_w, end_h) = map_inner_from_panel(panel);
+    let (start_w, start_h) = panel_inner_logical(panel);
+    let Ok(panel_pos) = panel.outer_position() else {
         return;
     };
-    if !glide || (start_x == end_x && start_y == end_y) {
-        let _ = map.set_position(PhysicalPosition::new(end_x, end_y));
+    let scale = panel.scale_factor().unwrap_or(1.0);
+    let end_outer_w = (end_w * scale).round().max(1.0) as u32;
+    let Some(end_x) = map_end_x(panel, end_outer_w) else {
+        return;
+    };
+    let start_x = panel_pos.x;
+    let y = panel_pos.y;
+    if !glide {
+        let _ = map.set_size(Size::Logical(LogicalSize::new(end_w, end_h)));
+        let _ = map.set_position(PhysicalPosition::new(end_x, y));
         return;
     }
-    let _ = map.set_position(PhysicalPosition::new(start_x, start_y));
+    let _ = map.set_size(Size::Logical(LogicalSize::new(start_w, start_h)));
+    let _ = map.set_position(PhysicalPosition::new(start_x, y));
     let moving = map.clone();
     thread::spawn(move || {
-        let steps = 8u32;
+        let steps = 12u32;
         for i in 1..=steps {
             thread::sleep(Duration::from_millis(16));
             let t = i as f64 / f64::from(steps);
+            let w = start_w + (end_w - start_w) * t;
             let x = start_x + ((end_x - start_x) as f64 * t).round() as i32;
-            let y = start_y + ((end_y - start_y) as f64 * t).round() as i32;
+            let _ = moving.set_size(Size::Logical(LogicalSize::new(w, end_h)));
             let _ = moving.set_position(PhysicalPosition::new(x, y));
         }
+        let _ = moving.set_size(Size::Logical(LogicalSize::new(end_w, end_h)));
+        let _ = moving.set_position(PhysicalPosition::new(end_x, y));
     });
 }
 
@@ -431,7 +464,7 @@ async fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), Str
     position_panel(&panel, &mode);
     let _ = panel.unminimize();
     let _ = panel.show();
-    let (width, height) = map_inner_from_panel(&panel);
+    let (start_w, start_h) = panel_inner_logical(&panel);
     let url = if cfg!(dev) {
         match &app.config().build.dev_url {
             Some(dev_url) => WebviewUrl::External(dev_url.clone()),
@@ -442,17 +475,21 @@ async fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), Str
     };
     WebviewWindowBuilder::new(&app, "work-map", url)
         .title("업무 그림")
-        .inner_size(width, height)
+        .inner_size(start_w, start_h)
         .min_inner_size(280.0, 400.0)
         .resizable(false)
         .closable(true)
-        .visible(true)
+        .visible(false)
         .skip_taskbar(true)
         .build()
         .map_err(|err| err.to_string())?;
     if let Some(created) = app.get_webview_window("work-map") {
-        let _ = created.set_size(Size::Logical(LogicalSize::new(width, height)));
+        if let Ok(pos) = panel.outer_position() {
+            let _ = created.set_position(pos);
+        }
+        let _ = created.set_size(Size::Logical(LogicalSize::new(start_w, start_h)));
         let _ = created.emit("work-map-root", &id);
+        let _ = created.show();
     }
     place_map_next_to_panel(&app, &panel, true);
     Ok(())
