@@ -6,6 +6,33 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.51-20260920
+설치 파일: EduLauncher_0.1.51-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_2211_x64-setup.exe
+
+한 일
+- 크게 보기 확대·축소 단추와 마우스 휠이 실제로 그림 크기를 바꾼다.
+- 창 칸 픽셀에 배율을 곱한 상자를 쓰고 CSS zoom은 쓰지 않는다.
+
+새로 작성한 파일
+- 없음
+
+재사용한 기존 파일
+- src/pages/WorkMapWindowPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴(Segoe UI, Malgun Gothic). SIL OFL 아님. 번들 없음.
+라이선스: 패키지·crate 추가 없음. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 배율 숫자만 메모리에 둔다. eval 없음.
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.50-20260920
 설치 파일: EduLauncher_0.1.50-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_2201_x64-setup.exe

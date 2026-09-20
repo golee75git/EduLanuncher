@@ -1166,3 +1166,25 @@ Difference:
 
 PATENT_REVIEW:
 창 둘을 같은 높이로 옆에 두는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Work picture window scale by button and wheel
+
+Purpose:
+크게 보기 창에서 단추와 마우스 휠로 그림 크기를 바꾼다
+
+Design source:
+내부 요구사항. 기존 크게 보기 창
+
+Implementation:
+창 칸 픽셀 크기에 배율을 곱한 상자를 두고 SVG가 그 상자를 채운다. CSS zoom은 쓰지 않음. 휠은 그림 칸에서만 받는다
+
+External code:
+없음
+
+Difference:
+외부 지도 뷰어 확대 UI를 베끼지 않음
+
+PATENT_REVIEW:
+배율과 스크롤을 맞추는 일반 기법. 청구항 대조 없음. 특허 비침해를 보장하지 않음
