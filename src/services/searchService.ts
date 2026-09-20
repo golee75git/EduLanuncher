@@ -108,6 +108,10 @@ const TOPIC_SCORE = {
   category: 650,
   official: 600,
   workflow: 580,
+  situation: 560,
+  warning: 540,
+  exception: 530,
+  security: 520,
   general: 500,
   beginner: 400,
   related: 380,
@@ -221,6 +225,52 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
         item: topic,
         score: TOPIC_SCORE.workflow,
         reason: `일치 항목: 처리절차 \`${flowHit.title}\``,
+      });
+      continue;
+    }
+
+    const situation = bestKeywordMatch(pieces, topic.situations ?? []);
+    if (situation) {
+      hits.push({
+        item: topic,
+        score: TOPIC_SCORE.situation,
+        reason: `일치 항목: 적용 상황 \`${situation}\``,
+      });
+      continue;
+    }
+
+    const warningHit = (topic.warnings ?? []).find((line) =>
+      pieces.some((piece) => containsFold(line, piece) || containsFold(piece, line)),
+    );
+    if (warningHit) {
+      hits.push({
+        item: topic,
+        score: TOPIC_SCORE.warning,
+        reason: `일치 항목: 주의사항 \`${warningHit}\``,
+      });
+      continue;
+    }
+
+    const exceptionHit = (topic.exceptions ?? []).find((line) =>
+      pieces.some((piece) => containsFold(line, piece) || containsFold(piece, line)),
+    );
+    if (exceptionHit) {
+      hits.push({
+        item: topic,
+        score: TOPIC_SCORE.exception,
+        reason: `일치 항목: 예외 \`${exceptionHit}\``,
+      });
+      continue;
+    }
+
+    const securityHit = (topic.securityNotes ?? []).find((line) =>
+      pieces.some((piece) => containsFold(line, piece) || containsFold(piece, line)),
+    );
+    if (securityHit) {
+      hits.push({
+        item: topic,
+        score: TOPIC_SCORE.security,
+        reason: "일치 항목: 보안 안내",
       });
       continue;
     }

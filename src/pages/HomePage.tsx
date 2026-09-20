@@ -442,6 +442,7 @@ export function HomePage({ onAction }: HomePageProps) {
                 <TopicSearch
                   items={topicHits}
                   selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
+                  query={query}
                   onOpen={(topicId) => onAction({ type: "topic", topicId })}
                 />
               ) : null}

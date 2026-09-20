@@ -5,6 +5,7 @@ import {
   topicsMissingFromMindMap,
 } from "../services/mindMapService";
 import { getTopicById, getTopics } from "../services/topicService";
+import { MANUAL_KIND_LABEL, type ManualKind } from "../types/manual";
 import type { MindMapNode } from "../types/mindmap";
 import { MindMapReviewBadge } from "./MindMapReviewBadge";
 import { StatusBadge } from "./StatusBadge";
@@ -96,7 +97,7 @@ export function WorkMapList({ onOpen }: WorkMapListProps) {
   return (
     <div className="space-y-4">
       <p className="text-xs leading-5 text-quiet">
-        항목을 누르면 자세한 업무가 열립니다. 마인드맵 그림은 넣지 않습니다.
+        항목을 누르면 자세한 업무가 열립니다. 인증서 등 매뉴얼 JSON에서 목록을 만듭니다. 그림 마인드맵은 넣지 않습니다.
       </p>
       <div role="tree" tabIndex={0} className="space-y-0.5 outline-none" onKeyDown={onKeyDown}>
         {rows.map((row, index) => {
@@ -133,6 +134,11 @@ export function WorkMapList({ onOpen }: WorkMapListProps) {
                 >
                   <span className="block text-sm text-desk">{row.node.label}</span>
                   <span className="mt-0.5 flex flex-wrap gap-2">
+                    {row.node.kind && row.node.kind in MANUAL_KIND_LABEL ? (
+                      <span className="text-[11px] text-quiet">
+                        {MANUAL_KIND_LABEL[row.node.kind as ManualKind]}
+                      </span>
+                    ) : null}
                     {row.node.topicId ? (
                       <StatusBadge
                         status={getTopicById(row.node.topicId)?.status ?? "unknown"}

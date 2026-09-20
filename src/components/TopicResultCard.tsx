@@ -7,10 +7,11 @@ import { TopicCard } from "./TopicCard";
 interface TopicResultCardProps {
   topic: Topic;
   reason?: string;
+  query?: string;
   onOpen: (topicId: string) => void;
 }
 
-export function TopicResultCard({ topic, reason, onOpen }: TopicResultCardProps) {
+export function TopicResultCard({ topic, reason, query, onOpen }: TopicResultCardProps) {
   const [open, setOpen] = useState(false);
   const grouped = useMemo(() => {
     const map = new Map<string, TopicResource[]>();
@@ -25,14 +26,16 @@ export function TopicResultCard({ topic, reason, onOpen }: TopicResultCardProps)
 
   return (
     <article className="space-y-1">
-      <TopicCard topic={topic} reason={reason} onOpen={onOpen} />
-      <button
-        type="button"
-        className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink hover:bg-ink-soft"
-        onClick={() => setOpen((value) => !value)}
-      >
-        {open ? "자료 접기" : "자료 펼치기"}
-      </button>
+      <TopicCard topic={topic} reason={reason} query={query} onOpen={onOpen} />
+      {topic.resources.length > 0 ? (
+        <button
+          type="button"
+          className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink hover:bg-ink-soft"
+          onClick={() => setOpen((value) => !value)}
+        >
+          {open ? "자료 접기" : "자료 펼치기"}
+        </button>
+      ) : null}
       {open ? (
         <div className="space-y-2 pl-1">
           {grouped.length === 0 ? (

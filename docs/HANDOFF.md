@@ -3,7 +3,7 @@
 기준일: 2026-09-20  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.42-20260920`
+최신 커밋 시점의 앱 버전: `0.1.43-20260920`
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 
@@ -84,7 +84,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - Pack vs 이 PC 표시, 홈 그룹 3개+모두(바로가기만)
 - 다른 PC용 백업 JSON (설정 화면)
 - git 연결, Cloudflare Workers 정적 사이트 (`website/`)
-- GitHub Release에 `0.1.42` 설치파일 업로드
+- GitHub Release에 `0.1.43` 설치파일 업로드
 - 사이트 칸에서 이 PC Edge·Chrome 북마크와 Windows `.url` 목록
 - 업무도구 칸에서 컴퓨터도구(이 PC Windows 설정 화면, 이 PC IP 주소·사설/공인 IP, 제어판·시스템 정보, 익스플로러 설정 복원 확인)
 - 업무도구 「주소 무늬」(이 PC 그림 + http(s) 주소 → PNG)
@@ -99,7 +99,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - 할 일 오늘(날짜)·내일·모레. 저장은 YYYY-MM-DD. 날짜 줄 오른쪽 캘린더로 구글·네이버 공식 주소만 염
 - 공지 한 칸. 기관/부서 표시. Pack은 고른 항목만 추가. 이 PC에서 넣기·수정·빼기
 - 홈 검색 맨 아래와 컴퓨터도구 「이 PC 폴더 찾기」: 바탕화면·문서·다운로드에서 이름만 찾음. 내용은 읽지 않음. C:\ 전체·Everything 아님
-- 업무자료: 검색결과·업무지도. 마인드맵은 로컬 JSON 목록. 항목 클릭 시 Topic 상세. NotebookLM 수집 없음
+- 업무자료: 검색결과·업무지도. 마인드맵은 로컬 JSON 목록. 항목 클릭 시 Topic 상세. `src/data/manuals/*.json`은 같은 목록에 합쳐 검색·트리·상세를 만듦. EPKI 인증서가 첫 매뉴얼. NotebookLM 수집 없음
 
 ## 알려진 미완
 

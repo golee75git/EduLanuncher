@@ -8,6 +8,7 @@ import type {
   MindMapRelationType,
 } from "../types/mindmap";
 import { RESOURCE_TYPES, type Topic } from "../types/topic";
+import { getManualMindRoots } from "./manualService";
 import { getTopics } from "./topicService";
 
 const NODE_TYPES = new Set<MindMapNodeType>([
@@ -63,6 +64,7 @@ function parseNode(value: unknown, seen: Set<string>, issues: MindMapIssue[]): M
     resourceId: asText(row.resourceId) || undefined,
     children,
     needsReview: row.needsReview === true,
+    kind: asText(row.kind) || undefined,
   };
 }
 
@@ -115,6 +117,15 @@ export function loadEducationMindMap(): EducationMindMap {
         relations.push(relation);
       }
     }
+  }
+  const manualRoots = getManualMindRoots();
+  for (const root of manualRoots) {
+    if (seen.has(root.id)) {
+      issues.push({ id: root.id, reason: "매뉴얼 루트 id가 마인드맵과 겹칩니다." });
+      continue;
+    }
+    seen.add(root.id);
+    roots.push(root);
   }
   cached = { version: 1, roots, relations };
   cachedIssues = issues;

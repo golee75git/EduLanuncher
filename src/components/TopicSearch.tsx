@@ -5,6 +5,7 @@ import { TopicCard } from "./TopicCard";
 interface TopicSearchProps {
   items: Array<Topic | TopicSearchHit>;
   selectedId?: string;
+  query?: string;
   onOpen: (topicId: string) => void;
 }
 
@@ -15,7 +16,7 @@ function asCard(item: Topic | TopicSearchHit): { topic: Topic; reason?: string }
   return { topic: item };
 }
 
-export function TopicSearch({ items, selectedId, onOpen }: TopicSearchProps) {
+export function TopicSearch({ items, selectedId, query, onOpen }: TopicSearchProps) {
   if (items.length === 0) {
     return <p className="text-sm text-quiet">일치하는 업무가 없습니다.</p>;
   }
@@ -28,6 +29,7 @@ export function TopicSearch({ items, selectedId, onOpen }: TopicSearchProps) {
             key={card.topic.id}
             topic={card.topic}
             reason={card.reason}
+            query={query}
             selected={selectedId === card.topic.id}
             onOpen={onOpen}
           />

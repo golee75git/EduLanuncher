@@ -1,3 +1,5 @@
+import type { ManualKind, ManualTrailItem } from "./manual";
+
 export const RESOURCE_TYPES = [
   "manual",
   "law",
@@ -56,6 +58,12 @@ export interface Topic {
   warnings: string[];
   status: RecordStatus;
   needsReview: boolean;
+  trail?: ManualTrailItem[];
+  situations?: string[];
+  exceptions?: string[];
+  sourceRefs?: string[];
+  kind?: ManualKind;
+  securityNotes?: string[];
 }
 
 export const RESOURCE_TYPE_LABEL: Record<ResourceType, string> = {

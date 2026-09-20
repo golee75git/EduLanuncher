@@ -10,6 +10,7 @@ export interface MindMapNode {
   resourceId?: string;
   children: MindMapNode[];
   needsReview: boolean;
+  kind?: string;
 }
 
 export interface MindMapRelation {

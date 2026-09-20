@@ -135,6 +135,7 @@ export function TopicListPage({ onBack, onOpen }: TopicListPageProps) {
                         key={hit.item.id}
                         topic={hit.item}
                         reason={hit.reason}
+                        query={query}
                         onOpen={onOpen}
                       />
                     ))

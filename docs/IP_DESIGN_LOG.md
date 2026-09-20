@@ -1011,4 +1011,26 @@ Difference:
 PATENT_REVIEW:
 계층 목록에서 업무 주제로 이동하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Local manual JSON work tree (EPKI first)
+
+Purpose:
+매뉴얼 JSON 하나에서 검색, 접이식 업무지도, 상세, 관련 업무를 만든다. 첫 자료는 교육행정전자서명(EPKI) 인증서
+
+Design source:
+내부 요구사항. 기존 Topic·WorkMapList·searchTopics
+
+Implementation:
+`src/data/manuals/*.json`을 Vite glob으로 읽고 Topic·MindMapNode로 바꿈. 패널 440px 접이식 목록. React Flow/Markmap/D3 없음. 인증서 파일 실행·원격 수집 없음. 비밀번호를 찾거나 복구하는 기능 없음
+
+External code:
+없음
+
+Difference:
+마인드맵 캔버스·외부 지식 서비스가 아님. 이 PC에 넣은 JSON 목록
+
+PATENT_REVIEW:
+계층 JSON에서 검색하고 같은 항목 상세를 여는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 

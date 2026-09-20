@@ -1,4 +1,5 @@
 import rawTopics from "../data/topics.json";
+import { MANUAL_KINDS, type ManualKind, type ManualTrailItem } from "../types/manual";
 import {
   RESOURCE_TYPES,
   type RecordStatus,
@@ -8,6 +9,7 @@ import {
   type TopicResource,
   type WorkflowStep,
 } from "../types/topic";
+import { getManualTopics } from "./manualService";
 
 const MAX_TITLE = 160;
 const MAX_TEXT = 400;
@@ -165,6 +167,36 @@ function parseResource(value: unknown): TopicResource | null {
   };
 }
 
+const KIND_SET = new Set<string>(MANUAL_KINDS);
+
+function parseTrail(value: unknown): ManualTrailItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const out: ManualTrailItem[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const row = item as Record<string, unknown>;
+    const id = clip(asText(row.id), 80);
+    const title = clip(asText(row.title), MAX_TITLE);
+    if (!id || !title) {
+      continue;
+    }
+    out.push({ id, title });
+    if (out.length >= 12) {
+      break;
+    }
+  }
+  return out;
+}
+
+function parseKind(value: unknown): ManualKind | undefined {
+  const text = asText(value);
+  return KIND_SET.has(text) ? (text as ManualKind) : undefined;
+}
+
 function parseTopic(value: unknown): Topic | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -216,6 +248,12 @@ function parseTopic(value: unknown): Topic | null {
     warnings,
     status: asStatus(row.status),
     needsReview: asBool(row.needsReview),
+    trail: parseTrail(row.trail),
+    situations: asStringList(row.situations, 12, MAX_TEXT),
+    exceptions: asStringList(row.exceptions, 8, MAX_LONG),
+    sourceRefs: asStringList(row.sourceRefs, 12, 80),
+    kind: parseKind(row.kind ?? row.type),
+    securityNotes: asStringList(row.securityNotes, 8, MAX_LONG),
   };
 }
 
@@ -240,7 +278,11 @@ export function parseTopics(raw: unknown): Topic[] {
 
 export function getTopics(): Topic[] {
   if (!cached) {
-    cached = parseTopics(rawTopics);
+    const fromFile = parseTopics(rawTopics);
+    const fromManuals = getManualTopics();
+    const seen = new Set(fromFile.map((topic) => topic.id));
+    const extra = fromManuals.filter((topic) => !seen.has(topic.id));
+    cached = [...fromFile, ...extra];
   }
   return cached;
 }
