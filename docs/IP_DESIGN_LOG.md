@@ -860,6 +860,28 @@ Difference:
 PATENT_REVIEW:
 키워드로 업무를 묶어 보여주는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Home jump, official links, work flow boxes
+
+Purpose:
+안쪽 화면에서 첫 화면으로 돌아가고, 확인된 공식 누리집만 바깥에서 열며, 처리 단계를 상자 순서로 보여 줌
+
+Design source:
+내부 요구사항. 법령 검색은 국가법령정보센터 주소. 학교알리미·나라장터·교육시설 통합정보망은 각 공식 누리집. 흐름은 기존 workflow 배열을 세로 상자로 표시
+
+Implementation:
+`HomeJumpButton`. 법령 유형만 법령정보센터 검색 URL. 나머지 자료는 JSON url 또는 제목으로 아는 공식 주소만. http/https만. 처리 흐름은 CSS 상자+아래 화살표. 마인드맵 라이브러리 없음
+
+External code:
+없음
+
+Difference:
+원문 PDF를 넣거나 게시판을 긁지 않음. 다른 마인드맵 제품 화면을 쓰지 않음
+
+PATENT_REVIEW:
+단계를 상자로 나열하는 구성, 공식 사이트 검색 연결. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
 
 
 

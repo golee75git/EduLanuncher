@@ -5,6 +5,7 @@ import { HighlightText } from "../components/HighlightText";
 import { NoticeList } from "../components/NoticeList";
 import { RecentTools } from "../components/RecentTools";
 import { SchoolSearchResult } from "../components/SchoolSearchResult";
+import { HomeJumpButton } from "../components/HomeJumpButton";
 import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
@@ -195,6 +196,14 @@ export function HomePage({ onAction }: HomePageProps) {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {searching || activeSchool ? (
+            <HomeJumpButton
+              onClick={() => {
+                setQuery("");
+                setActiveSchool(null);
+              }}
+            />
+          ) : null}
           <span className="mr-1 text-xs text-quiet">{todayLabel()}</span>
           <button type="button" className="icon-btn" onClick={() => onAction({ type: "settings" })} aria-label="설정">
             <Settings className="h-4 w-4" />

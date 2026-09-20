@@ -5,6 +5,7 @@ import { DropZone } from "./components/DropZone";
 import { MemoPad } from "./components/MemoPad";
 import { MissingPathDialog } from "./components/MissingPathDialog";
 import { RemoveToolDialog } from "./components/RemoveToolDialog";
+import { HomeJumpButton } from "./components/HomeJumpButton";
 import { WelcomeOverlay } from "./components/WelcomeOverlay";
 import { HomePage, type HomeAction } from "./pages/HomePage";
 import { CctvToolPage } from "./pages/CctvToolPage";
@@ -431,6 +432,17 @@ export default function App() {
           ) : null}
         </div>
         {view.name === "home" ? <MemoPad onOpen={() => setView({ name: "memo" })} /> : null}
+        {view.name !== "home" ? (
+          <div className="absolute bottom-3 right-3 z-40">
+            <HomeJumpButton
+              onClick={() => {
+                setMissing(null);
+                setRemoveTarget(null);
+                setView({ name: "home" });
+              }}
+            />
+          </div>
+        ) : null}
         {!onboarded ? <WelcomeOverlay onStart={() => void start()} /> : null}
         {missing ? (
           <MissingPathDialog

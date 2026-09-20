@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-09-20
+버전: 0.1.36-20260920
+설치 파일: EduLauncher_0.1.36-20260920_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-20_1002_x64-setup.exe
+
+한 일
+- 처음 화면: 홈이 아니면 오른쪽 아래, 홈에서 검색 중이면 위쪽에 단추. 공지·바로가기 첫 화면으로 돌아감.
+- 원문 주소: 법령은 국가법령정보센터 검색. 학교알리미·나라장터·교육시설 통합정보망은 공식 누리집. 그 외 서식·내부시스템·PDF는 주소 없음. 원문 파일은 넣지 않음.
+- 처리 흐름: 기존 단계를 세로 상자와 아래 화살표로 표시. 마인드맵 라이브러리 없음.
+- 패키지 추가 없음. APK 없음.
+
+새로 작성한 파일
+- src/components/HomeJumpButton.tsx
+
+재사용한 기존 파일
+- src/App.tsx
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/components/WorkflowView.tsx
+- src/services/topicService.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/PRD.md, docs/PLAN.md, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음. 새로 글꼴 파일 없음.
+라이선스: 패키지 추가 없음. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 원문은 http/https만. 법령 검색 주소는 encodeURIComponent. 게시판 수집·자동로그인 없음.
+특허 검토 대상: 단계를 상자로 나열하는 구성, 공식 사이트 검색 연결. 청구항 대조 없음. 특허 비침해를 보장하지 않음.
+
+---
+
+날짜: 2026-09-20
 버전: 0.1.35-20260920
 설치 파일: EduLauncher_0.1.35-20260920_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-20_0943_x64-setup.exe

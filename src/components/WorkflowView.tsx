@@ -9,14 +9,21 @@ export function WorkflowView({ steps }: WorkflowViewProps) {
     return null;
   }
   return (
-    <p className="text-sm leading-6 text-desk">
+    <ol className="m-0 list-none space-y-0 p-0">
       {steps.map((step, index) => (
-        <span key={`${step.order}-${step.title}`}>
-          {step.title}
-          {index < steps.length - 1 ? <span className="text-quiet"> → </span> : null}
-        </span>
+        <li key={`${step.order}-${step.title}`} className="flex flex-col items-stretch">
+          <div className="rounded-lg border border-line bg-card px-2.5 py-2 text-sm leading-5 text-desk">
+            <span className="mr-1.5 text-[11px] text-quiet">{step.order}</span>
+            {step.title}
+          </div>
+          {index < steps.length - 1 ? (
+            <p className="py-1 text-center text-[11px] text-quiet" aria-hidden>
+              ↓
+            </p>
+          ) : null}
+        </li>
       ))}
-    </p>
+    </ol>
   );
 }
 
