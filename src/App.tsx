@@ -38,7 +38,7 @@ import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoti
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
 import { focusSearchInput } from "./services/focusBus";
 import { showPanel, setDeskMiniVisible } from "./services/windowService";
-import { initStorage, loadSettings } from "./services/storageService";
+import { initStorage, emitTodosChanged } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { hydrateMemo } from "./stores/memoStore";
 import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
@@ -218,18 +218,12 @@ export default function App() {
         return;
       }
       if (deskMini) {
-        try {
-          await initStorage();
-          const settings = await loadSettings();
-          useSettingsStore.getState().hydrate(settings);
-          await hydrateTodos();
-        } finally {
-          if (!cancelled) {
-            setReady(true);
-          }
+        if (!cancelled) {
+          setReady(true);
         }
         return;
       }
+      let openMini = false;
       try {
         await initStorage();
         const settings = await hydrateSettings();
@@ -245,13 +239,7 @@ export default function App() {
         if (settings.showWindowOnLaunch || !settings.onboarded) {
           await showPanel();
         }
-        if (settings.showDeskMini) {
-          try {
-            await setDeskMiniVisible(true);
-          } catch {
-            // Command is unavailable in browser preview.
-          }
-        }
+        openMini = settings.showDeskMini;
       } finally {
         if (!cancelled) {
           setReady(true);
@@ -259,6 +247,9 @@ export default function App() {
       }
 
       const listeners = [
+        await listen("desk-mini-ready", () => {
+          void emitTodosChanged(useTodoStore.getState().todos);
+        }),
         await listen("focus-search", () => {
           setView({ name: "home" });
           window.setTimeout(() => focusSearchInput(), 30);
@@ -290,6 +281,11 @@ export default function App() {
         return;
       }
       unlisteners.push(...listeners);
+      if (openMini) {
+        void setDeskMiniVisible(true).catch(() => {
+          // Command is unavailable in browser preview.
+        });
+      }
       try {
         if (currentWindowLabel() === "main") {
           const pending = await invoke<string[]>("take_startup_pack_paths");

@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { emit, listen } from "@tauri-apps/api/event";
 import { dueYmdOf, localYmd, shortMd } from "../services/todoDate";
-import { hydrateTodos, useTodoStore } from "../stores/todoStore";
+import { useTodoStore } from "../stores/todoStore";
 import { showPanel } from "../services/windowService";
+import type { TodoItem } from "../types/todo";
 
 export function DeskMiniPage() {
   const todos = useTodoStore((state) => state.todos);
@@ -10,11 +11,24 @@ export function DeskMiniPage() {
   const leftover = todos.filter((todo) => dueYmdOf(todo.dueDate, today) <= today && !todo.completed).length;
 
   useEffect(() => {
-    const unlisten = listen("todos-changed", () => {
-      void hydrateTodos();
-    });
+    let dropped = false;
+    let stop: (() => void) | undefined;
+    void (async () => {
+      const unlisten = await listen<TodoItem[]>("todos-changed", (event) => {
+        if (Array.isArray(event.payload)) {
+          useTodoStore.getState().hydrate(event.payload);
+        }
+      });
+      if (dropped) {
+        unlisten();
+        return;
+      }
+      stop = unlisten;
+      void emit("desk-mini-ready");
+    })();
     return () => {
-      void unlisten.then((fn) => fn());
+      dropped = true;
+      stop?.();
     };
   }, []);
 

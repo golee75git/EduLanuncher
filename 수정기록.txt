@@ -6,6 +6,48 @@
 ---
 
 날짜: 2026-09-21
+버전: 0.1.58-20260921
+설치 파일: EduLauncher_0.1.58-20260921_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-21_2102_x64-setup.exe
+
+한 일
+- 미니 창을 켜도 홈이 불러오는 중에서 멈추지 않게 한다.
+- 홈을 먼저 연 뒤에 미니 창을 만든다. 미니 창은 저장 파일을 열지 않고 할 일 숫자만 이벤트로 받는다.
+- 창을 보인 뒤에 왼쪽 아래 위치를 잡는다.
+
+새로 작성한 파일
+- 없음
+
+재사용한 기존 파일
+- src/pages/DeskMiniPage.tsx
+- src/App.tsx
+- src/stores/settingsStore.ts
+- src/services/storageService.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/src/lib.rs
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+글꼴
+- Windows 시스템 글꼴(Segoe UI, Malgun Gothic). OFL 글꼴 파일 추가 없음. 상업적 사용은 Windows 구성 요소 조건
+
+라이선스
+- 패키지 추가 없음. GPL 신규 도입 없음
+
+보안
+- 새 네트워크 호출 없음. 미니 창은 할 일 배열 이벤트만 받는다
+
+PATENT_REVIEW
+- 창을 연 뒤 요약 숫자를 이벤트로 넘기는 일반 UI. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-09-21
 버전: 0.1.57-20260921
 설치 파일: EduLauncher_0.1.57-20260921_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-21_2036_x64-setup.exe

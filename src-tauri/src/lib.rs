@@ -519,15 +519,21 @@ fn place_desk_mini_bottom_left(window: &tauri::WebviewWindow) {
         return;
     };
     let work = monitor.work_area();
-    let outer = window.outer_size().unwrap_or(tauri::PhysicalSize::new(220, 140));
+    let scale = window.scale_factor().unwrap_or(1.0);
+    let fallback = tauri::PhysicalSize::new(
+        (DESK_MINI_W * scale).round() as u32,
+        ((DESK_MINI_H + 36.0) * scale).round() as u32,
+    );
+    let outer = window.outer_size().unwrap_or(fallback);
+    let height = if outer.height < 40 { fallback.height } else { outer.height };
     let gap = 12i32;
     let x = work.position.x + gap;
-    let y = work.position.y + work.size.height as i32 - outer.height as i32 - gap;
+    let y = work.position.y + work.size.height as i32 - height as i32 - gap;
     let _ = window.set_position(PhysicalPosition::new(x, y));
 }
 
 #[tauri::command]
-fn set_desk_mini_visible(app: AppHandle, visible: bool) -> Result<(), String> {
+async fn set_desk_mini_visible(app: AppHandle, visible: bool) -> Result<(), String> {
     if !visible {
         if let Some(mini) = app.get_webview_window("desk-mini") {
             let _ = mini.hide();
@@ -537,6 +543,7 @@ fn set_desk_mini_visible(app: AppHandle, visible: bool) -> Result<(), String> {
     if let Some(mini) = app.get_webview_window("desk-mini") {
         let _ = mini.unminimize();
         let _ = mini.show();
+        place_desk_mini_bottom_left(&mini);
         return Ok(());
     }
     WebviewWindowBuilder::new(&app, "desk-mini", launcher_page_url(&app))
@@ -560,8 +567,9 @@ fn set_desk_mini_visible(app: AppHandle, visible: bool) -> Result<(), String> {
                 let _ = hidden.hide();
             }
         });
-        place_desk_mini_bottom_left(&created);
+        let _ = created.set_size(Size::Logical(LogicalSize::new(DESK_MINI_W, DESK_MINI_H)));
         let _ = created.show();
+        place_desk_mini_bottom_left(&created);
     }
     Ok(())
 }

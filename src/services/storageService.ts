@@ -47,11 +47,6 @@ export async function loadTodos(): Promise<TodoItem[]> {
   if (!todosStore) {
     await initStorage();
   }
-  try {
-    await todosStore?.reload();
-  } catch {
-    // Store reload may be unavailable in browser preview.
-  }
   const items = await todosStore?.get<TodoItem[]>("items");
   return items ?? [];
 }
@@ -62,8 +57,12 @@ export async function saveTodos(todos: TodoItem[]): Promise<void> {
   }
   await todosStore?.set("items", todos);
   await todosStore?.save();
+  await emitTodosChanged(todos);
+}
+
+export async function emitTodosChanged(todos: TodoItem[]): Promise<void> {
   try {
-    await emit("todos-changed");
+    await emit("todos-changed", todos);
   } catch {
     // Event emit may be unavailable in browser preview.
   }
