@@ -225,10 +225,15 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
           {noticeMessage ? <p className="text-xs text-quiet">{noticeMessage}</p> : null}
         </SettingsCard>
 
-        <SettingsCard title="바탕화면 미니 위젯">
-          <p className="text-sm text-quiet">준비 중</p>
-          <p className="mt-1 text-xs leading-5 text-quiet">
-            향후 오늘 업무 건수와 빠른 실행 버튼을 바탕화면에 표시할 예정입니다.
+        <SettingsCard title="바탕화면 미니 창">
+          <Toggle
+            label="바탕화면에 오늘 할 일 창 보이기"
+            checked={settings.showDeskMini}
+            onChange={(showDeskMini) => void update({ showDeskMini })}
+          />
+          <p className="text-xs leading-5 text-quiet">
+            화면 왼쪽 아래에 작은 창을 둡니다. 오늘 남은 할 일 개수와 런처 열기가 있습니다. 패널을 숨겨도 이 창은
+            남습니다. 제목 줄 X는 이 창만 숨깁니다. 기본은 꺼져 있습니다.
           </p>
         </SettingsCard>
 
@@ -339,6 +344,7 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다.</li>
             <li>홈 공지는 한 칸입니다. 줄마다 기관(담당자) 또는 부서를 표시합니다. 넣기·모두에서 수정·빼기가 됩니다. Pack은 고른 항목만 더하고 이미 있는 항목은 건너뜁니다. 원문 주소가 있으면 브라우저만 엽니다.</li>
+            <li>설정의 바탕화면 오늘 할 일 창을 켜면 왼쪽 아래에 작은 창이 나옵니다. 패널을 숨겨도 남고, 제목 줄 X는 그 창만 숨깁니다.</li>
             <li>홈 할 일은 오늘·내일·모레를 고른 뒤 넣습니다. 파일에는 달력 날짜만 남고, 화면에는 오늘(9.20)처럼 보입니다. 지난 날짜의 미완료는 오늘 칸에 남습니다.</li>
             <li>할 일 칸 오늘·내일·모레 줄 오른쪽의 캘린더를 누르면 구글·네이버 공식 누리집을 고릅니다. 일정은 가져오지 않습니다.</li>
             <li>최근 사용에는 실행한 바로가기와 열어 본 업무주제만 남습니다. 검색창에 친 말은 넣지 않습니다.</li>

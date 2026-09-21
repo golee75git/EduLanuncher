@@ -1298,3 +1298,28 @@ Difference:
 
 PATENT_REVIEW:
 빈 목록으로 시작하는 일반 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Desk leftover mini window
+
+Purpose:
+패널을 닫아 둔 동안에도 오늘 남은 할 일 개수만 작은 창으로 본다
+
+Design source:
+내부 요구사항. 기존 할 일 칸과 work-map 별도 창 방식
+
+Implementation:
+설정이 켜져 있을 때만 220×140 창을 만든다. 오늘 날짜, 오늘·지난 미완료 건수, 런처 열기만 둔다. 작업 영역 왼쪽 아래에 둔다. 패널 숨김은 이 창을 건드리지 않는다. 제목 줄 X는 창만 숨긴다. 할 일 저장 후 이벤트로 다시 읽는다. Windows 위젯 보드·Rainmeter·아이콘 뒤 붙이기를 쓰지 않는다
+
+External code:
+없음 (Tauri 공식 창 API)
+
+Potential similar products:
+바탕화면 위젯, 할 일 스티커 메모
+
+Difference:
+별도 작은 창일 뿐이며 바탕화면 셸이나 위젯 보드에 넣지 않는다. 할 일 목록 전체가 아니라 남은 건수만 보여 준다
+
+PATENT_REVIEW:
+별도 창에 요약 숫자를 두는 일반 UI. 바탕화면 셸 삽입·항상 위·아이콘 뒤 배치와는 다르다. 청구항 대조 없음. 특허 비침해를 보장하지 않음

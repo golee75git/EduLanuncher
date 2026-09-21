@@ -197,6 +197,7 @@ function parseSettings(raw: unknown): AppSettings {
     onboarded: source.onboarded !== false,
     panelSkin: asPanelSkin(source.panelSkin),
     listColumns: asListColumns(source.listColumns),
+    showDeskMini: source.showDeskMini === true,
   };
 }
 

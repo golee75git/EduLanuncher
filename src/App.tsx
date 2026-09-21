@@ -29,6 +29,7 @@ import { ToolGroupPage } from "./pages/ToolGroupPage";
 import { TopicDetailPage } from "./pages/TopicDetailPage";
 import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
+import { DeskMiniPage } from "./pages/DeskMiniPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { isFolderFindTarget } from "./data/computerTools";
 import { logEducationValidation } from "./services/mindMapService";
@@ -36,8 +37,8 @@ import { LaunchError, launchTool } from "./services/launcherService";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
 import { focusSearchInput } from "./services/focusBus";
-import { showPanel } from "./services/windowService";
-import { initStorage } from "./services/storageService";
+import { showPanel, setDeskMiniVisible } from "./services/windowService";
+import { initStorage, loadSettings } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { hydrateMemo } from "./stores/memoStore";
 import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
@@ -96,6 +97,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
   const mapWindow = currentWindowLabel() === "work-map";
+  const deskMini = currentWindowLabel() === "desk-mini";
 
   const toast = useCallback((message: string) => {
     setNotice(message);
@@ -215,6 +217,19 @@ export default function App() {
         }
         return;
       }
+      if (deskMini) {
+        try {
+          await initStorage();
+          const settings = await loadSettings();
+          useSettingsStore.getState().hydrate(settings);
+          await hydrateTodos();
+        } finally {
+          if (!cancelled) {
+            setReady(true);
+          }
+        }
+        return;
+      }
       try {
         await initStorage();
         const settings = await hydrateSettings();
@@ -229,6 +244,13 @@ export default function App() {
         }
         if (settings.showWindowOnLaunch || !settings.onboarded) {
           await showPanel();
+        }
+        if (settings.showDeskMini) {
+          try {
+            await setDeskMiniVisible(true);
+          } catch {
+            // Command is unavailable in browser preview.
+          }
         }
       } finally {
         if (!cancelled) {
@@ -269,7 +291,7 @@ export default function App() {
       }
       unlisteners.push(...listeners);
       try {
-        if (currentWindowLabel() !== "work-map") {
+        if (currentWindowLabel() === "main") {
           const pending = await invoke<string[]>("take_startup_pack_paths");
           for (const path of pending) {
             void applyPackPath(path);
@@ -412,6 +434,10 @@ export default function App() {
 
   if (mapWindow) {
     return <WorkMapWindowPage />;
+  }
+
+  if (deskMini) {
+    return <DeskMiniPage />;
   }
 
   return (

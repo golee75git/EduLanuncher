@@ -495,6 +495,77 @@ async fn open_work_map_window(app: AppHandle, root_id: String) -> Result<(), Str
     Ok(())
 }
 
+const DESK_MINI_W: f64 = 220.0;
+const DESK_MINI_H: f64 = 140.0;
+
+fn launcher_page_url(app: &AppHandle) -> WebviewUrl {
+    if cfg!(dev) {
+        match &app.config().build.dev_url {
+            Some(dev_url) => WebviewUrl::External(dev_url.clone()),
+            None => WebviewUrl::App("index.html".into()),
+        }
+    } else {
+        WebviewUrl::App("index.html".into())
+    }
+}
+
+fn place_desk_mini_bottom_left(window: &tauri::WebviewWindow) {
+    let Some(monitor) = window
+        .current_monitor()
+        .ok()
+        .flatten()
+        .or_else(|| window.primary_monitor().ok().flatten())
+    else {
+        return;
+    };
+    let work = monitor.work_area();
+    let outer = window.outer_size().unwrap_or(tauri::PhysicalSize::new(220, 140));
+    let gap = 12i32;
+    let x = work.position.x + gap;
+    let y = work.position.y + work.size.height as i32 - outer.height as i32 - gap;
+    let _ = window.set_position(PhysicalPosition::new(x, y));
+}
+
+#[tauri::command]
+fn set_desk_mini_visible(app: AppHandle, visible: bool) -> Result<(), String> {
+    if !visible {
+        if let Some(mini) = app.get_webview_window("desk-mini") {
+            let _ = mini.hide();
+        }
+        return Ok(());
+    }
+    if let Some(mini) = app.get_webview_window("desk-mini") {
+        let _ = mini.unminimize();
+        let _ = mini.show();
+        return Ok(());
+    }
+    WebviewWindowBuilder::new(&app, "desk-mini", launcher_page_url(&app))
+        .title("오늘 업무")
+        .inner_size(DESK_MINI_W, DESK_MINI_H)
+        .resizable(false)
+        .maximizable(false)
+        .minimizable(false)
+        .closable(true)
+        .visible(false)
+        .focused(false)
+        .skip_taskbar(true)
+        .always_on_top(false)
+        .build()
+        .map_err(|err| err.to_string())?;
+    if let Some(created) = app.get_webview_window("desk-mini") {
+        let hidden = created.clone();
+        created.on_window_event(move |event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = hidden.hide();
+            }
+        });
+        place_desk_mini_bottom_left(&created);
+        let _ = created.show();
+    }
+    Ok(())
+}
+
 #[tauri::command]
 fn work_map_root_id(app: AppHandle) -> String {
     app.state::<WorkMapFocus>()
@@ -1277,6 +1348,7 @@ pub fn run() {
             register_shortcut,
             open_work_map_window,
             work_map_root_id,
+            set_desk_mini_visible,
             reveal_topic,
             launch_tool,
             open_ie_reset,

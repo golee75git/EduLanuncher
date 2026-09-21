@@ -13,6 +13,7 @@ export interface AppSettings {
   onboarded: boolean;
   panelSkin: PanelSkin;
   listColumns: ListColumns;
+  showDeskMini: boolean;
 }
 
 export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: string }> = [
@@ -40,4 +41,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboarded: false,
   panelSkin: "paper",
   listColumns: 1,
+  showDeskMini: false,
 };

@@ -6,6 +6,54 @@
 ---
 
 날짜: 2026-09-21
+버전: 0.1.57-20260921
+설치 파일: EduLauncher_0.1.57-20260921_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-21_2036_x64-setup.exe
+
+한 일
+- 설정에 바탕화면 미니 창을 둔다. 기본은 꺼져 있다.
+- 켜면 작업 영역 왼쪽 아래에 220×140 창이 나온다. 오늘 날짜, 오늘·지난 미완료 건수, 런처 열기만 있다.
+- 패널을 숨겨도 이 창은 남는다. 제목 줄 X는 이 창만 숨긴다. 프로그램은 트레이 종료로 끈다.
+- Windows 위젯 보드나 바탕화면 아이콘 뒤에 붙이지 않는다.
+
+새로 작성한 파일
+- src/pages/DeskMiniPage.tsx
+
+재사용한 기존 파일
+- src/App.tsx
+- src/types/settings.ts
+- src/stores/settingsStore.ts
+- src/stores/todoStore.ts
+- src/services/storageService.ts
+- src/services/backupService.ts
+- src/services/windowService.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/src/lib.rs
+- src-tauri/tauri.conf.json
+- src-tauri/capabilities/default.json
+- website/src/config.ts
+- website/src/pages/IntroPage.tsx
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+글꼴
+- Windows 시스템 글꼴(Segoe UI, Malgun Gothic). OFL 글꼴 파일 추가 없음. 상업적 사용은 Windows 구성 요소 조건
+
+라이선스
+- 패키지 추가 없음. GPL 신규 도입 없음
+
+보안
+- 새 네트워크 호출 없음. 할 일은 이 PC JSON만 다시 읽는다. 창 라벨 desk-mini만 권한에 추가
+
+PATENT_REVIEW
+- 별도 작은 창에 남은 할 일 개수를 두는 일반 UI. Windows 위젯 보드·아이콘 뒤 배치와 다름. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-09-21
 버전: 0.1.56-20260921
 설치 파일: EduLauncher_0.1.56-20260921_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-21_2005_x64-setup.exe
