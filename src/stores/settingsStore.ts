@@ -1,9 +1,8 @@
 import { create } from "zustand";
 import { disable, enable } from "@tauri-apps/plugin-autostart";
 import { DEFAULT_SETTINGS, asListColumns, asPanelSkin, type AppSettings, type PanelSkin } from "../types/settings";
-import { loadSettings, saveSettings, emitTodosChanged } from "../services/storageService";
-import { registerShortcut, setDeskMiniVisible, setLauncherPosition } from "../services/windowService";
-import { useTodoStore } from "./todoStore";
+import { loadSettings, saveSettings } from "../services/storageService";
+import { registerShortcut, setLauncherPosition } from "../services/windowService";
 
 interface SettingsState {
   settings: AppSettings;
@@ -47,16 +46,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
     if (patch.globalShortcut) {
       await registerShortcut(settings.globalShortcut);
-    }
-    if (patch.showDeskMini !== undefined) {
-      try {
-        await setDeskMiniVisible(settings.showDeskMini);
-        if (settings.showDeskMini) {
-          await emitTodosChanged(useTodoStore.getState().todos);
-        }
-      } catch {
-        // Command is unavailable in browser preview.
-      }
     }
     if (patch.autoStart !== undefined) {
       try {

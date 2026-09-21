@@ -29,7 +29,6 @@ import { ToolGroupPage } from "./pages/ToolGroupPage";
 import { TopicDetailPage } from "./pages/TopicDetailPage";
 import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
-import { DeskMiniPage } from "./pages/DeskMiniPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { isFolderFindTarget } from "./data/computerTools";
 import { logEducationValidation } from "./services/mindMapService";
@@ -37,8 +36,8 @@ import { LaunchError, launchTool } from "./services/launcherService";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
 import { focusSearchInput } from "./services/focusBus";
-import { showPanel, setDeskMiniVisible } from "./services/windowService";
-import { initStorage, emitTodosChanged } from "./services/storageService";
+import { showPanel } from "./services/windowService";
+import { initStorage } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { hydrateMemo } from "./stores/memoStore";
 import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
@@ -97,7 +96,6 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
   const mapWindow = currentWindowLabel() === "work-map";
-  const deskMini = currentWindowLabel() === "desk-mini";
 
   const toast = useCallback((message: string) => {
     setNotice(message);
@@ -217,13 +215,6 @@ export default function App() {
         }
         return;
       }
-      if (deskMini) {
-        if (!cancelled) {
-          setReady(true);
-        }
-        return;
-      }
-      let openMini = false;
       try {
         await initStorage();
         const settings = await hydrateSettings();
@@ -239,7 +230,6 @@ export default function App() {
         if (settings.showWindowOnLaunch || !settings.onboarded) {
           await showPanel();
         }
-        openMini = settings.showDeskMini;
       } finally {
         if (!cancelled) {
           setReady(true);
@@ -247,9 +237,6 @@ export default function App() {
       }
 
       const listeners = [
-        await listen("desk-mini-ready", () => {
-          void emitTodosChanged(useTodoStore.getState().todos);
-        }),
         await listen("focus-search", () => {
           setView({ name: "home" });
           window.setTimeout(() => focusSearchInput(), 30);
@@ -281,11 +268,6 @@ export default function App() {
         return;
       }
       unlisteners.push(...listeners);
-      if (openMini) {
-        void setDeskMiniVisible(true).catch(() => {
-          // Command is unavailable in browser preview.
-        });
-      }
       try {
         if (currentWindowLabel() === "main") {
           const pending = await invoke<string[]>("take_startup_pack_paths");
@@ -430,10 +412,6 @@ export default function App() {
 
   if (mapWindow) {
     return <WorkMapWindowPage />;
-  }
-
-  if (deskMini) {
-    return <DeskMiniPage />;
   }
 
   return (

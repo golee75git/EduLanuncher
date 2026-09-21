@@ -1,5 +1,4 @@
 import { Store } from "@tauri-apps/plugin-store";
-import { emit } from "@tauri-apps/api/event";
 import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type StoredNotices } from "../types/notice";
 import { DEFAULT_SETTINGS, asListColumns, asPanelSkin, type AppSettings } from "../types/settings";
@@ -57,15 +56,6 @@ export async function saveTodos(todos: TodoItem[]): Promise<void> {
   }
   await todosStore?.set("items", todos);
   await todosStore?.save();
-  await emitTodosChanged(todos);
-}
-
-export async function emitTodosChanged(todos: TodoItem[]): Promise<void> {
-  try {
-    await emit("todos-changed", todos);
-  } catch {
-    // Event emit may be unavailable in browser preview.
-  }
 }
 
 export async function loadSettings(): Promise<AppSettings> {
@@ -78,7 +68,6 @@ export async function loadSettings(): Promise<AppSettings> {
     ...merged,
     panelSkin: asPanelSkin(merged.panelSkin),
     listColumns: asListColumns(merged.listColumns),
-    showDeskMini: merged.showDeskMini === true,
   };
 }
 

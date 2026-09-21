@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the EduLauncher main window",
-  "windows": ["main", "work-map", "desk-mini"],
+  "windows": ["main", "work-map"],
   "permissions": [
     "core:default",
     "opener:default",

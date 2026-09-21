@@ -10,7 +10,7 @@ import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
-import { HOME_GROUP_PREVIEW, TOOL_GROUPS } from "../data/toolGroups";
+import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
 import { getTopicById, getTopics } from "../services/topicService";
@@ -408,6 +408,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                     <FavoriteGrid
                       tools={group.shown}
                       layout="list"
+                      emptyText={favoriteEmptyText(group.type)}
                       selectedId={selectedId?.startsWith("fav:") ? selectedId.slice(4) : undefined}
                       onLaunch={(tool) => onAction({ type: "launch", tool })}
                       onFavorite={(tool) => void toggleFavorite(tool.id)}

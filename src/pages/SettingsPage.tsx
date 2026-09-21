@@ -225,18 +225,6 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
           {noticeMessage ? <p className="text-xs text-quiet">{noticeMessage}</p> : null}
         </SettingsCard>
 
-        <SettingsCard title="바탕화면 미니 창">
-          <Toggle
-            label="바탕화면에 오늘 할 일 창 보이기"
-            checked={settings.showDeskMini}
-            onChange={(showDeskMini) => void update({ showDeskMini })}
-          />
-          <p className="text-xs leading-5 text-quiet">
-            화면 왼쪽 아래에 작은 창을 둡니다. 오늘 남은 할 일 개수와 런처 열기가 있습니다. 패널을 숨겨도 이 창은
-            남습니다. 제목 줄 X는 이 창만 숨깁니다. 기본은 꺼져 있습니다.
-          </p>
-        </SettingsCard>
-
         <SettingsCard title="다른 PC로 옮기기">
           <p className="text-xs leading-5 text-quiet">
             바로가기, 공지, 메모, 할 일, 표시 설정을 파일로 저장합니다. 프로그램·파일 자체는 복사하지 않습니다.
@@ -331,7 +319,7 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
             <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다.</li>
             <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨과 모두 목록 1열·2열을 고릅니다.</li>
-            <li>처음 설치에는 사이트·프로그램·파일·폴더와 할 일이 비어 있습니다. + 또는 끌어놓기로 넣고, 설정에서 Pack으로 나눠 줍니다. 이미 쓰는 PC의 바로가기·할 일 목록은 그대로입니다. 업무도구에는 Network·CCTV·주소 무늬가 있고, 컴퓨터도구와 업무자료는 앱에 있습니다.</li>
+            <li>처음 설치에는 사이트·프로그램·파일·폴더와 할 일이 비어 있습니다. 홈의 자주 사용하는 도구에 끌어놓기나 + 안내가 나옵니다. + 또는 끌어놓기로 넣고, 설정에서 Pack으로 나눠 줍니다. 이미 쓰는 PC의 바로가기·할 일 목록은 그대로입니다. 업무도구에는 Network·CCTV·주소 무늬가 있고, 컴퓨터도구와 업무자료는 앱에 있습니다.</li>
             <li>바로가기 위에 마우스를 올리면 설명이 나옵니다. 설명이 없으면 이름이 나옵니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>
@@ -344,7 +332,6 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다.</li>
             <li>홈 공지는 한 칸입니다. 줄마다 기관(담당자) 또는 부서를 표시합니다. 넣기·모두에서 수정·빼기가 됩니다. Pack은 고른 항목만 더하고 이미 있는 항목은 건너뜁니다. 원문 주소가 있으면 브라우저만 엽니다.</li>
-            <li>설정의 바탕화면 오늘 할 일 창을 켜면 왼쪽 아래에 작은 창이 나옵니다. 패널을 숨겨도 남고, 제목 줄 X는 그 창만 숨깁니다. 불러오는 중에 멈추던 설치본은 0.1.58로 바꿔 설치합니다.</li>
             <li>홈 할 일은 오늘·내일·모레를 고른 뒤 넣습니다. 파일에는 달력 날짜만 남고, 화면에는 오늘(9.20)처럼 보입니다. 지난 날짜의 미완료는 오늘 칸에 남습니다.</li>
             <li>할 일 칸 오늘·내일·모레 줄 오른쪽의 캘린더를 누르면 구글·네이버 공식 누리집을 고릅니다. 일정은 가져오지 않습니다.</li>
             <li>최근 사용에는 실행한 바로가기와 열어 본 업무주제만 남습니다. 검색창에 친 말은 넣지 않습니다.</li>

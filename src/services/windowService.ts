@@ -44,10 +44,6 @@ export async function readWorkMapRootId(): Promise<string> {
   }
 }
 
-export async function setDeskMiniVisible(visible: boolean): Promise<void> {
-  await invoke("set_desk_mini_visible", { visible });
-}
-
 export async function revealTopicFromMap(topicId: string): Promise<void> {
   await invoke("reveal_topic", { topicId });
 }
