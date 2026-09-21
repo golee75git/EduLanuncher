@@ -1,6 +1,6 @@
 import type { ToolType } from "../types/tool";
 
-export const HOME_GROUP_PREVIEW = 3;
+export const HOME_GROUP_PREVIEW = 6;
 
 export const TOOL_GROUPS: Array<{ type: ToolType; label: string }> = [
   { type: "url", label: "사이트" },

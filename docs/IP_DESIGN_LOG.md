@@ -1326,3 +1326,25 @@ PATENT_REVIEW:
 
 Removed:
 0.1.59에서 미니 창과 설정 칸을 뺀다. 홈 빈 칸 안내로 대체한다.
+
+---
+
+Feature: Home favorite two-column preview
+
+Purpose:
+자주 쓰는 바로가기를 종류별로 조금 더 많이 한눈에 본다
+
+Design source:
+내부 요구사항. 기존 FavoriteGrid 2열과 홈 종류 칸
+
+Implementation:
+홈 자주 사용하는 도구만 2열 목록으로 두고 종류마다 6개까지 보여 준다. 칸 안 스크롤은 넣지 않는다. 나머지는 모두 화면
+
+External code:
+없음
+
+Difference:
+모두 화면의 열 설정과 별개로 홈 미리보기만 고정한다
+
+PATENT_REVIEW:
+목록을 잘라 보여 주는 일반 UI. 청구항 대조 없음. 특허 비침해를 보장하지 않음

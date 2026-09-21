@@ -408,6 +408,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                     <FavoriteGrid
                       tools={group.shown}
                       layout="list"
+                      columns={2}
                       emptyText={favoriteEmptyText(group.type)}
                       selectedId={selectedId?.startsWith("fav:") ? selectedId.slice(4) : undefined}
                       onLaunch={(tool) => onAction({ type: "launch", tool })}

@@ -6,6 +6,44 @@
 ---
 
 날짜: 2026-09-21
+버전: 0.1.60-20260921
+설치 파일: EduLauncher_0.1.60-20260921_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-21_2322_x64-setup.exe
+
+한 일
+- 홈 자주 사용하는 도구를 종류마다 2열로 두고, 최대 6개까지 보이게 한다.
+- 그보다 많으면 칸 안 스크롤 없이 모두에서 본다.
+
+새로 작성한 파일
+- 없음
+
+재사용한 기존 파일
+- src/data/toolGroups.ts
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+글꼴
+- Windows 시스템 글꼴(Segoe UI, Malgun Gothic). OFL 글꼴 파일 추가 없음. 상업적 사용은 Windows 구성 요소 조건
+
+라이선스
+- 패키지 추가 없음. GPL 신규 도입 없음
+
+보안
+- 표시만 바꿈. 새 네트워크 호출 없음
+
+PATENT_REVIEW
+- 목록을 2열로 자르는 일반 UI. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-09-21
 버전: 0.1.59-20260921
 설치 파일: EduLauncher_0.1.59-20260921_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-21_2310_x64-setup.exe
