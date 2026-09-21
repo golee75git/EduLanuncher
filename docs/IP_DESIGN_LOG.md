@@ -1276,3 +1276,25 @@ Difference:
 
 PATENT_REVIEW:
 빈 칸에서 사용자가 넣고 Pack으로 나누는 일반 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Empty first-run todos
+
+Purpose:
+처음 설치에 할 일 샘플을 넣지 않는다
+
+Design source:
+내부 요구사항. 기존 할 일 칸
+
+Implementation:
+목록이 비어 있으면 빈 배열만 저장한다. 오늘·내일·모레 칸은 그대로 둔다. 이미 있는 할 일 파일은 지우지 않는다
+
+External code:
+없음
+
+Difference:
+외부 할 일 앱의 예시 목록을 베끼지 않음
+
+PATENT_REVIEW:
+빈 목록으로 시작하는 일반 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음

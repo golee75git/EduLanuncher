@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { SAMPLE_TODOS } from "../data/sampleTodos";
 import { asDueYmd, localYmd } from "../services/todoDate";
 import { loadTodos, saveTodos } from "../services/storageService";
 import type { TodoItem } from "../types/todo";
@@ -22,8 +21,9 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     if (get().todos.length > 0) {
       return;
     }
-    set({ todos: SAMPLE_TODOS });
-    await saveTodos(SAMPLE_TODOS);
+    const todos: TodoItem[] = [];
+    set({ todos });
+    await saveTodos(todos);
   },
   addTodo: async (title, dueDate) => {
     const trimmed = title.trim();
