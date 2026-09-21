@@ -6,6 +6,23 @@
 ---
 
 날짜: 2026-09-21
+버전: 0.1.61-20260921
+설치 파일: EduLauncher_0.1.61-20260921_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-21_2340_x64-setup.exe
+작성자: 요청자
+
+내용:
+컴퓨터도구에 소리(mmsys.cpl)·인터넷 옵션(inetcpl.cpl)·작업 관리자(taskmgr.exe)만 추가했다. 기존과 같이 System32 고정 파일만 연다. 인자와 ms-settings와 시작프로그램 등록은 넣지 않았다. 홈 칸은 그대로다. 다른 기능은 바꾸지 않았다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/data/computerTools.ts, src/pages/ComputerToolPage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, website/src/config.ts, website/src/pages/IntroPage.tsx, src-tauri/tauri.conf.json, docs/HANDOFF.md, docs/PRD.md, docs/PLAN.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+라이선스: 패키지 추가는 없다. GPL 패키지는 사용하지 않는다. 글꼴은 기존처럼 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)만 쓰고 이 저장소에 글꼴 파일을 넣지 않는다.
+특허: 고정 System32 파일 실행은 일반 OS 호출이다. 청구항 대조는 별도다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-21
 버전: 0.1.60-20260921
 설치 파일: EduLauncher_0.1.60-20260921_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-21_2322_x64-setup.exe

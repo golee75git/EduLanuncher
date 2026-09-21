@@ -27,6 +27,13 @@ const ENTRIES: ComputerToolEntry[] = [
     fileName: "desk.cpl",
   },
   {
+    id: "sound",
+    name: "소리",
+    hint: "스피커와 마이크 화면을 엽니다.",
+    type: "file",
+    fileName: "mmsys.cpl",
+  },
+  {
     id: "devices",
     name: "장치 확인",
     hint: "이 PC에 연결된 장치 목록을 엽니다.",
@@ -62,11 +69,25 @@ const ENTRIES: ComputerToolEntry[] = [
     fileName: "appwiz.cpl",
   },
   {
+    id: "task-manager",
+    name: "작업 관리자",
+    hint: "실행 중인 프로그램 화면을 엽니다. 종료는 Windows가 맡습니다.",
+    type: "file",
+    fileName: "taskmgr.exe",
+  },
+  {
     id: "control-panel",
     name: "제어판",
     hint: "이 PC Windows 제어판을 엽니다.",
     type: "file",
     fileName: "control.exe",
+  },
+  {
+    id: "internet-options",
+    name: "인터넷 옵션",
+    hint: "인터넷 속성 화면을 엽니다. 확인 전에는 바꾸지 않습니다.",
+    type: "file",
+    fileName: "inetcpl.cpl",
   },
   {
     id: "ie-reset",

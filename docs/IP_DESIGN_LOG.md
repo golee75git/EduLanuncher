@@ -755,6 +755,31 @@ Difference:
 
 ---
 
+Feature: Sound, Internet Options, Task Manager shortcuts
+
+Purpose:
+학교 사무에서 자주 여는 소리·인터넷 옵션·작업 관리자 화면을 컴퓨터도구에서 바로 열기 위함
+
+Design source:
+내부 요구사항. 인자 없는 System32 파일만
+
+Implementation:
+기존 컴퓨터도구 목록에 `mmsys.cpl`, `inetcpl.cpl`, `taskmgr.exe`를 파일로 추가. 새 명령·인자·ms-settings 없음. 홈 칸은 늘리지 않음
+
+External code:
+없음
+
+Potential similar products:
+시작 메뉴의 소리·인터넷 옵션·작업 관리자
+
+Difference:
+시작 메뉴·설정 앱 UI 복제 없음. 고정 경로만 연다. 시작프로그램 등록 기능은 넣지 않음
+
+PATENT_REVIEW:
+고정 System32 파일 실행은 일반 OS 호출. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
+---
+
 Feature: Internet Explorer reset confirm
 
 Purpose:

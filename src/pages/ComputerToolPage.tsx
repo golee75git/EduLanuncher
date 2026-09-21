@@ -50,8 +50,8 @@ export function ComputerToolPage({ onBack, onLaunch, onShowAddress, onShowFolder
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
           이 PC Windows 설정 화면을 열거나, 사설·공인 IP를 보고, 이 사용자 폴더에서 이름을 찾습니다. 익스플로러 설정
-          복원 확인 화면을 엽니다. 이름을 대신 바꾸거나 권한을 올리지 않습니다. 설정 화면은 고정된 System32 파일만
-          실행합니다.
+          복원 확인 화면을 엽니다. 소리·인터넷 옵션·작업 관리자 화면도 엽니다. 이름을 대신 바꾸거나 권한을 올리지
+          않습니다. 설정 화면은 고정된 System32 파일만 실행합니다.
         </p>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         <ul className="card-surface divide-y divide-line/70">
