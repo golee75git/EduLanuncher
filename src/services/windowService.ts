@@ -36,6 +36,10 @@ export async function openWorkMapWindow(rootId: string): Promise<void> {
   await invoke("open_work_map_window", { rootId });
 }
 
+export async function openMemoWindow(): Promise<void> {
+  await invoke("open_memo_window");
+}
+
 export async function readWorkMapRootId(): Promise<string> {
   try {
     return await invoke<string>("work_map_root_id");

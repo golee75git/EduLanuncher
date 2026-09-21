@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "EduLauncher",
-  "version": "0.1.61-20260921",
+  "version": "0.1.62-20260921",
     "identifier": "com.edulauncher.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "교육업무 런처 0.1.61-20260921",
+        "title": "교육업무 런처 0.1.62-20260921",
         "width": 440,
         "height": 650,
         "minWidth": 400,

@@ -40,6 +40,23 @@ struct FolderWalkHalt(Arc<AtomicBool>);
 
 struct WorkMapFocus(Mutex<String>);
 
+struct MemoDraft(Mutex<String>);
+
+fn clip_memo_text(raw: &str) -> String {
+    raw.chars()
+        .filter(|ch| *ch == '\n' || *ch == '\r' || *ch == '\t' || (*ch >= ' ' && *ch != '\u{007f}'))
+        .take(2000)
+        .collect()
+}
+
+fn memo_draft_text(app: &AppHandle) -> String {
+    app.state::<MemoDraft>()
+        .0
+        .lock()
+        .map(|value| value.clone())
+        .unwrap_or_default()
+}
+
 fn safe_map_id(raw: &str) -> Option<String> {
     let cleaned: String = raw
         .chars()
@@ -87,6 +104,7 @@ fn reveal_panel(app: &AppHandle) {
         let _ = window.emit("focus-search", ());
         show_map_window(app);
         place_map_next_to_panel(app, &window, false);
+        show_memo_pad(app);
         #[cfg(windows)]
         {
             let _ = drop_target::install(&window, app);
@@ -107,8 +125,22 @@ fn show_map_window(app: &AppHandle) {
     }
 }
 
+fn hide_memo_pad(app: &AppHandle) {
+    if let Some(pad) = app.get_webview_window("memo-pad") {
+        let _ = pad.hide();
+    }
+}
+
+fn show_memo_pad(app: &AppHandle) {
+    if let Some(pad) = app.get_webview_window("memo-pad") {
+        let _ = pad.unminimize();
+        let _ = pad.show();
+    }
+}
+
 fn hide_window(app: &AppHandle) {
     hide_map_window(app);
+    hide_memo_pad(app);
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.hide();
     }
@@ -208,6 +240,40 @@ fn place_map_next_to_panel(app: &AppHandle, panel: &tauri::WebviewWindow, glide:
     let _ = map.set_size(Size::Logical(LogicalSize::new(start_w, start_h)));
     let _ = map.set_position(PhysicalPosition::new(start_x, y));
     let moving = map.clone();
+    thread::spawn(move || {
+        let steps = 12u32;
+        for i in 1..=steps {
+            thread::sleep(Duration::from_millis(16));
+            let t = i as f64 / f64::from(steps);
+            let w = start_w + (end_w - start_w) * t;
+            let x = start_x + ((end_x - start_x) as f64 * t).round() as i32;
+            let _ = moving.set_size(Size::Logical(LogicalSize::new(w, end_h)));
+            let _ = moving.set_position(PhysicalPosition::new(x, y));
+        }
+        let _ = moving.set_size(Size::Logical(LogicalSize::new(end_w, end_h)));
+        let _ = moving.set_position(PhysicalPosition::new(end_x, y));
+    });
+}
+
+fn place_memo_next_to_panel(app: &AppHandle, panel: &tauri::WebviewWindow) {
+    let Some(pad) = app.get_webview_window("memo-pad") else {
+        return;
+    };
+    let (end_w, end_h) = map_inner_from_panel(panel);
+    let (start_w, start_h) = panel_inner_logical(panel);
+    let Ok(panel_pos) = panel.outer_position() else {
+        return;
+    };
+    let scale = panel.scale_factor().unwrap_or(1.0);
+    let end_outer_w = (end_w * scale).round().max(1.0) as u32;
+    let Some(end_x) = map_end_x(panel, end_outer_w) else {
+        return;
+    };
+    let start_x = panel_pos.x;
+    let y = panel_pos.y;
+    let _ = pad.set_size(Size::Logical(LogicalSize::new(start_w, start_h)));
+    let _ = pad.set_position(PhysicalPosition::new(start_x, y));
+    let moving = pad.clone();
     thread::spawn(move || {
         let steps = 12u32;
         for i in 1..=steps {
@@ -502,6 +568,84 @@ fn work_map_root_id(app: AppHandle) -> String {
         .lock()
         .map(|value| value.clone())
         .unwrap_or_default()
+}
+
+#[tauri::command]
+async fn open_memo_window(app: AppHandle) -> Result<(), String> {
+    let draft = memo_draft_text(&app);
+    if let Some(existing) = app.get_webview_window("memo-pad") {
+        let _ = existing.unminimize();
+        let _ = existing.show();
+        let _ = existing.set_focus();
+        let _ = existing.emit("memo-draft", &draft);
+        return Ok(());
+    }
+    let panel = app
+        .get_webview_window("main")
+        .ok_or_else(|| "패널을 열 수 없습니다.".to_string())?;
+    let mode = app
+        .state::<PanelState>()
+        .position
+        .lock()
+        .map(|value| value.clone())
+        .unwrap_or_else(|_| "bottom-right".to_string());
+    position_panel(&panel, &mode);
+    let _ = panel.unminimize();
+    let _ = panel.show();
+    let (start_w, start_h) = panel_inner_logical(&panel);
+    let url = if cfg!(dev) {
+        match &app.config().build.dev_url {
+            Some(dev_url) => WebviewUrl::External(dev_url.clone()),
+            None => WebviewUrl::App("index.html".into()),
+        }
+    } else {
+        WebviewUrl::App("index.html".into())
+    };
+    WebviewWindowBuilder::new(&app, "memo-pad", url)
+        .title("메모")
+        .inner_size(start_w, start_h)
+        .min_inner_size(280.0, 400.0)
+        .resizable(false)
+        .closable(true)
+        .visible(false)
+        .skip_taskbar(true)
+        .build()
+        .map_err(|err| err.to_string())?;
+    if let Some(created) = app.get_webview_window("memo-pad") {
+        if let Ok(pos) = panel.outer_position() {
+            let _ = created.set_position(pos);
+        }
+        let _ = created.set_size(Size::Logical(LogicalSize::new(start_w, start_h)));
+        let _ = created.emit("memo-draft", &draft);
+        let _ = created.show();
+    }
+    place_memo_next_to_panel(&app, &panel);
+    Ok(())
+}
+
+#[tauri::command]
+fn memo_draft(app: AppHandle) -> String {
+    memo_draft_text(&app)
+}
+
+#[tauri::command]
+fn set_memo_draft(app: AppHandle, text: String) {
+    let clipped = clip_memo_text(&text);
+    let state = app.state::<MemoDraft>();
+    let changed = {
+        let Ok(mut slot) = state.0.lock() else {
+            return;
+        };
+        if *slot == clipped {
+            false
+        } else {
+            *slot = clipped.clone();
+            true
+        }
+    };
+    if changed {
+        let _ = app.emit("memo-draft", &clipped);
+    }
 }
 
 #[tauri::command]
@@ -1269,6 +1413,7 @@ pub fn run() {
         .manage(RangeHalt(Arc::new(AtomicBool::new(false))))
         .manage(FolderWalkHalt(Arc::new(AtomicBool::new(false))))
         .manage(WorkMapFocus(Mutex::new(String::new())))
+        .manage(MemoDraft(Mutex::new(String::new())))
         .invoke_handler(tauri::generate_handler![
             hide_panel,
             show_panel,
@@ -1277,6 +1422,9 @@ pub fn run() {
             register_shortcut,
             open_work_map_window,
             work_map_root_id,
+            open_memo_window,
+            memo_draft,
+            set_memo_draft,
             reveal_topic,
             launch_tool,
             open_ie_reset,

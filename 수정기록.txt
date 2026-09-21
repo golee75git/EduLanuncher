@@ -6,6 +6,24 @@
 ---
 
 날짜: 2026-09-21
+버전: 0.1.62-20260921
+설치 파일: EduLauncher_0.1.62-20260921_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-21_2358_x64-setup.exe
+작성자: 요청자
+
+내용:
+홈 메모 크기를 패널을 채우는 화면에서, 런처 옆 창으로 바꿨다. 처음 열 때만 옆으로 밀고, 이동으로 창을 옮긴다. 패널을 숨기면 같이 숨기고, 다시 열면 옮긴 자리를 유지한다. 제목 줄 X로 닫으면 다음 크게는 다시 옆에서 연다. 메모 창은 저장 파일을 열지 않는다. 업무 그림 창은 그대로다.
+
+새로 작성한 파일: src/pages/MemoWindowPage.tsx
+재사용한 기존 파일: src-tauri/src/lib.rs, src-tauri/capabilities/default.json, src/App.tsx, src/components/MemoPad.tsx, src/services/windowService.ts, src/pages/SettingsPage.tsx, src/config/app.ts, website/src/config.ts, website/src/pages/IntroPage.tsx, src-tauri/tauri.conf.json, docs/HANDOFF.md, docs/PRD.md, docs/PLAN.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+삭제한 파일: src/pages/MemoPage.tsx
+
+라이선스: 패키지 추가는 없다. GPL 패키지는 사용하지 않는다. 글꼴은 기존처럼 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)만 쓰고 이 저장소에 글꼴 파일을 넣지 않는다.
+특허: 별도 창과 끌기 이동은 일반 OS 창 동작이다. 청구항 대조는 별도다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-21
 버전: 0.1.61-20260921
 설치 파일: EduLauncher_0.1.61-20260921_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-21_2340_x64-setup.exe

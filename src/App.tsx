@@ -13,7 +13,6 @@ import { WelcomeOverlay } from "./components/WelcomeOverlay";
 import { HomePage, type HomeAction } from "./pages/HomePage";
 import { CctvToolPage } from "./pages/CctvToolPage";
 import { InternalPlaceholderPage } from "./pages/InternalPlaceholderPage";
-import { MemoPage } from "./pages/MemoPage";
 import { NetworkToolPage } from "./pages/NetworkToolPage";
 import { NoticeAllPage } from "./pages/NoticeAllPage";
 import { NoticeItemPage } from "./pages/NoticeItemPage";
@@ -30,6 +29,7 @@ import { TopicDetailPage } from "./pages/TopicDetailPage";
 import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
+import { MemoWindowPage } from "./pages/MemoWindowPage";
 import { isFolderFindTarget } from "./data/computerTools";
 import { logEducationValidation } from "./services/mindMapService";
 import { LaunchError, launchTool } from "./services/launcherService";
@@ -39,7 +39,7 @@ import { focusSearchInput } from "./services/focusBus";
 import { showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
-import { hydrateMemo } from "./stores/memoStore";
+import { hydrateMemo, useMemoStore } from "./stores/memoStore";
 import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
 import { hydrateRecentTopics, useRecentTopicStore } from "./stores/recentTopicStore";
 import { hydrateTodos, useTodoStore } from "./stores/todoStore";
@@ -62,7 +62,6 @@ type View =
   | { name: "pc-address" }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
-  | { name: "memo" }
   | { name: "internal"; id: string; title: string };
 
 function currentWindowLabel(): string {
@@ -96,6 +95,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
   const mapWindow = currentWindowLabel() === "work-map";
+  const memoWindow = currentWindowLabel() === "memo-pad";
 
   const toast = useCallback((message: string) => {
     setNotice(message);
@@ -209,7 +209,7 @@ export default function App() {
     const unlisteners: Array<() => void> = [];
 
     const bootstrap = async () => {
-      if (mapWindow) {
+      if (mapWindow || memoWindow) {
         if (!cancelled) {
           setReady(true);
         }
@@ -223,6 +223,11 @@ export default function App() {
         await hydrateMemo();
         await hydrateNotices();
         await hydrateRecentTopics();
+        try {
+          await invoke("set_memo_draft", { text: useMemoStore.getState().text });
+        } catch {
+          // Command is unavailable in browser preview.
+        }
         logEducationValidation();
         if (cancelled) {
           return;
@@ -261,6 +266,18 @@ export default function App() {
         }),
         await listen<string>("apply-notice-pack", (event) => {
           void applyPackPath(event.payload);
+        }),
+        await listen<string>("memo-draft", (event) => {
+          if (typeof event.payload !== "string") {
+            return;
+          }
+          const next = event.payload;
+          const store = useMemoStore.getState();
+          if (store.text === next) {
+            return;
+          }
+          store.setText(next);
+          void store.persist();
         }),
       ];
       if (cancelled) {
@@ -414,6 +431,10 @@ export default function App() {
     return <WorkMapWindowPage />;
   }
 
+  if (memoWindow) {
+    return <MemoWindowPage />;
+  }
+
   return (
     <DropZone
       onPackFile={applyPackPath}
@@ -518,7 +539,6 @@ export default function App() {
               onBack={() => setView(view.backTo ?? { name: "home" })}
             />
           ) : null}
-          {view.name === "memo" ? <MemoPage onBack={() => setView({ name: "home" })} /> : null}
           {view.name === "internal" && (view.id === "pc-address" || view.id === "pc-sys:pc-address") ? (
             <ThisPcAddressPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -552,7 +572,7 @@ export default function App() {
             />
           ) : null}
         </div>
-        {view.name === "home" ? <MemoPad onOpen={() => setView({ name: "memo" })} /> : null}
+        {view.name === "home" ? <MemoPad /> : null}
         {view.name !== "home" ? (
           <div className="absolute bottom-3 right-3 z-40 flex items-center gap-1">
             {view.name === "topic" ? (

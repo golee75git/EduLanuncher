@@ -1,5 +1,13 @@
 import { useEffect, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { useMemoStore } from "../stores/memoStore";
+import { openMemoWindow } from "../services/windowService";
+
+function pushDraft(text: string) {
+  void invoke("set_memo_draft", { text }).catch(() => {
+    // Command is unavailable in browser preview.
+  });
+}
 
 function MemoEditor({ large = false }: { large?: boolean }) {
   const text = useMemoStore((state) => state.text);
@@ -19,6 +27,7 @@ function MemoEditor({ large = false }: { large?: boolean }) {
       placeholder="이 PC에만 저장됩니다"
       onChange={(event) => {
         setText(event.target.value);
+        pushDraft(event.target.value);
         window.clearTimeout(timer.current);
         timer.current = window.setTimeout(() => {
           void persist();
@@ -37,11 +46,7 @@ function MemoEditor({ large = false }: { large?: boolean }) {
   );
 }
 
-interface MemoPadProps {
-  onOpen: () => void;
-}
-
-export function MemoPad({ onOpen }: MemoPadProps) {
+export function MemoPad() {
   return (
     <section className="shrink-0 border-t border-line/70 bg-paper px-3 py-2">
       <div className="mb-1.5 flex items-center gap-1">
@@ -49,7 +54,7 @@ export function MemoPad({ onOpen }: MemoPadProps) {
         <button
           type="button"
           className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
-          onClick={onOpen}
+          onClick={() => void openMemoWindow()}
         >
           크게
         </button>
