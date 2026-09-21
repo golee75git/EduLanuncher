@@ -6,6 +6,46 @@
 ---
 
 날짜: 2026-09-21
+버전: 0.1.55-20260921
+설치 파일: EduLauncher_0.1.55-20260921_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-21_1953_x64-setup.exe
+
+한 일
+- 설정의 교육 바로가기 추가 단추를 뺀다.
+- 처음 설치에는 사이트·프로그램·파일·폴더 샘플을 넣지 않는다.
+- 업무도구는 Network·CCTV·주소 무늬만 넣고, 컴퓨터도구·업무자료는 앱에 그대로 둔다.
+- 이미 쓰는 PC의 바로가기 목록은 지우지 않는다.
+
+새로 작성한 파일
+- 없음
+
+재사용한 기존 파일
+- src/data/sampleTools.ts
+- src/stores/toolStore.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+글꼴
+- Windows 시스템 글꼴. OFL 글꼴 파일 추가 없음
+
+라이선스
+- 패키지 추가 없음. GPL 신규 도입 없음
+
+보안
+- 기존 목록 파일을 지우지 않음. 바깥 주소를 새로 넣지 않음
+
+PATENT_REVIEW
+- 빈 칸에서 사용자가 넣고 Pack으로 나누는 일반 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-09-21
 버전: 0.1.54-20260921
 설치 파일: EduLauncher_0.1.54-20260921_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-21_0736_x64-setup.exe

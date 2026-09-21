@@ -5,7 +5,7 @@ import { APP_CONFIG } from "../config/app";
 import { applyPackFromPath } from "../services/applyNoticePack";
 import { launchQuickUrl } from "../services/launcherService";
 import { applyLauncherBackup, buildLauncherBackup, parseLauncherBackup } from "../services/backupService";
-import { buildLauncherPack, describePackApply } from "../services/launcherPackService";
+import { buildLauncherPack } from "../services/launcherPackService";
 import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/noticePackService";
 import type { NoticePack } from "../types/notice";
 import { useSettingsStore } from "../stores/settingsStore";
@@ -22,7 +22,6 @@ interface SettingsPageProps {
 export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePack }: SettingsPageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const update = useSettingsStore((state) => state.update);
-  const applyEducationPack = useToolStore((state) => state.applyEducationPack);
   const tools = useToolStore((state) => state.tools);
   const [packMessage, setPackMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
@@ -125,24 +124,14 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
 
         <SettingsCard title="바로가기 Pack">
           <p className="text-xs leading-5 text-quiet">
-            공개 사이트 바로가기와 아이콘을 Pack으로 나눠 줍니다. 사이트에서 그림을 받아오지 않습니다.
+            이 PC에서 넣은 바로가기를 Pack으로 나눠 줍니다. 사이트에서 그림을 받아오지 않습니다.
             같은 도구 ID면 아이콘만 바뀌고, 없는 바로가기는 추가됩니다.
             브라우저 주소나 .url 바로가기를 패널에 놓아도 넣습니다.
+            처음 설치에는 사이트·프로그램·파일·폴더가 비어 있습니다. 업무도구와 컴퓨터도구는 앱에 있습니다.
           </p>
           <button
             type="button"
             className="btn-primary"
-            onClick={() => {
-              void applyEducationPack().then((result) => {
-                setPackMessage(describePackApply(result.added, result.updated));
-              });
-            }}
-          >
-            교육 바로가기 추가
-          </button>
-          <button
-            type="button"
-            className="btn-secondary"
             onClick={() => {
               void (async () => {
                 try {
@@ -337,7 +326,7 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
             <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다.</li>
             <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨과 모두 목록 1열·2열을 고릅니다.</li>
-            <li>카드의 별을 끄면 홈에서만 빠집니다. 목록에서 빼려면 빼기 확인을 거칩니다.</li>
+            <li>처음 설치에는 사이트·프로그램·파일·폴더가 비어 있습니다. + 또는 끌어놓기로 넣고, 설정에서 Pack으로 나눠 줍니다. 이미 쓰는 PC의 바로가기 목록은 그대로입니다. 업무도구에는 Network·CCTV·주소 무늬가 있고, 컴퓨터도구와 업무자료는 앱에 있습니다.</li>
             <li>바로가기 위에 마우스를 올리면 설명이 나옵니다. 설명이 없으면 이름이 나옵니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다.</li>

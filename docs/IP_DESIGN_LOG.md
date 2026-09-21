@@ -1254,3 +1254,25 @@ Difference:
 
 PATENT_REVIEW:
 화면 전환 단추 배치. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Empty first-run shortcuts except common work tools
+
+Purpose:
+처음 설치에 사이트 샘플을 넣지 않고, 업무도구·컴퓨터도구는 공통으로 둔다
+
+Design source:
+내부 요구사항. 기존 시드와 설정 Pack 칸
+
+Implementation:
+목록이 비어 있을 때만 Network·CCTV·주소 무늬를 넣는다. 교육 Pack 3개와 나이스 등 샘플은 넣지 않는다. 설정의 교육 바로가기 추가 단추를 뺀다. 이미 있는 목록 파일은 지우지 않는다
+
+External code:
+없음
+
+Difference:
+외부 런처의 기본 바로가기 세트를 베끼지 않음
+
+PATENT_REVIEW:
+빈 칸에서 사용자가 넣고 Pack으로 나누는 일반 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { EDUCATION_PACK, mergePackTools, type LauncherPack } from "../data/educationPack";
-import { SAMPLE_TOOLS, URL_MARK_TOOL } from "../data/sampleTools";
+import { COMMON_WORK_TOOLS, URL_MARK_TOOL } from "../data/sampleTools";
 import { loadTools, saveTools } from "../services/storageService";
 import type { ToolItem } from "../types/tool";
 
@@ -9,7 +9,6 @@ interface ToolState {
   loaded: boolean;
   hydrate: (tools: ToolItem[]) => void;
   seedIfEmpty: () => Promise<void>;
-  applyEducationPack: () => Promise<{ added: number; updated: number }>;
   applyLauncherPack: (pack: LauncherPack) => Promise<{ added: number; updated: number }>;
   addTool: (tool: ToolItem) => Promise<void>;
   updateTool: (id: string, patch: Partial<ToolItem>) => Promise<void>;
@@ -44,24 +43,9 @@ export const useToolStore = create<ToolState>((set, get) => ({
     if (get().tools.length > 0) {
       return;
     }
-    const { tools } = mergePackTools(
-      EDUCATION_PACK.tools.map((tool) => ({
-        ...tool,
-        origin: "pack" as const,
-        packName: EDUCATION_PACK.name,
-      })),
-      SAMPLE_TOOLS.map((tool) => ({ ...tool, origin: "local" as const })),
-    );
+    const tools = COMMON_WORK_TOOLS.map((tool) => ({ ...tool, origin: "local" as const }));
     set({ tools });
     await persist(tools);
-  },
-  applyEducationPack: async () => {
-    const { tools, added, updated } = mergePackTools(get().tools, EDUCATION_PACK.tools, {
-      name: EDUCATION_PACK.name,
-    });
-    set({ tools });
-    await persist(tools);
-    return { added, updated };
   },
   applyLauncherPack: async (pack) => {
     const { tools, added, updated } = mergePackTools(get().tools, pack.tools, { name: pack.name });
