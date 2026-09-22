@@ -6,6 +6,23 @@
 ---
 
 날짜: 2026-09-22
+버전: 0.1.64-20260922
+설치 파일: EduLauncher_0.1.64-20260922_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-22_1045_x64-setup.exe
+작성자: 요청자
+
+내용:
+폴더(type folder)만 C:\Windows\explorer.exe에 경로를 넘겨 열도록 바꿨다. 파일·프로그램·사이트는 그대로다. 셸 문자열을 이어 붙이지 않고 인자로만 넘긴다. Windows 탐색기 첫 창 제목 줄이 검게 보이는 경우를 줄이려는 시도다. OS 표시는 보장하지 않는다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src-tauri/src/lib.rs, src-tauri/tauri.conf.json, src/config/app.ts, website/src/config.ts, src/pages/SettingsPage.tsx, docs/HANDOFF.md, docs/PRD.md, docs/PLAN.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+라이선스: 패키지 추가는 없다. GPL 패키지는 사용하지 않는다. 글꼴은 기존처럼 Windows 시스템 글꼴만 쓴다.
+특허: 고정 explorer.exe 호출은 일반 OS 동작이다. 청구항 대조는 별도다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-22
 버전: 0.1.63-20260922
 설치 파일: EduLauncher_0.1.63-20260922_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-22_1008_x64-setup.exe

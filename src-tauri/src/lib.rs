@@ -800,7 +800,7 @@ fn register_shortcut(app: AppHandle, shortcut: String) -> Result<(), String> {
 #[tauri::command]
 fn launch_tool(app: AppHandle, tool_type: String, target: String) -> LaunchResult {
     match tool_type.as_str() {
-        "file" | "folder" => {
+        "file" => {
             if !PathBuf::from(&target).exists() {
                 return LaunchResult {
                     ok: false,
@@ -821,6 +821,7 @@ fn launch_tool(app: AppHandle, tool_type: String, target: String) -> LaunchResul
                 },
             }
         }
+        "folder" => open_folder_with_explorer(&target),
         "app" => {
             if !PathBuf::from(&target).exists() {
                 return LaunchResult {
@@ -868,6 +869,48 @@ fn launch_tool(app: AppHandle, tool_type: String, target: String) -> LaunchResul
             error: Some("unsupported".into()),
             path: Some(target),
         },
+    }
+}
+
+fn open_folder_with_explorer(target: &str) -> LaunchResult {
+    let path = PathBuf::from(target);
+    if !path.is_dir() {
+        return LaunchResult {
+            ok: false,
+            error: Some("not_found".into()),
+            path: Some(target.to_string()),
+        };
+    }
+    #[cfg(windows)]
+    {
+        let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
+        if !explorer.is_file() {
+            return LaunchResult {
+                ok: false,
+                error: Some("폴더를 열 수 없습니다.".into()),
+                path: Some(target.to_string()),
+            };
+        }
+        match std::process::Command::new(&explorer).arg(&path).spawn() {
+            Ok(_) => LaunchResult {
+                ok: true,
+                error: None,
+                path: None,
+            },
+            Err(err) => LaunchResult {
+                ok: false,
+                error: Some(err.to_string()),
+                path: Some(target.to_string()),
+            },
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        LaunchResult {
+            ok: false,
+            error: Some("unsupported".into()),
+            path: Some(target.to_string()),
+        }
     }
 }
 

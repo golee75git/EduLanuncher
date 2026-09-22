@@ -1424,3 +1424,28 @@ Difference:
 PATENT_REVIEW:
 OS 창 크기 조절은 일반 UI. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Open folders with explorer.exe
+
+Purpose:
+런처에서 폴더를 처음 열 때 Windows 탐색기 제목 줄이 검게 보이는 경우를 줄이기 위함
+
+Design source:
+내부 요구사항. Windows 탐색기를 직접 호출
+
+Implementation:
+`type`이 `folder`일 때만 `C:\Windows\explorer.exe`에 폴더 경로를 인자로 넘긴다. 디렉터리가 아니면 열지 않는다. 파일·프로그램·사이트는 기존 `open_path`·실행 방식을 유지한다. 셸 문자열 조합 없음
+
+External code:
+없음
+
+Potential similar products:
+바탕화면에서 폴더 열기, 시작 메뉴
+
+Difference:
+탐색기 테마를 바꾸지 않고, 폴더만 고정된 explorer.exe로 연다
+
+PATENT_REVIEW:
+고정 실행 파일로 폴더를 여는 일반 OS 호출. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
