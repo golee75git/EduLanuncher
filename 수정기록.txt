@@ -6,6 +6,24 @@
 ---
 
 날짜: 2026-09-22
+버전: 0.1.71-20260922
+설치 파일: EduLauncher_0.1.71-20260922_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-22_2304_x64-setup.exe
+작성자: 요청자
+
+내용:
+패널 가로 너비가 약 560px 이상이면 홈 자주 사용하는 도구와 모두(2열 설정) 목록을 3열로 보이게 했다. 모두 1열 설정은 그대로 1열이다. FavoriteGrid에 3열을 추가했다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/types/settings.ts, src/components/FavoriteGrid.tsx, src/pages/HomePage.tsx, src/pages/ToolGroupPage.tsx, src/pages/SettingsPage.tsx, src-tauri/tauri.conf.json, src/config/app.ts, website/src/config.ts, docs/*, 수정기록.txt
+
+라이선스: 패키지 추가 없음. GPL 없음. 글꼴은 Windows 시스템 글꼴.
+특허: 너비에 따른 목록 열은 일반 UI. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+보안: 표시만 변경. panelWidth는 기존 설정 값.
+
+---
+
+날짜: 2026-09-22
 버전: 0.1.70-20260922
 설치 파일: EduLauncher_0.1.70-20260922_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-22_2255_x64-setup.exe

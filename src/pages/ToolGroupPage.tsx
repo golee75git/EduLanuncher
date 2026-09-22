@@ -4,6 +4,7 @@ import { FavoriteGrid } from "../components/FavoriteGrid";
 import { toolGroupLabel } from "../data/toolGroups";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
+import { allListColumns } from "../types/settings";
 import type { ToolItem, ToolType } from "../types/tool";
 
 interface ToolGroupPageProps {
@@ -32,6 +33,7 @@ export function ToolGroupPage({
   const tools = useToolStore((state) => state.tools);
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
   const listColumns = useSettingsStore((state) => state.settings.listColumns);
+  const panelWidth = useSettingsStore((state) => state.settings.panelWidth);
   const items = useMemo(
     () =>
       tools
@@ -99,7 +101,7 @@ export function ToolGroupPage({
         <FavoriteGrid
           tools={items}
           layout="list"
-          columns={listColumns}
+          columns={allListColumns(panelWidth, listColumns)}
           emptyText="이 종류의 도구가 없습니다. + 버튼으로 추가하세요."
           onLaunch={onLaunch}
           onFavorite={(tool) => void toggleFavorite(tool.id)}

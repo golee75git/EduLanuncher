@@ -1,6 +1,7 @@
 export type LauncherPosition = "bottom-right" | "center";
 export type PanelSkin = "paper" | "bright" | "dusk";
 export type ListColumns = 1 | 2;
+export type GridColumns = 1 | 2 | 3;
 
 export const PANEL_SIZE = {
   defaultWidth: 440,
@@ -10,6 +11,9 @@ export const PANEL_SIZE = {
   maxWidth: 720,
   maxHeight: 900,
 } as const;
+
+/** 이 너비 이상이면 홈·모두(2열 설정) 목록을 3열로 둔다. */
+export const LIST_THREE_COL_MIN_WIDTH = 560;
 
 export const MEMO_SIZE = {
   defaultWidth: 440,
@@ -57,6 +61,19 @@ export function asPanelWidth(value: unknown): number {
     return PANEL_SIZE.defaultWidth;
   }
   return Math.min(PANEL_SIZE.maxWidth, Math.max(PANEL_SIZE.minWidth, Math.round(parsed)));
+}
+
+/** 홈 자주 사용: 좁으면 2열, 넓으면 3열. */
+export function homeListColumns(panelWidth: unknown): 2 | 3 {
+  return asPanelWidth(panelWidth) >= LIST_THREE_COL_MIN_WIDTH ? 3 : 2;
+}
+
+/** 모두 목록: 1열 설정은 유지, 2열 설정은 너비에 따라 2·3열. */
+export function allListColumns(panelWidth: unknown, preferred: ListColumns): GridColumns {
+  if (preferred === 1) {
+    return 1;
+  }
+  return homeListColumns(panelWidth);
 }
 
 export function asPanelHeight(value: unknown): number {

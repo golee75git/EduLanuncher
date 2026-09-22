@@ -28,6 +28,7 @@ import { getSchools } from "../stores/schoolStore";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
+import { homeListColumns } from "../types/settings";
 import type { NoticeItem } from "../types/notice";
 import type { SchoolItem } from "../types/school";
 import type { ToolItem, ToolType } from "../types/tool";
@@ -416,7 +417,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                     <FavoriteGrid
                       tools={group.shown}
                       layout="list"
-                      columns={2}
+                      columns={homeListColumns(settings.panelWidth)}
                       emptyText={favoriteEmptyText(group.type)}
                       selectedId={selectedId?.startsWith("fav:") ? selectedId.slice(4) : undefined}
                       onLaunch={(tool) => onAction({ type: "launch", tool })}

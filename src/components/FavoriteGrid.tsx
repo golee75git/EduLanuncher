@@ -6,7 +6,7 @@ interface FavoriteGridProps {
   selectedId?: string;
   emptyText?: string;
   layout?: "grid" | "list";
-  columns?: 1 | 2;
+  columns?: 1 | 2 | 3;
   onLaunch: (tool: ToolItem) => void;
   onFavorite: (tool: ToolItem) => void;
   onEdit: (tool: ToolItem) => void;
@@ -29,8 +29,14 @@ export function FavoriteGrid({
   }
 
   if (layout === "list") {
+    const gridClass =
+      columns === 3
+        ? "grid grid-cols-3 gap-1"
+        : columns === 2
+          ? "grid grid-cols-2 gap-1"
+          : "space-y-1";
     return (
-      <div className={columns === 2 ? "grid grid-cols-2 gap-1" : "space-y-1"}>
+      <div className={gridClass}>
         {tools.map((tool) => (
           <ToolCard
             key={tool.id}
