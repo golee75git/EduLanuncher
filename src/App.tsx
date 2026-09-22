@@ -18,6 +18,7 @@ import { NoticeAllPage } from "./pages/NoticeAllPage";
 import { NoticeItemPage } from "./pages/NoticeItemPage";
 import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SharePackSavePage } from "./pages/SharePackSavePage";
 import { ComputerToolPage } from "./pages/ComputerToolPage";
 import { ShortcutPage } from "./pages/ShortcutPage";
 import { PcFolderFindPage } from "./pages/PcFolderFindPage";
@@ -54,6 +55,7 @@ type View =
   | { name: "home"; search?: string }
   | { name: "settings" }
   | { name: "notice-edit" }
+  | { name: "share-edit" }
   | { name: "notices" }
   | { name: "notice-item"; item?: NoticeItem; backTo?: View }
   | { name: "tool-group"; groupType: ToolType }
@@ -506,6 +508,7 @@ export default function App() {
             <SettingsPage
               onBack={() => setView({ name: "home" })}
               onWriteNotices={() => setView({ name: "notice-edit" })}
+              onWriteSharePack={() => setView({ name: "share-edit" })}
               onTopicReview={() => setView({ name: "topic-review" })}
               onNoticePack={(pack, sitePack) => {
                 setPackPick({ pack, sitePack });
@@ -515,6 +518,9 @@ export default function App() {
           ) : null}
           {view.name === "notice-edit" ? (
             <NoticePackPage onBack={() => setView({ name: "settings" })} />
+          ) : null}
+          {view.name === "share-edit" ? (
+            <SharePackSavePage onBack={() => setView({ name: "settings" })} />
           ) : null}
           {view.name === "notices" ? (
             <NoticeAllPage

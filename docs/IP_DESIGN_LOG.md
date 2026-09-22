@@ -1485,7 +1485,7 @@ Design source:
 내부 요구사항. 기존 공지 Pack·사이트 Pack·백업과 구분
 
 Implementation:
-`kind: "edulauncher-share"`. notices와 url 타입 tools만. 할 일·메모·설정 없음. 가져올 때 공지는 고르기, 사이트는 넣기와 함께 병합. 백업(`edulauncher-backup`)보다 앞에서 판별하지 않고 백업 다음·일반 notices 앞에서 판별. 설정에서 저장·가져오기
+`kind: "edulauncher-share"`. notices와 url 타입 tools만. 할 일·메모·설정 없음. 저장 시 공지·사이트를 고른 뒤 파일로 씀. 가져올 때 공지는 고르기, 사이트는 넣기와 함께 병합. 백업(`edulauncher-backup`) 다음·일반 notices 앞에서 판별. 설정에서 고르기 화면·가져오기
 
 External code:
 없음

@@ -6,6 +6,24 @@
 ---
 
 날짜: 2026-09-22
+버전: 0.1.69-20260922
+설치 파일: EduLauncher_0.1.69-20260922_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-22_2245_x64-setup.exe
+작성자: 요청자
+
+내용:
+공지·사이트 Pack 저장 시 공지와 사이트를 고른 뒤 파일로 쓰도록 바꿨다. 기본은 모두 선택. 모두/없음 단추. 할 일·메모·설정은 여전히 넣지 않는다.
+
+새로 작성한 파일: src/pages/SharePackSavePage.tsx
+재사용한 기존 파일: src/App.tsx, src/pages/SettingsPage.tsx, src/services/sharePackService.ts, src-tauri/tauri.conf.json, src/config/app.ts, website/src/config.ts, docs/HANDOFF.md, docs/PRD.md, docs/PLAN.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+라이선스: 패키지 추가는 없다. GPL 없음. 글꼴은 Windows 시스템 글꼴.
+특허: 로컬 목록 선택 저장 UI. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+보안: 고른 id만 파일에 넣음. 게시판 수집 없음.
+
+---
+
+날짜: 2026-09-22
 버전: 0.1.68-20260922
 설치 파일: EduLauncher_0.1.68-20260922_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-22_2235_x64-setup.exe
