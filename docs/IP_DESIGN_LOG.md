@@ -824,7 +824,7 @@ PATENT_REVIEW:
 
 ---
 
-Feature: 주소 무늬 screen
+Feature: 주소 무늬 screen (UI: QR코드 넣기)
 
 Purpose:
 이 PC 그림 오른쪽 아래에 http(s) 주소 QR코드를 넣고 PNG로 저장
