@@ -1,7 +1,15 @@
 import { applyLauncherBackup, isLauncherBackup, parseLauncherBackup } from "./backupService";
 import { parseNoticePack, readJsonFile } from "./noticePackService";
 import { describePackApply, parseLauncherPack } from "./launcherPackService";
+import {
+  describeShareContents,
+  isSharePack,
+  parseSharePack,
+  shareLauncherPack,
+  shareNoticePack,
+} from "./sharePackService";
 import { useToolStore } from "../stores/toolStore";
+import type { LauncherPack } from "../data/educationPack";
 import type { NoticePack } from "../types/notice";
 
 export function isPackPath(path: string): boolean {
@@ -12,7 +20,7 @@ export const isNoticePackPath = isPackPath;
 
 export type PackOpenResult =
   | { mode: "done"; message: string }
-  | { mode: "notice-pick"; pack: NoticePack };
+  | { mode: "notice-pick"; pack: NoticePack; sitePack?: LauncherPack };
 
 export async function applyNoticePackFromPath(path: string): Promise<PackOpenResult> {
   return openPackFromPath(path);
@@ -53,6 +61,22 @@ async function openParsedPack(parsed: unknown): Promise<PackOpenResult> {
   if (isLauncherBackup(parsed)) {
     const message = await applyLauncherBackup(parseLauncherBackup(parsed));
     return { mode: "done", message };
+  }
+  if (isSharePack(parsed)) {
+    const share = parseSharePack(parsed);
+    const noticePack = shareNoticePack(share);
+    const sitePack = shareLauncherPack(share);
+    if (noticePack) {
+      return { mode: "notice-pick", pack: noticePack, sitePack: sitePack ?? undefined };
+    }
+    if (sitePack) {
+      const result = await useToolStore.getState().applyLauncherPack(sitePack);
+      return {
+        mode: "done",
+        message: `${describeShareContents(share)}. ${describePackApply(result.added, result.updated)}`,
+      };
+    }
+    throw new Error("공지 또는 사이트 바로가기가 필요합니다.");
   }
   const source = parsed as Record<string, unknown>;
   if (Array.isArray(source.notices)) {

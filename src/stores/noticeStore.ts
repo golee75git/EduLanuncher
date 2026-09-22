@@ -88,7 +88,7 @@ export const useNoticeStore = create<NoticeState>((set, get) => ({
       .slice(0, room)
       .map((item) => ({
         ...item,
-        kind: pack.kind,
+        kind: noticeKindOf(item),
         origin: "pack" as const,
         packName: pack.name,
       }));

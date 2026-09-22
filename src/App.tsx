@@ -47,6 +47,7 @@ import { hydrateRecentTopics, useRecentTopicStore } from "./stores/recentTopicSt
 import { hydrateTodos, useTodoStore } from "./stores/todoStore";
 import { hydrateTools, useToolStore } from "./stores/toolStore";
 import type { NoticeItem, NoticePack } from "./types/notice";
+import type { LauncherPack } from "./data/educationPack";
 import type { ToolItem, ToolType } from "./types/tool";
 
 type View =
@@ -94,7 +95,7 @@ export default function App() {
   const [missing, setMissing] = useState<MissingState | null>(null);
   const [removeTarget, setRemoveTarget] = useState<ToolItem | null>(null);
   const [removeNotice, setRemoveNotice] = useState<NoticeItem | null>(null);
-  const [packPick, setPackPick] = useState<NoticePack | null>(null);
+  const [packPick, setPackPick] = useState<{ pack: NoticePack; sitePack?: LauncherPack } | null>(null);
   const [notice, setNotice] = useState("");
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
   const mapWindow = currentWindowLabel() === "work-map";
@@ -110,7 +111,7 @@ export default function App() {
       try {
         const result = await applyNoticePackFromPath(path);
         if (result.mode === "notice-pick") {
-          setPackPick(result.pack);
+          setPackPick({ pack: result.pack, sitePack: result.sitePack });
         } else {
           toast(result.message);
         }
@@ -129,7 +130,7 @@ export default function App() {
       try {
         const result = await applyPackFromText(contents);
         if (result.mode === "notice-pick") {
-          setPackPick(result.pack);
+          setPackPick({ pack: result.pack, sitePack: result.sitePack });
         } else {
           toast(result.message);
         }
@@ -506,8 +507,8 @@ export default function App() {
               onBack={() => setView({ name: "home" })}
               onWriteNotices={() => setView({ name: "notice-edit" })}
               onTopicReview={() => setView({ name: "topic-review" })}
-              onNoticePack={(pack) => {
-                setPackPick(pack);
+              onNoticePack={(pack, sitePack) => {
+                setPackPick({ pack, sitePack });
                 setView({ name: "home" });
               }}
             />
@@ -687,11 +688,12 @@ export default function App() {
         ) : null}
         {packPick ? (
           <NoticePackPick
-            pack={packPick}
+            pack={packPick.pack}
+            sitePack={packPick.sitePack}
             onClose={() => setPackPick(null)}
-            onAdded={(count) => {
+            onAdded={(message) => {
               setPackPick(null);
-              toast(count > 0 ? `공지 ${count}건을 넣었습니다.` : "넣을 항목이 없습니다.");
+              toast(message);
             }}
           />
         ) : null}

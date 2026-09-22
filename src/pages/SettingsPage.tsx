@@ -2,12 +2,15 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { APP_CONFIG } from "../config/app";
+import type { LauncherPack } from "../data/educationPack";
 import { applyPackFromPath } from "../services/applyNoticePack";
 import { launchQuickUrl } from "../services/launcherService";
 import { applyLauncherBackup, buildLauncherBackup, parseLauncherBackup } from "../services/backupService";
 import { buildLauncherPack } from "../services/launcherPackService";
 import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/noticePackService";
+import { buildSharePack } from "../services/sharePackService";
 import type { NoticePack } from "../types/notice";
+import { useNoticeStore } from "../stores/noticeStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
 import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
@@ -16,15 +19,17 @@ interface SettingsPageProps {
   onBack: () => void;
   onWriteNotices: () => void;
   onTopicReview: () => void;
-  onNoticePack: (pack: NoticePack) => void;
+  onNoticePack: (pack: NoticePack, sitePack?: LauncherPack) => void;
 }
 
 export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePack }: SettingsPageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const update = useSettingsStore((state) => state.update);
   const tools = useToolStore((state) => state.tools);
+  const notices = useNoticeStore((state) => state.notices);
   const [packMessage, setPackMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
+  const [shareMessage, setShareMessage] = useState("");
   const [backupMessage, setBackupMessage] = useState("");
 
   return (
@@ -144,7 +149,7 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
                   }
                   const result = await applyPackFromPath(selected);
                   if (result.mode === "notice-pick") {
-                    onNoticePack(result.pack);
+                    onNoticePack(result.pack, result.sitePack);
                     return;
                   }
                   setPackMessage(result.message);
@@ -185,6 +190,71 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
             사이트 아이콘 Pack 저장
           </button>
           {packMessage ? <p className="text-xs text-quiet">{packMessage}</p> : null}
+        </SettingsCard>
+
+        <SettingsCard title="공지·사이트 Pack">
+          <p className="text-xs leading-5 text-quiet">
+            이 PC의 공지와 사이트 바로가기만 한 파일로 나눠 줍니다. 할 일·메모·설정은 넣지 않습니다. 받는 쪽에서
+            공지는 고르고, 사이트는 함께 넣습니다. 백업 파일과는 다릅니다.
+          </p>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => {
+              void (async () => {
+                try {
+                  const pack = buildSharePack("공지·사이트 Pack", notices, tools);
+                  const selected = await save({
+                    defaultPath: "notice-site-pack.edupack",
+                    filters: [
+                      { name: "Pack", extensions: ["edupack"] },
+                      { name: "JSON", extensions: ["json"] },
+                    ],
+                  });
+                  if (typeof selected !== "string") {
+                    return;
+                  }
+                  const path = /\.(edupack|json)$/i.test(selected) ? selected : `${selected}.edupack`;
+                  await writeJsonFile(path, `${JSON.stringify(pack, null, 2)}\n`);
+                  setShareMessage(
+                    `공지 ${pack.notices.length}건, 사이트 ${pack.tools.length}개를 저장했습니다.`,
+                  );
+                } catch (error) {
+                  setShareMessage(error instanceof Error ? error.message : "저장하지 못했습니다.");
+                }
+              })();
+            }}
+          >
+            공지·사이트 Pack 저장
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              void (async () => {
+                try {
+                  const selected = await open({
+                    multiple: false,
+                    filters: [{ name: "Pack", extensions: ["edupack", "json"] }],
+                  });
+                  if (typeof selected !== "string") {
+                    return;
+                  }
+                  const result = await applyPackFromPath(selected);
+                  if (result.mode === "notice-pick") {
+                    onNoticePack(result.pack, result.sitePack);
+                    return;
+                  }
+                  setShareMessage(result.message);
+                } catch (error) {
+                  setShareMessage(error instanceof Error ? error.message : "Pack을 가져오지 못했습니다.");
+                }
+              })();
+            }}
+          >
+            공지·사이트 Pack 가져오기
+          </button>
+          {shareMessage ? <p className="text-xs text-quiet">{shareMessage}</p> : null}
         </SettingsCard>
 
         <SettingsCard title="공지">
@@ -319,6 +389,7 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
             <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다. 창 모서리를 끌어 크기를 바꿀 수 있고, 바꾼 크기는 이 PC에 남습니다. 처음 설치는 440×650입니다.</li>
             <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨과 모두 목록 1열·2열을 고릅니다.</li>
+            <li>설정의 공지·사이트 Pack으로 공지와 사이트 바로가기만 한 파일로 나눠 줍니다. 받는 쪽에서 공지는 고르고 사이트는 함께 넣습니다. 할 일·메모·설정은 넣지 않으며, 다른 PC로 옮기기(백업)와는 다릅니다.</li>
             <li>처음 설치에는 사이트·프로그램·파일·폴더와 할 일이 비어 있습니다. 홈의 자주 사용하는 도구에 끌어놓기나 + 안내가 나옵니다. 종류 이름(사이트·프로그램 등)은 구역 제목보다 한 단계 작게 두고, 모두·즐겨찾기 등 단추 글자는 그대로입니다. 종류마다 2열로 최대 6개까지 보이고, 더 있으면 모두에서 봅니다. + 또는 끌어놓기로 넣고, 설정에서 Pack으로 나눠 줍니다. 이미 쓰는 PC의 바로가기·할 일 목록은 그대로입니다. 업무도구에는 Network·CCTV·주소 무늬가 있고, 컴퓨터도구와 업무자료는 앱에 있습니다.</li>
             <li>바로가기 위에 마우스를 올리면 설명이 나옵니다. 설명이 없으면 이름이 나옵니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>

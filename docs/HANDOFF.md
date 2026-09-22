@@ -3,7 +3,7 @@
 기준일: 2026-09-21  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.67-20260922`
+최신 커밋 시점의 앱 버전: `0.1.68-20260922`
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 
@@ -58,8 +58,9 @@ npm run site:build
 Pack 분기 (`src/services/applyNoticePack.ts`):
 
 1. `kind === "edulauncher-backup"` → 백업 복원
-2. `notices` 배열 → 공지 Pack
-3. `tools` 배열 → 바로가기 Pack
+2. `kind === "edulauncher-share"` → 공지·사이트 Pack (공지 고르기 + 사이트 병합)
+3. `notices` 배열 → 공지 Pack
+4. `tools` 배열 → 바로가기 Pack
 
 끌어놓기: `dragDropEnabled: false` + HTML5 URL + Rust OLE(`drop_target.rs`)로 파일 경로.
 
@@ -88,7 +89,8 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - Pack vs 이 PC 표시, 홈 그룹 3개+모두(바로가기만)
 - 다른 PC용 백업 JSON (설정 화면)
 - git 연결, Cloudflare Workers 정적 사이트 (`website/`)
-- GitHub Release에 `0.1.67` 설치파일 업로드
+- GitHub Release에 `0.1.68` 설치파일 업로드
+- 공지·사이트 Pack(`edulauncher-share`): 공지+사이트 url만. 설정에서 저장·가져오기. 공지 고르기 후 사이트 병합. 백업·할 일·메모·설정 제외
 - 사이트 칸에서 이 PC Edge·Chrome 북마크와 Windows `.url` 목록
 - 업무도구 칸에서 컴퓨터도구(이 PC Windows 설정 화면, 이 PC IP 주소·사설/공인 IP, 제어판·소리·인터넷 옵션·작업 관리자·시스템 정보, 익스플로러 설정 복원 확인)
 - 업무도구 「주소 무늬」(이 PC 그림 + http(s) 주소 → PNG)

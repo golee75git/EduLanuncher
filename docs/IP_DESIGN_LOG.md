@@ -1474,3 +1474,28 @@ Difference:
 PATENT_REVIEW:
 고정 id로 OS 화면을 여는 일반 UI. 키 후킹·매크로와 다르다. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Notice and site share pack
+
+Purpose:
+기관이 공지와 사이트 바로가기만 한 파일로 직원 PC에 나눠 주기 위함
+
+Design source:
+내부 요구사항. 기존 공지 Pack·사이트 Pack·백업과 구분
+
+Implementation:
+`kind: "edulauncher-share"`. notices와 url 타입 tools만. 할 일·메모·설정 없음. 가져올 때 공지는 고르기, 사이트는 넣기와 함께 병합. 백업(`edulauncher-backup`)보다 앞에서 판별하지 않고 백업 다음·일반 notices 앞에서 판별. 설정에서 저장·가져오기
+
+External code:
+없음
+
+Potential similar products:
+인트라넷 배포 패키지, 런처 프리셋
+
+Difference:
+게시판 수집 없음. 이 PC 목록만 파일로 나눔. 전체 백업이 아님
+
+PATENT_REVIEW:
+로컬 JSON 병합·선택 UI. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
