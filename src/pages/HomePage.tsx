@@ -362,7 +362,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 {favoriteGroups.map((group) => (
                   <div key={group.type}>
                     <div className="mb-1.5 flex items-center gap-1">
-                      <h3 className="min-w-0 flex-1 text-[11px] text-quiet">{group.label}</h3>
+                      <h3 className="min-w-0 flex-1 text-[13px] font-medium text-desk">{group.label}</h3>
                       {group.type === "url" ? (
                         <button
                           type="button"
