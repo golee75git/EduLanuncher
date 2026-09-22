@@ -13,15 +13,21 @@ interface SharePackSavePageProps {
 
 export function SharePackSavePage({ onBack }: SharePackSavePageProps) {
   const notices = useNoticeStore((state) => state.notices);
-  const sites = useToolStore((state) =>
-    state.tools.filter((tool) => tool.type === "url" && tool.enabled !== false),
+  const tools = useToolStore((state) => state.tools);
+  const sites = useMemo(
+    () => tools.filter((tool) => tool.type === "url" && tool.enabled !== false),
+    [tools],
   );
   const [packName, setPackName] = useState("공지·사이트 Pack");
   const [noticePick, setNoticePick] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(notices.map((item) => [item.id, true])),
   );
   const [sitePick, setSitePick] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(sites.map((item) => [item.id, true])),
+    Object.fromEntries(
+      tools
+        .filter((tool) => tool.type === "url" && tool.enabled !== false)
+        .map((item) => [item.id, true]),
+    ),
   );
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
