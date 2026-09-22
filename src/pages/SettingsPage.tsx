@@ -317,7 +317,7 @@ export function SettingsPage({ onBack, onWriteNotices, onTopicReview, onNoticePa
             설치 파일 {APP_CONFIG.setupFile} · 날짜 복사본 {APP_CONFIG.setupFileDated} · {APP_CONFIG.version}
           </p>
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
-            <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다.</li>
+            <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다. 창 모서리를 끌어 크기를 바꿀 수 있고, 바꾼 크기는 이 PC에 남습니다. 처음 설치는 440×650입니다.</li>
             <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨과 모두 목록 1열·2열을 고릅니다.</li>
             <li>처음 설치에는 사이트·프로그램·파일·폴더와 할 일이 비어 있습니다. 홈의 자주 사용하는 도구에 끌어놓기나 + 안내가 나옵니다. 종류마다 2열로 최대 6개까지 보이고, 더 있으면 모두에서 봅니다. + 또는 끌어놓기로 넣고, 설정에서 Pack으로 나눠 줍니다. 이미 쓰는 PC의 바로가기·할 일 목록은 그대로입니다. 업무도구에는 Network·CCTV·주소 무늬가 있고, 컴퓨터도구와 업무자료는 앱에 있습니다.</li>
             <li>바로가기 위에 마우스를 올리면 설명이 나옵니다. 설명이 없으면 이름이 나옵니다.</li>

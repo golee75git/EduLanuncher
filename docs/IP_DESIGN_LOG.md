@@ -1399,3 +1399,28 @@ Difference:
 PATENT_REVIEW:
 별도 창과 끌기 이동은 일반 OS 창 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Resizable panel with remembered size
+
+Purpose:
+학교 사무 PC에서 패널 창 크기를 사용자에 맞게 바꾸고 다음 실행에도 같은 크기로 열기 위함
+
+Design source:
+내부 요구사항. Windows 창 테두리만 사용
+
+Implementation:
+`main` 창 `resizable: true`. 최소 400×550, 최대 720×900. 기본 440×650. `settings.json`에 `panelWidth`·`panelHeight` 저장. 시작·숨김·종료·리사이즈 후 저장. 전용 손잡이 UI·스냅·다른 런처 복제 없음
+
+External code:
+없음 (Tauri 공식 창 API)
+
+Potential similar products:
+일반 Windows 프로그램 창 크기 조절
+
+Difference:
+웹 반응형 그리드가 아니라 창 크기만 바꾸고, 안쪽은 기존 스크롤 레이아웃을 그대로 씀
+
+PATENT_REVIEW:
+OS 창 크기 조절은 일반 UI. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

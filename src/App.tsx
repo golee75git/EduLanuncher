@@ -39,6 +39,7 @@ import { focusSearchInput } from "./services/focusBus";
 import { showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
+import { asPanelHeight, asPanelWidth } from "./types/settings";
 import { hydrateMemo, useMemoStore } from "./stores/memoStore";
 import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
 import { hydrateRecentTopics, useRecentTopicStore } from "./stores/recentTopicStore";
@@ -303,6 +304,54 @@ export default function App() {
       unlisteners.forEach((unlisten) => unlisten());
     };
   }, []);
+
+  useEffect(() => {
+    if (mapWindow || memoWindow) {
+      return;
+    }
+    let cancelled = false;
+    let timer = 0;
+    let unlisten: (() => void) | undefined;
+    const wire = async () => {
+      try {
+        const panel = getCurrentWindow();
+        if (panel.label !== "main") {
+          return;
+        }
+        unlisten = await panel.onResized(() => {
+          window.clearTimeout(timer);
+          timer = window.setTimeout(() => {
+            void (async () => {
+              if (cancelled) {
+                return;
+              }
+              try {
+                const size = await panel.innerSize();
+                const scale = await panel.scaleFactor();
+                const width = asPanelWidth(Math.round(size.width / scale));
+                const height = asPanelHeight(Math.round(size.height / scale));
+                const current = useSettingsStore.getState().settings;
+                if (current.panelWidth === width && current.panelHeight === height) {
+                  return;
+                }
+                await useSettingsStore.getState().update({ panelWidth: width, panelHeight: height });
+              } catch {
+                // Window API unavailable in browser preview.
+              }
+            })();
+          }, 400);
+        });
+      } catch {
+        // Window API unavailable in browser preview.
+      }
+    };
+    void wire();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      unlisten?.();
+    };
+  }, [mapWindow, memoWindow]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

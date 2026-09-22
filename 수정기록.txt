@@ -1,7 +1,24 @@
 수정기록 — 교육업무 런처
-작성: 요청자 작업 기록 (2026-09-21)
+작성: 요청자 작업 기록 (2026-09-22)
 
 이 파일은 수정 내용을 남기기 위한 기록이다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-22
+버전: 0.1.63-20260922
+설치 파일: EduLauncher_0.1.63-20260922_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-22_1008_x64-setup.exe
+작성자: 요청자
+
+내용:
+패널 창 모서리로 크기를 바꿀 수 있게 했다. 바꾼 너비·높이는 이 PC settings.json에 남고, 다음 실행에도 그 크기로 연다. 처음 설치는 440×650이다. Windows 테두리만 쓰고, 다른 런처 손잡이 UI는 넣지 않았다. 업무 그림·메모 옆 창은 패널 높이를 따른다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/types/settings.ts, src/services/storageService.ts, src/stores/settingsStore.ts, src/services/backupService.ts, src/App.tsx, src-tauri/src/lib.rs, src-tauri/tauri.conf.json, src/pages/SettingsPage.tsx, src/config/app.ts, website/src/config.ts, website/src/pages/IntroPage.tsx, docs/HANDOFF.md, docs/PRD.md, docs/PLAN.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+라이선스: 패키지 추가는 없다. GPL 패키지는 사용하지 않는다. 글꼴은 기존처럼 Windows 시스템 글꼴만 쓴다.
+특허: Windows 창 크기 조절은 일반 OS 동작이다. 청구항 대조는 별도다. 특허 비침해를 보장하지 않는다.
 
 ---
 

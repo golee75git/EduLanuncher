@@ -1,7 +1,14 @@
 import { Store } from "@tauri-apps/plugin-store";
 import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type StoredNotices } from "../types/notice";
-import { DEFAULT_SETTINGS, asListColumns, asPanelSkin, type AppSettings } from "../types/settings";
+import {
+  DEFAULT_SETTINGS,
+  asListColumns,
+  asPanelHeight,
+  asPanelSkin,
+  asPanelWidth,
+  type AppSettings,
+} from "../types/settings";
 import type { RecentTopicItem } from "../types/recentTopic";
 import type { TodoItem } from "../types/todo";
 import type { ToolItem } from "../types/tool";
@@ -68,6 +75,8 @@ export async function loadSettings(): Promise<AppSettings> {
     ...merged,
     panelSkin: asPanelSkin(merged.panelSkin),
     listColumns: asListColumns(merged.listColumns),
+    panelWidth: asPanelWidth(merged.panelWidth),
+    panelHeight: asPanelHeight(merged.panelHeight),
   };
 }
 

@@ -2,6 +2,15 @@ export type LauncherPosition = "bottom-right" | "center";
 export type PanelSkin = "paper" | "bright" | "dusk";
 export type ListColumns = 1 | 2;
 
+export const PANEL_SIZE = {
+  defaultWidth: 440,
+  defaultHeight: 650,
+  minWidth: 400,
+  minHeight: 550,
+  maxWidth: 720,
+  maxHeight: 900,
+} as const;
+
 export interface AppSettings {
   autoStart: boolean;
   showWindowOnLaunch: boolean;
@@ -13,6 +22,8 @@ export interface AppSettings {
   onboarded: boolean;
   panelSkin: PanelSkin;
   listColumns: ListColumns;
+  panelWidth: number;
+  panelHeight: number;
 }
 
 export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: string }> = [
@@ -29,6 +40,22 @@ export function asListColumns(value: unknown): ListColumns {
   return value === 2 || value === "2" ? 2 : 1;
 }
 
+export function asPanelWidth(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) {
+    return PANEL_SIZE.defaultWidth;
+  }
+  return Math.min(PANEL_SIZE.maxWidth, Math.max(PANEL_SIZE.minWidth, Math.round(parsed)));
+}
+
+export function asPanelHeight(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) {
+    return PANEL_SIZE.defaultHeight;
+  }
+  return Math.min(PANEL_SIZE.maxHeight, Math.max(PANEL_SIZE.minHeight, Math.round(parsed)));
+}
+
 export const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   showWindowOnLaunch: false,
@@ -40,4 +67,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboarded: false,
   panelSkin: "paper",
   listColumns: 1,
+  panelWidth: PANEL_SIZE.defaultWidth,
+  panelHeight: PANEL_SIZE.defaultHeight,
 };

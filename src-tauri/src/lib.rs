@@ -42,6 +42,87 @@ struct WorkMapFocus(Mutex<String>);
 
 struct MemoDraft(Mutex<String>);
 
+const PANEL_DEFAULT_W: f64 = 440.0;
+const PANEL_DEFAULT_H: f64 = 650.0;
+const PANEL_MIN_W: f64 = 400.0;
+const PANEL_MIN_H: f64 = 550.0;
+const PANEL_MAX_W: f64 = 720.0;
+const PANEL_MAX_H: f64 = 900.0;
+
+fn clip_panel_size(width: f64, height: f64) -> (f64, f64) {
+    (
+        width.clamp(PANEL_MIN_W, PANEL_MAX_W),
+        height.clamp(PANEL_MIN_H, PANEL_MAX_H),
+    )
+}
+
+fn read_saved_panel_size(app: &AppHandle) -> (f64, f64) {
+    use tauri_plugin_store::StoreExt;
+
+    let Ok(store) = app.store("settings.json") else {
+        return (PANEL_DEFAULT_W, PANEL_DEFAULT_H);
+    };
+    let value = store.get("value");
+    let width = value
+        .as_ref()
+        .and_then(|entry| entry.get("panelWidth"))
+        .and_then(|entry| entry.as_f64())
+        .unwrap_or(PANEL_DEFAULT_W);
+    let height = value
+        .as_ref()
+        .and_then(|entry| entry.get("panelHeight"))
+        .and_then(|entry| entry.as_f64())
+        .unwrap_or(PANEL_DEFAULT_H);
+    clip_panel_size(width, height)
+}
+
+fn save_panel_size(app: &AppHandle, width: f64, height: f64) {
+    use tauri_plugin_store::StoreExt;
+
+    let (width, height) = clip_panel_size(width, height);
+    let Ok(store) = app.store("settings.json") else {
+        return;
+    };
+    let mut value = store
+        .get("value")
+        .and_then(|entry| entry.as_object().cloned())
+        .unwrap_or_default();
+    value.insert(
+        "panelWidth".into(),
+        serde_json::Value::from(width.round() as u32),
+    );
+    value.insert(
+        "panelHeight".into(),
+        serde_json::Value::from(height.round() as u32),
+    );
+    let _ = store.set("value", serde_json::Value::Object(value));
+    let _ = store.save();
+}
+
+fn panel_logical_size(window: &tauri::WebviewWindow) -> (f64, f64) {
+    let scale = window.scale_factor().unwrap_or(1.0);
+    let inner = window
+        .inner_size()
+        .unwrap_or(tauri::PhysicalSize::new(
+            (PANEL_DEFAULT_W * scale).round() as u32,
+            (PANEL_DEFAULT_H * scale).round() as u32,
+        ));
+    clip_panel_size(
+        inner.width as f64 / scale,
+        inner.height as f64 / scale,
+    )
+}
+
+fn apply_panel_size(window: &tauri::WebviewWindow, width: f64, height: f64) {
+    let (width, height) = clip_panel_size(width, height);
+    let _ = window.set_size(Size::Logical(LogicalSize::new(width, height)));
+}
+
+fn persist_panel_size(app: &AppHandle, window: &tauri::WebviewWindow) {
+    let (width, height) = panel_logical_size(window);
+    save_panel_size(app, width, height);
+}
+
 fn clip_memo_text(raw: &str) -> String {
     raw.chars()
         .filter(|ch| *ch == '\n' || *ch == '\r' || *ch == '\t' || (*ch >= ' ' && *ch != '\u{007f}'))
@@ -142,6 +223,7 @@ fn hide_window(app: &AppHandle) {
     hide_map_window(app);
     hide_memo_pad(app);
     if let Some(window) = app.get_webview_window("main") {
+        persist_panel_size(app, &window);
         let _ = window.hide();
     }
 }
@@ -354,7 +436,12 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
                 reveal_panel(app);
                 let _ = app.emit("open-settings", ());
             }
-            "quit" => app.exit(0),
+            "quit" => {
+                if let Some(window) = app.get_webview_window("main") {
+                    persist_panel_size(app, &window);
+                }
+                app.exit(0);
+            }
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {
@@ -380,10 +467,14 @@ fn setup_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let window = app
         .get_webview_window("main")
         .ok_or("main window is missing")?;
+    let (width, height) = read_saved_panel_size(app.handle());
+    apply_panel_size(&window, width, height);
     let window_clone = window.clone();
+    let app_handle = app.handle().clone();
     window.on_window_event(move |event| {
         if let WindowEvent::CloseRequested { api, .. } = event {
             api.prevent_close();
+            persist_panel_size(&app_handle, &window_clone);
             let _ = window_clone.hide();
         }
     });

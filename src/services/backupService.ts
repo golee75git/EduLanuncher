@@ -6,7 +6,15 @@ import { useTodoStore } from "../stores/todoStore";
 import { useToolStore } from "../stores/toolStore";
 import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type NoticeItem, type NoticeKind, type StoredNotices } from "../types/notice";
-import { DEFAULT_SETTINGS, asListColumns, asPanelSkin, type AppSettings, type LauncherPosition } from "../types/settings";
+import {
+  DEFAULT_SETTINGS,
+  asListColumns,
+  asPanelHeight,
+  asPanelSkin,
+  asPanelWidth,
+  type AppSettings,
+  type LauncherPosition,
+} from "../types/settings";
 import { asDueYmd } from "./todoDate";
 import type { TodoItem } from "../types/todo";
 import type { ToolItem, ToolOrigin, ToolType } from "../types/tool";
@@ -197,6 +205,8 @@ function parseSettings(raw: unknown): AppSettings {
     onboarded: source.onboarded !== false,
     panelSkin: asPanelSkin(source.panelSkin),
     listColumns: asListColumns(source.listColumns),
+    panelWidth: asPanelWidth(source.panelWidth),
+    panelHeight: asPanelHeight(source.panelHeight),
   };
 }
 
