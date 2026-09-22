@@ -2,14 +2,14 @@ import type { ToolItem } from "../types/tool";
 
 export const URL_MARK_TOOL: ToolItem = {
   id: "tool-url-mark",
-  name: "주소 무늬",
-  description: "그림 오른쪽 아래에 주소 무늬를 넣습니다",
+  name: "QR코드 넣기",
+  description: "그림 오른쪽 아래에 주소 QR코드를 넣습니다",
   type: "internal",
   target: "url-mark",
   icon: "globe",
   category: "전산",
   favorite: true,
-  keywords: ["주소", "무늬", "그림", "png"],
+  keywords: ["qr", "QR", "주소", "그림", "png", "무늬"],
   usageCount: 0,
   enabled: true,
 };

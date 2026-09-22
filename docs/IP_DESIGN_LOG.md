@@ -827,7 +827,7 @@ PATENT_REVIEW:
 Feature: 주소 무늬 screen
 
 Purpose:
-이 PC 그림 오른쪽 아래에 http(s) 주소 무늬를 넣고 PNG로 저장
+이 PC 그림 오른쪽 아래에 http(s) 주소 QR코드를 넣고 PNG로 저장
 
 Design source:
 내부 요구사항. 모듈 행렬은 crates.io `qrcode` 0.14.1 (MIT OR Apache-2.0, default-features = false). 그림 읽기·합성·저장은 이 저장소 코드
@@ -839,10 +839,10 @@ External code:
 크레이트 소스를 복사하지 않음. Cargo.toml로 링크만 함. 합성·파일 읽기·base64는 이 저장소에서 작성
 
 Difference:
-외부 QR 웹 서비스·npm 패키지·다른 런처 화면을 쓰지 않음. UI 이름은 주소 무늬
+외부 QR 웹 서비스·npm 패키지·다른 런처 화면을 쓰지 않음. 메뉴명은 QR코드 넣기
 
 PATENT_REVIEW:
-그림 위에 주소 무늬를 합성하고 PNG로 저장하는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
+그림 위에 QR 모듈을 합성하고 PNG로 저장하는 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
 ---
 
@@ -1291,7 +1291,7 @@ Design source:
 내부 요구사항. 기존 시드와 설정 Pack 칸
 
 Implementation:
-목록이 비어 있을 때만 Network·CCTV·주소 무늬를 넣는다. 교육 Pack 3개와 나이스 등 샘플은 넣지 않는다. 설정의 교육 바로가기 추가 단추를 뺀다. 이미 있는 목록 파일은 지우지 않는다
+목록이 비어 있을 때만 Network·CCTV·QR코드 넣기를 넣는다. 교육 Pack 3개와 나이스 등 샘플은 넣지 않는다. 설정의 교육 바로가기 추가 단추를 뺀다. 이미 있는 목록 파일은 지우지 않는다
 
 External code:
 없음

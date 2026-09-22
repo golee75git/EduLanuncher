@@ -65,7 +65,7 @@ export function UrlMarkPage({ title, onBack }: UrlMarkPageProps) {
       setHasMark(true);
       setPreview(canvas.toDataURL("image/png"));
     } catch (error) {
-      setMessage(asMessage(error, "주소 무늬를 넣지 못했습니다."));
+      setMessage(asMessage(error, "QR코드를 넣지 못했습니다."));
     } finally {
       setBusy(false);
     }
@@ -74,14 +74,14 @@ export function UrlMarkPage({ title, onBack }: UrlMarkPageProps) {
   const savePng = async () => {
     const canvas = canvasRef.current;
     if (!hasMark || !canvas || canvas.width < 16) {
-      setMessage("먼저 무늬를 넣으세요.");
+      setMessage("먼저 QR코드를 넣으세요.");
       return;
     }
     setBusy(true);
     setMessage("");
     try {
       const selected = await save({
-        defaultPath: "주소무늬.png",
+        defaultPath: "QR코드넣기.png",
         filters: [{ name: "PNG", extensions: ["png"] }],
       });
       if (typeof selected !== "string") {
@@ -103,11 +103,16 @@ export function UrlMarkPage({ title, onBack }: UrlMarkPageProps) {
         <button type="button" className="icon-btn" onClick={onBack} aria-label="뒤로">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">{title}</h1>
+        <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">{title || "QR코드 넣기"}</h1>
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          이 PC 그림 오른쪽 아래에 주소 무늬를 넣습니다. http 또는 https만 됩니다. 위치와 색은 바꾸지 않습니다.
+          이 PC 그림 오른쪽 아래에 주소 QR코드를 넣습니다. http 또는 https만 됩니다. 위치와 색은 바꾸지
+          않습니다.
+        </p>
+        <p className="text-[11px] leading-5 text-quiet">
+          QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 이 프로그램은 그 상표를 소유하지 않습니다.
+          구성 요소 라이선스는 THIRD_PARTY_NOTICES.md에 있습니다. 특허 비침해를 보장하지 않습니다.
         </p>
         <button type="button" className="btn-primary" onClick={() => void pickPicture()} disabled={busy}>
           그림 고르기
@@ -124,7 +129,7 @@ export function UrlMarkPage({ title, onBack }: UrlMarkPageProps) {
         </label>
         <div className="flex flex-wrap gap-2">
           <button type="button" className="btn-primary" onClick={() => void showMark()} disabled={busy}>
-            {busy ? "만드는 중..." : "무늬 넣기"}
+            {busy ? "만드는 중..." : "QR코드 넣기"}
           </button>
           <button type="button" className="btn-secondary" onClick={() => void savePng()} disabled={busy}>
             PNG 저장
@@ -132,7 +137,7 @@ export function UrlMarkPage({ title, onBack }: UrlMarkPageProps) {
         </div>
         {message ? <p className="text-sm text-desk">{message}</p> : null}
         {preview ? (
-          <img src={preview} alt="주소 무늬 미리보기" className="w-full rounded-lg border border-line bg-card" />
+          <img src={preview} alt="QR코드 넣기 미리보기" className="w-full rounded-lg border border-line bg-card" />
         ) : null}
         <canvas ref={canvasRef} className="hidden" />
       </div>

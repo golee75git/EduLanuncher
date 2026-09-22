@@ -24,7 +24,7 @@ pub struct PictureFile {
 pub fn build_url_mark(url: String) -> Result<UrlMarkGrid, String> {
     let checked = as_web_url(&url)?;
     let code = QrCode::with_error_correction_level(checked.as_bytes(), EcLevel::Q)
-        .map_err(|_| "주소 무늬를 만들지 못했습니다.".to_string())?;
+        .map_err(|_| "QR코드를 만들지 못했습니다.".to_string())?;
     let width = code.width();
     let mut cells = Vec::with_capacity(width * width);
     for row in 0..width {

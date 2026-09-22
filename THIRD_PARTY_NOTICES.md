@@ -92,7 +92,7 @@ Crate: qrcode 0.14.1
 License: MIT OR Apache-2.0
 Source: https://crates.io/crates/qrcode
 Repository: https://github.com/kennytm/qrcode-rust
-Purpose: Encode a URL into a module matrix for the 주소 무늬 screen. `default-features = false` (no image/svg renderers).
+Purpose: Encode a URL into a module matrix for the QR코드 넣기 screen. `default-features = false` (no image/svg renderers).
 Modified: No
 GPL/AGPL: No
 Patent: This notice does not grant or warrant freedom from third-party patents.
@@ -102,7 +102,7 @@ Transitive crates and full license texts are not copied here. See each package r
 ## Trademarks
 
 QR Code is a registered trademark of DENSO WAVE INCORPORATED.
-This project does not claim ownership of that mark. UI copy prefers 주소 무늬.
+This project does not claim ownership of that mark. The feature UI label is 「QR코드 넣기」 and screens state the trademark owner. Using the words QR Code / QR코드 does not mean this product is affiliated with or endorsed by DENSO WAVE INCORPORATED.
 
 ## Fonts
 

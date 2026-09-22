@@ -25,13 +25,22 @@ async function persist(tools: ToolItem[]): Promise<void> {
 function withOrigin(tools: ToolItem[]): ToolItem[] {
   const packIds = new Set(EDUCATION_PACK.tools.map((tool) => tool.id));
   return tools.map((tool) => {
-    if (tool.origin) {
-      return tool;
+    const labeled =
+      tool.id === URL_MARK_TOOL.id || tool.target === URL_MARK_TOOL.target
+        ? {
+            ...tool,
+            name: URL_MARK_TOOL.name,
+            description: URL_MARK_TOOL.description,
+            keywords: URL_MARK_TOOL.keywords,
+          }
+        : tool;
+    if (labeled.origin) {
+      return labeled;
     }
-    if (packIds.has(tool.id)) {
-      return { ...tool, origin: "pack", packName: EDUCATION_PACK.name };
+    if (packIds.has(labeled.id)) {
+      return { ...labeled, origin: "pack", packName: EDUCATION_PACK.name };
     }
-    return { ...tool, origin: "local" };
+    return { ...labeled, origin: "local" };
   });
 }
 
@@ -40,12 +49,26 @@ export const useToolStore = create<ToolState>((set, get) => ({
   loaded: false,
   hydrate: (tools) => set({ tools: withOrigin(tools), loaded: true }),
   seedIfEmpty: async () => {
-    if (get().tools.length > 0) {
+    if (get().tools.length === 0) {
+      const tools = COMMON_WORK_TOOLS.map((tool) => ({ ...tool, origin: "local" as const }));
+      set({ tools });
+      await persist(tools);
       return;
     }
-    const tools = COMMON_WORK_TOOLS.map((tool) => ({ ...tool, origin: "local" as const }));
-    set({ tools });
-    await persist(tools);
+    const labeled = withOrigin(get().tools);
+    const changed = labeled.some((tool, index) => {
+      const prev = get().tools[index];
+      return (
+        !prev ||
+        prev.name !== tool.name ||
+        prev.description !== tool.description ||
+        JSON.stringify(prev.keywords) !== JSON.stringify(tool.keywords)
+      );
+    });
+    if (changed) {
+      set({ tools: labeled });
+      await persist(labeled);
+    }
   },
   applyLauncherPack: async (pack) => {
     const { tools, added, updated } = mergePackTools(get().tools, pack.tools, { name: pack.name });
