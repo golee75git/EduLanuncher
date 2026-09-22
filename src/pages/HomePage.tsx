@@ -105,7 +105,7 @@ function flattenResults(
     id: `pc-file:${hit.path}`,
     hit,
   }));
-  return [...topics, ...schools, ...tools, ...recents, ...folders];
+  return [...tools, ...recents, ...folders, ...schools, ...topics];
 }
 
 export function HomePage({ onAction, search = "" }: HomePageProps) {
@@ -450,38 +450,6 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
 
         {searching && !activeSchool ? (
           <>
-            <ResultGroup title="업무 주제" empty="일치하는 업무가 없습니다.">
-              {topicHits.length > 0 ? (
-                <>
-                  <WorkMapPreview
-                    query={query}
-                    hitIds={topicHits.map((hit) => hit.item.id)}
-                    onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
-                  />
-                  <TopicSearch
-                    items={topicHits}
-                    selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
-                    query={query}
-                    onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
-                  />
-                </>
-              ) : null}
-            </ResultGroup>
-            <ResultGroup title="학교" empty="일치하는 학교가 없습니다.">
-              {results.schools.map((hit) => (
-                <button
-                  key={hit.item.id}
-                  type="button"
-                  onClick={() => setActiveSchool(hit.item)}
-                  className={`desk-row ${
-                    selectedId === `school:${hit.item.id}` ? "desk-row-active" : ""
-                  }`}
-                >
-                  <HighlightText text={hit.item.name} query={query} />
-                  <span className="ml-2 text-xs text-quiet">{hit.item.type}</span>
-                </button>
-              ))}
-            </ResultGroup>
             <ResultGroup title="관련 도구" empty="일치하는 도구가 없습니다.">
               {results.tools.map((hit) => {
                 return (
@@ -565,6 +533,38 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 </div>
               )}
             </section>
+            <ResultGroup title="학교" empty="일치하는 학교가 없습니다.">
+              {results.schools.map((hit) => (
+                <button
+                  key={hit.item.id}
+                  type="button"
+                  onClick={() => setActiveSchool(hit.item)}
+                  className={`desk-row ${
+                    selectedId === `school:${hit.item.id}` ? "desk-row-active" : ""
+                  }`}
+                >
+                  <HighlightText text={hit.item.name} query={query} />
+                  <span className="ml-2 text-xs text-quiet">{hit.item.type}</span>
+                </button>
+              ))}
+            </ResultGroup>
+            <ResultGroup title="관련 업무" empty="일치하는 업무가 없습니다.">
+              {topicHits.length > 0 ? (
+                <>
+                  <WorkMapPreview
+                    query={query}
+                    hitIds={topicHits.map((hit) => hit.item.id)}
+                    onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
+                  />
+                  <TopicSearch
+                    items={topicHits}
+                    selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
+                    query={query}
+                    onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
+                  />
+                </>
+              ) : null}
+            </ResultGroup>
           </>
         ) : null}
       </div>

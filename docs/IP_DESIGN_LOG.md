@@ -874,13 +874,14 @@ Design source:
 내부 요구사항. 원본 안내는 이 저장소 `HelpMake/EDU` JSON. 화면·검색 점수는 이 저장소에서 작성
 
 Implementation:
-번들 JSON을 `topicService`가 검사해 읽음. 검색은 제목·키워드·예시 질문·자료 제목 순. 홈 검색 결과 맨 위와 업무도구 「업무자료」에서 연다. http/https 주소만 바깥에서 연다. AI 호출 없음
+번들 JSON을 `topicService`가 검사해 읽음. 검색은 제목·키워드·예시 질문·자료 제목 순. 홈 검색의 「관련 업무」 구역과 업무도구 「업무자료」에서 연다. http/https 주소만 바깥에서 연다. AI 호출 없음
 
 External code:
 없음. 다른 런처 화면을 베끼지 않음
 
 Difference:
-바로가기 실행기가 아니라 업무주제 카드가 먼저 나온다. 자료 PDF 목록을 검색 첫 화면에 펼치지 않음
+실행·최근·폴더·학교 뒤에 관련 업무 카드를 둔다. 자료 PDF 목록을 검색 첫 화면에 펼치지 않음
+화면 이름은 「관련 업무」(옛 「업무 주제」)
 
 PATENT_REVIEW:
 키워드로 업무를 묶어 보여주는 구성. 청구항 대조 없음. 특허 비침해를 보장하지 않음
@@ -1498,4 +1499,29 @@ Difference:
 
 PATENT_REVIEW:
 로컬 JSON 병합·선택 UI. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Home search result order and related-work label
+
+Purpose:
+홈에서 검색할 때 바로 실행할 항목을 먼저 두고, 업무 안내는 「관련 업무」로 부르게 함
+
+Design source:
+내부 요구사항. 기존 HomePage 검색 구역만 순서·문구 변경
+
+Implementation:
+화면과 `flattenResults`를 관련 도구 → 최근 사용 → 이 PC 폴더 → 학교 → 관련 업무 순으로 맞춤. 「업무 주제」표시를 「관련 업무」로 바꿈. Topic id·JSON 구조는 그대로
+
+External code:
+없음
+
+Potential similar products:
+일반 런처 검색 목록
+
+Difference:
+교육행정 관련 업무 JSON을 마지막 구역에 두고, 실행·최근·폴더를 앞에 둔 자체 순서
+
+PATENT_REVIEW:
+목록 구역 순서·표시 이름만. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 

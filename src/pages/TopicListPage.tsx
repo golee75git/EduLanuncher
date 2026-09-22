@@ -128,7 +128,7 @@ export function TopicListPage({ onBack, onOpen, search = "" }: TopicListPageProp
           <div className="mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3">
             {searching ? (
               <section>
-                <h2 className="desk-label">업무 주제</h2>
+                <h2 className="desk-label">관련 업무</h2>
                 {hits.length > 0 ? (
                   <WorkMapPreview
                     query={query}
