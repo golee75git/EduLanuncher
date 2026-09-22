@@ -4,6 +4,8 @@ import { EMPTY_NOTICES, type StoredNotices } from "../types/notice";
 import {
   DEFAULT_SETTINGS,
   asListColumns,
+  asMemoHeight,
+  asMemoWidth,
   asPanelHeight,
   asPanelSkin,
   asPanelWidth,
@@ -77,6 +79,8 @@ export async function loadSettings(): Promise<AppSettings> {
     listColumns: asListColumns(merged.listColumns),
     panelWidth: asPanelWidth(merged.panelWidth),
     panelHeight: asPanelHeight(merged.panelHeight),
+    memoWidth: asMemoWidth(merged.memoWidth),
+    memoHeight: asMemoHeight(merged.memoHeight),
   };
 }
 

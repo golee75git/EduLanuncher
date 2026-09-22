@@ -3,6 +3,8 @@ import { disable, enable } from "@tauri-apps/plugin-autostart";
 import {
   DEFAULT_SETTINGS,
   asListColumns,
+  asMemoHeight,
+  asMemoWidth,
   asPanelHeight,
   asPanelSkin,
   asPanelWidth,
@@ -34,6 +36,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       listColumns: asListColumns(settings.listColumns),
       panelWidth: asPanelWidth(settings.panelWidth),
       panelHeight: asPanelHeight(settings.panelHeight),
+      memoWidth: asMemoWidth(settings.memoWidth),
+      memoHeight: asMemoHeight(settings.memoHeight),
     };
     paintSkin(next.panelSkin);
     set({ settings: next, loaded: true });
@@ -46,6 +50,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       listColumns: asListColumns(patch.listColumns ?? get().settings.listColumns),
       panelWidth: asPanelWidth(patch.panelWidth ?? get().settings.panelWidth),
       panelHeight: asPanelHeight(patch.panelHeight ?? get().settings.panelHeight),
+      memoWidth: asMemoWidth(patch.memoWidth ?? get().settings.memoWidth),
+      memoHeight: asMemoHeight(patch.memoHeight ?? get().settings.memoHeight),
     };
     set({ settings });
     await saveSettings(settings);

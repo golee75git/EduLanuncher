@@ -48,6 +48,10 @@ const PANEL_MIN_W: f64 = 400.0;
 const PANEL_MIN_H: f64 = 550.0;
 const PANEL_MAX_W: f64 = 720.0;
 const PANEL_MAX_H: f64 = 900.0;
+const MEMO_MIN_W: f64 = 280.0;
+const MEMO_MIN_H: f64 = 400.0;
+const MEMO_MAX_W: f64 = 720.0;
+const MEMO_MAX_H: f64 = 900.0;
 
 fn clip_panel_size(width: f64, height: f64) -> (f64, f64) {
     (
@@ -121,6 +125,64 @@ fn apply_panel_size(window: &tauri::WebviewWindow, width: f64, height: f64) {
 fn persist_panel_size(app: &AppHandle, window: &tauri::WebviewWindow) {
     let (width, height) = panel_logical_size(window);
     save_panel_size(app, width, height);
+}
+
+fn clip_memo_size(width: f64, height: f64) -> (f64, f64) {
+    (
+        width.clamp(MEMO_MIN_W, MEMO_MAX_W),
+        height.clamp(MEMO_MIN_H, MEMO_MAX_H),
+    )
+}
+
+fn read_saved_memo_size(app: &AppHandle) -> Option<(f64, f64)> {
+    use tauri_plugin_store::StoreExt;
+
+    let Ok(store) = app.store("settings.json") else {
+        return None;
+    };
+    let value = store.get("value")?;
+    let width = value.get("memoWidth")?.as_f64()?;
+    let height = value.get("memoHeight")?.as_f64()?;
+    Some(clip_memo_size(width, height))
+}
+
+fn save_memo_size(app: &AppHandle, width: f64, height: f64) {
+    use tauri_plugin_store::StoreExt;
+
+    let (width, height) = clip_memo_size(width, height);
+    let Ok(store) = app.store("settings.json") else {
+        return;
+    };
+    let mut value = store
+        .get("value")
+        .and_then(|entry| entry.as_object().cloned())
+        .unwrap_or_default();
+    value.insert(
+        "memoWidth".into(),
+        serde_json::Value::from(width.round() as u32),
+    );
+    value.insert(
+        "memoHeight".into(),
+        serde_json::Value::from(height.round() as u32),
+    );
+    let _ = store.set("value", serde_json::Value::Object(value));
+    let _ = store.save();
+}
+
+fn memo_logical_size(window: &tauri::WebviewWindow) -> (f64, f64) {
+    let scale = window.scale_factor().unwrap_or(1.0);
+    let inner = window
+        .inner_size()
+        .unwrap_or(tauri::PhysicalSize::new(
+            (MEMO_MIN_W * scale).round() as u32,
+            (MEMO_MIN_H * scale).round() as u32,
+        ));
+    clip_memo_size(inner.width as f64 / scale, inner.height as f64 / scale)
+}
+
+fn persist_memo_size(app: &AppHandle, window: &tauri::WebviewWindow) {
+    let (width, height) = memo_logical_size(window);
+    save_memo_size(app, width, height);
 }
 
 fn clip_memo_text(raw: &str) -> String {
@@ -208,6 +270,7 @@ fn show_map_window(app: &AppHandle) {
 
 fn hide_memo_pad(app: &AppHandle) {
     if let Some(pad) = app.get_webview_window("memo-pad") {
+        persist_memo_size(app, &pad);
         let _ = pad.hide();
     }
 }
@@ -341,7 +404,7 @@ fn place_memo_next_to_panel(app: &AppHandle, panel: &tauri::WebviewWindow) {
     let Some(pad) = app.get_webview_window("memo-pad") else {
         return;
     };
-    let (end_w, end_h) = map_inner_from_panel(panel);
+    let (end_w, end_h) = read_saved_memo_size(app).unwrap_or_else(|| map_inner_from_panel(panel));
     let (start_w, start_h) = panel_inner_logical(panel);
     let Ok(panel_pos) = panel.outer_position() else {
         return;
@@ -362,8 +425,9 @@ fn place_memo_next_to_panel(app: &AppHandle, panel: &tauri::WebviewWindow) {
             thread::sleep(Duration::from_millis(16));
             let t = i as f64 / f64::from(steps);
             let w = start_w + (end_w - start_w) * t;
+            let h = start_h + (end_h - start_h) * t;
             let x = start_x + ((end_x - start_x) as f64 * t).round() as i32;
-            let _ = moving.set_size(Size::Logical(LogicalSize::new(w, end_h)));
+            let _ = moving.set_size(Size::Logical(LogicalSize::new(w, h)));
             let _ = moving.set_position(PhysicalPosition::new(x, y));
         }
         let _ = moving.set_size(Size::Logical(LogicalSize::new(end_w, end_h)));
@@ -695,8 +759,9 @@ async fn open_memo_window(app: AppHandle) -> Result<(), String> {
     WebviewWindowBuilder::new(&app, "memo-pad", url)
         .title("메모")
         .inner_size(start_w, start_h)
-        .min_inner_size(280.0, 400.0)
-        .resizable(false)
+        .min_inner_size(MEMO_MIN_W, MEMO_MIN_H)
+        .max_inner_size(MEMO_MAX_W, MEMO_MAX_H)
+        .resizable(true)
         .closable(true)
         .visible(false)
         .skip_taskbar(true)
@@ -707,6 +772,13 @@ async fn open_memo_window(app: AppHandle) -> Result<(), String> {
             let _ = created.set_position(pos);
         }
         let _ = created.set_size(Size::Logical(LogicalSize::new(start_w, start_h)));
+        let app_for_close = app.clone();
+        let pad_for_close = created.clone();
+        created.on_window_event(move |event| {
+            if let WindowEvent::CloseRequested { .. } = event {
+                persist_memo_size(&app_for_close, &pad_for_close);
+            }
+        });
         let _ = created.emit("memo-draft", &draft);
         let _ = created.show();
     }
@@ -737,6 +809,11 @@ fn set_memo_draft(app: AppHandle, text: String) {
     if changed {
         let _ = app.emit("memo-draft", &clipped);
     }
+}
+
+#[tauri::command]
+fn set_memo_window_size(app: AppHandle, width: f64, height: f64) {
+    save_memo_size(&app, width, height);
 }
 
 #[tauri::command]
@@ -1640,6 +1717,7 @@ pub fn run() {
             open_memo_window,
             memo_draft,
             set_memo_draft,
+            set_memo_window_size,
             reveal_topic,
             launch_tool,
             run_shortcut_action,

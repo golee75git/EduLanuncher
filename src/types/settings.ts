@@ -11,6 +11,15 @@ export const PANEL_SIZE = {
   maxHeight: 900,
 } as const;
 
+export const MEMO_SIZE = {
+  defaultWidth: 440,
+  defaultHeight: 650,
+  minWidth: 280,
+  minHeight: 400,
+  maxWidth: 720,
+  maxHeight: 900,
+} as const;
+
 export interface AppSettings {
   autoStart: boolean;
   showWindowOnLaunch: boolean;
@@ -24,6 +33,8 @@ export interface AppSettings {
   listColumns: ListColumns;
   panelWidth: number;
   panelHeight: number;
+  memoWidth: number;
+  memoHeight: number;
 }
 
 export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: string }> = [
@@ -56,6 +67,22 @@ export function asPanelHeight(value: unknown): number {
   return Math.min(PANEL_SIZE.maxHeight, Math.max(PANEL_SIZE.minHeight, Math.round(parsed)));
 }
 
+export function asMemoWidth(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) {
+    return MEMO_SIZE.defaultWidth;
+  }
+  return Math.min(MEMO_SIZE.maxWidth, Math.max(MEMO_SIZE.minWidth, Math.round(parsed)));
+}
+
+export function asMemoHeight(value: unknown): number {
+  const parsed = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsed)) {
+    return MEMO_SIZE.defaultHeight;
+  }
+  return Math.min(MEMO_SIZE.maxHeight, Math.max(MEMO_SIZE.minHeight, Math.round(parsed)));
+}
+
 export const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   showWindowOnLaunch: false,
@@ -69,4 +96,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   listColumns: 1,
   panelWidth: PANEL_SIZE.defaultWidth,
   panelHeight: PANEL_SIZE.defaultHeight,
+  memoWidth: MEMO_SIZE.defaultWidth,
+  memoHeight: MEMO_SIZE.defaultHeight,
 };

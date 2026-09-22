@@ -6,6 +6,24 @@
 ---
 
 날짜: 2026-09-22
+버전: 0.1.66-20260922
+설치 파일: EduLauncher_0.1.66-20260922_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-22_1333_x64-setup.exe
+작성자: 요청자
+
+내용:
+메모 옆 창을 모서리로 크기를 바꿀 수 있게 했다. 바꾼 너비·높이는 이 PC settings.json의 memoWidth/memoHeight에 남고, 다음 크게에도 그 크기로 연다. 이동 단추는 없애고 Windows 제목 줄로 옮긴다. 패널을 숨기거나 제목 줄 X로 닫을 때도 크기를 저장한다. 패널 크기 기억과 같은 방식이다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/pages/MemoWindowPage.tsx, src/types/settings.ts, src/services/storageService.ts, src/stores/settingsStore.ts, src/services/backupService.ts, src-tauri/src/lib.rs, src-tauri/tauri.conf.json, src/pages/SettingsPage.tsx, src/config/app.ts, website/src/config.ts, website/src/pages/IntroPage.tsx, docs/HANDOFF.md, docs/PRD.md, docs/PLAN.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+라이선스: 패키지 추가는 없다. GPL 패키지는 사용하지 않는다. 글꼴은 기존처럼 Windows 시스템 글꼴만 쓴다.
+특허: Windows 창 크기 조절·위치 유지는 일반 OS 동작이다. 청구항 대조는 별도다. 특허 비침해를 보장하지 않는다.
+보안: 크기 숫자만 이 PC 설정에 둔다. eval 없음. 창은 메모 본문 저장 파일을 열지 않는다.
+
+---
+
+날짜: 2026-09-22
 버전: 0.1.65-20260922
 설치 파일: EduLauncher_0.1.65-20260922_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-22_1126_x64-setup.exe

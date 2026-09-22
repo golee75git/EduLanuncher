@@ -9,6 +9,8 @@ import { EMPTY_NOTICES, type NoticeItem, type NoticeKind, type StoredNotices } f
 import {
   DEFAULT_SETTINGS,
   asListColumns,
+  asMemoHeight,
+  asMemoWidth,
   asPanelHeight,
   asPanelSkin,
   asPanelWidth,
@@ -207,6 +209,8 @@ function parseSettings(raw: unknown): AppSettings {
     listColumns: asListColumns(source.listColumns),
     panelWidth: asPanelWidth(source.panelWidth),
     panelHeight: asPanelHeight(source.panelHeight),
+    memoWidth: asMemoWidth(source.memoWidth),
+    memoHeight: asMemoHeight(source.memoHeight),
   };
 }
 
