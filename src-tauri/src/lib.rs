@@ -872,6 +872,12 @@ fn launch_tool(app: AppHandle, tool_type: String, target: String) -> LaunchResul
     }
 }
 
+#[cfg(windows)]
+#[link(name = "user32")]
+extern "system" {
+    fn LockWorkStation() -> i32;
+}
+
 fn open_folder_with_explorer(target: &str) -> LaunchResult {
     let path = PathBuf::from(target);
     if !path.is_dir() {
@@ -911,6 +917,81 @@ fn open_folder_with_explorer(target: &str) -> LaunchResult {
             error: Some("unsupported".into()),
             path: Some(target.to_string()),
         }
+    }
+}
+
+#[tauri::command]
+fn run_shortcut_action(action_id: String) -> Result<(), String> {
+    let id = action_id.trim();
+    if id.len() > 40 || !id.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_') {
+        return Err("실행할 수 없습니다.".into());
+    }
+    #[cfg(windows)]
+    {
+        match id {
+            "explorer" => {
+                let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
+                if !explorer.is_file() {
+                    return Err("탐색기를 열 수 없습니다.".into());
+                }
+                std::process::Command::new(explorer)
+                    .spawn()
+                    .map_err(|err| err.to_string())?;
+                Ok(())
+            }
+            "taskmgr" => {
+                let taskmgr = PathBuf::from(r"C:\Windows\System32\taskmgr.exe");
+                if !taskmgr.is_file() {
+                    return Err("작업 관리자를 열 수 없습니다.".into());
+                }
+                std::process::Command::new(taskmgr)
+                    .spawn()
+                    .map_err(|err| err.to_string())?;
+                Ok(())
+            }
+            "snip" => {
+                let snip = PathBuf::from(r"C:\Windows\System32\SnippingTool.exe");
+                if snip.is_file() {
+                    std::process::Command::new(snip)
+                        .spawn()
+                        .map_err(|err| err.to_string())?;
+                    return Ok(());
+                }
+                let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
+                if !explorer.is_file() {
+                    return Err("화면 캡처를 열 수 없습니다.".into());
+                }
+                std::process::Command::new(explorer)
+                    .arg("ms-screenclip:")
+                    .spawn()
+                    .map_err(|err| err.to_string())?;
+                Ok(())
+            }
+            "settings" => {
+                let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
+                if !explorer.is_file() {
+                    return Err("설정을 열 수 없습니다.".into());
+                }
+                std::process::Command::new(explorer)
+                    .arg("ms-settings:")
+                    .spawn()
+                    .map_err(|err| err.to_string())?;
+                Ok(())
+            }
+            "lock" => {
+                let ok = unsafe { LockWorkStation() };
+                if ok == 0 {
+                    return Err("화면을 잠그지 못했습니다.".into());
+                }
+                Ok(())
+            }
+            _ => Err("실행할 수 없습니다.".into()),
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = id;
+        Err("unsupported".into())
     }
 }
 
@@ -1561,6 +1642,7 @@ pub fn run() {
             set_memo_draft,
             reveal_topic,
             launch_tool,
+            run_shortcut_action,
             open_ie_reset,
             read_json_file,
             read_url_shortcut,

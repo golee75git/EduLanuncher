@@ -40,6 +40,10 @@ export async function openMemoWindow(): Promise<void> {
   await invoke("open_memo_window");
 }
 
+export async function runShortcutAction(actionId: string): Promise<void> {
+  await invoke("run_shortcut_action", { actionId });
+}
+
 export async function readWorkMapRootId(): Promise<string> {
   try {
     return await invoke<string>("work_map_root_id");

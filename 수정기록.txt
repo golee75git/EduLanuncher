@@ -6,6 +6,23 @@
 ---
 
 날짜: 2026-09-22
+버전: 0.1.65-20260922
+설치 파일: EduLauncher_0.1.65-20260922_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-22_1126_x64-setup.exe
+작성자: 요청자
+
+내용:
+업무도구에 단축키 메뉴를 업무자료 앞에 넣었다. 직장·교육기관용 Windows·문서 단축키 20개를 보여 준다. 탐색기·화면 잠금·설정·작업 관리자·화면 캡처만 실행으로 같은 화면·프로그램을 연다. 키를 대신 누르지 않는다. 실행 id는 고정 목록만 받는다.
+
+새로 작성한 파일: src/data/shortcuts.ts, src/pages/ShortcutPage.tsx
+재사용한 기존 파일: src/App.tsx, src/pages/HomePage.tsx, src/pages/ToolGroupPage.tsx, src/services/windowService.ts, src-tauri/src/lib.rs, src-tauri/tauri.conf.json, src/config/app.ts, website/src/config.ts, website/src/pages/IntroPage.tsx, src/pages/SettingsPage.tsx, docs/HANDOFF.md, docs/PRD.md, docs/PLAN.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+라이선스: 패키지 추가는 없다. GPL 패키지는 사용하지 않는다. 글꼴은 기존처럼 Windows 시스템 글꼴만 쓴다.
+특허: 고정 프로그램 실행과 화면 잠금은 일반 OS 호출이다. 키 전송 매크로가 아니다. 청구항 대조는 별도다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-22
 버전: 0.1.64-20260922
 설치 파일: EduLauncher_0.1.64-20260922_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-22_1045_x64-setup.exe

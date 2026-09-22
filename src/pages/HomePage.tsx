@@ -39,6 +39,7 @@ export type HomeAction =
   | { type: "group"; groupType: ToolType }
   | { type: "pc-urls" }
   | { type: "computer-tools" }
+  | { type: "shortcuts" }
   | { type: "pc-folders"; query?: string }
   | { type: "topics" }
   | { type: "topic"; topicId: string; search?: string }
@@ -373,6 +374,13 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                       ) : null}
                       {group.type === "internal" ? (
                         <>
+                          <button
+                            type="button"
+                            className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+                            onClick={() => onAction({ type: "shortcuts" })}
+                          >
+                            단축키
+                          </button>
                           <button
                             type="button"
                             className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"

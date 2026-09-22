@@ -19,6 +19,7 @@ import { NoticeItemPage } from "./pages/NoticeItemPage";
 import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ComputerToolPage } from "./pages/ComputerToolPage";
+import { ShortcutPage } from "./pages/ShortcutPage";
 import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
@@ -57,6 +58,7 @@ type View =
   | { name: "tool-group"; groupType: ToolType }
   | { name: "pc-urls" }
   | { name: "computer-tools" }
+  | { name: "shortcuts" }
   | { name: "topics"; search?: string }
   | { name: "topic-review" }
   | { name: "topic"; topicId: string; backTo: View }
@@ -430,6 +432,10 @@ export default function App() {
       setView({ name: "computer-tools" });
       return;
     }
+    if (action.type === "shortcuts") {
+      setView({ name: "shortcuts" });
+      return;
+    }
     if (action.type === "pc-folders") {
       setView({ name: "pc-folder-find", query: action.query, backTo: { name: "home" } });
       return;
@@ -527,6 +533,7 @@ export default function App() {
               onLaunch={(tool) => void handleLaunch(tool)}
               onPcUrls={() => setView({ name: "pc-urls" })}
               onComputerTools={() => setView({ name: "computer-tools" })}
+              onShortcuts={() => setView({ name: "shortcuts" })}
               onTopics={() => setView({ name: "topics" })}
               onRemove={(tool) => setRemoveTarget(tool)}
               onEdit={(tool, createType) =>
@@ -550,6 +557,7 @@ export default function App() {
               }
             />
           ) : null}
+          {view.name === "shortcuts" ? <ShortcutPage onBack={() => setView({ name: "home" })} /> : null}
           {view.name === "topics" ? (
             <TopicListPage
               search={view.search}

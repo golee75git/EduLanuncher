@@ -1449,3 +1449,28 @@ Difference:
 PATENT_REVIEW:
 고정 실행 파일로 폴더를 여는 일반 OS 호출. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Work shortcut guide
+
+Purpose:
+직장·교육기관에서 자주 쓰는 Windows·문서 단축키를 한곳에서 보고, 열 수 있는 화면은 바로 열기 위함
+
+Design source:
+내부 요구사항. 키 입력 시뮬레이션 없음
+
+Implementation:
+업무도구에 「단축키」 화면. 고정 20개. 실행은 `explorer`·`taskmgr`·`snip`·`settings`·`lock` id만. 탐색기·작업 관리자·캡처·설정은 고정 경로 또는 고정 URI. 잠금은 `LockWorkStation`. 키를 대신 누르지 않음
+
+External code:
+없음 (Windows API·고정 실행 파일)
+
+Potential similar products:
+단축키 치트시트 앱, 매크로 런처
+
+Difference:
+안내 목록이며 키 전송·매크로·다른 앱 복제가 아니다
+
+PATENT_REVIEW:
+고정 id로 OS 화면을 여는 일반 UI. 키 후킹·매크로와 다르다. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
