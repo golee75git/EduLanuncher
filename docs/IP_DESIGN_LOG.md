@@ -1789,3 +1789,25 @@ Difference:
 PATENT_REVIEW:
 질문-선택-안내 흐름은 일반 안내 화면. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Tell once at process start if a newer setup exists
+
+Purpose:
+설정을 열지 않아도 켤 때 한 번 새 설치 파일이 있으면 패널에 안내한다
+
+Design source:
+내부 요구사항. 기존 `findNewerRelease`와 GitHub Releases 태그
+
+Implementation:
+메인 창 시작 후 기존 태그 비교를 한 번 호출. 더 새면 패널 안내와 설치 안내 단추. 패널을 숨긴 채 켜면 억지로 열지 않음. 자동 설치·다운로드 없음
+
+External code:
+없음
+
+Difference:
+자동 업데이트 설치기가 아님. Windows 알림이 아님
+
+PATENT_REVIEW:
+버전 비교 후 안내 표시는 일반 알림. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

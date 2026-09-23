@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.87-20260923
+설치 파일: EduLauncher_0.1.87-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1728_x64-setup.exe
+작성자: 요청자
+
+내용:
+프로그램을 켤 때 한 번 GitHub 최신 태그를 본다. 새 설치 파일이 있으면 패널에 안내하고 설치 안내만 연다. 창을 숨긴 채 켜면 패널을 억지로 열지 않고, 다음에 열었을 때 보인다. 자동으로 설치하거나 파일을 받지 않는다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/App.tsx, src/pages/SettingsPage.tsx, src/services/releaseCheckService.ts, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕). SIL OFL 아님. woff/ttf 번들 없음.
+라이선스: 패키지 추가 없음. 직접 의존성 MIT/Apache-2.0/ISC. 직접 GPL/AGPL 없음. 비침해 보장하지 않음.
+보안: 공개 릴리스 JSON의 tag_name만 읽음. 설치 파일은 받지 않음. 창을 숨긴 상태에서 패널을 강제로 열지 않음.
+특허: 버전 비교 후 안내 표시는 일반 알림. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.86-20260923
 설치 파일: EduLauncher_0.1.86-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1625_x64-setup.exe
