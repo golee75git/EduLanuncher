@@ -313,19 +313,50 @@ pub fn this_pc_ipv4() -> Vec<LocalAddress> {
 }
 
 fn fetch_public_text(url: &str) -> Option<String> {
+    let text = fetch_url_text(url)?;
+    if is_ipv4(&text) {
+        Some(text)
+    } else {
+        None
+    }
+}
+
+fn fetch_url_text(url: &str) -> Option<String> {
     let output = hidden_command("curl")
-        .args(["-sS", "-4", "--max-time", "8", "--ssl-no-revoke", url])
+        .args([
+            "-sS",
+            "-4",
+            "--max-time",
+            "8",
+            "--ssl-no-revoke",
+            "-A",
+            "EduLauncher",
+            url,
+        ])
         .output()
         .ok()?;
     if !output.status.success() {
         return None;
     }
     let text = String::from_utf8(output.stdout).ok()?.trim().to_string();
-    if is_ipv4(&text) {
-        Some(text)
-    } else {
+    if text.is_empty() {
         None
+    } else {
+        Some(text)
     }
+}
+
+pub fn latest_release_tag() -> Result<String, String> {
+    const URL: &str = "https://api.github.com/repos/golee75git/EduLanuncher/releases/latest";
+    let body = fetch_url_text(URL).ok_or_else(|| "최신 버전을 확인하지 못했습니다.".to_string())?;
+    let parsed: serde_json::Value =
+        serde_json::from_str(&body).map_err(|_| "최신 버전을 확인하지 못했습니다.".to_string())?;
+    parsed
+        .get("tag_name")
+        .and_then(|value| value.as_str())
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| "최신 버전을 확인하지 못했습니다.".to_string())
 }
 
 pub fn lookup_public_ipv4() -> Result<String, String> {

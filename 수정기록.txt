@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.85-20260923
+설치 파일: EduLauncher_0.1.85-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1525_x64-setup.exe
+작성자: 요청자
+
+내용:
+설정 프로그램 정보에서 이 PC 버전과 GitHub 최신 태그를 비교하게 했다. 새 설치 파일이 있으면 안내하고 설치 안내만 연다. 자동으로 설치하거나 파일을 받지 않는다.
+
+새로 작성한 파일: src/services/releaseCheckService.ts
+재사용한 기존 파일: src-tauri/src/netutil.rs, src-tauri/src/lib.rs, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. GPL 없음. 비침해 보장하지 않음.
+보안: 공개 릴리스 JSON의 tag_name만 읽음. 설치 파일은 받지 않음.
+특허: 버전 비교와 설치 안내 주소 열기는 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.84-20260923
 설치 파일: EduLauncher_0.1.84-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1515_x64-setup.exe

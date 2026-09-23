@@ -1745,3 +1745,25 @@ Difference:
 PATENT_REVIEW:
 창을 화면 구석에 두는 일반 배치. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Tell the user when a newer setup file exists
+
+Purpose:
+설치된 버전보다 새 GitHub Release가 있으면 설정에서 안내하고 설치 안내만 연다
+
+Design source:
+내부 요구사항. 기존 GitHub Releases 태그와 `APP_CONFIG.version`. 공인 IP 조회와 같은 curl 호출
+
+Implementation:
+`releases/latest`의 `tag_name`만 읽음. 숫자·날짜를 비교. 새 버전이면 설정 프로그램 정보에 안내와 단추. 설치 파일은 받지 않고 브라우저만 연다. 확인 실패는 안내 생략
+
+External code:
+없음
+
+Difference:
+자동 업데이트 설치기가 아님. 안내 후 사용자가 설치본을 교체
+
+PATENT_REVIEW:
+버전 문자열 비교와 공개 릴리스 주소 열기는 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

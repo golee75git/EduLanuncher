@@ -1391,6 +1391,11 @@ fn lookup_public_ipv4() -> Result<String, String> {
 }
 
 #[tauri::command]
+fn latest_release_tag() -> Result<String, String> {
+    netutil::latest_release_tag()
+}
+
+#[tauri::command]
 fn scan_ipv4_range(
     app: AppHandle,
     halt: tauri::State<RangeHalt>,
@@ -1754,6 +1759,7 @@ pub fn run() {
             take_startup_pack_paths,
             this_pc_ipv4,
             lookup_public_ipv4,
+            latest_release_tag,
             scan_ipv4_range,
             scan_cctv_range,
             halt_range_check,
