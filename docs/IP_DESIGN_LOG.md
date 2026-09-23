@@ -1635,3 +1635,25 @@ Difference:
 PATENT_REVIEW:
 창을 작업 표시줄에 보이게 하는 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Keep main panel on the taskbar after close
+
+Purpose:
+창을 닫아도 작업 표시줄 아이콘을 남기고, 아이콘을 누르면 패널을 다시 연다. 컴퓨터가 켜져 있는 동안 아이콘이 보이게 함
+
+Design source:
+내부 요구사항. 기존 Tauri `hide` / `minimize` / `reveal_panel`
+
+Implementation:
+메인 창을 숨기지 않고 최소화. 시작 직후 `show` 뒤 `minimize`로 아이콘을 둠. 트레이 토글은 최소화된 창을 다시 연다. 업무 그림·메모는 계속 숨김. 작업 표시줄 고정(핀) 없음
+
+External code:
+없음
+
+Difference:
+표시줄 아이콘은 실행 중인 메인 패널만. 타 런처 UI 복제 없음
+
+PATENT_REVIEW:
+창 최소화와 작업 표시줄 복원은 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

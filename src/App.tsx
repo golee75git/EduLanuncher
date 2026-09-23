@@ -38,7 +38,7 @@ import { LaunchError, launchTool } from "./services/launcherService";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
 import { focusSearchInput } from "./services/focusBus";
-import { showPanel } from "./services/windowService";
+import { hidePanel, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { asPanelHeight, asPanelWidth } from "./types/settings";
@@ -240,6 +240,8 @@ export default function App() {
         }
         if (settings.showWindowOnLaunch || !settings.onboarded) {
           await showPanel();
+        } else {
+          await hidePanel();
         }
       } finally {
         if (!cancelled) {

@@ -282,18 +282,22 @@ fn show_memo_pad(app: &AppHandle) {
     }
 }
 
+fn panel_is_open(window: &tauri::WebviewWindow) -> bool {
+    window.is_visible().unwrap_or(false) && !window.is_minimized().unwrap_or(false)
+}
+
 fn hide_window(app: &AppHandle) {
     hide_map_window(app);
     hide_memo_pad(app);
     if let Some(window) = app.get_webview_window("main") {
         persist_panel_size(app, &window);
-        let _ = window.hide();
+        let _ = window.minimize();
     }
 }
 
 fn toggle_window(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        if window.is_visible().unwrap_or(false) {
+        if panel_is_open(&window) {
             hide_window(app);
         } else {
             reveal_panel(app);
@@ -533,13 +537,11 @@ fn setup_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("main window is missing")?;
     let (width, height) = read_saved_panel_size(app.handle());
     apply_panel_size(&window, width, height);
-    let window_clone = window.clone();
     let app_handle = app.handle().clone();
     window.on_window_event(move |event| {
         if let WindowEvent::CloseRequested { api, .. } = event {
             api.prevent_close();
-            persist_panel_size(&app_handle, &window_clone);
-            let _ = window_clone.hide();
+            hide_window(&app_handle);
         }
     });
     #[cfg(windows)]
@@ -547,6 +549,8 @@ fn setup_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         let _ = drop_target::install(&window, app.handle());
         drop_target::install_later(app.handle().clone());
     }
+    let _ = window.show();
+    let _ = window.minimize();
     Ok(())
 }
 
