@@ -1613,3 +1613,25 @@ Difference:
 PATENT_REVIEW:
 안내 문구만. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Main panel on the Windows taskbar
+
+Purpose:
+런처가 실행 중일 때 하단 작업 표시줄에서도 패널을 찾을 수 있게 함
+
+Design source:
+내부 요구사항. 기존 Tauri 창 `skipTaskbar`
+
+Implementation:
+메인 창만 `skipTaskbar: false`. 업무 그림·메모 창은 `skip_taskbar(true)` 유지. 트레이·닫으면 숨김은 그대로
+
+External code:
+없음
+
+Difference:
+표시줄 아이콘은 메인 패널만. 타 런처 UI 복제 없음
+
+PATENT_REVIEW:
+창을 작업 표시줄에 보이게 하는 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
