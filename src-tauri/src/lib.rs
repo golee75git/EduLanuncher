@@ -232,15 +232,21 @@ struct DroppedPathInfo {
     icon_image: Option<String>,
 }
 
+fn panel_place_mode(app: &AppHandle) -> String {
+    app.state::<PanelState>()
+        .position
+        .lock()
+        .map(|value| value.clone())
+        .unwrap_or_else(|_| "bottom-right".to_string())
+}
+
+fn place_main_panel(app: &AppHandle, window: &tauri::WebviewWindow) {
+    position_panel(window, &panel_place_mode(app));
+}
+
 fn reveal_panel(app: &AppHandle) {
     if let Some(window) = app.get_webview_window("main") {
-        let position = app
-            .state::<PanelState>()
-            .position
-            .lock()
-            .map(|value| value.clone())
-            .unwrap_or_else(|_| "bottom-right".to_string());
-        position_panel(&window, &position);
+        place_main_panel(app, &window);
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
@@ -537,11 +543,22 @@ fn setup_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("main window is missing")?;
     let (width, height) = read_saved_panel_size(app.handle());
     apply_panel_size(&window, width, height);
+    place_main_panel(app.handle(), &window);
     let app_handle = app.handle().clone();
     window.on_window_event(move |event| {
-        if let WindowEvent::CloseRequested { api, .. } = event {
-            api.prevent_close();
-            hide_window(&app_handle);
+        match event {
+            WindowEvent::CloseRequested { api, .. } => {
+                api.prevent_close();
+                hide_window(&app_handle);
+            }
+            WindowEvent::Focused(true) => {
+                if let Some(panel) = app_handle.get_webview_window("main") {
+                    if !panel.is_minimized().unwrap_or(false) {
+                        place_main_panel(&app_handle, &panel);
+                    }
+                }
+            }
+            _ => {}
         }
     });
     #[cfg(windows)]

@@ -1723,3 +1723,25 @@ Difference:
 PATENT_REVIEW:
 목록 줄에 종류 이름을 붙이는 일반 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Place panel when restoring from the taskbar
+
+Purpose:
+작업 표시줄에서 패널을 열 때도 왼쪽이 아니라 설정한 자리(기본 오른쪽 아래)에 펼침
+
+Design source:
+내부 요구사항. 기존 `position_panel`
+
+Implementation:
+시작 시 최소화 전에 자리를 잡음. 포커스가 오고 최소화가 아니면 같은 배치를 다시 적용. 트레이·단축키와 같음
+
+External code:
+없음
+
+Difference:
+창 복원 시에도 기존 자리 규칙을 씀. 타 런처 UI 복제 없음
+
+PATENT_REVIEW:
+창을 화면 구석에 두는 일반 배치. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
