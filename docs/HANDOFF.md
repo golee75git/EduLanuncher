@@ -3,7 +3,7 @@
 기준일: 2026-09-23  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.75-20260923`
+최신 커밋 시점의 앱 버전: `0.1.76-20260923`
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 
@@ -32,6 +32,8 @@ tauri-env.cmd build
 npm run site:dev
 npm run site:build
 ```
+
+업무자료 검토 화면은 설치본 설정에 없다. 개발자만 `.\tauri-env.cmd dev` → 패널 → 오른쪽 위 톱니(설정) → 스크롤 「업무자료」→ 「검토가 필요한 업무자료」.
 
 설치본 재빌드 규칙은 `.cursor/rules/rebuild-installer.mdc`와 `CLAUDE.md`.
 
@@ -89,7 +91,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - Pack vs 이 PC 표시, 홈 그룹 3개+모두(바로가기만)
 - 다른 PC용 백업 JSON (설정 화면)
 - git 연결, Cloudflare Workers 정적 사이트 (`website/`)
-- GitHub Release에 `0.1.75` 설치파일 업로드
+- GitHub Release에 `0.1.76` 설치파일 업로드
 - 업무도구 「QR코드 넣기」(이 PC 그림 + http(s) 주소 → PNG). QR Code 상표·라이선스·특허 비보장 고지
 - 공지·사이트 Pack(`edulauncher-share`): 공지+사이트 url만. 저장 시 항목 고르기. 설정에서 저장·가져오기. 받는 쪽 공지 고르기 후 사이트 병합. 백업·할 일·메모·설정 제외
 - 처음 설치 기본: 시작 시 자동 실행·시작 시 창 표시 켜짐. NSIS 설치 직후 앱 실행(`windows/hooks.nsh`). 이미 저장된 설정은 덮지 않음

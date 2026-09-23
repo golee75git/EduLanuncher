@@ -1569,3 +1569,25 @@ Difference:
 PATENT_REVIEW:
 목록 항목을 Pack으로 넣는 일반 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Topic review button only in development
+
+Purpose:
+일반 설치 설정에는 업무자료 검토 입구를 두지 않고, 소스 개발 실행에서만 열어 봄
+
+Design source:
+내부 요구사항. Vite `import.meta.env.DEV`
+
+Implementation:
+설정 업무자료 칸의 「검토가 필요한 업무자료」를 개발 실행에서만 그림. TopicReviewPage는 그대로. 설치본에는 단추 없음
+
+External code:
+없음
+
+Difference:
+역할 로그인 없이 실행 방식(dev/설치)으로 입구만 나눔
+
+PATENT_REVIEW:
+개발 전용 설정 단추. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

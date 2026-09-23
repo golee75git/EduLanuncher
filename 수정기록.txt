@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.76-20260923
+설치 파일: EduLauncher_0.1.76-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1040_x64-setup.exe
+작성자: 요청자
+
+내용:
+설치본 설정의 업무자료에서 「검토가 필요한 업무자료」단추를 빼 두었다. 개발 실행(`tauri-env.cmd dev`)에서만 설정 → 업무자료에 단추가 보인다. 검토 화면 코드는 그대로다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. GPL 없음. 비침해 보장하지 않음.
+보안: 설치본에 검토 입구 없음. 개발 실행에서만 보임.
+특허: 개발 전용 단추. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.75-20260923
 설치 파일: EduLauncher_0.1.75-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1017_x64-setup.exe

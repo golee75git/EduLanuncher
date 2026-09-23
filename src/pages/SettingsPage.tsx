@@ -341,9 +341,11 @@ export function SettingsPage({
           <p className="text-xs leading-5 text-quiet">
             홈 검색 또는 업무도구의 업무자료에서 관련 업무를 찾습니다. 검색 결과 위에 업무 그림이 나오고, 크게 보기에서 런처 옆을 조금 더 넓게 펼칩니다. 그림은 그 창을 채웁니다. 자세한 업무에서 뒤로 가면 방금 검색한 화면이 다시 나옵니다. 업무지도 탭은 목록입니다. 교육행정전자서명(EPKI) 인증서는 같은 JSON에서 검색·목록·상세가 이어집니다.
           </p>
-          <button type="button" className="btn-secondary" onClick={onTopicReview}>
-            검토가 필요한 업무자료
-          </button>
+          {import.meta.env.DEV ? (
+            <button type="button" className="btn-secondary" onClick={onTopicReview}>
+              검토가 필요한 업무자료
+            </button>
+          ) : null}
         </SettingsCard>
 
         <SettingsCard title="프로그램 정보">
