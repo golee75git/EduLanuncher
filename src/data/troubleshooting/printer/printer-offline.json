@@ -1,0 +1,100 @@
+{
+  "id": "printer-offline",
+  "category": "printer",
+  "title": "프린터가 오프라인이라고 나와요",
+  "aliases": [
+    "프린터 오프라인",
+    "인쇄기 오프라인",
+    "프린터 연결 끊김",
+    "출력 장치 오프라인",
+    "프린터 사용 불가"
+  ],
+  "keywords": [
+    "프린터가",
+    "프린터 오프라인",
+    "인쇄기 오프라인"
+  ],
+  "symptoms": [
+    "프린터가 오프라인이라고 나와요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": [
+    "personal",
+    "organization"
+  ],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관에서 관리하는 PC일 수 있습니다. 설정을 변경하거나 PC를 초기화하기 전에 기관 전산 담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "프린터 전원과 화면은 켜져 있나요?",
+      "options": [
+        {
+          "label": "꺼져 있거나 오류가 보입니다",
+          "next": "solution_1"
+        },
+        {
+          "label": "켜져 있고 정상으로 보입니다",
+          "next": "solution_2"
+        },
+        {
+          "label": "잘 모르겠습니다",
+          "next": "support"
+        }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "프린터 상태 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "프린터 전원과 용지 및 화면 오류를 확인하세요.",
+        "전원 케이블과 집에서 쓰는 프린터 연결 케이블을 확인하세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "Windows 연결 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "설정의 프린터 및 스캐너에서 프린터를 선택해 상태를 확인하세요.",
+        "대기열에 인쇄 일시 중지나 오프라인 사용 표시가 있는지 확인하세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Troubleshooting offline printer problems in Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/hardware/printer/troubleshooting-offline-printer-problems-in-windows"
+    }
+  ],
+  "support": {
+    "message": "이 문제는 추가 확인이 필요합니다. 학교·교육청·회사에서 관리하는 PC라면 전산 담당자에게 문의하세요. 개인 PC라면 제조사 또는 전문 기술 지원을 이용하세요.",
+    "collect": [
+      "화면에 나온 정확한 문구나 오류 코드",
+      "PC 또는 프린터 모델명",
+      "Windows 버전",
+      "문제가 시작된 시각과 최근 변경 사항"
+    ]
+  }
+}

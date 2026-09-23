@@ -13,6 +13,12 @@ import { APP_CONFIG } from "../config/app";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
+import {
+  HOME_TROUBLE_LIMIT,
+  searchTroubleCards,
+  type TroubleSearchHit,
+} from "../services/troubleshootingService";
+import { TROUBLE_CATEGORY_LABEL } from "../types/troubleshooting";
 import { getTopicById, getTopics } from "../services/topicService";
 import { TopicSearch } from "../components/TopicSearch";
 import { WorkMapPreview } from "../components/WorkMapPreview";
@@ -43,6 +49,8 @@ export type HomeAction =
   | { type: "shortcuts" }
   | { type: "pc-folders"; query?: string }
   | { type: "topics" }
+  | { type: "troubleshoot"; search?: string }
+  | { type: "troubleshoot-card"; cardId: string; search?: string }
   | { type: "topic"; topicId: string; search?: string }
   | { type: "notices" }
   | { type: "notice-item"; item?: NoticeItem }
@@ -61,7 +69,8 @@ type ResultItem =
   | { kind: "tool"; id: string; tool: ToolItem }
   | { kind: "recent"; id: string; tool: ToolItem }
   | { kind: "recent-topic"; id: string; topicId: string }
-  | { kind: "pc-file"; id: string; hit: UserFolderHit };
+  | { kind: "pc-file"; id: string; hit: UserFolderHit }
+  | { kind: "trouble"; id: string; cardId: string };
 
 function todayLabel(): string {
   const now = new Date();
@@ -73,6 +82,7 @@ function flattenResults(
   results: SearchResults,
   recentUse: RecentUseItem[],
   folderHits: UserFolderHit[],
+  troubleHits: TroubleSearchHit[],
 ): ResultItem[] {
   const topics: ResultItem[] = topicHits.map((hit) => ({
     kind: "topic",
@@ -105,7 +115,12 @@ function flattenResults(
     id: `pc-file:${hit.path}`,
     hit,
   }));
-  return [...tools, ...recents, ...folders, ...schools, ...topics];
+  const troubles: ResultItem[] = troubleHits.slice(0, HOME_TROUBLE_LIMIT).map((hit) => ({
+    kind: "trouble" as const,
+    id: `trouble:${hit.item.id}`,
+    cardId: hit.item.id,
+  }));
+  return [...tools, ...recents, ...folders, ...schools, ...troubles, ...topics];
 }
 
 export function HomePage({ onAction, search = "" }: HomePageProps) {
@@ -163,6 +178,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   );
   const results = useMemo(() => searchAll(query, tools, schools), [query, tools, schools]);
   const topicHits = useMemo(() => searchTopics(query, topicList), [query, topicList]);
+  const troubleHits = useMemo(() => searchTroubleCards(query), [query]);
   const recentUseMatched = useMemo(() => {
     const q = query.trim();
     if (!q) {
@@ -187,8 +203,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       .slice(0, settings.recentCount);
   }, [query, recentUse, recentUseAll, settings.recentCount]);
   const flat = useMemo(
-    () => flattenResults(topicHits, results, recentUseMatched, folderHits),
-    [topicHits, results, recentUseMatched, folderHits],
+    () => flattenResults(topicHits, results, recentUseMatched, folderHits, troubleHits),
+    [topicHits, results, recentUseMatched, folderHits, troubleHits],
   );
   const idleItems: ResultItem[] = useMemo(
     () => [
@@ -275,6 +291,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       onAction({ type: "launch", tool: userFolderAsTool(item.hit) });
       return;
     }
+    if (item.kind === "trouble") {
+      onAction({ type: "troubleshoot-card", cardId: item.cardId, search: query });
+      return;
+    }
     onAction({ type: "launch", tool: item.tool });
   };
 
@@ -340,7 +360,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
         </div>
       </header>
 
-      <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="학교·업무·도구·이 PC 폴더" />
+      <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="학교·업무·도구·이 PC 폴더·PC 문제" />
 
       <div className="mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3">
         {activeSchool ? (
@@ -551,6 +571,43 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 </button>
               ))}
             </ResultGroup>
+            <section>
+              <div className="mb-1.5 flex items-center gap-1">
+                <h2 className="min-w-0 flex-1 desk-label">PC 문제 해결</h2>
+                {troubleHits.length > 0 ? (
+                  <button
+                    type="button"
+                    className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+                    onClick={() => onAction({ type: "troubleshoot", search: query })}
+                  >
+                    더 보기
+                  </button>
+                ) : null}
+              </div>
+              {troubleHits.length === 0 ? (
+                <p className="text-sm text-quiet">일치하는 PC 문제가 없습니다.</p>
+              ) : (
+                <div className="space-y-1">
+                  {troubleHits.slice(0, HOME_TROUBLE_LIMIT).map((hit) => (
+                    <button
+                      key={hit.item.id}
+                      type="button"
+                      onClick={() => onAction({ type: "troubleshoot-card", cardId: hit.item.id, search: query })}
+                      className={`desk-row ${
+                        selectedId === `trouble:${hit.item.id}` ? "desk-row-active" : ""
+                      }`}
+                    >
+                      <span className="min-w-0 flex-1 truncate">
+                        <HighlightText text={hit.item.title} query={query} />
+                      </span>
+                      <span className="ml-2 shrink-0 text-xs text-quiet">
+                        {TROUBLE_CATEGORY_LABEL[hit.item.category]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
             <ResultGroup title="관련 업무" empty="일치하는 업무가 없습니다.">
               {topicHits.length > 0 ? (
                 <>

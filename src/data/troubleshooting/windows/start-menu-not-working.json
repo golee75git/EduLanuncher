@@ -1,0 +1,110 @@
+{
+  "id": "start-menu-not-working",
+  "category": "windows",
+  "title": "시작 메뉴가 열리지 않아요",
+  "aliases": [
+    "시작 버튼 안됨",
+    "윈도우 메뉴 안열림",
+    "시작 메뉴 먹통",
+    "시작 버튼 반응 없음",
+    "윈도우 키 안됨"
+  ],
+  "keywords": [
+    "시작",
+    "시작 버튼 안됨",
+    "윈도우 메뉴 안열림"
+  ],
+  "symptoms": [
+    "시작 메뉴가 열리지 않아요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": [
+    "personal",
+    "organization"
+  ],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관에서 관리하는 PC일 수 있습니다. 설정을 변경하거나 PC를 초기화하기 전에 기관 전산 담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "키보드의 Windows 키를 눌러도 메뉴가 안 열리나요?",
+      "options": [
+        {
+          "label": "키보드로는 열립니다",
+          "next": "solution_1"
+        },
+        {
+          "label": "키보드로도 안 열립니다",
+          "next": "solution_2"
+        },
+        {
+          "label": "잘 모르겠습니다",
+          "next": "support"
+        }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "입력 방법 비교",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [
+        "열려 있는 문서의 변경 내용을 먼저 저장하세요."
+      ],
+      "steps": [
+        "키보드 Windows 키와 마우스 클릭 중 어느 쪽이 되는지 확인하세요.",
+        "열리는 방법으로 저장할 작업을 마친 뒤 정상적으로 다시 시작하세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "전체 반응 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [
+        "열려 있는 문서의 변경 내용을 먼저 저장하세요."
+      ],
+      "steps": [
+        "Ctrl+Alt+Delete 메뉴가 뜨는지 확인하세요.",
+        "정상적으로 다시 시작할 수 있으면 다시 시작하고 재현 여부를 기록하세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "파일 탐색기가 열리지 않거나 시작되지 않는 경우 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/fileexplorer/fix-file-explorer-if-it-won-t-open-or-start"
+    },
+    {
+      "publisher": "Microsoft",
+      "title": "Recovery options in Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/experience/backup-recovery/recovery-options-in-windows"
+    }
+  ],
+  "support": {
+    "message": "이 문제는 추가 확인이 필요합니다. 학교·교육청·회사에서 관리하는 PC라면 전산 담당자에게 문의하세요. 개인 PC라면 제조사 또는 전문 기술 지원을 이용하세요.",
+    "collect": [
+      "화면에 나온 정확한 문구나 오류 코드",
+      "PC 또는 프린터 모델명",
+      "Windows 버전",
+      "문제가 시작된 시각과 최근 변경 사항"
+    ]
+  }
+}

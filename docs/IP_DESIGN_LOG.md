@@ -1767,3 +1767,25 @@ Difference:
 PATENT_REVIEW:
 버전 문자열 비교와 공개 릴리스 주소 열기는 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Guided PC troubleshooting cards
+
+Purpose:
+학교 행정실 PC에서 인터넷·프린터·Windows 증상을 질문으로 좁혀 안내한다
+
+Design source:
+내부 지식 JSON(`LauncherBox-PC-knowledgebase-30`). Microsoft 공개 지원 문서 URL만 출처
+
+Implementation:
+로컬 JSON을 읽어 목록·검색·질문 흐름을 표시. 단계는 글만. 시스템 명령을 대신 실행하지 않음. 공식 주소는 기존 브라우저 열기. 검색어는 파일에 넣지 않음
+
+External code:
+없음. JSON 본문은 제공된 지식 파일. UI·로더는 자체 구현
+
+Difference:
+타 런처 UI 복제 없음. 자동 복구·원격 진단 아님. 관련 업무와 구역을 나눔
+
+PATENT_REVIEW:
+질문-선택-안내 흐름은 일반 안내 화면. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

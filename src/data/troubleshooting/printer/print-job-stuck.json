@@ -1,0 +1,100 @@
+{
+  "id": "print-job-stuck",
+  "category": "printer",
+  "title": "인쇄 문서가 대기열에 멈춰 있어요",
+  "aliases": [
+    "인쇄 대기 중",
+    "출력 대기 멈춤",
+    "문서가 안 빠짐",
+    "프린트 작업 멈춤",
+    "인쇄 중 그대로"
+  ],
+  "keywords": [
+    "인쇄",
+    "인쇄 대기 중",
+    "출력 대기 멈춤"
+  ],
+  "symptoms": [
+    "인쇄 문서가 대기열에 멈춰 있어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": [
+    "personal",
+    "organization"
+  ],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관에서 관리하는 PC일 수 있습니다. 설정을 변경하거나 PC를 초기화하기 전에 기관 전산 담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "대기열에 내 문서만 있나요?",
+      "options": [
+        {
+          "label": "내 문서만 있습니다",
+          "next": "solution_1"
+        },
+        {
+          "label": "다른 사람 문서도 보입니다",
+          "next": "solution_2"
+        },
+        {
+          "label": "잘 모르겠습니다",
+          "next": "support"
+        }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "내 인쇄 작업 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "설정의 프린터 및 스캐너에서 해당 프린터의 인쇄 대기열을 여세요.",
+        "본인이 제출한 문서라면 선택해 취소하고 다시 인쇄해 보세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "공유 대기열 문의",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "다른 사람 작업이 보이면 임의로 삭제하지 마세요.",
+        "공용 프린터 담당자에게 현재 대기열 상태와 시간을 알리세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows에서 인쇄 작업이 큐에 멈춘 오류 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/hardware/printer/fix-print-job-stuck-in-queue-errors-in-windows"
+    }
+  ],
+  "support": {
+    "message": "이 문제는 추가 확인이 필요합니다. 학교·교육청·회사에서 관리하는 PC라면 전산 담당자에게 문의하세요. 개인 PC라면 제조사 또는 전문 기술 지원을 이용하세요.",
+    "collect": [
+      "화면에 나온 정확한 문구나 오류 코드",
+      "PC 또는 프린터 모델명",
+      "Windows 버전",
+      "문제가 시작된 시각과 최근 변경 사항"
+    ]
+  }
+}

@@ -20,6 +20,8 @@ import { NoticePackPage } from "./pages/NoticePackPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SharePackSavePage } from "./pages/SharePackSavePage";
 import { ComputerToolPage } from "./pages/ComputerToolPage";
+import { TroubleshootDetailPage } from "./pages/TroubleshootDetailPage";
+import { TroubleshootListPage } from "./pages/TroubleshootListPage";
 import { ShortcutPage } from "./pages/ShortcutPage";
 import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
@@ -34,6 +36,7 @@ import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
 import { isFolderFindTarget } from "./data/computerTools";
 import { logEducationValidation } from "./services/mindMapService";
+import { logTroubleshootingValidation } from "./services/troubleshootingService";
 import { LaunchError, launchTool } from "./services/launcherService";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
@@ -61,6 +64,8 @@ type View =
   | { name: "tool-group"; groupType: ToolType }
   | { name: "pc-urls" }
   | { name: "computer-tools" }
+  | { name: "troubleshoot"; search?: string; backTo?: View }
+  | { name: "troubleshoot-card"; cardId: string; backTo: View }
   | { name: "shortcuts" }
   | { name: "topics"; search?: string }
   | { name: "topic-review" }
@@ -235,6 +240,7 @@ export default function App() {
           // Command is unavailable in browser preview.
         }
         logEducationValidation();
+        logTroubleshootingValidation();
         if (cancelled) {
           return;
         }
@@ -437,6 +443,22 @@ export default function App() {
       setView({ name: "computer-tools" });
       return;
     }
+    if (action.type === "troubleshoot") {
+      setView({
+        name: "troubleshoot",
+        search: clipSearch(action.search),
+        backTo: { name: "home", search: clipSearch(action.search) },
+      });
+      return;
+    }
+    if (action.type === "troubleshoot-card") {
+      setView({
+        name: "troubleshoot-card",
+        cardId: action.cardId,
+        backTo: { name: "home", search: clipSearch(action.search) },
+      });
+      return;
+    }
     if (action.type === "shortcuts") {
       setView({ name: "shortcuts" });
       return;
@@ -564,6 +586,37 @@ export default function App() {
               onShowFolderFind={() =>
                 setView({ name: "pc-folder-find", backTo: { name: "computer-tools" } })
               }
+              onShowTroubleshoot={() =>
+                setView({ name: "troubleshoot", backTo: { name: "computer-tools" } })
+              }
+            />
+          ) : null}
+          {view.name === "troubleshoot" ? (
+            <TroubleshootListPage
+              search={view.search}
+              onBack={() => setView(view.backTo ?? { name: "home" })}
+              onOpen={(cardId, search) =>
+                setView({
+                  name: "troubleshoot-card",
+                  cardId,
+                  backTo: { name: "troubleshoot", search: clipSearch(search), backTo: view.backTo },
+                })
+              }
+            />
+          ) : null}
+          {view.name === "troubleshoot-card" ? (
+            <TroubleshootDetailPage
+              key={view.cardId}
+              cardId={view.cardId}
+              onBack={() => setView(view.backTo)}
+              onList={() =>
+                setView(
+                  view.backTo.name === "troubleshoot"
+                    ? view.backTo
+                    : { name: "troubleshoot", backTo: view.backTo },
+                )
+              }
+              onOpenCard={(cardId) => setView({ ...view, cardId })}
             />
           ) : null}
           {view.name === "shortcuts" ? <ShortcutPage onBack={() => setView({ name: "home" })} /> : null}

@@ -16,9 +16,16 @@ interface ComputerToolPageProps {
   onLaunch: (tool: ToolItem) => void;
   onShowAddress: () => void;
   onShowFolderFind: () => void;
+  onShowTroubleshoot: () => void;
 }
 
-export function ComputerToolPage({ onBack, onLaunch, onShowAddress, onShowFolderFind }: ComputerToolPageProps) {
+export function ComputerToolPage({
+  onBack,
+  onLaunch,
+  onShowAddress,
+  onShowFolderFind,
+  onShowTroubleshoot,
+}: ComputerToolPageProps) {
   const tools = useToolStore((state) => state.tools);
   const addTool = useToolStore((state) => state.addTool);
   const [notice, setNotice] = useState("");
@@ -51,8 +58,17 @@ export function ComputerToolPage({ onBack, onLaunch, onShowAddress, onShowFolder
         <p className="text-xs leading-5 text-quiet">
           이 PC Windows 설정 화면을 열거나, 사설·공인 IP를 보고, 이 사용자 폴더에서 이름을 찾습니다. 익스플로러 설정
           복원 확인 화면을 엽니다. 소리·인터넷 옵션·작업 관리자 화면도 엽니다. 이름을 대신 바꾸거나 권한을 올리지
-          않습니다. 설정 화면은 고정된 System32 파일만 실행합니다.
+          않습니다. 설정 화면은 고정된 System32 파일만 실행합니다. PC 문제 해결은 질문에 답하며 안내만 보고, 명령을
+          대신 실행하지 않습니다.
         </p>
+        <button
+          type="button"
+          className="w-full rounded-lg border border-line bg-card px-3 py-2 text-left shadow-card"
+          onClick={onShowTroubleshoot}
+        >
+          <span className="block text-sm font-medium text-desk">PC 문제 해결</span>
+          <span className="block text-[11px] text-quiet">인터넷·프린터·Windows 증상 안내</span>
+        </button>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         <ul className="card-surface divide-y divide-line/70">
           {listComputerTools().map((entry) => {

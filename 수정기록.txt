@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.86-20260923
+설치 파일: EduLauncher_0.1.86-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1625_x64-setup.exe
+작성자: 요청자
+
+내용:
+컴퓨터도구에 PC 문제 해결을 넣었다. 인터넷·프린터·Windows 안내 30장을 로컬 JSON으로 두고, 질문에 답하면 다음 안내가 나온다. 홈 검색은 학교와 관련 업무 사이에 최대 5줄과 더 보기를 둔다. 시스템 명령을 대신 실행하지 않고, Microsoft 공식 주소만 연다. 검색어는 파일에 넣지 않는다.
+
+새로 작성한 파일: src/types/troubleshooting.ts, src/services/troubleshootingService.ts, src/pages/TroubleshootListPage.tsx, src/pages/TroubleshootDetailPage.tsx, src/data/troubleshooting/**/*.json, tools/validate-troubleshooting.py
+재사용한 기존 파일: src/App.tsx, src/pages/HomePage.tsx, src/pages/ComputerToolPage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, docs/*, 수정기록.txt
+
+소개 사이트: 설치 파일 받기 주소와 설치 안내 파일명을 0.1.86-20260923 / 2026-09-23_1625로 맞춤.
+
+글꼴: Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕). SIL OFL 아님. woff/ttf 번들 없음.
+라이선스: 패키지 추가 없음. 직접 의존성 MIT/Apache-2.0/ISC. 직접 GPL/AGPL 없음. license-checker 전이에서 @img/sharp-* 에 LGPL-3.0-or-later가 섞여 있으나 개발용이며 앱에 넣지 않음. 비침해 보장하지 않음.
+보안: 시스템 명령 자동 실행 없음. https://support.microsoft.com/ 만 브라우저로 염. 검색어 비저장. 새 Rust 명령 없음.
+특허: 질문-선택-안내 화면은 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.85-20260923
 설치 파일: EduLauncher_0.1.85-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1525_x64-setup.exe

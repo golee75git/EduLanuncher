@@ -1,0 +1,104 @@
+{
+  "id": "windows-update-stuck",
+  "category": "windows",
+  "title": "Windows 업데이트가 멈춘 것 같아요",
+  "aliases": [
+    "업데이트 멈춤",
+    "업데이트 몇퍼센트에서 멈춤",
+    "업데이트 무한 대기",
+    "설치 진행 안됨",
+    "업데이트 오래 걸림"
+  ],
+  "keywords": [
+    "Windows",
+    "업데이트 멈춤",
+    "업데이트 몇퍼센트에서 멈춤"
+  ],
+  "symptoms": [
+    "Windows 업데이트가 멈춘 것 같아요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": [
+    "personal",
+    "organization"
+  ],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관에서 관리하는 PC일 수 있습니다. 설정을 변경하거나 PC를 초기화하기 전에 기관 전산 담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "화면에서 진행률이나 디스크 동작이 변하나요?",
+      "options": [
+        {
+          "label": "변화가 있습니다",
+          "next": "solution_1"
+        },
+        {
+          "label": "오랫동안 변화가 없습니다",
+          "next": "solution_2"
+        },
+        {
+          "label": "잘 모르겠습니다",
+          "next": "support"
+        }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "진행 상태 관찰",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [
+        "열려 있는 문서의 변경 내용을 먼저 저장하세요."
+      ],
+      "steps": [
+        "전원과 네트워크 연결을 유지하세요.",
+        "진행률 또는 화면 메시지가 바뀌는지 충분히 관찰하고 표시를 기록하세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "중단 전 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [
+        "열려 있는 문서의 변경 내용을 먼저 저장하세요."
+      ],
+      "steps": [
+        "업데이트 화면의 문구와 지속 시간을 기록하세요.",
+        "작업 중 강제 종료나 전원 분리 전 기관 담당자 또는 제조사 지원에 문의하세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Troubleshoot problems updating Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows"
+    }
+  ],
+  "support": {
+    "message": "이 문제는 추가 확인이 필요합니다. 학교·교육청·회사에서 관리하는 PC라면 전산 담당자에게 문의하세요. 개인 PC라면 제조사 또는 전문 기술 지원을 이용하세요.",
+    "collect": [
+      "화면에 나온 정확한 문구나 오류 코드",
+      "PC 또는 프린터 모델명",
+      "Windows 버전",
+      "문제가 시작된 시각과 최근 변경 사항"
+    ]
+  }
+}

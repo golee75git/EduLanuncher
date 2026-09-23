@@ -1,0 +1,100 @@
+{
+  "id": "ethernet-not-connected",
+  "category": "network",
+  "title": "랜선을 연결했는데 유선 인터넷이 안 잡혀요",
+  "aliases": [
+    "랜선 안됨",
+    "유선 인터넷 안돼",
+    "네트워크 케이블 뽑힘",
+    "랜케이블 인식 안됨",
+    "이더넷 연결 안됨"
+  ],
+  "keywords": [
+    "랜선을",
+    "랜선 안됨",
+    "유선 인터넷 안돼"
+  ],
+  "symptoms": [
+    "랜선을 연결했는데 유선 인터넷이 안 잡혀요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": [
+    "personal",
+    "organization"
+  ],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관에서 관리하는 PC일 수 있습니다. 설정을 변경하거나 PC를 초기화하기 전에 기관 전산 담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "케이블이 PC와 벽면 또는 공유기에 모두 꽂혀 있나요?",
+      "options": [
+        {
+          "label": "헐겁거나 빠져 있습니다",
+          "next": "solution_1"
+        },
+        {
+          "label": "단단히 꽂혀 있습니다",
+          "next": "solution_2"
+        },
+        {
+          "label": "잘 모르겠습니다",
+          "next": "support"
+        }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "케이블 연결 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "PC 쪽 랜선이 끝까지 꽂혀 있는지 확인하세요.",
+        "집에서는 공유기의 LAN 포트 연결을 확인하세요. 기관의 스위치 포트는 임의로 바꾸지 마세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "이더넷 상태 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2~5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "설정에서 네트워크 및 인터넷의 이더넷 상태를 확인하세요.",
+        "가정이라면 다른 케이블로 비교할 수 있습니다. 기관에서는 담당자에게 케이블 점검을 요청하세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows의 이더넷 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-ethernet-connection-problems-in-windows"
+    }
+  ],
+  "support": {
+    "message": "이 문제는 추가 확인이 필요합니다. 학교·교육청·회사에서 관리하는 PC라면 전산 담당자에게 문의하세요. 개인 PC라면 제조사 또는 전문 기술 지원을 이용하세요.",
+    "collect": [
+      "화면에 나온 정확한 문구나 오류 코드",
+      "PC 또는 프린터 모델명",
+      "Windows 버전",
+      "문제가 시작된 시각과 최근 변경 사항"
+    ]
+  }
+}
