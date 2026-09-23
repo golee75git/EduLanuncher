@@ -198,7 +198,7 @@ function parseSettings(raw: unknown): AppSettings {
       : DEFAULT_SETTINGS.recentCount;
   return {
     autoStart: source.autoStart === false ? false : DEFAULT_SETTINGS.autoStart,
-    showWindowOnLaunch: source.showWindowOnLaunch === true,
+    showWindowOnLaunch: source.showWindowOnLaunch === false ? false : DEFAULT_SETTINGS.showWindowOnLaunch,
     launcherPosition: position,
     globalShortcut: asText(source.globalShortcut) || DEFAULT_SETTINGS.globalShortcut,
     favoriteCount,

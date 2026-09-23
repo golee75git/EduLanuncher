@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.74-20260923
+설치 파일: EduLauncher_0.1.74-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_0920_x64-setup.exe
+작성자: 요청자
+
+내용:
+시작 시 창 표시 기본값을 켜 두었다. 시작 시 자동 실행 기본은 그대로 켜짐. NSIS 설치가 끝나면 프로그램을 실행한다(windows/hooks.nsh). 이미 이 PC에 저장된 설정은 덮지 않는다. 설정·다운로드 안내 문구를 맞췄다.
+
+새로 작성한 파일: src-tauri/windows/hooks.nsh
+재사용한 기존 파일: src/types/settings.ts, src/services/backupService.ts, src-tauri/tauri.conf.json, src/pages/SettingsPage.tsx, src/config/app.ts, website/src/config.ts, website/src/pages/DownloadPage.tsx, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. GPL 없음. 비침해 보장하지 않음.
+보안: 설치 후 현재 사용자로 exe 실행. 관리자 강제 없음. 기존 설정 강제 덮어쓰기 없음.
+특허: 시작 옵션·설치 후 실행은 일반 관행. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.73-20260923
 설치 파일: EduLauncher_0.1.73-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_0732_x64-setup.exe

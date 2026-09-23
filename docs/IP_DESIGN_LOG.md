@@ -1525,3 +1525,25 @@ Difference:
 PATENT_REVIEW:
 목록 구역 순서·표시 이름만. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Default show window on launch and run after NSIS install
+
+Purpose:
+처음 설치 후 패널이 바로 보이게 하고, 설치가 끝나면 프로그램을 실행함
+
+Design source:
+내부 요구사항. 기존 settings 기본값·Tauri NSIS installerHooks
+
+Implementation:
+`showWindowOnLaunch` 기본 true. `autoStart` 기본 true는 유지. NSIS `windows/hooks.nsh`의 POSTINSTALL에서 설치 폴더 exe 실행. 이미 저장된 settings.json은 덮지 않음
+
+External code:
+없음. Tauri 공식 installerHooks 자리만 사용
+
+Difference:
+교육업무 런처 자체 설정 기본값과 설치 훅. 타 런처 UI 복제 없음
+
+PATENT_REVIEW:
+시작 옵션·설치 후 실행은 일반 데스크톱 관행. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

@@ -10,7 +10,8 @@ const REQUIREMENTS = [
 const STEPS = [
   "아래 버튼으로 GitHub Releases의 최신 설치 파일을 받습니다.",
   `${SITE_CONFIG.setupFile} 또는 ${SITE_CONFIG.setupFileDated} 를 실행합니다. 현재 사용자 폴더에 설치됩니다.`,
-  "이미 설치되어 있으면 이전 버전을 교체한 뒤 트레이에서 다시 실행합니다.",
+  "설치가 끝나면 프로그램이 바로 실행되고 패널이 열립니다. 시작 시 자동 실행·창 표시는 기본으로 켜져 있으며 설정에서 바꿀 수 있습니다.",
+  "이미 설치되어 있으면 이전 버전을 교체한 뒤 다시 실행합니다.",
 ] as const;
 
 export function DownloadPage() {

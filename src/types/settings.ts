@@ -102,7 +102,7 @@ export function asMemoHeight(value: unknown): number {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
-  showWindowOnLaunch: false,
+  showWindowOnLaunch: true,
   launcherPosition: "bottom-right",
   globalShortcut: "Ctrl+Alt+E",
   favoriteCount: 9,
