@@ -2,6 +2,7 @@ import { Download } from "lucide-react";
 import { SITE_CONFIG } from "../config";
 
 const REQUIREMENTS = [
+  "개인 사용 PC에만 설치하세요. 공용 PC·실습실·다른 사람 계정에는 설치하지 않습니다.",
   "Windows 10 또는 11, 64비트(x64)",
   "현재 사용자 폴더에 설치 (관리자 권한 불필요)",
   "Microsoft Edge WebView2 Runtime",
@@ -19,6 +20,10 @@ export function DownloadPage() {
     <div className="space-y-8">
       <section className="max-w-2xl space-y-3">
         <h1 className="text-2xl font-semibold text-desk">데스크톱 다운로드</h1>
+        <p className="rounded-lg border border-line bg-card px-4 py-3 text-sm leading-relaxed text-desk">
+          <strong className="font-semibold">개인 사용 PC에만 설치하세요.</strong> 공용 PC·실습실·다른 사람
+          계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다.
+        </p>
         <p className="text-sm leading-relaxed text-quiet">
           {SITE_CONFIG.displayName}는 이 PC에 설치하는 Windows 프로그램입니다. 설치 파일은 이 사이트에 두지 않고
           GitHub Releases에서 받습니다. 용량이 큰 설치본을 웹 호스팅에 올리지 않기 위함입니다.

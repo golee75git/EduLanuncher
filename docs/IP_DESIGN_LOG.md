@@ -1591,3 +1591,25 @@ Difference:
 PATENT_REVIEW:
 개발 전용 설정 단추. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Personal-PC-only install notice on the site
+
+Purpose:
+설치 안내에서 개인 사용 PC에만 두라고 분명히 알리기 위함
+
+Design source:
+내부 요구사항. 기존 website 소개·다운로드 문구
+
+Implementation:
+소개·설치 안내 상단에 굵은 「개인 사용 PC에만 설치하세요」와 공용 PC·실습실·다른 계정 안내. 설정 사용 방법 첫 줄에도 같은 뜻. 새 패키지 없음
+
+External code:
+없음
+
+Difference:
+계정 잠금이 아니라 설치 안내 문구
+
+PATENT_REVIEW:
+안내 문구만. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

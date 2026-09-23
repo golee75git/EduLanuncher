@@ -370,6 +370,7 @@ export function SettingsPage({
             설치 파일 {APP_CONFIG.setupFile} · 날짜 복사본 {APP_CONFIG.setupFileDated} · {APP_CONFIG.version}
           </p>
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
+            <li>개인 사용 PC에만 설치하세요. 공용 PC·실습실·다른 사람 계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다.</li>
             <li>설치가 끝나면 프로그램이 바로 실행되고, 처음에는 시작 시 자동 실행·시작 시 창 표시가 켜져 있습니다. 설정에서 끌 수 있습니다.</li>
             <li>설정의 보기에서 서류·밝은 화면·어두운 화면 스킨과 모두 목록 1열·2열을 고릅니다. 2열일 때 패널을 가로로 넓히면 홈·모두 목록이 3열로 바뀝니다.</li>
             <li>트레이 또는 Ctrl+Alt+E로 패널을 엽니다. 창 모서리를 끌어 크기를 바꿀 수 있고, 바꾼 크기는 이 PC에 남습니다. 처음 설치는 440×650입니다. 가로로 넓히면(약 560px 이상) 자주 사용하는 도구·모두 목록이 3열로 보입니다.</li>

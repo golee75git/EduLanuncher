@@ -56,6 +56,10 @@ export function IntroPage() {
           {SITE_CONFIG.displayName}는 교육기관 직원용 작은 패널입니다. 웹 서비스가 아니라 이 PC에 설치하는
           프로그램입니다. 평소에는 화면을 가리지 않고, 필요할 때만 엽니다.
         </p>
+        <p className="rounded-lg border border-line bg-card px-4 py-3 text-sm leading-relaxed text-desk">
+          <strong className="font-semibold">개인 사용 PC에만 설치하세요.</strong> 공용 PC·실습실·다른 사람
+          계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다.
+        </p>
         <div className="flex flex-wrap gap-3 pt-2">
           <a className="btn-primary" href={SITE_CONFIG.setupDownloadUrl} rel="noreferrer" target="_blank">
             <Download className="h-4 w-4" />

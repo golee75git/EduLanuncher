@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.77-20260923
+설치 파일: EduLauncher_0.1.77-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1144_x64-setup.exe
+작성자: 요청자
+
+내용:
+소개 사이트와 설치 안내에 「개인 사용 PC에만 설치하세요」를 굵게 두었다. 공용 PC·실습실·다른 사람 계정에는 설치하지 말라고 적었다. 설정 사용 방법 첫 줄에도 같은 뜻을 넣었다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: website/src/pages/IntroPage.tsx, website/src/pages/DownloadPage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. GPL 없음. 비침해 보장하지 않음.
+보안: 안내 문구만. 계정 잠금 없음.
+특허: 설치 안내 문구. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.76-20260923
 설치 파일: EduLauncher_0.1.76-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1040_x64-setup.exe
