@@ -1657,3 +1657,25 @@ Difference:
 PATENT_REVIEW:
 창 최소화와 작업 표시줄 복원은 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Pick sites when importing a share pack
+
+Purpose:
+공지·사이트 Pack을 가져올 때 사이트도 목록에 보이게 하고 고른 항목만 넣음
+
+Design source:
+내부 요구사항. 기존 `NoticePackPick` 공지 고르기와 `SharePackSavePage` 사이트 목록
+
+Implementation:
+가져오기 화면에 사이트 체크 목록. 이미 있는 id는 건너뜀. 사이트만 있는 Pack도 같은 고르기 화면. 넣기는 고른 사이트만 `applyLauncherPack`
+
+External code:
+없음
+
+Difference:
+저장·가져오기 모두 이 PC에서 항목을 고름. 타 런처 UI 복제 없음
+
+PATENT_REVIEW:
+목록에서 항목을 고르는 일반 가져오기 화면. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

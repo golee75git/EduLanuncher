@@ -103,10 +103,7 @@ export function parseSharePack(raw: unknown): SharePack {
   };
 }
 
-export function shareNoticePack(share: SharePack): NoticePack | null {
-  if (share.notices.length === 0) {
-    return null;
-  }
+export function shareNoticePack(share: SharePack): NoticePack {
   const kind = share.notices[0]?.kind === "alert" ? "alert" : "org";
   return {
     id: "pack-share-notices",
