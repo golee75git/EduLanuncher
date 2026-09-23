@@ -1811,3 +1811,25 @@ Difference:
 PATENT_REVIEW:
 버전 비교 후 안내 표시는 일반 알림. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Intro site custom domain
+
+Purpose:
+설정 소개 사이트 단추를 사용자 지정 주소로 연다
+
+Design source:
+내부 요구사항. 기존 `APP_CONFIG.siteUrl`과 `launchQuickUrl`
+
+Implementation:
+https 주소만 바꾸고 기존 브라우저 열기를 씀
+
+External code:
+없음
+
+Difference:
+주소 문자열만 변경. 새 연동 없음
+
+PATENT_REVIEW:
+고정 https 주소를 브라우저로 여는 일반 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
