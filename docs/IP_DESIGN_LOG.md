@@ -1679,3 +1679,25 @@ Difference:
 PATENT_REVIEW:
 목록에서 항목을 고르는 일반 가져오기 화면. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Keep Cloudflare deploy on website/ only
+
+Purpose:
+데스크톱 앱 Vite와 소개 사이트 배포를 섞지 않음
+
+Design source:
+내부 요구사항. 기존 `website/wrangler.jsonc`, `npm run site:build`
+
+Implementation:
+루트 `package.json`·`vite.config.ts`에서 wrangler·`@cloudflare/vite-plugin`을 뺌. 루트 `wrangler.jsonc` 삭제. 문서에 루트 배포 금지
+
+External code:
+없음
+
+Difference:
+사이트는 `website/`만. 앱 빌드는 패널만
+
+PATENT_REVIEW:
+빌드 경로 분리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

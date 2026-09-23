@@ -80,6 +80,7 @@
 - `src-tauri/target`, `node_modules`, `.exe`를 git에 넣기
 - Cloudflare Pages에 설치파일 올리기
 - Root directory 없이 저장소 루트를 웹으로 빌드하기 (런처 UI가 웹에 올라감)
+- 루트에 `wrangler.jsonc`·`@cloudflare/vite-plugin`·`npm run deploy`를 두기 (앱 Vite와 사이트 배포가 섞임)
 - `_redirects`의 `/* → /index.html` (Workers SPA와 루프)
 - Chrome/Edge 북마크 JSON을 몰래 읽어 동기화하기
 - APK·Play Store·Vercel 점수판 문구를 이 Windows 앱에 넣기

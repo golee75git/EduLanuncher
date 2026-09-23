@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.82-20260923
+설치 파일: EduLauncher_0.1.82-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1450_x64-setup.exe
+작성자: 요청자
+
+내용:
+루트에 있던 Cloudflare 플러그인·wrangler 배포 설정을 빼고 앱 빌드는 패널만 묶게 했다. 소개 사이트는 website 폴더만 쓴다. 루트 wrangler.jsonc는 삭제했다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: package.json, vite.config.ts, .gitignore, src-tauri/tauri.conf.json, src/config/app.ts, src/pages/SettingsPage.tsx, website/src/config.ts, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 루트에서 wrangler·@cloudflare/vite-plugin을 제거. GPL 없음. 비침해 보장하지 않음.
+보안: 앱 번들에 웹 배포 설정이 들어가지 않게 함.
+특허: 빌드 경로 분리. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.81-20260923
 설치 파일: EduLauncher_0.1.81-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1415_x64-setup.exe
