@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.90-20260923",
+    note: "켤 때 Pack 연결과 자동 실행을 넣는 검은 콘솔 창을 띄우지 않습니다.",
+  },
+  {
     version: "0.1.89-20260923",
     note: "새 설치 안내에 이 PC 버전과 새 버전을 같이 보여 주고, 소개 사이트를 엽니다.",
   },

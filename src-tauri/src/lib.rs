@@ -1,9 +1,13 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
+
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 
 use serde::Serialize;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, PredefinedMenuItem};
@@ -26,6 +30,22 @@ mod shell_icon;
 #[link(name = "shell32")]
 extern "system" {
     fn SHChangeNotify(event: i32, flags: u32, item1: *const std::ffi::c_void, item2: *const std::ffi::c_void);
+}
+
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+fn run_reg(args: &[&str]) {
+    let mut cmd = Command::new("reg");
+    cmd.args(args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
+    #[cfg(windows)]
+    {
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    let _ = cmd.status();
 }
 
 struct PanelState {
@@ -614,9 +634,7 @@ fn pack_association_exe() -> Option<PathBuf> {
 }
 
 fn reg_set_default(key: &str, data: &str) {
-    let _ = std::process::Command::new("reg")
-        .args(["add", key, "/ve", "/t", "REG_SZ", "/d", data, "/f"])
-        .status();
+    run_reg(&["add", key, "/ve", "/t", "REG_SZ", "/d", data, "/f"]);
 }
 
 fn register_edupack_association(exe: &std::path::Path) {
@@ -650,19 +668,17 @@ fn setup_edupack_association() {
 
 fn enable_login_item(exe: &std::path::Path) {
     let value = format!("\"{}\"", exe.display());
-    let _ = std::process::Command::new("reg")
-        .args([
-            "add",
-            r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
-            "/v",
-            "EduLauncher",
-            "/t",
-            "REG_SZ",
-            "/d",
-            &value,
-            "/f",
-        ])
-        .status();
+    run_reg(&[
+        "add",
+        r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
+        "/v",
+        "EduLauncher",
+        "/t",
+        "REG_SZ",
+        "/d",
+        &value,
+        "/f",
+    ]);
 }
 
 fn setup_autostart(app: &tauri::App) {

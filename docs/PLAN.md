@@ -67,15 +67,14 @@
 - Everything·Windows 검색 UI 복제, 로고·설치파일 동봉
 - 새 npm/crate. 파일을 런처 폴더로 복사
 
+- Pack 연결과 시작 시 자동 실행용 `reg.exe`는 콘솔 창을 띄우지 않음 (`CREATE_NO_WINDOW`)
+
 ## 다음 후보 (우선 낮은 것부터)
 
-1. **시작 시 검은 콘솔**  
-   `.edupack` 연결용 `reg.exe`가 창을 띄움. `CREATE_NO_WINDOW`로 숨기기. Rust (`src-tauri/src/lib.rs`) + 설치본 재빌드.
-
-2. **설치파일 자동 릴리스**  
+1. **설치파일 자동 릴리스**  
    지금은 로컬 빌드 후 `gh release`로 수동 업로드. GitHub Actions(Windows runner + VS)는 선택.
 
-3. **웹 미리보기**  
+2. **웹 미리보기**  
    실제 런처를 브라우저에 이식하지 않음. 목업 유지.
 
 ## 하지 말 것

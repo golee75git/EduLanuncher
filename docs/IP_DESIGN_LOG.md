@@ -1877,3 +1877,25 @@ Difference:
 PATENT_REVIEW:
 버전과 한 줄 설명을 나열하는 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Hide console when writing file association
+
+Purpose:
+켤 때 `reg.exe` 검은 창이 여러 번 깜빡이지 않게 한다
+
+Design source:
+내부 요구사항. 기존 `netutil`의 창 없는 실행과 같은 Windows 생성 플래그
+
+Implementation:
+`reg add`에 창 없음 플래그. 표준 입출력은 열지 않음. 동작은 이전과 같음
+
+External code:
+없음
+
+Difference:
+콘솔을 작게 만들지 않고 창을 만들지 않음
+
+PATENT_REVIEW:
+자식 프로세스 창을 숨기는 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
