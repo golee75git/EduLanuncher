@@ -10,7 +10,7 @@ import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
-import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText } from "../data/toolGroups";
+import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
 import { getTopicById, getTopics } from "../services/topicService";
@@ -470,6 +470,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                     </span>
                     <span className="min-w-0 flex-1 truncate">
                       <HighlightText text={hit.item.name} query={query} />
+                    </span>
+                    <span className="shrink-0 text-[11px] text-quiet">
+                      {toolGroupLabel(hit.item.type)}
                     </span>
                   </button>
                 );

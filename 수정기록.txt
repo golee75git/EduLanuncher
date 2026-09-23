@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.83-20260923
+설치 파일: EduLauncher_0.1.83-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1500_x64-setup.exe
+작성자: 요청자
+
+내용:
+홈 검색 관련 도구 줄마다 사이트·프로그램·파일·폴더·업무도구를 보이게 했다. 구역은 나누지 않았다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/pages/HomePage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. GPL 없음. 비침해 보장하지 않음.
+보안: 검색 목록 표시만 변경.
+특허: 줄에 종류 이름을 붙이는 일반 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.82-20260923
 설치 파일: EduLauncher_0.1.82-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1450_x64-setup.exe

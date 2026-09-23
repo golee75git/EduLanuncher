@@ -1701,3 +1701,25 @@ Difference:
 PATENT_REVIEW:
 빌드 경로 분리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Type label on home search tool rows
+
+Purpose:
+검색된 관련 도구 줄에서 사이트·프로그램·파일·폴더·업무도구를 바로 구분
+
+Design source:
+내부 요구사항. 기존 `toolGroupLabel`
+
+Implementation:
+관련 도구 각 줄 오른쪽에 종류 이름. 구역을 나누지 않음. 검색 순서·키보드 이동 그대로
+
+External code:
+없음
+
+Difference:
+홈 자주 사용하는 도구처럼 구역을 나누지 않고 줄에만 표시
+
+PATENT_REVIEW:
+목록 줄에 종류 이름을 붙이는 일반 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
