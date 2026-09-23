@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.92-20260924",
+    note: "즐겨찾기 표시줄에서 끌어 넣을 때 브라우저가 넘긴 PNG만 바로가기 그림으로 남깁니다.",
+  },
+  {
     version: "0.1.91-20260923",
     note: "설정에서 홈 검색의 빈 구역을 숨길 수 있습니다. 기본은 지금처럼 빈 안내를 둡니다.",
   },

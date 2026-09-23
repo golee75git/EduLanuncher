@@ -1924,3 +1924,28 @@ Difference:
 PATENT_REVIEW:
 설정 불리언과 조건부 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Keep dropped PNG picture on site shortcut
+
+Purpose:
+즐겨찾기 표시줄에서 끌어 넣은 사이트에, 브라우저가 이미 넘긴 PNG만 바로가기 그림으로 남긴다
+
+Design source:
+내부 요구사항. 기존 `iconImage`와 `asLocalPngIcon`
+
+Implementation:
+드롭 HTML에서 `data:image/png;base64`만 읽음. http(s)·chrome 그림 주소는 쓰지 않음. 사이트에 다시 접속하지 않음. 이미 있는 주소는 그림이 비어 있을 때만 채움
+
+External code:
+없음
+
+Potential similar products:
+브라우저 즐겨찾기 드래그
+
+Difference:
+사이트 파비콘을 받지 않음. 끌어 온 PNG만 이 PC에 남김
+
+PATENT_REVIEW:
+드롭 문자열에서 그림 자료를 고르는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

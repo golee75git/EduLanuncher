@@ -19,7 +19,7 @@ interface DropZoneProps {
   children: ReactNode;
   onPackFile: (path: string) => void;
   onPackText: (contents: string) => void;
-  onSiteUrl: (url: string, name?: string) => void;
+  onSiteUrl: (url: string, name?: string, iconImage?: string) => void;
   onUrlShortcut: (path: string) => void;
   onLocalPaths: (paths: string[]) => void;
 }
@@ -147,6 +147,7 @@ export function DropZone({
             callbacks.current.onSiteUrl(
               url,
               pickDroppedSiteName(url, meta?.name, fileTitle, file.name),
+              meta?.iconImage,
             );
           }
           handled = true;
@@ -175,11 +176,15 @@ export function DropZone({
         return;
       }
       if (!handled && meta) {
-        callbacks.current.onSiteUrl(meta.url, pickDroppedSiteName(meta.url, meta.name));
+        callbacks.current.onSiteUrl(
+          meta.url,
+          pickDroppedSiteName(meta.url, meta.name),
+          meta.iconImage,
+        );
         return;
       }
       if (handled && meta?.url && meta.name) {
-        callbacks.current.onSiteUrl(meta.url, meta.name);
+        callbacks.current.onSiteUrl(meta.url, meta.name, meta.iconImage);
       }
     };
 

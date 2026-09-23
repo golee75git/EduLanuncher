@@ -126,6 +126,18 @@ function stripTags(value: string): string {
   return decodeHtmlEntities(value.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 }
 
+export function extractDroppedPngPicture(html: string): string | undefined {
+  const snippet = html.trim().slice(0, 8192);
+  if (!snippet) {
+    return undefined;
+  }
+  const found = snippet.match(/data:image\/png;base64,([A-Za-z0-9+/=]+)/i);
+  if (!found?.[1]) {
+    return undefined;
+  }
+  return asLocalPngIcon(`data:image/png;base64,${found[1]}`);
+}
+
 export function extractUrlAndTitleFromHtml(html: string): { url: string; name?: string } | null {
   const snippet = html.trim().slice(0, 8192);
   if (!snippet) {
@@ -147,9 +159,12 @@ export function extractUrlAndTitleFromHtml(html: string): { url: string; name?: 
   return { url, name: cleanDropTitle(stripTags(title?.[1] ?? "")) };
 }
 
-export function httpUrlFromDataTransfer(transfer: DataTransfer): { url: string; name?: string } | null {
+export function httpUrlFromDataTransfer(
+  transfer: DataTransfer,
+): { url: string; name?: string; iconImage?: string } | null {
   const html = transfer.types.includes("text/html") ? transfer.getData("text/html") : "";
   const fromHtml = html ? extractUrlAndTitleFromHtml(html) : null;
+  const picture = html ? extractDroppedPngPicture(html) : undefined;
   const moz = transfer.getData("text/x-moz-url");
   const list = transfer.getData("text/uri-list");
   const plain = transfer.getData("text/plain");
@@ -166,7 +181,7 @@ export function httpUrlFromDataTransfer(transfer: DataTransfer): { url: string; 
     (moz ? extractDroppedTitle(moz) : undefined) ||
     (list ? extractDroppedTitle(list) : undefined) ||
     (plain ? extractDroppedTitle(plain) : undefined);
-  return { url, name };
+  return { url, name, ...(picture ? { iconImage: picture } : {}) };
 }
 
 export async function readUrlShortcut(path: string): Promise<UrlShortcut> {
@@ -210,12 +225,17 @@ async function addDroppedSiteNow(
     .getState()
     .tools.find((tool) => tool.type === "url" && sameHttpUrl(tool.target, target));
   if (existing) {
+    const next: { name?: string; keywords?: string[]; iconImage?: string } = {};
     if (incoming && isWeakSiteName(target, existing.name) && incoming !== existing.name) {
-      await useToolStore.getState().updateTool(existing.id, {
-        name: incoming,
-        keywords: [incoming, nameFromHttpUrl(target)],
-      });
-      return "updated";
+      next.name = incoming;
+      next.keywords = [incoming, nameFromHttpUrl(target)];
+    }
+    if (picture && !asLocalPngIcon(existing.iconImage)) {
+      next.iconImage = picture;
+    }
+    if (next.name || next.iconImage) {
+      await useToolStore.getState().updateTool(existing.id, next);
+      return next.name ? "updated" : "exists";
     }
     return "exists";
   }

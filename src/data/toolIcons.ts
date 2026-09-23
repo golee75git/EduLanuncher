@@ -56,14 +56,18 @@ export const TOOL_ICON_OPTIONS = [
 
 export function asLocalPngIcon(value?: string): string | undefined {
   const prefix = "data:image/png;base64,";
-  if (!value || value.length > 40_000 || !value.startsWith(prefix)) {
+  if (!value || value.length > 40_000) {
+    return undefined;
+  }
+  const lower = value.slice(0, prefix.length).toLowerCase();
+  if (lower !== prefix) {
     return undefined;
   }
   const payload = value.slice(prefix.length);
   if (!payload || /[^A-Za-z0-9+/=]/.test(payload)) {
     return undefined;
   }
-  return value;
+  return `${prefix}${payload}`;
 }
 
 export function getToolIcon(name?: string): LucideIcon {
