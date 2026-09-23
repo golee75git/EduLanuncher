@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { addDroppedSite } from "../services/dropSiteService";
+import { addDroppedSite, readUrlShortcut } from "../services/dropSiteService";
 import { launchQuickUrl } from "../services/launcherService";
 import { listPcUrlShortcuts, type PcUrlItem } from "../services/pcUrlListService";
 
@@ -51,7 +51,12 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
 
   const addToLauncher = async (item: PcUrlItem) => {
     try {
-      const result = await addDroppedSite(item.url, item.name);
+      const fromFile = item.path ? await readUrlShortcut(item.path) : null;
+      const result = await addDroppedSite(
+        fromFile?.url ?? item.url,
+        fromFile?.name ?? item.name,
+        fromFile?.iconImage,
+      );
       setNotice(
         result === "added" ? "런처에 넣었습니다." : result === "updated" ? "이름을 갱신했습니다." : "이미 있는 주소입니다.",
       );
@@ -70,8 +75,9 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          이 PC의 Edge·Chrome 북마크 파일과 Windows 즐겨찾기 폴더의 인터넷 바로가기(.url)를 보여 줍니다. 사이트에서
-          그림을 받아오지 않습니다. 로그인 정보·방문 기록은 읽지 않습니다.
+          이 PC의 Edge·Chrome 북마크 파일과 Windows 즐겨찾기 폴더의 인터넷 바로가기(.url)를 보여 줍니다. Windows
+          .url을 넣으면 그 파일 아이콘을 같이 남깁니다. 사이트에서 그림을 받아오지 않습니다. 로그인 정보·방문
+          기록은 읽지 않습니다.
         </p>
         {loading ? <p className="text-sm text-quiet">읽는 중...</p> : null}
         {error ? <p className="text-sm text-desk">{error}</p> : null}

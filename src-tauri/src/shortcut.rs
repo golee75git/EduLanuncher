@@ -72,3 +72,61 @@ fn resolve_shortcut_target_windows(path: &Path) -> Option<PathBuf> {
         }
     }
 }
+
+const SEND_TO_LINK_NAME: &str = "교육업무 런처.lnk";
+
+pub fn write_send_to_link(exe: &Path) -> Option<()> {
+    #[cfg(windows)]
+    {
+        write_send_to_link_windows(exe)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = exe;
+        None
+    }
+}
+
+#[cfg(windows)]
+fn write_send_to_link_windows(exe: &Path) -> Option<()> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows::core::{Interface, PCWSTR};
+    use windows::Win32::System::Com::{
+        CoCreateInstance, CoInitializeEx, CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, IPersistFile,
+    };
+    use windows::Win32::UI::Shell::{IShellLinkW, ShellLink};
+
+    if !exe.is_file() {
+        return None;
+    }
+    let appdata = std::env::var_os("APPDATA")?;
+    if appdata.is_empty() || appdata.to_string_lossy().contains('\0') {
+        return None;
+    }
+    let folder = PathBuf::from(appdata)
+        .join("Microsoft")
+        .join("Windows")
+        .join("SendTo");
+    if !folder.is_dir() {
+        return None;
+    }
+    let dest = folder.join(SEND_TO_LINK_NAME);
+    if dest.file_name()?.to_str()? != SEND_TO_LINK_NAME {
+        return None;
+    }
+    let parent = dest.parent()?;
+    if parent != folder {
+        return None;
+    }
+    let exe_wide: Vec<u16> = exe.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
+    let dest_wide: Vec<u16> = dest.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
+    unsafe {
+        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        let link: IShellLinkW = CoCreateInstance(&ShellLink, None, CLSCTX_INPROC_SERVER).ok()?;
+        link.SetPath(PCWSTR(exe_wide.as_ptr())).ok()?;
+        let _ = link.SetIconLocation(PCWSTR(exe_wide.as_ptr()), 0);
+        let persist: IPersistFile = link.cast().ok()?;
+        persist.Save(PCWSTR(dest_wide.as_ptr()), true).ok()?;
+    }
+    Some(())
+}

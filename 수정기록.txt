@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-24
+버전: 0.1.93-20260924
+설치 파일: EduLauncher_0.1.93-20260924_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-24_0824_x64-setup.exe
+작성자: 요청자
+
+내용:
+탐색기에서 인터넷 바로가기(.url)를 보내기 → 교육업무 런처로 넣으면 주소와 그 파일 아이콘을 남긴다. .url을 기본 프로그램으로 바꾸지 않는다. 사이트 칸 인터넷 즐겨찾기에서 Windows .url을 넣을 때도 같은 파일 아이콘을 쓴다. Edge·Chrome 북마크는 주소만 넣는다. 사이트에 다시 접속하지 않는다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src-tauri/src/shortcut.rs, src-tauri/src/lib.rs, src-tauri/windows/hooks.nsh, src/App.tsx, src/pages/PcUrlListPage.tsx, src/services/pcUrlListService.ts, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, website/src/pages/IntroPage.tsx, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 현재 사용자 SendTo와 .url/.website 파일만. http(s)만 바로가기로 남김. 바깥 그림을 받지 않음.
+특허: 보내기 폴더에 바로가기를 두는 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-24
 버전: 0.1.92-20260924
 설치 파일: EduLauncher_0.1.92-20260924_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-24_0808_x64-setup.exe

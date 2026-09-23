@@ -54,6 +54,8 @@ struct PanelState {
 
 struct StartupPacks(Mutex<Vec<String>>);
 
+struct StartupUrls(Mutex<Vec<String>>);
+
 struct RangeHalt(Arc<AtomicBool>);
 
 struct FolderWalkHalt(Arc<AtomicBool>);
@@ -666,6 +668,12 @@ fn setup_edupack_association() {
     }
 }
 
+fn setup_send_to_link() {
+    if let Some(exe) = pack_association_exe() {
+        let _ = shortcut::write_send_to_link(&exe);
+    }
+}
+
 fn enable_login_item(exe: &std::path::Path) {
     let value = format!("\"{}\"", exe.display());
     run_reg(&[
@@ -1262,8 +1270,35 @@ fn emit_pack_paths(app: &AppHandle, paths: &[String]) {
     }
 }
 
+fn url_paths_from(args: impl IntoIterator<Item = String>) -> Vec<String> {
+    args.into_iter()
+        .filter(|arg| {
+            if arg.len() > 4096 || arg.contains('\0') {
+                return false;
+            }
+            let path = Path::new(arg);
+            is_url_shortcut_file(path) && path.is_file()
+        })
+        .collect()
+}
+
+fn emit_url_paths(app: &AppHandle, paths: &[String]) {
+    for path in paths {
+        let _ = app.emit("apply-url-shortcut", path);
+    }
+}
+
 #[tauri::command]
 fn take_startup_pack_paths(state: tauri::State<StartupPacks>) -> Vec<String> {
+    state
+        .0
+        .lock()
+        .map(|mut pending| std::mem::take(&mut *pending))
+        .unwrap_or_default()
+}
+
+#[tauri::command]
+fn take_startup_url_paths(state: tauri::State<StartupUrls>) -> Vec<String> {
     state
         .0
         .lock()
@@ -1462,6 +1497,8 @@ struct PcUrlItem {
     name: String,
     url: String,
     folder: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    path: Option<String>,
 }
 
 fn favorites_dir() -> Result<PathBuf, String> {
@@ -1547,6 +1584,7 @@ fn collect_pc_urls(root: &Path, dir: &Path, depth: u32, out: &mut Vec<PcUrlItem>
             name: shortcut_display_name(&path, &url),
             url,
             folder,
+            path: Some(path.to_string_lossy().into_owned()),
         });
     }
 }
@@ -1607,6 +1645,7 @@ fn collect_json_urls(value: &serde_json::Value, folder: &str, out: &mut Vec<PcUr
                         } else {
                             folder.to_string()
                         },
+                        path: None,
                     });
                 }
                 return;
@@ -1719,7 +1758,8 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             reveal_panel(app);
-            emit_pack_paths(app, &pack_paths_from(argv));
+            emit_pack_paths(app, &pack_paths_from(argv.iter().cloned()));
+            emit_url_paths(app, &url_paths_from(argv));
         }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -1742,6 +1782,9 @@ pub fn run() {
             position: Mutex::new("bottom-right".to_string()),
         })
         .manage(StartupPacks(Mutex::new(pack_paths_from(
+            std::env::args().skip(1),
+        ))))
+        .manage(StartupUrls(Mutex::new(url_paths_from(
             std::env::args().skip(1),
         ))))
         .manage(RangeHalt(Arc::new(AtomicBool::new(false))))
@@ -1773,6 +1816,7 @@ pub fn run() {
             read_picture_file,
             write_png_file,
             take_startup_pack_paths,
+            take_startup_url_paths,
             this_pc_ipv4,
             lookup_public_ipv4,
             latest_release_tag,
@@ -1788,6 +1832,7 @@ pub fn run() {
             setup_window(app)?;
             setup_autostart(app);
             setup_edupack_association();
+            setup_send_to_link();
             let _ = app.global_shortcut().register("Ctrl+Alt+E");
             Ok(())
         })

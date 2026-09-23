@@ -4,3 +4,7 @@
 !macro NSIS_HOOK_POSTINSTALL
   nsis_tauri_utils::RunAsUser "$INSTDIR\${MAINBINARYNAME}.exe" ""
 !macroend
+
+!macro NSIS_HOOK_PREUNINSTALL
+  Delete "$APPDATA\Microsoft\Windows\SendTo\교육업무 런처.lnk"
+!macroend

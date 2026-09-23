@@ -1949,3 +1949,28 @@ Difference:
 PATENT_REVIEW:
 드롭 문자열에서 그림 자료를 고르는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Send To and Windows favorites file icon
+
+Purpose:
+탐색기 보내기와 인터넷 즐겨찾기의 Windows `.url`에서, 그 파일에 붙어 있는 아이콘을 바로가기에 남긴다
+
+Design source:
+내부 요구사항. 기존 `read_url_shortcut`·`local_file_icon`과 Pack 실행 인자
+
+Implementation:
+현재 사용자 SendTo에 `.lnk`만 둠. `.url` 기본 연결은 바꾸지 않음. 인자의 `.url`은 Pack과 다른 이벤트로 넘김. 목록의 Windows `.url`만 경로를 두고 같은 읽기를 씀. JSON 북마크는 경로 없음
+
+External code:
+없음
+
+Potential similar products:
+Windows 보내기, 인터넷 바로가기
+
+Difference:
+사이트를 다시 열지 않음. `.url`을 기본 프로그램으로 빼앗지 않음
+
+PATENT_REVIEW:
+보내기 폴더에 바로가기를 두는 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

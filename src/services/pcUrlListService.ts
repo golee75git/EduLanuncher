@@ -4,6 +4,7 @@ export interface PcUrlItem {
   name: string;
   url: string;
   folder: string;
+  path?: string;
 }
 
 export async function listPcUrlShortcuts(): Promise<PcUrlItem[]> {

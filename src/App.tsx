@@ -289,6 +289,9 @@ export default function App() {
         await listen<string>("apply-notice-pack", (event) => {
           void applyPackPath(event.payload);
         }),
+        await listen<string>("apply-url-shortcut", (event) => {
+          void addUrlShortcut(event.payload);
+        }),
         await listen<string>("memo-draft", (event) => {
           if (typeof event.payload !== "string") {
             return;
@@ -312,6 +315,10 @@ export default function App() {
           const pending = await invoke<string[]>("take_startup_pack_paths");
           for (const path of pending) {
             void applyPackPath(path);
+          }
+          const pendingUrls = await invoke<string[]>("take_startup_url_paths");
+          for (const path of pendingUrls) {
+            void addUrlShortcut(path);
           }
         }
       } catch {
