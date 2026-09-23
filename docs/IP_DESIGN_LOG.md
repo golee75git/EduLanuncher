@@ -1899,3 +1899,28 @@ Difference:
 PATENT_REVIEW:
 자식 프로세스 창을 숨기는 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Optional hide of empty home search groups
+
+Purpose:
+홈 검색 구역 순서와 빈 안내는 그대로 두고, 원할 때만 일치가 없는 구역을 숨긴다
+
+Design source:
+내부 요구사항. 기존 HomePage 구역과 설정 보기 토글
+
+Implementation:
+`hideEmptySearchGroups` 기본 false. 켜면 일치가 없는 구역을 렌더하지 않음. 모두 없으면 한 줄. 이 PC 폴더는 한 글자일 때 안내를 남기고, 두 글자 이상에서만 빈 결과를 숨김. 키보드 순서는 기존 flattenResults
+
+External code:
+없음
+
+Potential similar products:
+일반 검색 화면의 빈 구역 숨김
+
+Difference:
+구역 순서를 점수·개수로 바꾸지 않음. 이 PC 설정에만 남김
+
+PATENT_REVIEW:
+설정 불리언과 조건부 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

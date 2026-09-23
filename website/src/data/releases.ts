@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.91-20260923",
+    note: "설정에서 홈 검색의 빈 구역을 숨길 수 있습니다. 기본은 지금처럼 빈 안내를 둡니다.",
+  },
+  {
     version: "0.1.90-20260923",
     note: "켤 때 Pack 연결과 자동 실행을 넣는 검은 콘솔 창을 띄우지 않습니다.",
   },

@@ -330,6 +330,16 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
 
   const selectedId = navigable[selectedIndex]?.id;
   const searching = query.trim().length > 0;
+  const hideEmpty = settings.hideEmptySearchGroups;
+  const folderReady = query.trim().length >= 2;
+  const showTools = !hideEmpty || results.tools.length > 0;
+  const showRecents = !hideEmpty || recentUseMatched.length > 0;
+  const showFolders = !hideEmpty || !folderReady || folderBusy || folderHits.length > 0;
+  const showSchools = !hideEmpty || results.schools.length > 0;
+  const showTroubles = !hideEmpty || troubleHits.length > 0;
+  const showTopics = !hideEmpty || topicHits.length > 0;
+  const anySearchGroup =
+    showTools || showRecents || showFolders || showSchools || showTroubles || showTopics;
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-paper">
@@ -470,6 +480,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
 
         {searching && !activeSchool ? (
           <>
+            {showTools ? (
             <ResultGroup title="관련 도구" empty="일치하는 도구가 없습니다.">
               {results.tools.map((hit) => {
                 return (
@@ -498,6 +509,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 );
               })}
             </ResultGroup>
+            ) : null}
+            {showRecents ? (
             <section className="zone-block bg-zone-recent">
               <h2 className="desk-label">최근 사용</h2>
               <RecentTools
@@ -514,6 +527,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 onOpenTopic={(topicId) => onAction({ type: "topic", topicId, search: query })}
               />
             </section>
+            ) : null}
+            {showFolders ? (
             <section>
               <div className="mb-1.5 flex items-center gap-1">
                 <h2 className="min-w-0 flex-1 desk-label">이 PC 폴더</h2>
@@ -556,6 +571,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 </div>
               )}
             </section>
+            ) : null}
+            {showSchools ? (
             <ResultGroup title="학교" empty="일치하는 학교가 없습니다.">
               {results.schools.map((hit) => (
                 <button
@@ -571,6 +588,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 </button>
               ))}
             </ResultGroup>
+            ) : null}
+            {showTroubles ? (
             <section>
               <div className="mb-1.5 flex items-center gap-1">
                 <h2 className="min-w-0 flex-1 desk-label">PC 문제 해결</h2>
@@ -608,6 +627,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 </div>
               )}
             </section>
+            ) : null}
+            {showTopics ? (
             <ResultGroup title="관련 업무" empty="일치하는 업무가 없습니다.">
               {topicHits.length > 0 ? (
                 <>
@@ -625,6 +646,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 </>
               ) : null}
             </ResultGroup>
+            ) : null}
+            {hideEmpty && !anySearchGroup ? (
+              <p className="text-sm text-quiet">일치하는 항목이 없습니다.</p>
+            ) : null}
           </>
         ) : null}
       </div>

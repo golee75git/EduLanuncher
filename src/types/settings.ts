@@ -32,6 +32,7 @@ export interface AppSettings {
   favoriteCount: number;
   recentCount: number;
   showCompletedTodos: boolean;
+  hideEmptySearchGroups: boolean;
   onboarded: boolean;
   panelSkin: PanelSkin;
   listColumns: ListColumns;
@@ -108,6 +109,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   favoriteCount: 9,
   recentCount: 5,
   showCompletedTodos: false,
+  hideEmptySearchGroups: false,
   onboarded: false,
   panelSkin: "paper",
   listColumns: 1,

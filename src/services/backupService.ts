@@ -204,6 +204,7 @@ function parseSettings(raw: unknown): AppSettings {
     favoriteCount,
     recentCount,
     showCompletedTodos: source.showCompletedTodos === true,
+    hideEmptySearchGroups: source.hideEmptySearchGroups === true,
     onboarded: source.onboarded !== false,
     panelSkin: asPanelSkin(source.panelSkin),
     listColumns: asListColumns(source.listColumns),

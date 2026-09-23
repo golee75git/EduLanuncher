@@ -6,6 +6,25 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.91-20260923
+설치 파일: EduLauncher_0.1.91-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1816_x64-setup.exe
+작성자: 요청자
+
+내용:
+홈 검색은 지금 순서와 빈 안내를 기본으로 둔다. 설정 보기에 「홈 검색 빈 구역 숨김」을 넣었다. 켜면 일치가 없는 구역만 숨기고, 모두 없으면 한 줄만 남긴다. 이 PC 폴더는 한 글자일 때 두 글자 안내를 남긴다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/types/settings.ts, src/services/backupService.ts, src/pages/HomePage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 이 PC settings.json 불리언만 추가. 검색어는 파일에 넣지 않음.
+특허: 조건부 구역 표시는 일반 UI. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.90-20260923
 설치 파일: EduLauncher_0.1.90-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1754_x64-setup.exe
