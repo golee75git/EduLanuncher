@@ -3,6 +3,7 @@ import { SITE_CONFIG } from "../config";
 
 const REQUIREMENTS = [
   "개인 사용 PC에만 설치하세요. 공용 PC·실습실·다른 사람 계정에는 설치하지 않습니다.",
+  "런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.",
   "Windows 10 또는 11, 64비트(x64)",
   "현재 사용자 폴더에 설치 (관리자 권한 불필요)",
   "Microsoft Edge WebView2 Runtime",
@@ -23,6 +24,8 @@ export function DownloadPage() {
         <p className="rounded-lg border border-line bg-card px-4 py-3 text-sm leading-relaxed text-desk">
           <strong className="font-semibold">개인 사용 PC에만 설치하세요.</strong> 공용 PC·실습실·다른 사람
           계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다.
+          <br />
+          런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.
         </p>
         <p className="text-sm leading-relaxed text-quiet">
           {SITE_CONFIG.displayName}는 이 PC에 설치하는 Windows 프로그램입니다. 설치 파일은 이 사이트에 두지 않고
