@@ -6,6 +6,43 @@
 ---
 
 날짜: 2026-09-23
+버전: 0.1.89-20260923 (소개 페이지만)
+설치 파일: 앱 설치본은 바꾸지 않음
+작성자: 요청자
+
+내용:
+소개 사이트(https://edulanuncher.zeroorder.kr/)에 버전 목록과 짧은 수정·개선을 넣었다. 설치 파일은 사이트에 두지 않고 GitHub Releases 안내만 둔다. 런처 설치본은 다시 만들지 않았다.
+
+새로 작성한 파일: website/src/data/releases.ts
+재사용한 기존 파일: website/src/pages/IntroPage.tsx, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 고정 문구만. GitHub API·쿠키·방문 기록 없음.
+특허: 버전과 한 줄 설명 나열은 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
+버전: 0.1.89-20260923
+설치 파일: EduLauncher_0.1.89-20260923_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-23_1744_x64-setup.exe
+작성자: 요청자
+
+내용:
+새 설치 파일 안내에 이 PC 버전과 새 버전을 같이 보여 준다. 설치 안내 열기는 https://edulanuncher.zeroorder.kr/ 만 연다. 자동으로 설치하거나 파일을 받지 않는다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일: src/App.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, docs/*, 수정기록.txt
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 공개 릴리스 태그만 읽고, 단추는 https 소개 주소만 연다. 설치 파일은 받지 않음.
+특허: 버전 표시와 주소 열기는 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-23
 버전: 0.1.88-20260923
 설치 파일: EduLauncher_0.1.88-20260923_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-23_1737_x64-setup.exe

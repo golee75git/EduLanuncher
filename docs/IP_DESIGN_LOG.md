@@ -1833,3 +1833,47 @@ Difference:
 PATENT_REVIEW:
 고정 https 주소를 브라우저로 여는 일반 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Show current and newer version on the setup notice
+
+Purpose:
+새 설치 안내에서 이 PC 버전과 새 버전을 같이 보여 주고 소개 사이트를 연다
+
+Design source:
+내부 요구사항. 기존 안내 문구와 `APP_CONFIG.siteUrl`
+
+Implementation:
+패널·설정 안내에 두 버전 문자열을 넣고 단추는 소개 사이트 https만 연다. 자동 설치 없음
+
+External code:
+없음
+
+Difference:
+GitHub Releases 페이지를 직접 열지 않음
+
+PATENT_REVIEW:
+버전 문자열 표시와 고정 주소 열기는 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Intro site version notes
+
+Purpose:
+소개 페이지에서 설치 버전과 짧은 수정·개선을 본다
+
+Design source:
+내부 요구사항. 기존 소개 페이지 구역과 `수정기록.txt` 요약
+
+Implementation:
+website에 고정 목록. GitHub API·쿠키·자동 수집 없음. 설치 파일은 Releases 링크만
+
+External code:
+없음
+
+Difference:
+릴리스 노트를 사이트에 짧게 적음. 타 제품 변경 로그 UI 복제 없음
+
+PATENT_REVIEW:
+버전과 한 줄 설명을 나열하는 일반 안내. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

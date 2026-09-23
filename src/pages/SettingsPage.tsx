@@ -374,13 +374,13 @@ export function SettingsPage({
           {newerRelease ? (
             <div className="mt-2 space-y-2">
               <p className="text-sm leading-6 text-desk">
-                새 설치 파일 {newerRelease}가 있습니다. 설치 안내에서 받아 이 프로그램을 교체하세요. 자동으로
-                설치하지는 않습니다.
+                이 PC 버전 {APP_CONFIG.version} · 새 버전 {newerRelease}가 있습니다. 소개 사이트에서 받아 이
+                프로그램을 교체하세요. 자동으로 설치하지는 않습니다.
               </p>
               <button
                 type="button"
                 className="btn-secondary"
-                onClick={() => void launchQuickUrl(APP_CONFIG.releasesUrl)}
+                onClick={() => void launchQuickUrl(APP_CONFIG.siteUrl)}
               >
                 설치 안내 열기
               </button>
@@ -422,7 +422,7 @@ export function SettingsPage({
             <li>홈 할 일은 오늘·내일·모레를 고른 뒤 넣습니다. 파일에는 달력 날짜만 남고, 화면에는 오늘(9.20)처럼 보입니다. 지난 날짜의 미완료는 오늘 칸에 남습니다.</li>
             <li>할 일 칸 오늘·내일·모레 줄 오른쪽의 캘린더를 누르면 구글·네이버 공식 누리집을 고릅니다. 일정은 가져오지 않습니다.</li>
             <li>최근 사용에는 실행한 바로가기와 열어 본 관련 업무만 남습니다. 검색창에 친 말은 넣지 않습니다.</li>
-            <li>설정 맨 아래 소개 사이트에서 설치 안내 웹 주소를 엽니다. 소개 웹은 website 폴더만 올리고, 설치 파일은 GitHub Releases에 있습니다. 프로그램을 켤 때 한 번, 그리고 설정의 프로그램 정보에서 이 PC 버전과 GitHub 최신 태그를 비교합니다. 새 설치 파일이 있으면 패널에 안내가 나오고 설치 안내만 엽니다. 창을 숨긴 채 켜면 다음에 패널을 열었을 때 보입니다. 자동으로 설치하거나 파일을 받지는 않습니다.</li>
+            <li>설정 맨 아래 소개 사이트에서 https://edulanuncher.zeroorder.kr/ 를 엽니다. 소개 웹은 website 폴더만 올리고, 설치 파일은 GitHub Releases에 있습니다. 프로그램을 켤 때 한 번, 그리고 설정의 프로그램 정보에서 이 PC 버전과 새 버전을 보여 줍니다. 새 설치 파일이 있으면 패널에 안내가 나오고 소개 사이트만 엽니다. 창을 숨긴 채 켜면 다음에 패널을 열었을 때 보입니다. 자동으로 설치하거나 파일을 받지는 않습니다.</li>
             <li>QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 이 프로그램은 그 상표를 소유하지 않습니다.</li>
           </ul>
         </SettingsCard>
