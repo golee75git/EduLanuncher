@@ -1547,3 +1547,25 @@ Difference:
 PATENT_REVIEW:
 시작 옵션·설치 후 실행은 일반 데스크톱 관행. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+---
+
+Feature: Staff-only Network and CCTV list via Pack
+
+Purpose:
+일반 설치 화면에는 망 검색 도구를 두지 않고, 담당자가 Pack을 적용한 PC 목록에만 보이게 함
+
+Design source:
+내부 요구사항. 기존 바로가기 Pack(`type: internal`)과 seedIfEmpty
+
+Implementation:
+첫 설치 `COMMON_WORK_TOOLS`는 QR코드 넣기만. Network·CCTV 정의와 화면은 앱에 그대로 두고, Pack으로 id가 들어오면 목록에 붙음. 이미 있는 tools.json은 지우지 않음. 학교 검색 상세의 네트워크·CCTV 단추는 뺌. 설정 켜기/끄기는 두지 않음. 배포용 Pack 파일은 설치본·git에 넣지 않음
+
+External code:
+없음
+
+Difference:
+역할 로그인 없이, 이 PC 목록에 Pack으로만 항목을 더함. 계정 잠금이 아님
+
+PATENT_REVIEW:
+목록 항목을 Pack으로 넣는 일반 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+

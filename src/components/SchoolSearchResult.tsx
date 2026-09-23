@@ -1,4 +1,4 @@
-import { Camera, FileText, Mic, Network, Wrench } from "lucide-react";
+import { FileText, Mic, Wrench } from "lucide-react";
 import { launchQuickUrl } from "../services/launcherService";
 import type { SchoolItem } from "../types/school";
 import { HighlightText } from "./HighlightText";
@@ -10,8 +10,6 @@ interface SchoolSearchResultProps {
 }
 
 const SCHOOL_TASKS = [
-  { id: "network", title: "네트워크", icon: Network },
-  { id: "cctv", title: "CCTV", icon: Camera },
   { id: "equipment", title: "장비", icon: Wrench },
   { id: "voicestamp", title: "VoiceStamp", icon: Mic },
   { id: "support-history", title: "지원이력", icon: FileText },

@@ -135,6 +135,4 @@ export const SAMPLE_TOOLS: ToolItem[] = [
   URL_MARK_TOOL,
 ];
 
-export const COMMON_WORK_TOOLS: ToolItem[] = SAMPLE_TOOLS.filter(
-  (tool) => tool.id === "tool-network" || tool.id === "tool-cctv" || tool.id === "tool-url-mark",
-);
+export const COMMON_WORK_TOOLS: ToolItem[] = SAMPLE_TOOLS.filter((tool) => tool.id === "tool-url-mark");
