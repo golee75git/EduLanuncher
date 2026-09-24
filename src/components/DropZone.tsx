@@ -257,14 +257,24 @@ export function DropZone({
           }),
         );
         unlistens.push(
-          await listen<{ type: string; paths?: string[]; url?: string; name?: string }>(
+          await listen<{
+            type: string;
+            paths?: string[];
+            url?: string;
+            name?: string;
+            iconImage?: string;
+          }>(
             "launcher-drop",
             (event) => {
               if (cancelled) {
                 return;
               }
               if (event.payload.type === "url" && event.payload.url) {
-                callbacks.current.onSiteUrl(event.payload.url, event.payload.name);
+                callbacks.current.onSiteUrl(
+                  event.payload.url,
+                  event.payload.name,
+                  event.payload.iconImage,
+                );
                 return;
               }
               if (event.payload.paths?.length) {

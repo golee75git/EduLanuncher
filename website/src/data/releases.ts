@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.94-20260924",
+    note: "인터넷 즐겨찾기에서 끌어 넣을 때, 바로가기에 적힌 이 PC 안의 아이콘 파일을 그림으로 남깁니다.",
+  },
+  {
     version: "0.1.93-20260924",
     note: "탐색기 보내기와 Windows 즐겨찾기 .url 넣기에 그 파일 아이콘을 남깁니다.",
   },

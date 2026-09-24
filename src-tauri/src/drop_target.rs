@@ -6,10 +6,13 @@ use std::ffi::c_void;
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
-use windows::core::{implement, BOOL, Result as WinResult};
+use windows::core::{implement, w, BOOL, Result as WinResult};
 use windows::Win32::Foundation::{HWND, LPARAM, POINTL};
-use windows::Win32::System::Com::{IDataObject, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL};
-use windows::Win32::System::Memory::{GlobalLock, GlobalUnlock};
+use windows::Win32::System::Com::{
+    IDataObject, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL, TYMED_ISTREAM,
+};
+use windows::Win32::System::DataExchange::RegisterClipboardFormatW;
+use windows::Win32::System::Memory::{GlobalLock, GlobalSize, GlobalUnlock};
 use windows::Win32::System::Ole::{
     OleInitialize, RegisterDragDrop, ReleaseStgMedium, RevokeDragDrop, CF_HDROP, CF_UNICODETEXT,
     DROPEFFECT, DROPEFFECT_COPY, DROPEFFECT_NONE, IDropTarget, IDropTarget_Impl,
@@ -24,7 +27,12 @@ pub enum LauncherDrop {
     #[serde(rename = "paths")]
     Paths { paths: Vec<String> },
     #[serde(rename = "url")]
-    Url { url: String, name: Option<String> },
+    Url {
+        url: String,
+        name: Option<String>,
+        #[serde(rename = "iconImage", skip_serializing_if = "Option::is_none")]
+        icon_image: Option<String>,
+    },
 }
 
 thread_local! {
@@ -96,9 +104,110 @@ fn read_drop(data: &IDataObject) -> Option<LauncherDrop> {
     if !paths.is_empty() {
         return Some(LauncherDrop::Paths { paths });
     }
+    if let Some((name, url, icon_image)) = read_virtual_url_shortcut(data) {
+        return Some(LauncherDrop::Url {
+            url,
+            name: Some(name),
+            icon_image,
+        });
+    }
     let text = read_unicode_text(data)?;
     let url = first_http_url(&text)?;
-    Some(LauncherDrop::Url { url, name: None })
+    Some(LauncherDrop::Url {
+        url,
+        name: None,
+        icon_image: None,
+    })
+}
+
+const MAX_URL_FILE: usize = 16 * 1024;
+const FILE_DESCRIPTOR_SIZE: usize = 592;
+const FILE_NAME_OFFSET: usize = 4 + 72;
+
+/// 경로 없이 넘어오는 가상 파일(.url)의 이름과 본문을 읽는다. 파일로 저장하지 않는다.
+fn read_virtual_url_shortcut(data: &IDataObject) -> Option<(String, String, Option<String>)> {
+    let file_name = read_virtual_file_name(data)?;
+    if !crate::is_url_shortcut_file(std::path::Path::new(&file_name)) {
+        return None;
+    }
+    let bytes = read_virtual_file_bytes(data)?;
+    let contents = crate::decode_shortcut_bytes(&bytes);
+    let url = crate::parse_url_from_shortcut(&contents)?;
+    let name = crate::shortcut_display_name(std::path::Path::new(&file_name), &url);
+    Some((name, url, crate::shortcut_body_icon(&contents)))
+}
+
+fn read_virtual_file_name(data: &IDataObject) -> Option<String> {
+    unsafe {
+        let format = FORMATETC {
+            cfFormat: RegisterClipboardFormatW(w!("FileGroupDescriptorW")) as u16,
+            ptd: std::ptr::null_mut(),
+            dwAspect: DVASPECT_CONTENT.0,
+            lindex: -1,
+            tymed: TYMED_HGLOBAL.0 as u32,
+        };
+        let mut medium = data.GetData(&format).ok()?;
+        let handle = medium.u.hGlobal;
+        let size = GlobalSize(handle);
+        let locked = GlobalLock(handle);
+        let name = if locked.is_null() || size < 4 + FILE_DESCRIPTOR_SIZE {
+            None
+        } else {
+            let bytes = std::slice::from_raw_parts(locked as *const u8, size);
+            let count = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
+            let raw = &bytes[FILE_NAME_OFFSET..FILE_NAME_OFFSET + 520];
+            let units: Vec<u16> = raw
+                .chunks_exact(2)
+                .map(|pair| u16::from_le_bytes([pair[0], pair[1]]))
+                .take_while(|unit| *unit != 0)
+                .collect();
+            (count >= 1 && !units.is_empty()).then(|| String::from_utf16_lossy(&units))
+        };
+        let _ = GlobalUnlock(handle);
+        ReleaseStgMedium(&mut medium);
+        name
+    }
+}
+
+fn read_virtual_file_bytes(data: &IDataObject) -> Option<Vec<u8>> {
+    unsafe {
+        let format = FORMATETC {
+            cfFormat: RegisterClipboardFormatW(w!("FileContents")) as u16,
+            ptd: std::ptr::null_mut(),
+            dwAspect: DVASPECT_CONTENT.0,
+            lindex: 0,
+            tymed: (TYMED_HGLOBAL.0 | TYMED_ISTREAM.0) as u32,
+        };
+        let mut medium = data.GetData(&format).ok()?;
+        let mut out: Vec<u8> = Vec::new();
+        if medium.tymed == TYMED_ISTREAM.0 as u32 {
+            if let Some(stream) = (*medium.u.pstm).as_ref() {
+                let mut chunk = [0u8; 2048];
+                while out.len() <= MAX_URL_FILE {
+                    let mut got = 0u32;
+                    let status = stream.Read(
+                        chunk.as_mut_ptr() as *mut c_void,
+                        chunk.len() as u32,
+                        Some(&mut got),
+                    );
+                    if status.is_err() || got == 0 {
+                        break;
+                    }
+                    out.extend_from_slice(&chunk[..got as usize]);
+                }
+            }
+        } else if medium.tymed == TYMED_HGLOBAL.0 as u32 {
+            let handle = medium.u.hGlobal;
+            let size = GlobalSize(handle).min(MAX_URL_FILE + 1);
+            let locked = GlobalLock(handle);
+            if !locked.is_null() {
+                out.extend_from_slice(std::slice::from_raw_parts(locked as *const u8, size));
+            }
+            let _ = GlobalUnlock(handle);
+        }
+        ReleaseStgMedium(&mut medium);
+        (!out.is_empty() && out.len() <= MAX_URL_FILE).then_some(out)
+    }
 }
 
 fn first_http_url(text: &str) -> Option<String> {

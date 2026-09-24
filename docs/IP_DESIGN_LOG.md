@@ -1974,3 +1974,25 @@ Difference:
 PATENT_REVIEW:
 보내기 폴더에 바로가기를 두는 일반 Windows 동작. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
 
+Feature: Favorites shortcut own icon file and virtual .url drop
+
+Purpose:
+인터넷 즐겨찾기에서 끌어 넣은 `.url`이 가리키는 이 PC 안의 아이콘 파일을 바로가기 그림으로 남기고, 경로 없이 넘어오는 가상 파일 `.url`도 이름과 그림을 받는다
+
+Design source:
+내부 요구사항. Windows 공식 API(ExtractIconExW, IDataObject 가상 파일 형식). 기존 `read_url_shortcut`·`shell_icon`·`drop_target`
+
+Implementation:
+`.url` 본문의 IconFile·IconIndex를 읽어 드라이브 문자 절대 경로의 .ico/.exe/.dll만 받음(환경변수 확장은 이 PC 값만, URL·UNC·네트워크 드라이브·상대 경로·없는 환경변수는 거부). 실패하면 기존 셸 아이콘으로 돌아감. 경로가 없을 때는 드롭 데이터의 파일 이름과 본문(16KB 이하)만 읽고 저장하지 않음. 새 라이브러리 없음(기존 windows 크레이트 기능 플래그 Win32_System_DataExchange만 추가)
+
+External code:
+없음
+
+Potential similar products:
+탐색기 즐겨찾기 아이콘, 브라우저 북마크 가져오기
+
+Difference:
+사이트에 접속하거나 파비콘을 받지 않음. 원격 IconFile 주소는 받지 않음. 이 PC에 이미 있는 그림 파일만 씀
+
+PATENT_REVIEW:
+드롭 데이터에서 주소와 아이콘 위치를 읽어 표시 그림으로 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음

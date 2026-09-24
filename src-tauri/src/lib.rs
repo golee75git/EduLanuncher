@@ -1255,6 +1255,18 @@ fn local_file_icon(path: &Path) -> Option<String> {
     }
 }
 
+fn shortcut_body_icon(contents: &str) -> Option<String> {
+    #[cfg(windows)]
+    {
+        shell_icon::png_data_url_from_shortcut(contents)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = contents;
+        None
+    }
+}
+
 fn pack_paths_from(args: impl IntoIterator<Item = String>) -> Vec<String> {
     args.into_iter()
         .filter(|arg| {
@@ -1339,7 +1351,7 @@ fn read_url_shortcut(path: String) -> Result<UrlShortcut, String> {
     Ok(UrlShortcut {
         name: shortcut_display_name(&path, &url),
         url,
-        icon_image: local_file_icon(&path),
+        icon_image: shortcut_body_icon(&contents).or_else(|| local_file_icon(&path)),
     })
 }
 

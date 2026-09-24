@@ -12,11 +12,16 @@ use windows::Win32::Graphics::Gdi::{
     BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, HGDIOBJ,
 };
 use windows::Win32::Storage::FileSystem::FILE_ATTRIBUTE_NORMAL;
-use windows::Win32::UI::Shell::{SHGetFileInfoW, SHFILEINFOW, SHGFI_ICON, SHGFI_LARGEICON};
-use windows::Win32::UI::WindowsAndMessaging::{DestroyIcon, DrawIconEx, DI_NORMAL};
+use windows::Win32::Storage::FileSystem::GetDriveTypeW;
+use windows::Win32::UI::Shell::{
+    ExtractIconExW, SHGetFileInfoW, SHFILEINFOW, SHGFI_ICON, SHGFI_LARGEICON,
+};
+use windows::Win32::UI::WindowsAndMessaging::{DestroyIcon, DrawIconEx, DI_NORMAL, HICON};
 
 const ICON_SIZE: i32 = 32;
 const MAX_PNG: usize = 24 * 1024;
+const MAX_ICO_FILE: u64 = 1024 * 1024;
+const DRIVE_REMOTE: u32 = 4;
 
 pub fn png_data_url(path: &Path) -> Option<String> {
     let rgba = rgba_from_path(path)?;
@@ -27,6 +32,100 @@ pub fn png_data_url(path: &Path) -> Option<String> {
     let mut url = String::from("data:image/png;base64,");
     url.push_str(&base64_encode(&png));
     Some(url)
+}
+
+/// `.url` 본문의 IconFile/IconIndex가 이 PC 안의 그림 파일일 때만 그 그림을 PNG로 만든다.
+/// 주소(http)·네트워크 경로·상대 경로·환경변수 없는 이름은 받지 않는다.
+pub fn png_data_url_from_shortcut(contents: &str) -> Option<String> {
+    let (file, index) = icon_location(contents)?;
+    let path = local_icon_path(&file)?;
+    let wide: Vec<u16> = path.as_os_str().encode_wide().chain(std::iter::once(0)).collect();
+    let mut large = [HICON::default()];
+    let icon = unsafe {
+        let got = ExtractIconExW(PCWSTR(wide.as_ptr()), index, Some(large.as_mut_ptr()), None, 1);
+        if got == 0 || large[0].is_invalid() {
+            return None;
+        }
+        large[0]
+    };
+    let pixels = unsafe { rgba_from_hicon(icon) };
+    unsafe {
+        let _ = DestroyIcon(icon);
+    }
+    let png = encode_png(&pixels?)?;
+    if png.len() > MAX_PNG {
+        return None;
+    }
+    let mut url = String::from("data:image/png;base64,");
+    url.push_str(&base64_encode(&png));
+    Some(url)
+}
+
+fn icon_location(contents: &str) -> Option<(String, i32)> {
+    let mut file: Option<String> = None;
+    let mut index = 0_i32;
+    for line in contents.lines() {
+        let line = line.trim();
+        let Some((key, value)) = line.split_once('=') else {
+            continue;
+        };
+        if key.trim().eq_ignore_ascii_case("IconFile") && file.is_none() {
+            let value = value.trim().trim_matches('"').trim();
+            if !value.is_empty() && value.len() <= 1024 {
+                file = Some(value.to_string());
+            }
+        } else if key.trim().eq_ignore_ascii_case("IconIndex") {
+            index = value.trim().parse::<i32>().unwrap_or(0);
+        }
+    }
+    file.map(|value| (value, index))
+}
+
+fn expand_percent_vars(value: &str) -> Option<String> {
+    let mut out = String::new();
+    let mut rest = value;
+    while let Some(start) = rest.find('%') {
+        out.push_str(&rest[..start]);
+        let after = &rest[start + 1..];
+        let end = after.find('%')?;
+        let name = &after[..end];
+        if name.is_empty() {
+            return None;
+        }
+        out.push_str(&std::env::var(name).ok()?);
+        rest = &after[end + 1..];
+    }
+    out.push_str(rest);
+    (out.len() <= 1024 && !out.contains('\0')).then_some(out)
+}
+
+fn local_icon_path(raw: &str) -> Option<std::path::PathBuf> {
+    let expanded = expand_percent_vars(raw)?;
+    let bytes = expanded.as_bytes();
+    if bytes.len() < 4
+        || !bytes[0].is_ascii_alphabetic()
+        || bytes[1] != b':'
+        || (bytes[2] != b'\\' && bytes[2] != b'/')
+    {
+        return None;
+    }
+    let path = std::path::PathBuf::from(&expanded);
+    let ext = path.extension()?.to_str()?.to_ascii_lowercase();
+    if !matches!(ext.as_str(), "ico" | "exe" | "dll") {
+        return None;
+    }
+    let root: Vec<u16> = format!("{}:\\", &expanded[..1])
+        .encode_utf16()
+        .chain(std::iter::once(0))
+        .collect();
+    if unsafe { GetDriveTypeW(PCWSTR(root.as_ptr())) } == DRIVE_REMOTE {
+        return None;
+    }
+    let meta = std::fs::metadata(&path).ok()?;
+    if !meta.is_file() || (ext == "ico" && meta.len() > MAX_ICO_FILE) {
+        return None;
+    }
+    Some(path)
 }
 
 fn rgba_from_path(path: &Path) -> Option<Vec<u8>> {
