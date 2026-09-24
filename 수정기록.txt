@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-24
+버전: 0.1.102-20260924
+설치 파일: EduLauncher_0.1.102-20260924_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-24_2345_x64-setup.exe
+작성자: 요청자
+
+내용:
+업무자료 JSON에 쉬운 검색 표현과 2026 학교행정 업무편람 자료 연결을 더했다. 기존 주제는 지우지 않고 같은 업무에 합쳤다. 인증서 주제만 새로 두었다. 편람 원문과 페이지·주소는 넣지 않았다. 분류 이름이 검색어 조각과 겹쳐 다른 주제가 먼저 나오던 비교만 전체 검색어 기준으로 좁혔다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src/data/topics.json, src/services/searchService.ts, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, 수정기록.txt
+
+확인한 것: topics.json 파싱, 검색어 19개 첫 결과가 기대한 주제. tsc 통과. 설치본 빌드는 이 기록 다음에 한다.
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음.
+보안: 검색 데이터는 앱 안 JSON. 새 네트워크 호출 없음. 원문 주소는 만들지 않음.
+특허: 키워드 배열과 문자열 포함 비교. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-24
 버전: 0.1.101-20260924
 설치 파일: EduLauncher_0.1.101-20260924_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-24_2114_x64-setup.exe

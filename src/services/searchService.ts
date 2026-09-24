@@ -202,7 +202,7 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
       continue;
     }
 
-    if (pieces.some((piece) => containsFold(topic.category, piece) || containsFold(topic.subcategory, piece))) {
+    if (containsFold(topic.category, q) || containsFold(topic.subcategory, q)) {
       hits.push({
         item: topic,
         score: TOPIC_SCORE.category,

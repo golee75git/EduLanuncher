@@ -2159,3 +2159,22 @@ Difference:
 
 PATENT_REVIEW:
 출처 라벨, 탭, 필터, 키워드 검색은 일반 화면 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Plain-language work search phrases
+
+Purpose:
+공식 업무명 대신 짧은 말로 기존 업무주제를 찾게 한다
+
+Design source:
+이 저장소의 기존 Topic 제목과 키워드. 편람 원문은 복사하지 않음
+
+Implementation:
+topics.json의 beginner와 exampleQuestions에 짧은 검색 표현을 합침. 같은 업무는 기존 id에 붙임. 분류 비교는 검색어 전체만 본다
+
+External code:
+없음
+
+PATENT_REVIEW:
+문자열 포함 비교와 키워드 배열. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
