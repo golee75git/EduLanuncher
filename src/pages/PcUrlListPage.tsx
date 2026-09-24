@@ -1,10 +1,12 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ToolGlyph } from "../components/ToolGlyph";
+import { asLocalPngIcon } from "../data/toolIcons";
 import { readBookmarkHtmlFile } from "../services/bookmarkHtmlService";
 import { addDroppedSite, readUrlShortcut } from "../services/dropSiteService";
 import { launchQuickUrl } from "../services/launcherService";
-import { listPcUrlShortcuts, type PcUrlItem } from "../services/pcUrlListService";
+import { browserFaviconsFor, listPcUrlShortcuts, type PcUrlItem } from "../services/pcUrlListService";
 
 interface PcUrlListPageProps {
   onBack: () => void;
@@ -15,6 +17,66 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
+  const [icons, setIcons] = useState<Record<string, string>>({});
+  const requested = useRef(new Set<string>());
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  // 목록 앞 그림: 내보낸 파일의 그림 → .url 파일 자체 그림 → 브라우저가 이 PC에 저장해 둔 그림
+  useEffect(() => {
+    const fresh = items.filter(
+      (item) => !item.iconImage && !requested.current.has(`${item.path ?? ""}|${item.url}`),
+    );
+    if (fresh.length === 0) {
+      return;
+    }
+    for (const item of fresh) {
+      requested.current.add(`${item.path ?? ""}|${item.url}`);
+    }
+    const byBrowser = [...new Set(fresh.filter((item) => !item.path).map((item) => item.url))];
+    const byFile = fresh.filter((item) => item.path);
+    const keep = (found: Record<string, string>) => {
+      if (mounted.current && Object.keys(found).length > 0) {
+        setIcons((current) => ({ ...current, ...found }));
+      }
+    };
+    void (async () => {
+      if (byBrowser.length > 0) {
+        try {
+          const found = await browserFaviconsFor(byBrowser);
+          const picked: Record<string, string> = {};
+          byBrowser.forEach((url, index) => {
+            const picture = asLocalPngIcon(found[index] ?? undefined);
+            if (picture) {
+              picked[url] = picture;
+            }
+          });
+          keep(picked);
+        } catch {
+          // 그림을 못 찾으면 기본 그림으로 둔다.
+        }
+      }
+      for (const item of byFile.slice(0, 200)) {
+        if (!mounted.current || !item.path) {
+          return;
+        }
+        try {
+          const picture = asLocalPngIcon((await readUrlShortcut(item.path)).iconImage);
+          if (picture) {
+            keep({ [item.url]: picture });
+          }
+        } catch {
+          // 읽지 못한 파일은 기본 그림으로 둔다.
+        }
+      }
+    })();
+  }, [items]);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +142,7 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
       const result = await addDroppedSite(
         fromFile?.url ?? item.url,
         fromFile?.name ?? item.name,
-        fromFile?.iconImage ?? item.iconImage,
+        fromFile?.iconImage ?? item.iconImage ?? icons[item.url],
       );
       setNotice(
         result === "added" ? "런처에 넣었습니다." : result === "updated" ? "이름을 갱신했습니다." : "이미 있는 주소입니다.",
@@ -131,11 +193,20 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
                 <li key={`${item.folder}:${item.url}:${item.name}`} className="flex items-center gap-1 px-2 py-1.5">
                   <button
                     type="button"
-                    className="min-w-0 flex-1 rounded-md px-1 py-1 text-left transition-colors duration-150 hover:bg-paper"
+                    className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left transition-colors duration-150 hover:bg-paper"
                     onClick={() => void launchQuickUrl(item.url)}
                   >
-                    <span className="block truncate text-sm font-medium text-desk">{item.name}</span>
-                    <span className="block truncate text-[11px] text-quiet">{item.url}</span>
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-ink-soft p-1 text-ink">
+                      <ToolGlyph
+                        icon="globe"
+                        iconImage={item.iconImage ?? icons[item.url]}
+                        className="h-4 w-4"
+                      />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-desk">{item.name}</span>
+                      <span className="block truncate text-[11px] text-quiet">{item.url}</span>
+                    </span>
                   </button>
                   <button
                     type="button"

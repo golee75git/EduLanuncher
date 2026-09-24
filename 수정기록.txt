@@ -6,6 +6,26 @@
 ---
 
 날짜: 2026-09-24
+버전: 0.1.98-20260924
+설치 파일: EduLauncher_0.1.98-20260924_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-24_1336_x64-setup.exe
+작성자: 요청자
+
+내용:
+인터넷 즐겨찾기 목록의 각 줄 앞에 사이트 그림을 보여 준다. 그림 순서는 내보낸 파일의 그림 → .url 파일 자체 그림 → 브라우저가 이 PC에 저장해 둔 그림(Favicons)이며, 없으면 지구본이다. 브라우저 그림은 주소 목록을 한 번에 조회하도록 favicon_for_urls를 추가하고(favicon_db.rs에 일괄 조회), 「넣기」 때도 화면에 보이는 그림을 그대로 남긴다. 문제가 생기면 이 커밋을 되돌리면 이전 동작으로 돌아간다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src-tauri/src/favicon_db.rs, src-tauri/src/lib.rs, src/services/pcUrlListService.ts, src/pages/PcUrlListPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: cargo check·tsc 통과. 이 PC Edge 북마크 32개로 일괄 조회가 단건 조회와 32개 모두 같았고(그림 26개), 32개·1280개 모두 41ms. 잘못된 주소(빈 문자열·주소 아님·존재하지 않는 도메인)는 그림 없음으로 처리. 아직 못 한 것: 설치본 화면에서 목록 앞 그림이 실제로 보이는지는 이 PC에서 화면으로 확인하지 못함(설치본에서 확인 필요).
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음(Cargo.lock·package.json 변경 없음). 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 한 번에 1000개·200개 상한, http(s) 주소만 조회, 그림은 PNG 검사 통과분만 표시, 읽기 전용, 사이트에 접속하지 않음, History·쿠키·로그인 열지 않음.
+특허: 저장된 사이트 그림을 주소로 찾아 목록 표시에 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다. 사이트 로고는 각 소유자의 저작물·상표일 수 있어 이 PC 안 표시에만 쓴다.
+
+---
+날짜: 2026-09-24
 버전: 0.1.97-20260924
 설치 파일: EduLauncher_0.1.97-20260924_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-24_1042_x64-setup.exe

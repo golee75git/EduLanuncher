@@ -5,6 +5,7 @@
 //! `icon_mapping`·`favicon_bitmaps` 두 표만 읽는다. 기록·쿠키·저장된 로그인은 열지 않는다.
 //! 무엇이든 맞지 않으면 그림만 포기하고 None을 돌려준다.
 
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
@@ -310,14 +311,25 @@ impl Db {
     }
 
     fn find_png(&mut self, page_url: &str, host: &str) -> Option<Vec<u8>> {
+        let wanted = [(0usize, trim_url(page_url), host.to_string())];
+        self.find_many(&wanted)?.into_iter().next().map(|(_, png)| png)
+    }
+
+    /// 여러 주소의 그림을 파일을 두 번만 훑어 한꺼번에 찾는다. 결과는 (요청 번호, PNG).
+    fn find_many(&mut self, wanted: &[(usize, String, String)]) -> Option<Vec<(usize, Vec<u8>)>> {
         let mapping = self.table_root("icon_mapping", &["id", "page_url", "icon_id"])?;
         let bitmaps = self.table_root(
             "favicon_bitmaps",
             &["id", "icon_id", "last_updated", "image_data", "width", "height"],
         )?;
-        let wanted = trim_url(page_url);
-        let mut exact: Vec<i64> = Vec::new();
-        let mut same_host: Vec<i64> = Vec::new();
+        let mut by_url: HashMap<&str, Vec<usize>> = HashMap::new();
+        let mut by_host: HashMap<&str, Vec<usize>> = HashMap::new();
+        for (position, (_, url, host)) in wanted.iter().enumerate() {
+            by_url.entry(url.as_str()).or_default().push(position);
+            by_host.entry(host.as_str()).or_default().push(position);
+        }
+        let mut exact: Vec<Vec<i64>> = vec![Vec::new(); wanted.len()];
+        let mut same_host: Vec<Vec<i64>> = vec![Vec::new(); wanted.len()];
         self.walk(mapping, 0, &mut |_, cell| {
             let Some(record) = Record::parse(cell.local) else {
                 return Flow::Next;
@@ -331,20 +343,36 @@ impl Db {
             else {
                 return Flow::Next;
             };
-            if trim_url(url) == wanted {
-                if exact.len() < MAX_MATCHED_IDS {
-                    exact.push(icon);
+            if let Some(list) = by_url.get(trim_url(url).as_str()) {
+                for position in list {
+                    if exact[*position].len() < MAX_MATCHED_IDS {
+                        exact[*position].push(icon);
+                    }
                 }
-            } else if same_host.len() < MAX_MATCHED_IDS && host_of(url).as_deref() == Some(host) {
-                same_host.push(icon);
+            }
+            if let Some(list) = host_of(url).and_then(|host| by_host.get(host.as_str())) {
+                for position in list {
+                    if same_host[*position].len() < MAX_MATCHED_IDS {
+                        same_host[*position].push(icon);
+                    }
+                }
             }
             Flow::Next
         })?;
-        let ids = if exact.is_empty() { same_host } else { exact };
-        if ids.is_empty() {
-            return None;
+        let ids_for: Vec<Vec<i64>> = (0..wanted.len())
+            .map(|position| {
+                if exact[position].is_empty() {
+                    same_host[position].clone()
+                } else {
+                    exact[position].clone()
+                }
+            })
+            .collect();
+        let all: HashSet<i64> = ids_for.iter().flatten().copied().collect();
+        if all.is_empty() {
+            return Some(Vec::new());
         }
-        let mut best: Option<(i64, Vec<u8>)> = None;
+        let mut best: HashMap<i64, (i64, Vec<u8>)> = HashMap::new();
         self.walk(bitmaps, 0, &mut |db, cell| {
             let Some(record) = Record::parse(cell.local) else {
                 return Flow::Next;
@@ -352,9 +380,9 @@ impl Db {
             let Some((kind_icon, bytes_icon)) = record.field(1) else {
                 return Flow::Next;
             };
-            if !as_int(kind_icon, bytes_icon).is_some_and(|icon| ids.contains(&icon)) {
+            let Some(icon) = as_int(kind_icon, bytes_icon).filter(|icon| all.contains(icon)) else {
                 return Flow::Next;
-            }
+            };
             let Some(blob_kind) = record.types.get(3).copied() else {
                 return Flow::Next;
             };
@@ -381,12 +409,22 @@ impl Db {
                 return Flow::Next;
             }
             let score = (width - 32).abs();
-            if best.as_ref().map_or(true, |(current, _)| score < *current) {
-                best = Some((score, blob.to_vec()));
+            if best.get(&icon).map_or(true, |(current, _)| score < *current) {
+                best.insert(icon, (score, blob.to_vec()));
             }
             Flow::Next
         })?;
-        best.map(|(_, png)| png)
+        let mut found = Vec::new();
+        for (position, ids) in ids_for.iter().enumerate() {
+            let pick = ids
+                .iter()
+                .filter_map(|id| best.get(id))
+                .min_by_key(|(score, _)| *score);
+            if let Some((_, png)) = pick {
+                found.push((wanted[position].0, png.clone()));
+            }
+        }
+        Some(found)
     }
 }
 
@@ -473,4 +511,30 @@ pub fn icon_data_url(page_url: &str) -> Option<String> {
         }
     }
     None
+}
+
+/// 여러 주소의 그림을 한꺼번에. 못 찾은 것은 None. 목록 화면용.
+pub fn icon_data_urls(urls: &[String]) -> Vec<Option<String>> {
+    let mut out: Vec<Option<String>> = vec![None; urls.len()];
+    for file in favicon_files() {
+        let wanted: Vec<(usize, String, String)> = (0..urls.len())
+            .filter(|index| out[*index].is_none())
+            .filter_map(|index| {
+                Some((index, trim_url(&urls[index]), host_of(&urls[index])?))
+            })
+            .collect();
+        if wanted.is_empty() {
+            break;
+        }
+        let Some(found) = Db::open(&file).and_then(|mut db| db.find_many(&wanted)) else {
+            continue;
+        };
+        for (index, png) in found {
+            out[index] = Some(format!(
+                "data:image/png;base64,{}",
+                crate::shell_icon::base64_encode(&png)
+            ));
+        }
+    }
+    out
 }

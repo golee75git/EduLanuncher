@@ -1335,6 +1335,23 @@ fn favicon_for_url(url: String) -> Option<String> {
     }
 }
 
+#[tauri::command(async)]
+fn favicon_for_urls(urls: Vec<String>) -> Vec<Option<String>> {
+    let urls: Vec<String> = urls.into_iter().take(1000).collect();
+    #[cfg(windows)]
+    {
+        let valid: Vec<String> = urls
+            .iter()
+            .map(|url| if is_http_url(url) { url.trim().to_string() } else { String::new() })
+            .collect();
+        favicon_db::icon_data_urls(&valid)
+    }
+    #[cfg(not(windows))]
+    {
+        vec![None; urls.len()]
+    }
+}
+
 #[tauri::command]
 fn read_bookmark_html(path: String) -> Result<String, String> {
     let path = PathBuf::from(path);
@@ -1872,6 +1889,7 @@ pub fn run() {
             take_startup_url_paths,
             read_bookmark_html,
             favicon_for_url,
+            favicon_for_urls,
             this_pc_ipv4,
             lookup_public_ipv4,
             latest_release_tag,

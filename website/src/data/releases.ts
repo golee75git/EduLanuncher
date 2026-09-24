@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.98-20260924",
+    note: "인터넷 즐겨찾기 목록의 각 줄 앞에 사이트 그림이 보입니다.",
+  },
+  {
     version: "0.1.97-20260924",
     note: "Edge·Chrome에서 주소를 끌어 넣으면, 브라우저가 이 PC에 이미 저장해 둔 사이트 그림을 같이 남깁니다.",
   },

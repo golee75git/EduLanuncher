@@ -2062,3 +2062,25 @@ Difference:
 
 PATENT_REVIEW:
 이 PC에 저장된 사이트 그림을 주소로 찾아 표시 그림으로 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 저작권 관련: 사이트 로고는 각 소유자의 저작물·상표일 수 있어 이 PC 안 표시에만 쓰고 배포하지 않음. 상용 배포 전 전문가 검토 권장
+Feature: Favicons in the internet favorites list
+
+Purpose:
+인터넷 즐겨찾기 목록의 각 줄 앞에 사이트 그림을 보여 주고, 「넣기」 때 같은 그림을 남긴다
+
+Design source:
+내부 요구사항. 기존 `favicon_db.rs`(읽기 전용 최소 SQLite 읽기)·`readUrlShortcut`·`ToolGlyph`
+
+Implementation:
+목록 그림 순서는 내보낸 파일의 PNG → `.url` 파일 자체 그림 → 브라우저가 이 PC에 저장해 둔 그림. 브라우저 그림은 주소 목록(1000개까지)을 한 번에 넘겨 icon_mapping·favicon_bitmaps를 각각 한 번만 훑어 찾음. 없으면 기존 지구본. 새 라이브러리 없음
+
+External code:
+없음
+
+Potential similar products:
+브라우저 즐겨찾기 목록, 북마크 관리자
+
+Difference:
+사이트에 접속하지 않음. 그림은 화면 표시와 이 PC의 tools.json에만 쓰고 백업·Pack에는 넣지 않음
+
+PATENT_REVIEW:
+저장된 사이트 그림을 주소로 찾아 목록 표시에 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사이트 로고는 각 소유자의 저작물·상표일 수 있어 이 PC 안 표시에만 씀
