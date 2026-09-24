@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-24
+버전: 0.1.100-20260924
+설치 파일: EduLauncher_0.1.100-20260924_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-24_1727_x64-setup.exe
+작성자: 요청자
+
+내용:
+설정의 보기에서 이전스킨을 고르면 카드형 홈 이전 배치로 돌아간다. 색은 서류다. 서류·밝은 화면·어두운 화면은 지금 카드형 홈을 유지한다. 기본값도 카드형이다. 문제가 생기면 이 커밋을 되돌리면 이전스킨 선택이 사라진다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src/types/settings.ts, src/stores/settingsStore.ts, src/pages/HomePage.tsx, src/pages/SettingsPage.tsx, src/components/NoticeList.tsx, src/components/MemoPad.tsx, src/App.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: tsc 통과. 브라우저 미리보기에서 기본은 카드형 홈이고, 설정에서 이전스킨을 고르면 이전 헤더·검색·공지 목록·메모 「크게」로 바뀌며 상태 줄은 빠진다.
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 설정 값 하나뿐. 새 명령·외부 접속 없음.
+특허: 설정에 따라 같은 목록을 다른 배치로 그리는 일반 화면 전환. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-24
 버전: 0.1.99-20260924
 설치 파일: EduLauncher_0.1.99-20260924_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-24_1705_x64-setup.exe

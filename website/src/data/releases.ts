@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.100-20260924",
+    note: "설정의 보기에서 이전스킨을 고르면 카드형 홈 이전 배치로 돌아갑니다. 서류·밝은 화면·어두운 화면은 지금 홈입니다.",
+  },
+  {
     version: "0.1.99-20260924",
     note: "홈 화면을 다시 배치했습니다. 시간 인사, 검색(Ctrl+K), 공지 카드, 자주 사용하는 도구 카드가 바뀌고 메모와 상태 줄은 아래에 있습니다.",
   },

@@ -2109,3 +2109,28 @@ Difference:
 
 PATENT_REVIEW:
 카드 목록과 검색창 포커스는 일반 화면 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Previous home arrangement option
+
+Purpose:
+설정에서 카드형 홈 이전 배치를 다시 고를 수 있게 한다
+
+Design source:
+이 저장소의 직전 홈 배치. 색 스킨(서류·밝은 화면·어두운 화면)은 그대로
+
+Implementation:
+설정 값 prior일 때만 이전 헤더·검색·공지 목록·줄 목록·메모를 그린다. 색은 서류 변수. 기본값은 카드형 홈. 새 라이브러리 없음
+
+External code:
+없음
+
+Potential similar products:
+화면 테마 전환
+
+Difference:
+색 스킨과 홈 배치 선택을 한 목록에 둔다. 이전 배치는 이 앱이 이미 쓰던 화면이다
+
+PATENT_REVIEW:
+설정 값에 따라 같은 데이터를 다른 배치로 그리는 일반 화면 전환. 청구항 대조는 별도. 특허 비침해를 보장하지 않음

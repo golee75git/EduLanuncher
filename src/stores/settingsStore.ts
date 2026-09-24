@@ -23,7 +23,8 @@ interface SettingsState {
 }
 
 function paintSkin(skin: PanelSkin): void {
-  document.documentElement.dataset.skin = asPanelSkin(skin);
+  const next = asPanelSkin(skin);
+  document.documentElement.dataset.skin = next === "prior" ? "paper" : next;
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({

@@ -47,6 +47,7 @@ import { focusSearchInput } from "./services/focusBus";
 import { hidePanel, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
+import { isPriorSkin } from "./types/settings";
 import { asPanelHeight, asPanelWidth } from "./types/settings";
 import { hydrateMemo, useMemoStore } from "./stores/memoStore";
 import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
@@ -109,6 +110,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [releaseNotice, setReleaseNotice] = useState<string | null>(null);
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
+  const priorSkin = useSettingsStore((state) => isPriorSkin(state.settings.panelSkin));
   const mapWindow = currentWindowLabel() === "work-map";
   const memoWindow = currentWindowLabel() === "memo-pad";
 
@@ -717,7 +719,7 @@ export default function App() {
         {view.name === "home" ? (
           <>
             <MemoPad />
-            <StatusBar />
+            {priorSkin ? null : <StatusBar />}
           </>
         ) : null}
         {view.name !== "home" ? (

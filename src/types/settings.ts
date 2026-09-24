@@ -1,5 +1,5 @@
 export type LauncherPosition = "bottom-right" | "center";
-export type PanelSkin = "paper" | "bright" | "dusk";
+export type PanelSkin = "paper" | "bright" | "dusk" | "prior";
 export type ListColumns = 1 | 2;
 export type GridColumns = 1 | 2 | 3;
 
@@ -46,10 +46,19 @@ export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: str
   { id: "paper", label: "서류", hint: "차가운 회색 바탕" },
   { id: "bright", label: "밝은 화면", hint: "따뜻한 서류색 바탕" },
   { id: "dusk", label: "어두운 화면", hint: "낮은 조명 바탕" },
+  { id: "prior", label: "이전스킨", hint: "카드형 홈 이전 배치" },
 ];
 
 export function asPanelSkin(value: unknown): PanelSkin {
-  return value === "bright" || value === "dusk" ? value : "paper";
+  if (value === "bright" || value === "dusk" || value === "prior") {
+    return value;
+  }
+  return "paper";
+}
+
+/** 이전 홈 배치. 색은 서류 기본값이다. */
+export function isPriorSkin(value: unknown): boolean {
+  return asPanelSkin(value) === "prior";
 }
 
 export function asListColumns(value: unknown): ListColumns {

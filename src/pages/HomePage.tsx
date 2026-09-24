@@ -1,5 +1,6 @@
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FavoriteGrid } from "../components/FavoriteGrid";
 import { HighlightText } from "../components/HighlightText";
 import { AppHeader } from "../components/home/AppHeader";
 import { GlobalSearch } from "../components/home/GlobalSearch";
@@ -10,8 +11,10 @@ import { NoticeList } from "../components/NoticeList";
 import { RecentTools } from "../components/RecentTools";
 import { SchoolSearchResult } from "../components/SchoolSearchResult";
 import { HomeJumpButton } from "../components/HomeJumpButton";
+import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
+import { APP_CONFIG } from "../config/app";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
@@ -36,6 +39,7 @@ import { getSchools } from "../stores/schoolStore";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
+import { homeListColumns, isPriorSkin } from "../types/settings";
 import type { NoticeItem } from "../types/notice";
 import type { SchoolItem } from "../types/school";
 import type { ToolItem, ToolType } from "../types/tool";
@@ -366,29 +370,53 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const anySearchGroup =
     showTools || showRecents || showFolders || showSchools || showTroubles || showTopics;
 
+  const prior = isPriorSkin(settings.panelSkin);
   const cardColumns = homeFavoriteColumns(settings.panelWidth);
+  const linkClass = prior
+    ? "rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+    : "inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
+  const homeJump = searching || activeSchool ? (
+    <HomeJumpButton
+      onClick={() => {
+        setQuery("");
+        setActiveSchool(null);
+      }}
+    />
+  ) : null;
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-[600px] flex-col bg-paper">
-      <AppHeader
-        dateLabel={todayLabel()}
-        extra={
-          searching || activeSchool ? (
-            <HomeJumpButton
-              onClick={() => {
-                setQuery("");
-                setActiveSchool(null);
-              }}
-            />
-          ) : null
-        }
-        onSettings={() => onAction({ type: "settings" })}
-        onAdd={() => onAction({ type: "edit" })}
-      />
-      {searching || activeSchool ? null : <WelcomeMessage />}
-      <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
+    <div className={prior ? "flex h-full min-h-0 flex-col bg-paper" : "mx-auto flex h-full min-h-0 w-full max-w-[600px] flex-col bg-paper"}>
+      {prior ? (
+        <header className="flex items-center justify-between px-4 pt-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-ink shadow-[0_0_0_3px] shadow-ink-soft" />
+            <div>
+              <p className="text-[11px] font-semibold tracking-wide text-ink">{APP_CONFIG.appName}</p>
+              <h1 className="text-[15px] font-semibold text-desk">{APP_CONFIG.displayName}</h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            {homeJump}
+            <span className="mr-1 text-xs text-quiet">{todayLabel()}</span>
+            <button type="button" className="icon-btn" onClick={() => onAction({ type: "settings" })} aria-label="설정">
+              <Settings className="h-4 w-4" />
+            </button>
+            <button type="button" className="icon-btn" onClick={() => onAction({ type: "edit" })} aria-label="도구 추가">
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </header>
+      ) : (
+        <AppHeader dateLabel={todayLabel()} extra={homeJump} onSettings={() => onAction({ type: "settings" })} onAdd={() => onAction({ type: "edit" })} />
+      )}
+      {prior || searching || activeSchool ? null : <WelcomeMessage />}
+      {prior ? (
+        <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="학교·업무·도구·이 PC 폴더·PC 문제" />
+      ) : (
+        <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
+      )}
 
-      <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-7 pb-3">
+      <div className={prior ? "mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3" : "mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-7 pb-3"}>
         {activeSchool ? (
           <SchoolSearchResult
             school={activeSchool}
@@ -400,21 +428,22 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
         {!searching && !activeSchool ? (
           <>
             <NoticeList
+              variant={prior ? "rows" : "card"}
               onAll={() => onAction({ type: "notices" })}
               onAdd={() => onAction({ type: "notice-item" })}
               onOpen={(item) => onAction({ type: "notice-item", item })}
             />
-            <section>
-              <SectionHeader title="자주 사용하는 도구" />
-              <div className="space-y-4">
+            <section className={prior ? "zone-block bg-zone-tools" : undefined}>
+              {prior ? <h2 className="desk-label">자주 사용하는 도구</h2> : <SectionHeader title="자주 사용하는 도구" />}
+              <div className={prior ? "space-y-3" : "space-y-4"}>
                 {favoriteGroups.map((group) => (
                   <div key={group.type}>
                     <div className="mb-1.5 flex items-center gap-1">
-                      <h3 className="min-w-0 flex-1 text-[12px] font-medium text-quiet">{group.label}</h3>
+                      <h3 className={prior ? "min-w-0 flex-1 text-[13px] font-medium text-desk" : "min-w-0 flex-1 text-[12px] font-medium text-quiet"}>{group.label}</h3>
                       {group.type === "url" ? (
                         <button
                           type="button"
-                          className="inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                          className={linkClass}
                           onClick={() => onAction({ type: "pc-urls" })}
                         >
                           인터넷 즐겨찾기
@@ -424,21 +453,21 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                         <>
                           <button
                             type="button"
-                            className="inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                            className={linkClass}
                             onClick={() => onAction({ type: "shortcuts" })}
                           >
                             단축키
                           </button>
                           <button
                             type="button"
-                            className="inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                            className={linkClass}
                             onClick={() => onAction({ type: "topics" })}
                           >
                             업무자료
                           </button>
                           <button
                             type="button"
-                            className="inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                            className={linkClass}
                             onClick={() => onAction({ type: "computer-tools" })}
                           >
                             컴퓨터도구
@@ -447,14 +476,14 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                       ) : null}
                       <button
                         type="button"
-                        className="inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                        className={linkClass}
                         onClick={() => onAction({ type: "group", groupType: group.type })}
                       >
                         모두
                       </button>
                       <button
                         type="button"
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                        className={prior ? "icon-btn p-1" : "inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"}
                         onClick={() => onAction({ type: "edit", createType: group.type })}
                         aria-label={`${group.label} 추가`}
                         title={`${group.label} 추가`}
@@ -462,16 +491,30 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                         <Plus className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                    <LauncherGrid
-                      tools={group.shown}
-                      columns={cardColumns}
-                      emptyText={favoriteEmptyText(group.type)}
-                      selectedId={selectedId?.startsWith("fav:") ? selectedId.slice(4) : undefined}
-                      onLaunch={(tool) => onAction({ type: "launch", tool })}
-                      onFavorite={(tool) => void toggleFavorite(tool.id)}
-                      onEdit={(tool) => onAction({ type: "edit", tool })}
-                      onDelete={(tool) => onAction({ type: "remove", tool })}
-                    />
+                    {prior ? (
+                      <FavoriteGrid
+                        tools={group.shown}
+                        layout="list"
+                        columns={homeListColumns(settings.panelWidth)}
+                        emptyText={favoriteEmptyText(group.type)}
+                        selectedId={selectedId?.startsWith("fav:") ? selectedId.slice(4) : undefined}
+                        onLaunch={(tool) => onAction({ type: "launch", tool })}
+                        onFavorite={(tool) => void toggleFavorite(tool.id)}
+                        onEdit={(tool) => onAction({ type: "edit", tool })}
+                        onDelete={(tool) => onAction({ type: "remove", tool })}
+                      />
+                    ) : (
+                      <LauncherGrid
+                        tools={group.shown}
+                        columns={cardColumns}
+                        emptyText={favoriteEmptyText(group.type)}
+                        selectedId={selectedId?.startsWith("fav:") ? selectedId.slice(4) : undefined}
+                        onLaunch={(tool) => onAction({ type: "launch", tool })}
+                        onFavorite={(tool) => void toggleFavorite(tool.id)}
+                        onEdit={(tool) => onAction({ type: "edit", tool })}
+                        onDelete={(tool) => onAction({ type: "remove", tool })}
+                      />
+                    )}
                   </div>
                 ))}
               </div>
