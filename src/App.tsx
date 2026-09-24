@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "react";
 import { DropZone } from "./components/DropZone";
+import { StatusBar } from "./components/home/StatusBar";
 import { MemoPad } from "./components/MemoPad";
 import { MissingPathDialog } from "./components/MissingPathDialog";
 import { NoticePackPick } from "./components/NoticePackPick";
@@ -713,7 +714,12 @@ export default function App() {
             />
           ) : null}
         </div>
-        {view.name === "home" ? <MemoPad /> : null}
+        {view.name === "home" ? (
+          <>
+            <MemoPad />
+            <StatusBar />
+          </>
+        ) : null}
         {view.name !== "home" ? (
           <div className="absolute bottom-3 right-3 z-40 flex items-center gap-1">
             {view.name === "topic" ? (

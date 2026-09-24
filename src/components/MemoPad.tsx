@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { MemoPanel } from "./home/MemoPanel";
 import { useMemoStore } from "../stores/memoStore";
 import { openMemoWindow } from "../services/windowService";
 
@@ -40,7 +41,7 @@ function MemoEditor({ large = false }: { large?: boolean }) {
       className={
         large
           ? "h-full min-h-0 w-full resize-none rounded-xl border border-line bg-card px-3 py-2 text-sm text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
-          : "h-14 w-full resize-none rounded-xl border border-line bg-card px-2.5 py-1.5 text-sm text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
+          : "h-[72px] w-full resize-none rounded-xl border border-line/80 bg-card px-3 py-2 text-[12px] text-desk outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
       }
     />
   );
@@ -48,19 +49,9 @@ function MemoEditor({ large = false }: { large?: boolean }) {
 
 export function MemoPad() {
   return (
-    <section className="shrink-0 border-t border-line/70 bg-paper px-3 py-2">
-      <div className="mb-1.5 flex items-center gap-1">
-        <h2 className="desk-label mb-0 min-w-0 flex-1">메모</h2>
-        <button
-          type="button"
-          className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
-          onClick={() => void openMemoWindow()}
-        >
-          크게
-        </button>
-      </div>
+    <MemoPanel onExpand={() => void openMemoWindow()}>
       <MemoEditor />
-    </section>
+    </MemoPanel>
   );
 }
 

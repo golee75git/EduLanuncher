@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.99-20260924",
+    note: "홈 화면을 다시 배치했습니다. 시간 인사, 검색(Ctrl+K), 공지 카드, 자주 사용하는 도구 카드가 바뀌고 메모와 상태 줄은 아래에 있습니다.",
+  },
+  {
     version: "0.1.98-20260924",
     note: "인터넷 즐겨찾기 목록의 각 줄 앞에 사이트 그림이 보입니다.",
   },

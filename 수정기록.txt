@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-24
+버전: 0.1.99-20260924
+설치 파일: EduLauncher_0.1.99-20260924_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-24_1705_x64-setup.exe
+작성자: 요청자
+
+내용:
+홈 겉모양만 다시 배치한다. 헤더는 교육업무 런처, 시간대별 인사, 검색창(Ctrl+K), 공지 카드, 자주 사용하는 도구 카드다. 도구는 저장된 즐겨찾기를 그대로 쓰고, 검색·실행·즐겨찾기·추가·설정·공지·메모는 기존 동작에 연결한다. 할 일·최근 사용·검색 결과 구역은 남긴다. 창 기본 크기는 440×650이다. 자주 사용하는 도구는 최소 너비 1열, 기본 2열, 약 560px 이상 3열이다. 문제가 생기면 이 커밋을 되돌리면 이전 홈으로 돌아간다.
+
+새로 작성한 파일: src/components/home/AppHeader.tsx, WelcomeMessage.tsx, GlobalSearch.tsx, SectionHeader.tsx, NoticeCard.tsx, FavoriteButton.tsx, MoreMenu.tsx, LauncherCard.tsx, LauncherGrid.tsx, MemoPanel.tsx, StatusBar.tsx
+재사용한 기존 파일(수정): src/pages/HomePage.tsx, src/components/NoticeList.tsx, src/components/MemoPad.tsx, src/App.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: tsc 통과. 브라우저 미리보기에서 440×650·400px 너비 배치, 검색어 QR 필터, 카드 더보기(실행·편집·빼기), 설정 화면 진입을 확인. 1열·3열은 저장된 창 너비(400 미만은 없고 최소 400에서 1열, 560 이상에서 3열)에 따른다. 설치본 화면 확인은 이 PC에서 하지 않음.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, Malgun Gothic). SIL OFL 아님. 번들 없음. 글꼴 파일은 추가하지 않음.
+라이선스: 패키지 추가 없음. package-lock 라이선스 집계는 MIT, MPL-2.0(lightningcss, 개발 빌드용), Apache-2.0, Apache-2.0 OR MIT, MIT OR Apache-2.0, ISC, BSD-3-Clause. GPL·AGPL·LGPL 표기 없음. 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 새 명령·새 저장·외부 접속 없음. Ctrl+K는 패널 안에서 검색창으로만 이동하고, 다른 입력칸에서는 가로채지 않음.
+특허: 카드 목록과 검색창 포커스는 일반 화면 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-24
 버전: 0.1.98-20260924
 설치 파일: EduLauncher_0.1.98-20260924_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-24_1336_x64-setup.exe
