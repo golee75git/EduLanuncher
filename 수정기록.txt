@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-24
+버전: 0.1.101-20260924
+설치 파일: EduLauncher_0.1.101-20260924_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-24_2114_x64-setup.exe
+작성자: 요청자
+
+내용:
+업무자료를 읽을 때 지역을 나눈다. JSON에 jurisdiction이 있으면 그 값을 쓰고, 없으면 기관명으로만 판정한다. topics.json은 덮어쓰지 않는다. 화면에는 강원 기준, 전국 공통, 타 교육청 참고, 지역 확인 필요를 표시한다. 타 교육청 값은 강원 기준으로 바꾸지 않는다. 문제가 생기면 이 커밋을 되돌리면 지역 표시만 빠진다.
+
+새로 작성한 파일: src/services/jurisdictionService.ts, src/components/JurisdictionBadge.tsx
+재사용한 기존 파일(수정): src/types/topic.ts, src/services/topicService.ts, src/components/ResourceCard.tsx, src/components/ResourceTabs.tsx, src/components/TopicCard.tsx, src/components/TopicResultCard.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: tsc 통과. 기관명 판정 11건 통과. 설치본 빌드 완료. 검색 점수와 글꼴은 그대로다.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, Malgun Gothic). SIL OFL 아님. 번들 없음. 이번에도 글꼴 파일을 넣지 않음.
+라이선스: 패키지 추가 없음. node_modules license 필드에서 GPL은 보이지 않음.
+보안: 지역 판정은 이 PC 문자열 비교만. 새 네트워크 호출 없음. 원문 주소는 기존처럼 http 또는 https만.
+특허: 출처 라벨·탭·필터는 일반 화면 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-24
 버전: 0.1.100-20260924
 설치 파일: EduLauncher_0.1.100-20260924_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-24_1727_x64-setup.exe

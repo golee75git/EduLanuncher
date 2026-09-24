@@ -17,6 +17,17 @@ export type ResourceType = (typeof RESOURCE_TYPES)[number];
 
 export type RecordStatus = "current" | "old" | "unknown";
 
+export const JURISDICTIONS = ["national", "gangwon", "other-region", "unknown"] as const;
+
+export type Jurisdiction = (typeof JURISDICTIONS)[number];
+
+export const JURISDICTION_LABEL: Record<Jurisdiction, string> = {
+  national: "전국 공통",
+  gangwon: "강원 기준",
+  "other-region": "타 교육청 참고",
+  unknown: "지역 확인 필요",
+};
+
 export interface TopicKeywords {
   official: string[];
   general: string[];
@@ -40,6 +51,8 @@ export interface TopicResource {
   publishedAt: string;
   pages: string;
   url: string;
+  jurisdiction: Jurisdiction;
+  jurisdictionName?: string;
   status: RecordStatus;
   needsReview: boolean;
 }

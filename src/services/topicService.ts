@@ -1,7 +1,9 @@
 import rawTopics from "../data/topics.json";
 import { MANUAL_KINDS, type ManualKind, type ManualTrailItem } from "../types/manual";
 import {
+  JURISDICTIONS,
   RESOURCE_TYPES,
+  type Jurisdiction,
   type RecordStatus,
   type ResourceTabId,
   type ResourceType,
@@ -9,6 +11,7 @@ import {
   type TopicResource,
   type WorkflowStep,
 } from "../types/topic";
+import { resolveJurisdiction } from "./jurisdictionService";
 import { getManualTopics } from "./manualService";
 
 const MAX_TITLE = 160;
@@ -20,6 +23,20 @@ const MAX_STEPS = 16;
 const MAX_RESOURCES = 40;
 
 const RESOURCE_TYPE_SET = new Set<string>(RESOURCE_TYPES);
+const JURISDICTION_SET = new Set<string>(JURISDICTIONS);
+
+const AREA_RANK: Record<Jurisdiction, number> = {
+  gangwon: 0,
+  national: 1,
+  unknown: 2,
+  "other-region": 3,
+};
+
+function warnDev(message: string): void {
+  if (import.meta.env.DEV) {
+    console.warn(message);
+  }
+}
 
 function asText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -141,6 +158,18 @@ function parseWorkflow(value: unknown): WorkflowStep[] {
   return steps.sort((a, b) => a.order - b.order).slice(0, MAX_STEPS);
 }
 
+function clearDateValue(value: string): number | null {
+  const text = value.trim();
+  if (/^(19|20)\d{2}$/.test(text) || /^(19|20)\d{2}년$/.test(text)) {
+    return Number(text.slice(0, 4));
+  }
+  if (/^(19|20)\d{2}-\d{2}-\d{2}$/.test(text)) {
+    const parsed = Date.parse(`${text}T00:00:00Z`);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+}
+
 function parseResource(value: unknown): TopicResource | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -150,8 +179,30 @@ function parseResource(value: unknown): TopicResource | null {
   const id = clip(asText(row.id), 80);
   const title = clip(asText(row.title), MAX_TITLE);
   if (!type || !id || !title) {
+    warnDev("업무자료 Resource를 건너뜀: id 또는 제목 또는 자료 유형이 없습니다.");
     return null;
   }
+  const writtenArea = asText(row.jurisdiction);
+  if (writtenArea && !JURISDICTION_SET.has(writtenArea)) {
+    warnDev(`업무자료 ${id}: jurisdiction 값이 올바르지 않아 다시 판정합니다.`);
+  }
+  const writtenStatus = asText(row.status);
+  if (writtenStatus && writtenStatus !== "current" && writtenStatus !== "old" && writtenStatus !== "unknown") {
+    warnDev(`업무자료 ${id}: status 값이 올바르지 않아 unknown으로 읽습니다.`);
+  }
+  const area = resolveJurisdiction({
+    organization: asText(row.organization),
+    document: asText(row.document),
+    title,
+    summary: asText(row.summary),
+    jurisdiction: writtenArea,
+    jurisdictionName: asText(row.jurisdictionName),
+  });
+  const reviewRaw = row.needsReview;
+  const needsReview =
+    reviewRaw === true || reviewRaw === false
+      ? reviewRaw
+      : area.jurisdiction === "unknown";
   return {
     id,
     type,
@@ -162,8 +213,10 @@ function parseResource(value: unknown): TopicResource | null {
     publishedAt: clip(asText(row.publishedAt), 80),
     pages: clip(asText(row.pages), 120),
     url: officialUrl(title, row.url ?? row.sourceUrl),
+    jurisdiction: area.jurisdiction,
+    jurisdictionName: area.jurisdictionName,
     status: asStatus(row.status),
-    needsReview: asBool(row.needsReview),
+    needsReview,
   };
 }
 
@@ -205,7 +258,12 @@ function parseTopic(value: unknown): Topic | null {
   const id = clip(asText(row.id), 80);
   const title = clip(asText(row.title), MAX_TITLE);
   if (!id || !title) {
+    warnDev("업무자료 Topic을 건너뜀: id 또는 제목이 없습니다.");
     return null;
+  }
+  const writtenStatus = asText(row.status);
+  if (writtenStatus && writtenStatus !== "current" && writtenStatus !== "old" && writtenStatus !== "unknown") {
+    warnDev(`업무자료 ${id}: Topic status 값이 올바르지 않아 unknown으로 읽습니다.`);
   }
   const category = clip(asText(row.category), 80);
   const subcategory = clip(asText(row.subcategory), 80);
@@ -295,6 +353,25 @@ export function getTopicById(id: string): Topic | undefined {
   return getTopics().find((topic) => topic.id === id);
 }
 
+export function getResourcesByTopic(id: string): TopicResource[] {
+  return getTopicById(id)?.resources ?? [];
+}
+
+export function sortResources(resources: TopicResource[]): TopicResource[] {
+  return [...resources].sort((a, b) => {
+    const rank = AREA_RANK[a.jurisdiction] - AREA_RANK[b.jurisdiction];
+    if (rank !== 0) {
+      return rank;
+    }
+    const aDate = clearDateValue(a.publishedAt);
+    const bDate = clearDateValue(b.publishedAt);
+    if (aDate !== null && bDate !== null && aDate !== bDate) {
+      return bDate - aDate;
+    }
+    return 0;
+  });
+}
+
 export function findRelatedTopics(topic: Topic): Topic[] {
   const all = getTopics();
   const found: Topic[] = [];
@@ -318,22 +395,43 @@ export function listNeedsReview(topics: Topic[] = getTopics()): Topic[] {
   );
 }
 
-export function countResourcesByType(topic: Topic): Partial<Record<ResourceType, number>> {
-  const counts: Partial<Record<ResourceType, number>> = {};
-  for (const resource of topic.resources) {
-    counts[resource.type] = (counts[resource.type] ?? 0) + 1;
-  }
-  return counts;
+const RESOURCE_GROUPS: Array<{ label: string; types: ResourceType[] }> = [
+  { label: "매뉴얼", types: ["manual"] },
+  { label: "법령/지침", types: ["law", "guideline", "notice"] },
+  { label: "감사사례", types: ["audit", "case"] },
+  { label: "질의회신", types: ["qna"] },
+  { label: "FAQ", types: ["faq"] },
+  { label: "서식", types: ["form"] },
+  { label: "업무시스템", types: ["system"] },
+];
+
+export function resourceGroupCounts(topic: Topic): Array<{ label: string; count: number }> {
+  return RESOURCE_GROUPS.map((group) => ({
+    label: group.label,
+    count: topic.resources.filter((item) => group.types.includes(item.type)).length,
+  })).filter((group) => group.count > 0);
+}
+
+export function areaCounts(topic: Topic): Array<{ jurisdiction: Jurisdiction; count: number }> {
+  const order: Jurisdiction[] = ["gangwon", "national", "other-region", "unknown"];
+  return order
+    .map((jurisdiction) => ({
+      jurisdiction,
+      count: topic.resources.filter((item) => item.jurisdiction === jurisdiction).length,
+    }))
+    .filter((item) => item.count > 0);
 }
 
 export function resourcesForTab(topic: Topic, tab: ResourceTabId): TopicResource[] {
-  if (tab === "all") {
-    return topic.resources;
-  }
+  let items = topic.resources;
   if (tab === "law-guide") {
-    return topic.resources.filter((item) => item.type === "law" || item.type === "guideline");
+    items = items.filter((item) => item.type === "law" || item.type === "guideline" || item.type === "notice");
+  } else if (tab === "audit") {
+    items = items.filter((item) => item.type === "audit" || item.type === "case");
+  } else if (tab !== "all") {
+    items = items.filter((item) => item.type === tab);
   }
-  return topic.resources.filter((item) => item.type === tab);
+  return sortResources(items);
 }
 
 export function sourceLines(topic: Topic): string[] {

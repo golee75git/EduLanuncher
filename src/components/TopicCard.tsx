@@ -1,6 +1,5 @@
-import { countResourcesByType } from "../services/topicService";
-import type { Topic } from "../types/topic";
-import { RESOURCE_TYPE_LABEL } from "../types/topic";
+import { areaCounts, resourceGroupCounts } from "../services/topicService";
+import { JURISDICTION_LABEL, type Topic } from "../types/topic";
 import { MANUAL_KIND_LABEL } from "../types/manual";
 import { HighlightText } from "./HighlightText";
 import { workflowPreview } from "./WorkflowView";
@@ -13,23 +12,12 @@ interface TopicCardProps {
   onOpen: (topicId: string) => void;
 }
 
-const COUNT_ORDER = [
-  "manual",
-  "audit",
-  "guideline",
-  "law",
-  "qna",
-  "faq",
-  "form",
-  "system",
-  "notice",
-  "case",
-] as const;
-
 export function TopicCard({ topic, reason, query = "", selected = false, onOpen }: TopicCardProps) {
-  const counts = countResourcesByType(topic);
-  const countText = COUNT_ORDER.filter((type) => (counts[type] ?? 0) > 0)
-    .map((type) => `${RESOURCE_TYPE_LABEL[type]} ${counts[type]}`)
+  const countText = resourceGroupCounts(topic)
+    .map((group) => `${group.label} ${group.count}`)
+    .join(" · ");
+  const areaText = areaCounts(topic)
+    .map((item) => `${JURISDICTION_LABEL[item.jurisdiction]} ${item.count}`)
     .join(" · ");
   const kindLabel = topic.kind ? MANUAL_KIND_LABEL[topic.kind] : "";
   const pathText = [topic.category, topic.subcategory].filter(Boolean).join(" · ");
@@ -53,7 +41,8 @@ export function TopicCard({ topic, reason, query = "", selected = false, onOpen 
       {topic.workflow.length > 0 ? (
         <p className="mt-2 text-xs leading-5 text-desk">{workflowPreview(topic.workflow)}</p>
       ) : null}
-      {countText ? <p className="mt-2 text-[11px] text-quiet">{countText}</p> : null}
+      {countText ? <p className="mt-2 text-[11px] text-quiet">관련 자료 {countText}</p> : null}
+      {areaText ? <p className="text-[11px] text-quiet">출처 {areaText}</p> : null}
       {reason ? <p className="mt-1 text-[11px] text-ink">{reason}</p> : null}
       <p className="mt-2 text-[11px] font-medium text-ink">업무 자세히 보기</p>
     </button>

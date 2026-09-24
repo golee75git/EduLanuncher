@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Topic, TopicResource } from "../types/topic";
 import { RESOURCE_TYPE_LABEL, RESOURCE_TYPES } from "../types/topic";
+import { JurisdictionBadge } from "./JurisdictionBadge";
 import { SourceBadge } from "./SourceBadge";
 import { TopicCard } from "./TopicCard";
 
@@ -49,6 +50,10 @@ export function TopicResultCard({ topic, reason, query, onOpen }: TopicResultCar
                     <li key={item.id} className="rounded-md border border-line/60 px-2 py-1.5">
                       <div className="flex flex-wrap items-center gap-1">
                         <SourceBadge type={item.type} />
+                        <JurisdictionBadge
+                          jurisdiction={item.jurisdiction}
+                          jurisdictionName={item.jurisdictionName}
+                        />
                       </div>
                       <p className="mt-1 text-xs text-desk">{item.title}</p>
                       {item.document ? <p className="text-[11px] text-quiet">{item.document}</p> : null}
