@@ -1,5 +1,7 @@
+import { open } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { readBookmarkHtmlFile } from "../services/bookmarkHtmlService";
 import { addDroppedSite, readUrlShortcut } from "../services/dropSiteService";
 import { launchQuickUrl } from "../services/launcherService";
 import { listPcUrlShortcuts, type PcUrlItem } from "../services/pcUrlListService";
@@ -49,13 +51,36 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
     return [...map.entries()];
   }, [items]);
 
+  const loadExportedFile = async () => {
+    try {
+      const picked = await open({
+        multiple: false,
+        filters: [{ name: "내보낸 즐겨찾기(HTML)", extensions: ["html", "htm"] }],
+      });
+      if (typeof picked !== "string") {
+        return;
+      }
+      const loaded = await readBookmarkHtmlFile(picked);
+      if (loaded.length === 0) {
+        setNotice("주소를 찾지 못했습니다. Edge에서 내보낸 즐겨찾기 파일인지 확인하세요.");
+        return;
+      }
+      const withIcon = loaded.filter((item) => item.iconImage).length;
+      const urls = new Set(loaded.map((item) => item.url));
+      setItems((current) => [...current.filter((item) => !urls.has(item.url)), ...loaded]);
+      setNotice(`파일에서 ${loaded.length}개를 불러왔습니다. (그림 ${withIcon}개)`);
+    } catch (loadError) {
+      setNotice(loadError instanceof Error ? loadError.message : "파일을 읽지 못했습니다.");
+    }
+  };
+
   const addToLauncher = async (item: PcUrlItem) => {
     try {
       const fromFile = item.path ? await readUrlShortcut(item.path) : null;
       const result = await addDroppedSite(
         fromFile?.url ?? item.url,
         fromFile?.name ?? item.name,
-        fromFile?.iconImage,
+        fromFile?.iconImage ?? item.iconImage,
       );
       setNotice(
         result === "added" ? "런처에 넣었습니다." : result === "updated" ? "이름을 갱신했습니다." : "이미 있는 주소입니다.",
@@ -79,6 +104,19 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
           .url을 넣으면 그 파일 아이콘을 같이 남깁니다. 사이트에서 그림을 받아오지 않습니다. 로그인 정보·방문
           기록은 읽지 않습니다.
         </p>
+        <div className="space-y-1">
+          <button
+            type="button"
+            className="rounded-full px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-ink-soft"
+            onClick={() => void loadExportedFile()}
+          >
+            내보낸 즐겨찾기 파일 불러오기
+          </button>
+          <p className="text-[11px] leading-4 text-quiet">
+            Edge 주소창에 edge://favorites를 넣고 ⋯ → 즐겨찾기 내보내기로 만든 HTML 파일을 고르면 사이트 그림도
+            같이 넣을 수 있습니다.
+          </p>
+        </div>
         {loading ? <p className="text-sm text-quiet">읽는 중...</p> : null}
         {error ? <p className="text-sm text-desk">{error}</p> : null}
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}

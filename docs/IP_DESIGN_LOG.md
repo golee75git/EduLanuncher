@@ -2018,3 +2018,25 @@ Difference:
 
 PATENT_REVIEW:
 끌기 자료의 형식을 차례로 시도해 주소를 읽는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+Feature: Import exported favorites HTML with site pictures
+
+Purpose:
+Edge 등이 내보낸 즐겨찾기 HTML을 불러와 주소·이름·사이트 그림(PNG)을 바로가기에 남긴다
+
+Design source:
+내부 요구사항. 브라우저들이 서로 주고받는 공개 북마크 HTML 형식(Netscape 북마크 파일 형식)의 표시 방식. 사용자가 이 PC에서 직접 내보낸 파일. 기존 `asLocalPngIcon`·`addDroppedSite`
+
+Implementation:
+파일 선택창으로 .html/.htm(8MB 이하, UTF-8)만 읽음. `<A HREF ICON>`·`<H3>` 폴더를 자체 토큰 분석으로 목록화. http(s) 주소만, 그림은 PNG data 주소만(40KB 이하 검사) 이 PC tools.json에 저장. 항목 2000개·폴더 깊이 8 제한. 새 라이브러리 없음
+
+External code:
+없음
+
+Potential similar products:
+브라우저 즐겨찾기 가져오기, 북마크 관리자
+
+Difference:
+사이트에 접속하지 않음. 브라우저 프로필·Favicons 파일을 열지 않음. 사용자가 내보낸 파일만 읽음. 그림은 파일 안에 들어 있는 PNG만 사용
+
+PATENT_REVIEW:
+공개 파일 형식을 읽어 목록과 표시 그림으로 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음

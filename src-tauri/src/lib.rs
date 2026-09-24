@@ -1319,6 +1319,27 @@ fn take_startup_url_paths(state: tauri::State<StartupUrls>) -> Vec<String> {
 }
 
 #[tauri::command]
+fn read_bookmark_html(path: String) -> Result<String, String> {
+    let path = PathBuf::from(path);
+    let is_html = path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| {
+        ext.eq_ignore_ascii_case("html") || ext.eq_ignore_ascii_case("htm")
+    });
+    if !is_html {
+        return Err("내보낸 즐겨찾기 파일(.html)만 불러올 수 있습니다.".into());
+    }
+    let meta = fs::metadata(&path).map_err(|err| err.to_string())?;
+    if !meta.is_file() {
+        return Err("파일이 아닙니다.".into());
+    }
+    if meta.len() > 8 * 1024 * 1024 {
+        return Err("파일이 너무 큽니다.".into());
+    }
+    let bytes = fs::read(&path).map_err(|err| err.to_string())?;
+    let bytes = bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(&bytes);
+    Ok(String::from_utf8_lossy(bytes).into_owned())
+}
+
+#[tauri::command]
 fn read_json_file(path: String) -> Result<String, String> {
     let path = PathBuf::from(path);
     if !is_pack_file(&path) {
@@ -1829,6 +1850,7 @@ pub fn run() {
             write_png_file,
             take_startup_pack_paths,
             take_startup_url_paths,
+            read_bookmark_html,
             this_pc_ipv4,
             lookup_public_ipv4,
             latest_release_tag,
