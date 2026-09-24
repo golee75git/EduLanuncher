@@ -6,6 +6,26 @@
 ---
 
 날짜: 2026-09-24
+버전: 0.1.97-20260924
+설치 파일: EduLauncher_0.1.97-20260924_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-24_1042_x64-setup.exe
+작성자: 요청자
+
+내용:
+Edge 즐겨찾기 막대·메뉴·주소창·탭에서 끌어 넣은 사이트에 그 사이트 그림이 붙게 한다. 끌어 온 자료에는 그림이 없고 주소만 오는 경우가 많아서, 주소로 Edge·Chrome이 이 PC에 이미 저장해 둔 Favicons(SQLite) 파일에서 그림을 찾는다. SQLite 읽기는 공개 형식 문서만 보고 새로 쓴 읽기 전용 최소 코드(src-tauri/src/favicon_db.rs)다. 모든 사이트 넣기(끌기·목록 넣기·.url)가 지나는 한 곳(addDroppedSiteNow)에서 그림이 비어 있으면 조회한다. .url 경로는 본문 IconFile → 브라우저 그림 → 셸 아이콘 순이다. 문제가 생기면 이 커밋을 되돌리면 이전 동작으로 돌아간다.
+
+새로 작성한 파일: src-tauri/src/favicon_db.rs
+재사용한 기존 파일(수정): src-tauri/src/lib.rs, src-tauri/src/shell_icon.rs(base64_encode 공개 범위만), src/services/dropSiteService.ts, src/pages/PcUrlListPage.tsx(안내 문구), src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: cargo check·tsc 통과. 이 PC Edge 북마크 32개(http/https)로 sqlite3.exe 결과와 비교해 25개가 PNG 바이트까지 같았고 다른 것·놓친 것 0, 같은 사이트로 찾은 것 1, Edge에 그림이 없는 것 6. 32개 조회 0.3초. 무작위로 깨뜨린 파일 400가지에서 오류·멈춤 없음. 아직 못 한 것: 실제 Edge 즐겨찾기 막대·메뉴·주소창·탭에서 끌어 런처에 놓는 확인은 이 PC에서 하지 못함(끌기가 런처에 닿는지는 Edge·보안 프로그램에 달림). 주소창·탭 끌기는 이름이 도메인 이름으로 들어감(페이지 제목은 History를 열어야 해서 읽지 않음).
+
+글꼴: Windows 시스템 글꼴. SIL OFL 아님. 번들 없음.
+라이선스: 패키지 추가 없음(Cargo.lock·package.json 변경 없음). 직접 GPL 없음. 비침해 보장하지 않음.
+보안: 읽기 전용, icon_mapping·favicon_bitmaps 두 표만, History·쿠키·저장된 로그인 열지 않음, 열 이름 검사, 페이지 방문·깊이·행 크기·프로필 수 제한, PNG 서명·24KB·크기 검사, 실패 시 그림만 포기. 사이트에 접속하지 않음. 결과는 이 PC에만 저장하고 백업·Pack에는 넣지 않음.
+특허: 이 PC에 저장된 사이트 그림을 주소로 찾아 표시 그림으로 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다. 사이트 로고는 각 소유자의 저작물·상표일 수 있어 배포하지 않고 이 PC 안 표시에만 쓴다.
+
+---
+날짜: 2026-09-24
 버전: 0.1.96-20260924
 설치 파일: EduLauncher_0.1.96-20260924_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-24_1012_x64-setup.exe

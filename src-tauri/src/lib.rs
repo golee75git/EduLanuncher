@@ -25,6 +25,8 @@ use url_mark::{build_url_mark, read_picture_file, write_png_file};
 mod drop_target;
 #[cfg(windows)]
 mod shell_icon;
+#[cfg(windows)]
+mod favicon_db;
 
 #[cfg(windows)]
 #[link(name = "shell32")]
@@ -1318,6 +1320,21 @@ fn take_startup_url_paths(state: tauri::State<StartupUrls>) -> Vec<String> {
         .unwrap_or_default()
 }
 
+#[tauri::command(async)]
+fn favicon_for_url(url: String) -> Option<String> {
+    if !is_http_url(&url) {
+        return None;
+    }
+    #[cfg(windows)]
+    {
+        favicon_db::icon_data_url(url.trim())
+    }
+    #[cfg(not(windows))]
+    {
+        None
+    }
+}
+
 #[tauri::command]
 fn read_bookmark_html(path: String) -> Result<String, String> {
     let path = PathBuf::from(path);
@@ -1369,10 +1386,13 @@ fn read_url_shortcut(path: String) -> Result<UrlShortcut, String> {
     let contents = decode_shortcut_bytes(&bytes);
     let url = parse_url_from_shortcut(&contents)
         .ok_or_else(|| "주소가 없거나 http(s)가 아닙니다.".to_string())?;
+    let icon_image = shortcut_body_icon(&contents)
+        .or_else(|| favicon_for_url(url.clone()))
+        .or_else(|| local_file_icon(&path));
     Ok(UrlShortcut {
         name: shortcut_display_name(&path, &url),
         url,
-        icon_image: shortcut_body_icon(&contents).or_else(|| local_file_icon(&path)),
+        icon_image,
     })
 }
 
@@ -1851,6 +1871,7 @@ pub fn run() {
             take_startup_pack_paths,
             take_startup_url_paths,
             read_bookmark_html,
+            favicon_for_url,
             this_pc_ipv4,
             lookup_public_ipv4,
             latest_release_tag,

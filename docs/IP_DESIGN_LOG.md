@@ -2040,3 +2040,25 @@ Difference:
 
 PATENT_REVIEW:
 공개 파일 형식을 읽어 목록과 표시 그림으로 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+Feature: Browser favicon lookup by page address (read-only SQLite reader)
+
+Purpose:
+Edge·Chrome에서 끌어 넣거나 목록에서 넣은 사이트에, 그 브라우저가 이 PC에 이미 저장해 둔 사이트 그림(PNG)을 같이 남긴다
+
+Design source:
+내부 요구사항. SQLite 공개 파일 형식 문서(퍼블릭 도메인 프로젝트가 공개한 형식 설명)만 보고 새로 설계. 브라우저 데이터 파일은 이 PC 사용자 자신의 것. 기존 `asLocalPngIcon`·`addDroppedSiteNow`
+
+Implementation:
+`favicon_db.rs`: 읽기 전용으로 Favicons 파일을 열어 머리말·페이지 크기·UTF-8을 확인하고, 표 이름과 앞쪽 열 이름이 기대와 같을 때만 `icon_mapping`(주소→그림 번호)과 `favicon_bitmaps`(그림)를 훑는다(b-tree 잎·안쪽 페이지, 넘침 페이지, 가변 길이 정수). 같은 주소(끝 슬래시·조각 무시)를 우선하고 없으면 같은 호스트. PNG 서명·24KB 이하·16~128px 중 32px에 가까운 것 하나. 페이지 방문 15만·깊이 24·행 64KB·프로필 6개 제한. 맞지 않거나 잘못된 파일이면 그림만 포기(지구본). History·Cookies·Login Data는 열지 않음. 결과는 이 PC tools.json에만 저장하고 백업·Pack에는 넣지 않음(기존 규칙). 새 라이브러리 없음
+
+External code:
+없음
+
+Potential similar products:
+브라우저 즐겨찾기 가져오기, 북마크 관리자, SQLite 뷰어
+
+Difference:
+사이트에 접속하지 않음. 필요한 두 표만 읽는 전용 최소 코드이며 범용 SQLite 엔진이 아님. 쓰기·기록·쿠키 접근 없음
+
+PATENT_REVIEW:
+이 PC에 저장된 사이트 그림을 주소로 찾아 표시 그림으로 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 저작권 관련: 사이트 로고는 각 소유자의 저작물·상표일 수 있어 이 PC 안 표시에만 쓰고 배포하지 않음. 상용 배포 전 전문가 검토 권장

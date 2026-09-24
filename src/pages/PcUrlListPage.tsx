@@ -101,8 +101,8 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
           이 PC의 Edge·Chrome 북마크 파일과 Windows 즐겨찾기 폴더의 인터넷 바로가기(.url)를 보여 줍니다. Windows
-          .url을 넣으면 그 파일 아이콘을 같이 남깁니다. 사이트에서 그림을 받아오지 않습니다. 로그인 정보·방문
-          기록은 읽지 않습니다.
+          .url을 넣으면 그 파일 아이콘을 같이 남깁니다. Edge·Chrome이 이 PC에 이미 저장해 둔 사이트 그림이 있으면
+          같이 남깁니다. 사이트에서 그림을 받아오지 않습니다. 로그인 정보·방문 기록은 읽지 않습니다.
         </p>
         <div className="space-y-1">
           <button

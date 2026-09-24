@@ -188,6 +188,16 @@ export async function readUrlShortcut(path: string): Promise<UrlShortcut> {
   return invoke<UrlShortcut>("read_url_shortcut", { path });
 }
 
+/** 이 PC 브라우저(Edge·Chrome)가 이미 저장해 둔 그 주소의 그림. 없거나 실패하면 undefined. */
+export async function browserFaviconFor(url: string): Promise<string | undefined> {
+  try {
+    const found = await invoke<string | null>("favicon_for_url", { url });
+    return asLocalPngIcon(found ?? undefined);
+  } catch {
+    return undefined;
+  }
+}
+
 let addDroppedSiteQueue: Promise<void> = Promise.resolve();
 
 export async function addDroppedSite(
@@ -218,12 +228,15 @@ async function addDroppedSiteNow(
   if (!target) {
     throw new Error("http(s) 주소만 넣을 수 있습니다.");
   }
-  const picture = asLocalPngIcon(iconImage);
+  let picture = asLocalPngIcon(iconImage);
   const incoming = cleanDropTitle(name);
   const label = pickDroppedSiteName(target, name);
   const existing = useToolStore
     .getState()
     .tools.find((tool) => tool.type === "url" && sameHttpUrl(tool.target, target));
+  if (!picture && !asLocalPngIcon(existing?.iconImage)) {
+    picture = await browserFaviconFor(target);
+  }
   if (existing) {
     const next: { name?: string; keywords?: string[]; iconImage?: string } = {};
     if (incoming && isWeakSiteName(target, existing.name) && incoming !== existing.name) {
