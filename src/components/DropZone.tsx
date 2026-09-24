@@ -22,6 +22,7 @@ interface DropZoneProps {
   onSiteUrl: (url: string, name?: string, iconImage?: string) => void;
   onUrlShortcut: (path: string) => void;
   onLocalPaths: (paths: string[]) => void;
+  onDropUnreadable?: (formats: string[]) => void;
 }
 
 const recentDrop = new Map<string, number>();
@@ -62,10 +63,25 @@ export function DropZone({
   onSiteUrl,
   onUrlShortcut,
   onLocalPaths,
+  onDropUnreadable,
 }: DropZoneProps) {
   const [active, setActive] = useState(false);
-  const callbacks = useRef({ onPackFile, onPackText, onSiteUrl, onUrlShortcut, onLocalPaths });
-  callbacks.current = { onPackFile, onPackText, onSiteUrl, onUrlShortcut, onLocalPaths };
+  const callbacks = useRef({
+    onPackFile,
+    onPackText,
+    onSiteUrl,
+    onUrlShortcut,
+    onLocalPaths,
+    onDropUnreadable,
+  });
+  callbacks.current = {
+    onPackFile,
+    onPackText,
+    onSiteUrl,
+    onUrlShortcut,
+    onLocalPaths,
+    onDropUnreadable,
+  };
 
   useEffect(() => {
     const applySpecialPath = (path: string): boolean => {
@@ -263,10 +279,15 @@ export function DropZone({
             url?: string;
             name?: string;
             iconImage?: string;
+            formats?: string[];
           }>(
             "launcher-drop",
             (event) => {
               if (cancelled) {
+                return;
+              }
+              if (event.payload.type === "unreadable") {
+                callbacks.current.onDropUnreadable?.(event.payload.formats ?? []);
                 return;
               }
               if (event.payload.type === "url" && event.payload.url) {

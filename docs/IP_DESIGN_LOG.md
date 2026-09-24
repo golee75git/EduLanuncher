@@ -1996,3 +1996,25 @@ Difference:
 
 PATENT_REVIEW:
 드롭 데이터에서 주소와 아이콘 위치를 읽어 표시 그림으로 쓰는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+Feature: Accept IE favorites drag and report unreadable drops
+
+Purpose:
+IE 즐겨찾기 표시줄·펼친 즐겨찾기에서 끌어 넣을 때 받지 못하던 문제를 고치고, 읽지 못하면 조용히 넘기지 않고 안내한다
+
+Design source:
+내부 요구사항. Windows 공식 OLE 끌기·놓기 API(IDropTarget 동작 값, IDataObject 형식, Shell IDList). 기존 `drop_target.rs`
+
+Implementation:
+끌어 온 쪽이 허용한 동작 안에서 복사를 먼저, 없으면 링크로 응답(이동은 원본을 지울 수 있어 받지 않음). 읽는 순서는 CF_HDROP, Shell IDList Array(파일 경로 복원. PIDL 범위 검사 후 사용), 가상 파일 .url, UniformResourceLocator(W), 텍스트. 모두 실패하면 받은 형식 이름만 화면 안내로 알림(내용은 보내지 않음). 새 라이브러리 없음(기존 windows 크레이트 기능 플래그 Win32_UI_Shell_Common만 추가)
+
+External code:
+없음
+
+Potential similar products:
+브라우저·탐색기의 끌어 넣기, 북마크 가져오기
+
+Difference:
+사이트에 접속하지 않음. 형식 이름만 알리고 끌어 온 내용은 저장·전송하지 않음
+
+PATENT_REVIEW:
+끌기 자료의 형식을 차례로 시도해 주소를 읽는 일반 처리. 청구항 대조는 별도. 특허 비침해를 보장하지 않음

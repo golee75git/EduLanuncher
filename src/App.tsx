@@ -539,6 +539,13 @@ export default function App() {
       onSiteUrl={addSiteUrl}
       onUrlShortcut={addUrlShortcut}
       onLocalPaths={addLocalPaths}
+      onDropUnreadable={(formats) =>
+        toast(
+          formats.length
+            ? `끌어온 항목에서 주소를 읽지 못했습니다. (${formats.slice(0, 6).join(", ")})`
+            : "끌어온 항목에서 주소를 읽지 못했습니다.",
+        )
+      }
     >
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
         <div className="min-h-0 flex-1 overflow-hidden">

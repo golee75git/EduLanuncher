@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.95-20260924",
+    note: "IE 즐겨찾기 표시줄과 펼친 즐겨찾기에서 끌어 넣을 수 있게 하고, 읽지 못하면 안내를 보여 줍니다.",
+  },
+  {
     version: "0.1.94-20260924",
     note: "인터넷 즐겨찾기에서 끌어 넣을 때, 바로가기에 적힌 이 PC 안의 아이콘 파일을 그림으로 남깁니다.",
   },

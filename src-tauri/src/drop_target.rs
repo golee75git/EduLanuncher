@@ -9,16 +9,20 @@ use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 use windows::core::{implement, w, BOOL, Result as WinResult};
 use windows::Win32::Foundation::{HWND, LPARAM, POINTL};
 use windows::Win32::System::Com::{
-    IDataObject, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL, TYMED_ISTREAM,
+    IDataObject, DATADIR_GET, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL, TYMED_ISTREAM,
 };
-use windows::Win32::System::DataExchange::RegisterClipboardFormatW;
+use windows::Win32::System::DataExchange::{GetClipboardFormatNameW, RegisterClipboardFormatW};
 use windows::Win32::System::Memory::{GlobalLock, GlobalSize, GlobalUnlock};
 use windows::Win32::System::Ole::{
-    OleInitialize, RegisterDragDrop, ReleaseStgMedium, RevokeDragDrop, CF_HDROP, CF_UNICODETEXT,
-    DROPEFFECT, DROPEFFECT_COPY, DROPEFFECT_NONE, IDropTarget, IDropTarget_Impl,
+    OleInitialize, RegisterDragDrop, ReleaseStgMedium, RevokeDragDrop, CF_HDROP, CF_TEXT,
+    CF_UNICODETEXT, DROPEFFECT, DROPEFFECT_COPY, DROPEFFECT_LINK, DROPEFFECT_NONE, IDropTarget,
+    IDropTarget_Impl,
 };
 use windows::Win32::System::SystemServices::MODIFIERKEYS_FLAGS;
-use windows::Win32::UI::Shell::{DragQueryFileW, HDROP};
+use windows::Win32::UI::Shell::Common::ITEMIDLIST;
+use windows::Win32::UI::Shell::{
+    DragQueryFileW, ILCombine, ILFree, SHGetPathFromIDListW, HDROP,
+};
 use windows::Win32::UI::WindowsAndMessaging::EnumChildWindows;
 
 #[derive(Serialize, Clone)]
@@ -26,6 +30,8 @@ use windows::Win32::UI::WindowsAndMessaging::EnumChildWindows;
 pub enum LauncherDrop {
     #[serde(rename = "paths")]
     Paths { paths: Vec<String> },
+    #[serde(rename = "unreadable")]
+    Unreadable { formats: Vec<String> },
     #[serde(rename = "url")]
     Url {
         url: String,
@@ -54,7 +60,7 @@ impl IDropTarget_Impl for LauncherDropTarget_Impl {
         pdwEffect: *mut DROPEFFECT,
     ) -> WinResult<()> {
         unsafe {
-            *pdwEffect = DROPEFFECT_COPY;
+            *pdwEffect = accepted_effect(*pdwEffect);
         }
         let _ = self.app.emit("launcher-drop-hover", true);
         Ok(())
@@ -67,7 +73,7 @@ impl IDropTarget_Impl for LauncherDropTarget_Impl {
         pdwEffect: *mut DROPEFFECT,
     ) -> WinResult<()> {
         unsafe {
-            *pdwEffect = DROPEFFECT_COPY;
+            *pdwEffect = accepted_effect(*pdwEffect);
         }
         let _ = self.app.emit("launcher-drop-hover", true);
         Ok(())
@@ -86,21 +92,37 @@ impl IDropTarget_Impl for LauncherDropTarget_Impl {
         pdwEffect: *mut DROPEFFECT,
     ) -> WinResult<()> {
         unsafe {
-            *pdwEffect = DROPEFFECT_COPY;
+            *pdwEffect = accepted_effect(*pdwEffect);
         }
         let _ = self.app.emit("launcher-drop-hover", false);
         if let Some(data) = pDataObj.as_ref() {
-            if let Some(payload) = read_drop(data) {
-                let _ = self.app.emit("launcher-drop", payload);
-            }
+            let payload = read_drop(data).unwrap_or_else(|| LauncherDrop::Unreadable {
+                formats: format_names(data),
+            });
+            let _ = self.app.emit("launcher-drop", payload);
         }
-        let _ = DROPEFFECT_NONE;
         Ok(())
+    }
+}
+
+/// 끌어 온 쪽이 허용한 동작 안에서만 고른다. 복사를 먼저, 없으면 링크. 이동은 원본을 지울 수
+/// 있어 받지 않는다.
+fn accepted_effect(allowed: DROPEFFECT) -> DROPEFFECT {
+    if allowed.0 & DROPEFFECT_COPY.0 != 0 {
+        DROPEFFECT_COPY
+    } else if allowed.0 & DROPEFFECT_LINK.0 != 0 {
+        DROPEFFECT_LINK
+    } else {
+        DROPEFFECT_NONE
     }
 }
 
 fn read_drop(data: &IDataObject) -> Option<LauncherDrop> {
     let paths = read_hdrop(data);
+    if !paths.is_empty() {
+        return Some(LauncherDrop::Paths { paths });
+    }
+    let paths = read_shell_id_list_paths(data);
     if !paths.is_empty() {
         return Some(LauncherDrop::Paths { paths });
     }
@@ -111,13 +133,201 @@ fn read_drop(data: &IDataObject) -> Option<LauncherDrop> {
             icon_image,
         });
     }
-    let text = read_unicode_text(data)?;
+    if let Some(url) = read_inet_url(data) {
+        let name = read_virtual_file_name(data)
+            .filter(|file| crate::is_url_shortcut_file(std::path::Path::new(file)))
+            .map(|file| crate::shortcut_display_name(std::path::Path::new(&file), &url));
+        return Some(LauncherDrop::Url {
+            url,
+            name,
+            icon_image: None,
+        });
+    }
+    let text = read_unicode_text(data).or_else(|| read_ansi_text(data))?;
     let url = first_http_url(&text)?;
     Some(LauncherDrop::Url {
         url,
         name: None,
         icon_image: None,
     })
+}
+
+const MAX_TEXT_UNITS: usize = 4096;
+const MAX_ID_LIST_ITEMS: u32 = 16;
+
+fn registered_format(name: windows::core::PCWSTR) -> u16 {
+    unsafe { RegisterClipboardFormatW(name) as u16 }
+}
+
+/// 끌어 온 자료가 가진 형식 이름(안내용). 내용은 읽지 않는다.
+fn format_names(data: &IDataObject) -> Vec<String> {
+    let mut names: Vec<String> = Vec::new();
+    unsafe {
+        let Ok(list) = data.EnumFormatEtc(DATADIR_GET.0 as u32) else {
+            return names;
+        };
+        let mut item = [FORMATETC::default()];
+        for _ in 0..64 {
+            let mut fetched = 0u32;
+            // 끝나면 S_FALSE(성공 값)를 돌려주므로 가져온 개수로 멈춘다.
+            let status = list.Next(&mut item, Some(&mut fetched));
+            if status.is_err() || fetched == 0 || names.len() >= 24 {
+                break;
+            }
+            let format = item[0].cfFormat;
+            if format == 0 {
+                break;
+            }
+            let mut buf = [0u16; 80];
+            let len = GetClipboardFormatNameW(format as u32, &mut buf);
+            let name = if len > 0 {
+                String::from_utf16_lossy(&buf[..len as usize])
+            } else {
+                match format {
+                    1 => "CF_TEXT".into(),
+                    13 => "CF_UNICODETEXT".into(),
+                    15 => "CF_HDROP".into(),
+                    other => format!("cf{other}"),
+                }
+            };
+            if !names.contains(&name) {
+                names.push(name);
+            }
+        }
+    }
+    names
+}
+
+fn read_hglobal_text(data: &IDataObject, format: u16, wide: bool) -> Option<String> {
+    unsafe {
+        let request = FORMATETC {
+            cfFormat: format,
+            ptd: std::ptr::null_mut(),
+            dwAspect: DVASPECT_CONTENT.0,
+            lindex: -1,
+            tymed: TYMED_HGLOBAL.0 as u32,
+        };
+        let mut medium = data.GetData(&request).ok()?;
+        let handle = medium.u.hGlobal;
+        let size = GlobalSize(handle);
+        let locked = GlobalLock(handle);
+        let text = if locked.is_null() {
+            None
+        } else if wide {
+            let units = std::slice::from_raw_parts(locked as *const u16, size / 2);
+            let units: Vec<u16> = units
+                .iter()
+                .copied()
+                .take(MAX_TEXT_UNITS)
+                .take_while(|unit| *unit != 0)
+                .collect();
+            Some(String::from_utf16_lossy(&units))
+        } else {
+            let bytes = std::slice::from_raw_parts(locked as *const u8, size);
+            let bytes: Vec<u8> = bytes
+                .iter()
+                .copied()
+                .take(MAX_TEXT_UNITS)
+                .take_while(|byte| *byte != 0)
+                .collect();
+            Some(String::from_utf8_lossy(&bytes).into_owned())
+        };
+        let _ = GlobalUnlock(handle);
+        ReleaseStgMedium(&mut medium);
+        text.filter(|value| !value.trim().is_empty())
+    }
+}
+
+/// 브라우저·탐색기가 주소를 따로 실어 주는 형식(UniformResourceLocator).
+fn read_inet_url(data: &IDataObject) -> Option<String> {
+    let wide = read_hglobal_text(data, registered_format(w!("UniformResourceLocatorW")), true);
+    let text = wide.or_else(|| {
+        read_hglobal_text(data, registered_format(w!("UniformResourceLocator")), false)
+    })?;
+    first_http_url(&text)
+}
+
+fn read_ansi_text(data: &IDataObject) -> Option<String> {
+    read_hglobal_text(data, CF_TEXT.0, false)
+}
+
+/// PIDL 목록 안에서 `offset`부터 끝 표식까지 자료 범위를 벗어나지 않는지 확인한다.
+fn id_list_in_bounds(bytes: &[u8], offset: usize) -> bool {
+    let mut at = offset;
+    for _ in 0..64 {
+        if at + 2 > bytes.len() {
+            return false;
+        }
+        let size = u16::from_le_bytes([bytes[at], bytes[at + 1]]) as usize;
+        if size == 0 {
+            return true;
+        }
+        if size < 2 || at + size > bytes.len() {
+            return false;
+        }
+        at += size;
+    }
+    false
+}
+
+/// 탐색기식 끌기(Shell IDList Array)에서 실제 파일 경로를 뽑는다. 즐겨찾기 항목은 파일이라
+/// 경로가 나오고, 그 뒤는 `.url` 끌어넣기와 같은 길을 탄다.
+fn read_shell_id_list_paths(data: &IDataObject) -> Vec<String> {
+    let mut paths = Vec::new();
+    unsafe {
+        let request = FORMATETC {
+            cfFormat: registered_format(w!("Shell IDList Array")),
+            ptd: std::ptr::null_mut(),
+            dwAspect: DVASPECT_CONTENT.0,
+            lindex: -1,
+            tymed: TYMED_HGLOBAL.0 as u32,
+        };
+        let Ok(mut medium) = data.GetData(&request) else {
+            return paths;
+        };
+        let handle = medium.u.hGlobal;
+        let size = GlobalSize(handle);
+        let locked = GlobalLock(handle);
+        if !locked.is_null() && size >= 8 {
+            let bytes = std::slice::from_raw_parts(locked as *const u8, size);
+            let count = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
+            let offset_at = |index: usize| -> Option<usize> {
+                let at = 4 + index * 4;
+                let raw = bytes.get(at..at + 4)?;
+                Some(u32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]) as usize)
+            };
+            if count >= 1 && count <= MAX_ID_LIST_ITEMS {
+                if let Some(parent) = offset_at(0).filter(|at| id_list_in_bounds(bytes, *at)) {
+                    for index in 0..count as usize {
+                        let Some(child) =
+                            offset_at(index + 1).filter(|at| id_list_in_bounds(bytes, *at))
+                        else {
+                            continue;
+                        };
+                        let full = ILCombine(
+                            Some(bytes.as_ptr().add(parent) as *const ITEMIDLIST),
+                            Some(bytes.as_ptr().add(child) as *const ITEMIDLIST),
+                        );
+                        if full.is_null() {
+                            continue;
+                        }
+                        let mut buf = [0u16; 260];
+                        if SHGetPathFromIDListW(full, &mut buf).as_bool() {
+                            let len = buf.iter().position(|unit| *unit == 0).unwrap_or(buf.len());
+                            let path = String::from_utf16_lossy(&buf[..len]);
+                            if !path.is_empty() {
+                                paths.push(path);
+                            }
+                        }
+                        ILFree(Some(full as *const ITEMIDLIST));
+                    }
+                }
+            }
+        }
+        let _ = GlobalUnlock(handle);
+        ReleaseStgMedium(&mut medium);
+    }
+    paths
 }
 
 const MAX_URL_FILE: usize = 16 * 1024;
