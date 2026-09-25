@@ -30,6 +30,7 @@ import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
+import { HandbookCategoryListPage, HandbookCategoryPage, HandbookTopicPage } from "./pages/HandbookFlowPages";
 import { TopicDetailPage } from "./pages/TopicDetailPage";
 import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
@@ -72,6 +73,9 @@ type View =
   | { name: "troubleshoot-card"; cardId: string; backTo: View }
   | { name: "shortcuts" }
   | { name: "topics"; search?: string }
+  | { name: "handbook" }
+  | { name: "handbook-category"; categoryId: string }
+  | { name: "handbook-topic"; topicId: string; stepId?: string; backTo: View }
   | { name: "topic-review" }
   | { name: "topic"; topicId: string; backTo: View }
   | { name: "pc-address" }
@@ -489,6 +493,10 @@ export default function App() {
       setView({ name: "topics" });
       return;
     }
+    if (action.type === "handbook") {
+      setView({ name: "handbook" });
+      return;
+    }
     if (action.type === "topic") {
       openTopic(action.topicId, { name: "home", search: clipSearch(action.search) });
       return;
@@ -645,6 +653,39 @@ export default function App() {
             />
           ) : null}
           {view.name === "shortcuts" ? <ShortcutPage onBack={() => setView({ name: "home" })} /> : null}
+          {view.name === "handbook" ? (
+            <HandbookCategoryListPage
+              onBack={() => setView({ name: "home" })}
+              onOpenCategory={(categoryId) => setView({ name: "handbook-category", categoryId })}
+              onOpenTopic={(topicId) =>
+                setView({ name: "handbook-topic", topicId, backTo: { name: "handbook" } })
+              }
+            />
+          ) : null}
+          {view.name === "handbook-category" ? (
+            <HandbookCategoryPage
+              categoryId={view.categoryId}
+              onBack={() => setView({ name: "handbook" })}
+              onOpenTopic={(topicId, stepId) =>
+                setView({
+                  name: "handbook-topic",
+                  topicId,
+                  stepId,
+                  backTo: { name: "handbook-category", categoryId: view.categoryId },
+                })
+              }
+            />
+          ) : null}
+          {view.name === "handbook-topic" ? (
+            <HandbookTopicPage
+              topicId={view.topicId}
+              stepId={view.stepId}
+              onBack={() => setView(view.backTo)}
+              onOpenTopic={(topicId, stepId) =>
+                setView({ name: "handbook-topic", topicId, stepId, backTo: view.backTo })
+              }
+            />
+          ) : null}
           {view.name === "topics" ? (
             <TopicListPage
               search={view.search}

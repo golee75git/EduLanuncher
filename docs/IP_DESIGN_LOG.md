@@ -2273,3 +2273,22 @@ External code:
 
 PATENT_REVIEW:
 상자 흐름과 조건 버튼은 일반 화면 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Handbook category pictures from the v6 pack
+
+Purpose:
+편람 분류 19개와 업무 91개를 기존 업무 목록과 따로 두고, 상자 그림으로 열게 한다
+
+Design source:
+이 저장소의 업무 그림 배치(workMapLayout)와 단계 목록. 문장은 src/data/handbookFlowPack.json만 사용
+
+Implementation:
+흐름 문장에서 상자와 화살표만 읽어 기존 왼쪽-오른쪽 상자 배치로 그린다. 외부 도식 라이브러리는 넣지 않음. 기존 업무 ID는 바꾸지 않음
+
+External code:
+없음
+
+PATENT_REVIEW:
+상자 클릭으로 단계를 여는 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

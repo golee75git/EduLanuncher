@@ -54,6 +54,7 @@ export type HomeAction =
   | { type: "shortcuts" }
   | { type: "pc-folders"; query?: string }
   | { type: "topics" }
+  | { type: "handbook" }
   | { type: "troubleshoot"; search?: string }
   | { type: "troubleshoot-card"; cardId: string; search?: string }
   | { type: "topic"; topicId: string; search?: string }
@@ -464,6 +465,13 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                             onClick={() => onAction({ type: "topics" })}
                           >
                             업무자료
+                          </button>
+                          <button
+                            type="button"
+                            className={linkClass}
+                            onClick={() => onAction({ type: "handbook" })}
+                          >
+                            편람 분류
                           </button>
                           <button
                             type="button"
