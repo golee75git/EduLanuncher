@@ -6,13 +6,10 @@ interface TopicGuideProps {
 }
 
 export function TopicGuide({ detail }: TopicGuideProps) {
-  const flowchart = detail.flowchart ?? [];
-  const [openStep, setOpenStep] = useState(0);
   const [branch, setBranch] = useState(0);
   const [checked, setChecked] = useState<boolean[]>([]);
   const decision = detail.decision;
   const selected = decision?.branches[branch];
-  const step = flowchart[openStep];
 
   return (
     <div className="space-y-4">
@@ -28,42 +25,9 @@ export function TopicGuide({ detail }: TopicGuideProps) {
           <p className="text-sm leading-6 text-desk">{detail.easyExplanation}</p>
         </section>
       ) : null}
-      {flowchart.length > 0 ? (
-        <section>
-          <h3 className="desk-label">업무 흐름</h3>
-          <ol className="m-0 list-none space-y-1 p-0">
-            {flowchart.map((item, index) => {
-              const open = index === openStep;
-              return (
-                <li key={`${item.order}-${item.title}`}>
-                  <button
-                    type="button"
-                    className={`w-full rounded-lg border px-2.5 py-2 text-left text-sm leading-5 ${
-                      open ? "border-ink/30 bg-card text-desk" : "border-line bg-card text-desk"
-                    }`}
-                    aria-expanded={open}
-                    onClick={() => setOpenStep(index)}
-                  >
-                    <span className="mr-1.5 text-[11px] text-quiet">{item.order}</span>
-                    {item.title}
-                  </button>
-                  {open && step ? (
-                    <p className="px-2.5 py-2 text-xs leading-5 text-desk">{step.explanation}</p>
-                  ) : null}
-                  {index < flowchart.length - 1 ? (
-                    <p className="py-0.5 text-center text-[11px] text-quiet" aria-hidden>
-                      ↓
-                    </p>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ol>
-        </section>
-      ) : null}
       {decision && selected ? (
-        <details className="rounded-lg border border-line bg-card px-2.5 py-2">
-          <summary className="cursor-pointer text-sm font-medium text-desk">조건별 처리방법</summary>
+        <section className="rounded-xl border border-line bg-card px-2.5 py-2">
+          <h3 className="text-sm font-medium text-desk">조건별 처리방법</h3>
           <p className="mt-2 text-sm leading-6 text-desk">{decision.condition}</p>
           <div className="mt-2 flex flex-col gap-1">
             {decision.branches.map((item, index) => (
@@ -85,7 +49,7 @@ export function TopicGuide({ detail }: TopicGuideProps) {
             {selected.result}
           </p>
           <p className="mt-1 text-[11px] text-quiet">적용 기관과 연도에 따라 원문 확인이 필요합니다.</p>
-        </details>
+        </section>
       ) : null}
       {detail.timeline && detail.timeline.length > 0 ? (
         <details className="rounded-lg border border-line bg-card px-2.5 py-2">

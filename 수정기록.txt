@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-25
+버전: 0.1.106-20260925
+설치 파일: EduLauncher_0.1.106-20260925_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-25_1240_x64-setup.exe
+작성자: 요청자
+
+내용:
+업무 자세히 보기의 처리 순서를 아이콘이 있는 상자와 화살표로 보여 주게 했다. 같은 단계를 한눈에 보기에서 다시 누를 수 있다. 좁은 창은 세로, 넓은 창은 가로로 둔다. 쉬운 설명과 업무 설명을 바꿔 볼 수 있다. 조건은 버튼으로 두고, 일정·체크·서류·비교·주의·출처는 접어 둔다. 물품구매는 자료에 있는 네 단계만 그린다. 통계 숫자가 없으면 차트를 그리지 않는다.
+
+새로 작성한 파일: src/components/StepFlow.tsx
+재사용한 기존 파일(수정): src/components/TopicDetail.tsx, src/components/TopicGuide.tsx, src/components/RelatedTopics.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: tsc 통과. 업무 개수와 ID는 바꾸지 않음.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음. GPL 직접 의존성 없음. 기존 @img/sharp 계열은 Apache-2.0 AND LGPL-3.0-or-later. 아이콘은 기존 lucide-react.
+보안: 단계 문장은 앱 안 JSON을 글자로만 표시. 새 네트워크 호출 없음. 체크는 화면에만 있음.
+특허: 상자 흐름과 아이콘 버튼. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-25
 버전: 0.1.105-20260925
 설치 파일: EduLauncher_0.1.105-20260925_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-25_1208_x64-setup.exe

@@ -2216,3 +2216,22 @@ External code:
 
 PATENT_REVIEW:
 단계 버튼과 접히는 목록은 일반 화면 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Boxed work-step flow
+
+Purpose:
+업무 순서를 아이콘이 있는 상자와 짧은 한눈에 보기로 눌러 보게 한다
+
+Design source:
+이 저장소의 Topic 상세 화면과 이미 있는 lucide 아이콘. 단계 문장은 기존 workflow와 참고 흐름만 사용
+
+Implementation:
+상자, 화살표, 단계 색은 기존 화면 색으로 그림. 좁은 창은 세로, 넓은 창은 가로. 통계 숫자가 없으면 차트를 그리지 않음. 새 라이브러리 없음
+
+External code:
+없음
+
+PATENT_REVIEW:
+상자 흐름과 아이콘 버튼은 일반 화면 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

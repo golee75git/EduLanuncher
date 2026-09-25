@@ -5,8 +5,8 @@ import type { Topic } from "../types/topic";
 import { RelatedTopics } from "./RelatedTopics";
 import { ResourceTabs } from "./ResourceTabs";
 import { StatusBadge } from "./StatusBadge";
+import { StepFlow, type VisualStep } from "./StepFlow";
 import { TopicGuide, topicGuideBadges } from "./TopicGuide";
-import { WorkflowView } from "./WorkflowView";
 
 interface TopicDetailProps {
   topic: Topic;
@@ -35,6 +35,28 @@ function NoteBox({ label, lines }: { label: string; lines: string[] }) {
   );
 }
 
+function visualSteps(topic: Topic): VisualStep[] {
+  const flow = topic.detail?.flowchart ?? [];
+  if (flow.length > 0) {
+    return flow.map((step) => ({
+      order: step.order,
+      title: step.title,
+      explanation: step.explanation,
+    }));
+  }
+  return topic.workflow.map((step) => {
+    const note = topic.detail?.steps?.find((item) => item.workflowTitle === step.title);
+    const explanation = [step.description, note?.explanation].filter(Boolean).join("\n");
+    const pages = note && note.printPages.length > 0 ? `인쇄 ${note.printPages.join("·")}쪽` : undefined;
+    return {
+      order: step.order,
+      title: step.title,
+      explanation: explanation || undefined,
+      pages,
+    };
+  });
+}
+
 export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
   const related = findRelatedTopics(topic);
   const sources = sourceLines(topic);
@@ -54,6 +76,8 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
     topic.description &&
       topic.description.replace(/\s+/g, "") !== (topic.beginnerSummary ?? "").replace(/\s+/g, ""),
   );
+  const [plain, setPlain] = useState(true);
+  const visual = visualSteps(topic);
   const checkpoints = detail?.checkpoints ?? [];
   const documents = detail?.requiredDocuments ?? [];
   const reviewIssues = detail?.reviewIssues ?? [];
@@ -89,23 +113,48 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
         <div className="mt-1 flex flex-wrap items-center gap-2">
           {kindLabel ? <span className="text-[11px] text-quiet">{kindLabel}</span> : null}
           <StatusBadge status={topic.status} needsReview={topic.needsReview} />
-          {badges.map((badge) => (
+          {(visual.length > 0 && !badges.includes("처리절차") ? ["처리절차", ...badges] : badges).map((badge) => (
             <span key={badge} className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-quiet">
               {badge}
             </span>
           ))}
         </div>
-        {topic.beginnerSummary ? (
+        {topic.beginnerSummary && showDescription ? (
+          <div className="mt-3 flex gap-1">
+            <button
+              type="button"
+              className={`rounded-lg border px-2 py-1 text-xs ${plain ? "border-ink bg-ink-soft text-desk" : "border-line text-quiet"}`}
+              aria-pressed={plain}
+              onClick={() => setPlain(true)}
+            >
+              쉬운 설명
+            </button>
+            <button
+              type="button"
+              className={`rounded-lg border px-2 py-1 text-xs ${plain ? "border-line text-quiet" : "border-ink bg-ink-soft text-desk"}`}
+              aria-pressed={!plain}
+              onClick={() => setPlain(false)}
+            >
+              업무 설명
+            </button>
+          </div>
+        ) : null}
+        {topic.beginnerSummary && (plain || !showDescription) ? (
           <section className="mt-3">
             <h3 className="desk-label">처음 하는 분</h3>
             <p className="text-sm leading-6 text-desk">{topic.beginnerSummary}</p>
           </section>
         ) : null}
-        {showDescription ? (
+        {showDescription && (!topic.beginnerSummary || !plain) ? (
           <section className="mt-3">
             <h3 className="desk-label">업무 설명</h3>
             <p className="text-sm leading-6 text-desk">{topic.description}</p>
           </section>
+        ) : null}
+        {visual.length > 0 ? (
+          <div className="mt-3">
+            <StepFlow steps={visual} />
+          </div>
         ) : null}
         {detail &&
         (detail.purpose ||
@@ -146,13 +195,6 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
               <li key={line}>{line}</li>
             ))}
           </ul>
-        </section>
-      ) : null}
-
-      {topic.workflow.length > 0 ? (
-        <section>
-          <h3 className="desk-label">처리 순서</h3>
-          <WorkflowView steps={topic.workflow} notes={detail?.steps} />
         </section>
       ) : null}
 
