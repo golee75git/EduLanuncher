@@ -118,6 +118,7 @@ const TOPIC_SCORE = {
   example: 300,
   resourceTitle: 200,
   resourceOrg: 150,
+  beginnerSummary: 120,
   resourceBody: 100,
 } as const;
 
@@ -168,6 +169,41 @@ function bestKeywordMatch(pieces: string[], keywords: string[]): string {
   return best;
 }
 
+function foldPhrase(value: string): string {
+  return normalize(value).replace(/[?.!！？]/g, "");
+}
+
+function phraseHit(query: string, topic: Topic): { score: number; reason: string } | null {
+  const folded = foldPhrase(query);
+  if (folded.length < 4) {
+    return null;
+  }
+  const fields: Array<{ label: string; values: string[] }> = [
+    { label: "공식 키워드", values: topic.keywords.official },
+    { label: "일반 키워드", values: topic.keywords.general },
+    { label: "초보자 검색어", values: topic.keywords.beginner },
+    { label: "예시 질문", values: topic.exampleQuestions },
+  ];
+  let best: { score: number; reason: string } | null = null;
+  for (const field of fields) {
+    for (const value of field.values) {
+      const text = foldPhrase(value);
+      if (!text.includes(folded)) {
+        continue;
+      }
+      const extra = text.length - folded.length;
+      if (extra > 24) {
+        continue;
+      }
+      const score = Math.min(790, 720 + Math.max(0, 24 - extra));
+      if (!best || score > best.score) {
+        best = { score, reason: `${field.label} "${value}" 일치` };
+      }
+    }
+  }
+  return best;
+}
+
 function topicTitleScore(query: string, title: string): number {
   const q = normalize(query);
   const text = normalize(title);
@@ -199,6 +235,12 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
     }
     if (titleScore === TOPIC_SCORE.titlePartial) {
       hits.push({ item: topic, score: titleScore, reason: "일치 항목: 제목" });
+      continue;
+    }
+
+    const phrase = phraseHit(q, topic);
+    if (phrase) {
+      hits.push({ item: topic, score: phrase.score, reason: phrase.reason });
       continue;
     }
 
@@ -328,6 +370,14 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
         score: TOPIC_SCORE.resourceOrg,
         reason: `일치 항목: 출처 \`${resourceOrg.document || resourceOrg.organization}\``,
       });
+      continue;
+    }
+
+    if (
+      topic.beginnerSummary &&
+      pieces.some((piece) => containsFold(topic.beginnerSummary ?? "", piece))
+    ) {
+      hits.push({ item: topic, score: TOPIC_SCORE.beginnerSummary, reason: "일치 항목: 쉬운 설명" });
       continue;
     }
 

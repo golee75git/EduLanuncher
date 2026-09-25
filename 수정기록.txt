@@ -5,6 +5,27 @@
 
 ---
 
+날짜: 2026-09-25
+버전: 0.1.104-20260925
+설치 파일: EduLauncher_0.1.104-20260925_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-25_1040_x64-setup.exe
+작성자: 요청자
+
+내용:
+작업 중이던 편람 주제와 쉬운 설명을 이 버전에 함께 올렸다. 업무 검색 카드에 쉬운 설명을 보여주고, 없으면 기존 설명을 쓴다. 물품구매, 납품 및 검사, 대가지급 및 지출부등기, 근무지내 출장, 정보공개 청구 및 접수 다섯 주제에만 편람에서 확인한 상세를 넣었다. 처리 순서는 바꾸지 않았다. 검사 14일과 7일, 대금 5일과 3일은 하나로 정하지 않고 확인 항목에 남겼다. 편람 PDF는 앱에 넣지 않았고, 주소가 없으면 원문 보기를 만들지 않았다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src/data/topics.json, src/types/topic.ts, src/services/topicService.ts, src/services/searchService.ts, src/components/TopicCard.tsx, src/components/TopicDetail.tsx, src/components/WorkflowView.tsx, src/components/ResourceCard.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: 주제 222개, ID 순서 유지, detail은 위 5개만. tsc 통과. 설치본 빌드 완료. 검색 함수로 일곱 검색어의 첫 결과를 확인함.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음.
+보안: 상세 문장은 앱 안 JSON을 글자로만 표시. 새 네트워크 호출 없음. 원문 보기는 http 또는 https 주소만.
+특허: 카드와 단계 목록. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
 날짜: 2026-09-24
 버전: 0.1.102-20260924
 설치 파일: EduLauncher_0.1.102-20260924_x64-setup.exe

@@ -8,6 +8,11 @@ import {
   type ResourceTabId,
   type ResourceType,
   type Topic,
+  type TopicDetailContent,
+  type TopicDetailDocument,
+  type TopicDetailIssue,
+  type TopicDetailNote,
+  type TopicDetailStep,
   type TopicResource,
   type WorkflowStep,
 } from "../types/topic";
@@ -143,6 +148,13 @@ function parseWorkflow(value: unknown): WorkflowStep[] {
   }
   const steps: WorkflowStep[] = [];
   value.forEach((item, index) => {
+    if (typeof item === "string") {
+      const title = clip(asText(item), MAX_TITLE);
+      if (title) {
+        steps.push({ order: index + 1, title });
+      }
+      return;
+    }
     if (!item || typeof item !== "object") {
       return;
     }
@@ -156,6 +168,13 @@ function parseWorkflow(value: unknown): WorkflowStep[] {
     steps.push(description ? { order, title, description } : { order, title });
   });
   return steps.sort((a, b) => a.order - b.order).slice(0, MAX_STEPS);
+}
+
+function asPage(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 1 || value > 2000) {
+    return undefined;
+  }
+  return Math.trunc(value);
 }
 
 function clearDateValue(value: string): number | null {
@@ -175,13 +194,20 @@ function parseResource(value: unknown): TopicResource | null {
     return null;
   }
   const row = value as Record<string, unknown>;
+  const source =
+    row.source && typeof row.source === "object" ? (row.source as Record<string, unknown>) : {};
   const type = asResourceType(row.type);
-  const id = clip(asText(row.id), 80);
   const title = clip(asText(row.title), MAX_TITLE);
-  if (!type || !id || !title) {
-    warnDev("업무자료 Resource를 건너뜀: id 또는 제목 또는 자료 유형이 없습니다.");
+  const id = clip(asText(row.id) || asText(source.fileName), 80);
+  if (!type || !title) {
+    warnDev("업무자료 Resource를 건너뜀: 제목 또는 자료 유형이 없습니다.");
     return null;
   }
+  const resourceId = id || clip(title, 80);
+  const printPageStart = asPage(row.printPageStart ?? source.pageStart);
+  const printPageEnd = asPage(row.printPageEnd ?? source.pageEnd);
+  const pdfPageStart = asPage(row.pdfPageStart ?? source.pdfPageStart);
+  const pdfPageEnd = asPage(row.pdfPageEnd ?? source.pdfPageEnd);
   const writtenArea = asText(row.jurisdiction);
   if (writtenArea && !JURISDICTION_SET.has(writtenArea)) {
     warnDev(`업무자료 ${id}: jurisdiction 값이 올바르지 않아 다시 판정합니다.`);
@@ -190,9 +216,10 @@ function parseResource(value: unknown): TopicResource | null {
   if (writtenStatus && writtenStatus !== "current" && writtenStatus !== "old" && writtenStatus !== "unknown") {
     warnDev(`업무자료 ${id}: status 값이 올바르지 않아 unknown으로 읽습니다.`);
   }
+  const document = clip(asText(row.document) || asText(source.document), MAX_TITLE);
   const area = resolveJurisdiction({
     organization: asText(row.organization),
-    document: asText(row.document),
+    document,
     title,
     summary: asText(row.summary),
     jurisdiction: writtenArea,
@@ -204,15 +231,19 @@ function parseResource(value: unknown): TopicResource | null {
       ? reviewRaw
       : area.jurisdiction === "unknown";
   return {
-    id,
+    id: resourceId,
     type,
     title,
     summary: clip(asText(row.summary), MAX_TEXT),
     organization: clip(asText(row.organization), MAX_TITLE),
-    document: clip(asText(row.document), MAX_TITLE),
+    document,
     publishedAt: clip(asText(row.publishedAt), 80),
     pages: clip(asText(row.pages), 120),
     url: officialUrl(title, row.url ?? row.sourceUrl),
+    printPageStart,
+    printPageEnd,
+    pdfPageStart,
+    pdfPageEnd,
     jurisdiction: area.jurisdiction,
     jurisdictionName: area.jurisdictionName,
     status: asStatus(row.status),
@@ -248,6 +279,135 @@ function parseTrail(value: unknown): ManualTrailItem[] {
 function parseKind(value: unknown): ManualKind | undefined {
   const text = asText(value);
   return KIND_SET.has(text) ? (text as ManualKind) : undefined;
+}
+
+function parsePrintPages(value: unknown): number[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const pages: number[] = [];
+  for (const item of value) {
+    const page = typeof item === "number" ? item : Number.NaN;
+    if (!Number.isInteger(page) || page < 1 || page > 2000) {
+      continue;
+    }
+    pages.push(page);
+    if (pages.length >= 8) {
+      break;
+    }
+  }
+  return pages;
+}
+
+function parseDetailNotes(value: unknown): TopicDetailNote[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const notes: TopicDetailNote[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const row = item as Record<string, unknown>;
+    const text = clip(asText(row.text), MAX_LONG);
+    const printPages = parsePrintPages(row.printPages);
+    if (!text || printPages.length === 0) {
+      continue;
+    }
+    notes.push({ text, printPages });
+    if (notes.length >= 12) {
+      break;
+    }
+  }
+  return notes;
+}
+
+function parseDetailIssues(value: unknown): TopicDetailIssue[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const notes: TopicDetailIssue[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const row = item as Record<string, unknown>;
+    const issue = clip(asText(row.issue), MAX_LONG);
+    const printPages = parsePrintPages(row.printPages);
+    if (!issue || printPages.length === 0) {
+      continue;
+    }
+    notes.push({ issue, printPages });
+    if (notes.length >= 12) {
+      break;
+    }
+  }
+  return notes;
+}
+
+function parseDetail(value: unknown): TopicDetailContent | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const row = value as Record<string, unknown>;
+  const whenToUse = clip(asText(row.whenToUse), MAX_LONG);
+  const steps: TopicDetailStep[] = [];
+  if (Array.isArray(row.steps)) {
+    for (const item of row.steps) {
+      if (!item || typeof item !== "object") {
+        continue;
+      }
+      const step = item as Record<string, unknown>;
+      const workflowTitle = clip(asText(step.workflowTitle), MAX_TITLE);
+      const explanation = clip(asText(step.explanation), MAX_LONG);
+      const printPages = parsePrintPages(step.printPages);
+      if (!workflowTitle || !explanation || printPages.length === 0) {
+        continue;
+      }
+      steps.push({ workflowTitle, explanation, printPages });
+      if (steps.length >= MAX_STEPS) {
+        break;
+      }
+    }
+  }
+  const documents: TopicDetailDocument[] = [];
+  if (Array.isArray(row.requiredDocuments)) {
+    for (const item of row.requiredDocuments) {
+      if (!item || typeof item !== "object") {
+        continue;
+      }
+      const doc = item as Record<string, unknown>;
+      const name = clip(asText(doc.name), MAX_TITLE);
+      const condition = clip(asText(doc.condition), MAX_TEXT);
+      const printPages = parsePrintPages(doc.printPages);
+      if (!name || printPages.length === 0) {
+        continue;
+      }
+      documents.push(condition ? { name, condition, printPages } : { name, printPages });
+      if (documents.length >= 12) {
+        break;
+      }
+    }
+  }
+  const detail: TopicDetailContent = {};
+  if (whenToUse) {
+    detail.whenToUse = whenToUse;
+  }
+  if (steps.length > 0) {
+    detail.steps = steps;
+  }
+  const checkpoints = parseDetailNotes(row.checkpoints);
+  if (checkpoints.length > 0) {
+    detail.checkpoints = checkpoints;
+  }
+  if (documents.length > 0) {
+    detail.requiredDocuments = documents;
+  }
+  const reviewIssues = parseDetailIssues(row.reviewIssues);
+  if (reviewIssues.length > 0) {
+    detail.reviewIssues = reviewIssues;
+  }
+  return Object.keys(detail).length > 0 ? detail : undefined;
 }
 
 function parseTopic(value: unknown): Topic | null {
@@ -287,12 +447,16 @@ function parseTopic(value: unknown): Topic | null {
   }
   const description =
     clip(asText(row.description), MAX_TEXT) || fallbackDescription(category, subcategory, warnings);
+  const beginnerSummary = clip(asText(row.beginnerSummary), MAX_TEXT);
+  const detail = parseDetail(row.detail);
   return {
     id,
     title,
     category,
     subcategory,
     description,
+    ...(beginnerSummary ? { beginnerSummary } : {}),
+    ...(detail ? { detail } : {}),
     workflow: parseWorkflow(row.workflow),
     keywords: {
       official: asStringList(keywordsRaw.official, MAX_LIST, 80),
@@ -370,6 +534,16 @@ export function sortResources(resources: TopicResource[]): TopicResource[] {
     }
     return 0;
   });
+}
+
+export function topicHttpUrl(topic: Topic): string {
+  for (const resource of topic.resources) {
+    const url = resource.url.trim();
+    if (url.startsWith("https://") || url.startsWith("http://")) {
+      return url;
+    }
+  }
+  return "";
 }
 
 export function findRelatedTopics(topic: Topic): Topic[] {

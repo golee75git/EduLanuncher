@@ -36,7 +36,26 @@ export function ResourceCard({ resource }: ResourceCardProps) {
         <p className="text-[11px] text-quiet">{resource.publishedAt}</p>
       ) : null}
       {resource.document ? <p className="text-[11px] text-quiet">{resource.document}</p> : null}
-      {resource.pages ? <p className="text-[11px] text-quiet">원문 {resource.pages}</p> : null}
+      {resource.printPageStart ? (
+        <p className="text-[11px] text-quiet">
+          인쇄 {resource.printPageStart}
+          {resource.printPageEnd && resource.printPageEnd !== resource.printPageStart
+            ? `–${resource.printPageEnd}`
+            : ""}
+          쪽
+        </p>
+      ) : resource.pages ? (
+        <p className="text-[11px] text-quiet">원문 {resource.pages}</p>
+      ) : null}
+      {resource.pdfPageStart ? (
+        <p className="text-[11px] text-quiet">
+          PDF {resource.pdfPageStart}
+          {resource.pdfPageEnd && resource.pdfPageEnd !== resource.pdfPageStart
+            ? `–${resource.pdfPageEnd}`
+            : ""}
+          페이지
+        </p>
+      ) : null}
       {resource.jurisdiction === "other-region" ? (
         <p className="mt-1 text-[11px] leading-5 text-quiet">{OTHER_REGION_NOTE}</p>
       ) : null}
@@ -48,9 +67,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
         >
           원문 보기
         </button>
-      ) : (
-        <p className="mt-2 text-[11px] text-quiet">원문 링크 미등록</p>
-      )}
+      ) : null}
     </article>
   );
 }

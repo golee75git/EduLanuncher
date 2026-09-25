@@ -2162,6 +2162,25 @@ PATENT_REVIEW:
 
 ---
 
+Feature: Handbook-backed topic detail
+
+Purpose:
+검색 카드에 쉬운 설명을 보여주고, 편람에서 확인한 절차·서류·인쇄 쪽수를 자세히 보기에 붙인다
+
+Design source:
+이 저장소의 Topic 카드·상세 화면. 문장은 프로젝트 안 2026 학교행정 업무편람 PDF에서 확인한 내용만 사용
+
+Implementation:
+Topic에 선택 필드 beginnerSummary와 detail을 두고, 없는 주제는 기존 설명과 처리 순서를 그대로 보여 준다. 원문 보기는 http 주소가 있을 때만 연다
+
+External code:
+없음
+
+PATENT_REVIEW:
+검색 카드와 단계 목록은 일반 화면 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
 Feature: Plain-language work search phrases
 
 Purpose:

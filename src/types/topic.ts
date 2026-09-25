@@ -41,6 +41,36 @@ export interface WorkflowStep {
   description?: string;
 }
 
+export interface TopicDetailStep {
+  workflowTitle: string;
+  explanation: string;
+  printPages: number[];
+}
+
+export interface TopicDetailNote {
+  text: string;
+  printPages: number[];
+}
+
+export interface TopicDetailDocument {
+  name: string;
+  condition?: string;
+  printPages: number[];
+}
+
+export interface TopicDetailIssue {
+  issue: string;
+  printPages: number[];
+}
+
+export interface TopicDetailContent {
+  whenToUse?: string;
+  steps?: TopicDetailStep[];
+  checkpoints?: TopicDetailNote[];
+  requiredDocuments?: TopicDetailDocument[];
+  reviewIssues?: TopicDetailIssue[];
+}
+
 export interface TopicResource {
   id: string;
   type: ResourceType;
@@ -51,6 +81,10 @@ export interface TopicResource {
   publishedAt: string;
   pages: string;
   url: string;
+  printPageStart?: number;
+  printPageEnd?: number;
+  pdfPageStart?: number;
+  pdfPageEnd?: number;
   jurisdiction: Jurisdiction;
   jurisdictionName?: string;
   status: RecordStatus;
@@ -63,6 +97,8 @@ export interface Topic {
   category: string;
   subcategory: string;
   description: string;
+  beginnerSummary?: string;
+  detail?: TopicDetailContent;
   workflow: WorkflowStep[];
   keywords: TopicKeywords;
   exampleQuestions: string[];

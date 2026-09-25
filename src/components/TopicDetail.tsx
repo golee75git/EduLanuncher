@@ -44,6 +44,14 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
   const sourceRefs = topic.sourceRefs ?? [];
   const [showRefs, setShowRefs] = useState(false);
   const kindLabel = topic.kind ? MANUAL_KIND_LABEL[topic.kind] : "";
+  const detail = topic.detail;
+  const showDescription = Boolean(
+    topic.description &&
+      topic.description.replace(/\s+/g, "") !== (topic.beginnerSummary ?? "").replace(/\s+/g, ""),
+  );
+  const checkpoints = detail?.checkpoints ?? [];
+  const documents = detail?.requiredDocuments ?? [];
+  const reviewIssues = detail?.reviewIssues ?? [];
 
   return (
     <div className="space-y-4">
@@ -77,7 +85,24 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
           {kindLabel ? <span className="text-[11px] text-quiet">{kindLabel}</span> : null}
           <StatusBadge status={topic.status} needsReview={topic.needsReview} />
         </div>
-        {topic.description ? <p className="mt-2 text-sm leading-6 text-desk">{topic.description}</p> : null}
+        {topic.beginnerSummary ? (
+          <section className="mt-3">
+            <h3 className="desk-label">처음 하는 분</h3>
+            <p className="text-sm leading-6 text-desk">{topic.beginnerSummary}</p>
+          </section>
+        ) : null}
+        {showDescription ? (
+          <section className="mt-3">
+            <h3 className="desk-label">업무 설명</h3>
+            <p className="text-sm leading-6 text-desk">{topic.description}</p>
+          </section>
+        ) : null}
+        {detail?.whenToUse ? (
+          <section className="mt-3">
+            <h3 className="desk-label">어떤 때 보나요</h3>
+            <p className="text-sm leading-6 text-desk">{detail.whenToUse}</p>
+          </section>
+        ) : null}
       </section>
 
       {situations.length > 0 ? (
@@ -102,12 +127,55 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
 
       {topic.workflow.length > 0 ? (
         <section>
-          <h3 className="desk-label">처리 절차</h3>
-          <WorkflowView steps={topic.workflow} />
+          <h3 className="desk-label">처리 순서</h3>
+          <WorkflowView steps={topic.workflow} notes={detail?.steps} />
         </section>
       ) : null}
 
-      <NoteBox label="주의" lines={topic.warnings} />
+      {checkpoints.length > 0 ? (
+        <section>
+          <h3 className="desk-label">확인할 사항</h3>
+          <ul className="list-disc space-y-1.5 pl-4 text-sm leading-6 text-desk">
+            {checkpoints.map((item) => (
+              <li key={item.text}>
+                {item.text}
+                <span className="mt-0.5 block text-[11px] text-quiet">인쇄 {item.printPages.join("·")}쪽</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {documents.length > 0 ? (
+        <section>
+          <h3 className="desk-label">필요한 서류</h3>
+          <ul className="list-disc space-y-1.5 pl-4 text-sm leading-6 text-desk">
+            {documents.map((item) => (
+              <li key={`${item.name}-${item.condition ?? ""}`}>
+                {item.name}
+                {item.condition ? <span className="text-quiet"> ({item.condition})</span> : null}
+                <span className="mt-0.5 block text-[11px] text-quiet">인쇄 {item.printPages.join("·")}쪽</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <NoteBox label="주의하세요" lines={topic.warnings} />
+
+      {reviewIssues.length > 0 ? (
+        <section>
+          <h3 className="desk-label">원문 확인이 필요한 내용</h3>
+          <ul className="list-disc space-y-1.5 pl-4 text-sm leading-6 text-desk">
+            {reviewIssues.map((item) => (
+              <li key={item.issue}>
+                {item.issue}
+                <span className="mt-0.5 block text-[11px] text-quiet">인쇄 {item.printPages.join("·")}쪽</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <NoteBox label="보안" lines={securityNotes} />
 
       {exceptions.length > 0 ? (
@@ -123,7 +191,7 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
 
       {topic.resources.length > 0 ? (
         <section>
-          <h3 className="desk-label">관련 자료</h3>
+          <h3 className="desk-label">근거자료</h3>
           <ResourceTabs topic={topic} />
         </section>
       ) : null}
