@@ -2235,3 +2235,22 @@ External code:
 
 PATENT_REVIEW:
 상자 흐름과 아이콘 버튼은 일반 화면 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Natural-question search order
+
+Purpose:
+같은 업무에 쉬운 질문과 초보자 검색어가 같이 있을 때, 점수가 더 높은 쉬운 질문을 쓰게 한다
+
+Design source:
+이 저장소의 기존 검색 점수. 검색 문장은 추가하지 않음
+
+Implementation:
+쉬운 질문 비교를 초보자 검색어보다 먼저 한다. 흐름 상자 제목도 처리 순서와 같이 찾는다
+
+External code:
+없음
+
+PATENT_REVIEW:
+문자열 포함 비교. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

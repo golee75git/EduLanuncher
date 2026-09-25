@@ -261,14 +261,18 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
       continue;
     }
 
-    const flowHit = topic.workflow.find((step) =>
-      pieces.some((piece) => containsFold(step.title, piece) || containsFold(piece, step.title)),
+    const flowTitles = [
+      ...topic.workflow.map((step) => step.title),
+      ...(topic.detail?.flowchart ?? []).map((step) => step.title),
+    ];
+    const flowHit = flowTitles.find((title) =>
+      pieces.some((piece) => containsFold(title, piece) || containsFold(piece, title)),
     );
     if (flowHit) {
       hits.push({
         item: topic,
         score: TOPIC_SCORE.workflow,
-        reason: `일치 항목: 처리절차 \`${flowHit.title}\``,
+        reason: `일치 항목: 처리절차 \`${flowHit}\``,
       });
       continue;
     }
@@ -325,15 +329,15 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
       continue;
     }
 
-    const beginner = bestKeywordMatch(pieces, topic.keywords.beginner);
-    if (beginner) {
-      hits.push({ item: topic, score: TOPIC_SCORE.beginner, reason: `일치 항목: 초보자 질문 \`${beginner}\`` });
-      continue;
-    }
-
     const natural = bestKeywordMatch(pieces, topic.detail?.naturalQueries ?? []);
     if (natural) {
       hits.push({ item: topic, score: TOPIC_SCORE.naturalQuery, reason: `일치 항목: 쉬운 질문 \`${natural}\`` });
+      continue;
+    }
+
+    const beginner = bestKeywordMatch(pieces, topic.keywords.beginner);
+    if (beginner) {
+      hits.push({ item: topic, score: TOPIC_SCORE.beginner, reason: `일치 항목: 초보자 질문 \`${beginner}\`` });
       continue;
     }
 

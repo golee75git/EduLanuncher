@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.107-20260925",
+    note: "쉬운 질문이 붙은 업무는 그 검색 점수를 먼저 씁니다. 없는 절차와 예시 차트는 넣지 않습니다.",
+  },
+  {
     version: "0.1.106-20260925",
     note: "업무 자세히 보기에 아이콘이 있는 흐름 상자와 한눈에 보기를 넣었습니다. 자료에 없는 단계와 예시 차트는 그리지 않습니다.",
   },
