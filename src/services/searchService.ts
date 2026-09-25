@@ -114,6 +114,7 @@ const TOPIC_SCORE = {
   security: 520,
   general: 500,
   beginner: 400,
+  naturalQuery: 450,
   related: 380,
   example: 300,
   resourceTitle: 200,
@@ -183,6 +184,7 @@ function phraseHit(query: string, topic: Topic): { score: number; reason: string
     { label: "일반 키워드", values: topic.keywords.general },
     { label: "초보자 검색어", values: topic.keywords.beginner },
     { label: "예시 질문", values: topic.exampleQuestions },
+    { label: "쉬운 질문", values: topic.detail?.naturalQueries ?? [] },
   ];
   let best: { score: number; reason: string } | null = null;
   for (const field of fields) {
@@ -329,6 +331,12 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
       continue;
     }
 
+    const natural = bestKeywordMatch(pieces, topic.detail?.naturalQueries ?? []);
+    if (natural) {
+      hits.push({ item: topic, score: TOPIC_SCORE.naturalQuery, reason: `일치 항목: 쉬운 질문 \`${natural}\`` });
+      continue;
+    }
+
     const related = bestKeywordMatch(pieces, topic.keywords.related);
     if (related) {
       hits.push({ item: topic, score: TOPIC_SCORE.related, reason: `일치 항목: 관련 검색어 \`${related}\`` });
@@ -373,10 +381,10 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
       continue;
     }
 
-    if (
-      topic.beginnerSummary &&
-      pieces.some((piece) => containsFold(topic.beginnerSummary ?? "", piece))
-    ) {
+    const easyText = [topic.beginnerSummary, topic.detail?.easyExplanation, topic.detail?.purpose]
+      .filter(Boolean)
+      .join(" ");
+    if (easyText && pieces.some((piece) => containsFold(easyText, piece))) {
       hits.push({ item: topic, score: TOPIC_SCORE.beginnerSummary, reason: "일치 항목: 쉬운 설명" });
       continue;
     }

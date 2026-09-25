@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.105-20260925",
+    note: "기존 업무 18건의 자세히 보기에 흐름, 조건, 일정, 체크를 더했습니다. 없는 업무는 새로 만들지 않았고, 금액과 기한은 원문 확인 전으로 표시합니다.",
+  },
+  {
     version: "0.1.104-20260925",
     note: "업무 검색 카드에 쉬운 설명을 보여주고, 물품구매 등 다섯 업무는 편람에서 확인한 절차와 인쇄 쪽수를 자세히 보기에 넣었습니다. 편람 파일은 앱에 넣지 않습니다.",
   },

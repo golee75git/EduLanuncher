@@ -63,12 +63,52 @@ export interface TopicDetailIssue {
   printPages: number[];
 }
 
+export interface TopicFlowStep {
+  order: number;
+  title: string;
+  explanation: string;
+}
+
+export interface TopicDecision {
+  condition: string;
+  branches: Array<{ when: string; result: string }>;
+}
+
+export interface TopicTimelineItem {
+  label: string;
+  text: string;
+}
+
+export interface TopicComparison {
+  title: string;
+  headers: string[];
+  rows: string[][];
+}
+
+export interface TopicSourceNote {
+  title: string;
+  pages: string;
+  status: "needs-review";
+}
+
 export interface TopicDetailContent {
   whenToUse?: string;
   steps?: TopicDetailStep[];
   checkpoints?: TopicDetailNote[];
   requiredDocuments?: TopicDetailDocument[];
   reviewIssues?: TopicDetailIssue[];
+  externalTopicId?: string;
+  purpose?: string;
+  easyExplanation?: string;
+  flowchart?: TopicFlowStep[];
+  decision?: TopicDecision;
+  timeline?: TopicTimelineItem[];
+  checklist?: string[];
+  comparison?: TopicComparison;
+  guideDocuments?: string[];
+  auditNotes?: string[];
+  naturalQueries?: string[];
+  sourceNote?: TopicSourceNote;
 }
 
 export interface TopicResource {

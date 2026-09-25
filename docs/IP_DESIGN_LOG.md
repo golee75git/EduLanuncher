@@ -2197,3 +2197,22 @@ External code:
 
 PATENT_REVIEW:
 문자열 포함 비교와 키워드 배열. 청구항 대조는 별도. 특허 비침해를 보장하지 않음
+
+---
+
+Feature: Work-guide panels on existing topics
+
+Purpose:
+기존 업무주제 자세히 보기에 흐름, 조건, 일정, 체크, 비교표를 눌러 보게 한다
+
+Design source:
+이 저장소의 Topic 상세 화면. 문장은 참고자료 18건을 기존 ID에만 붙였고, 없는 업무는 만들지 않음
+
+Implementation:
+세로 단계 버튼, 조건 버튼, 접히는 목록, 표. 그래프 라이브러리 없음. 체크 상태는 화면 안에서만 유지. 금액과 기한은 원문 확인 필요로 표시
+
+External code:
+없음
+
+PATENT_REVIEW:
+단계 버튼과 접히는 목록은 일반 화면 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

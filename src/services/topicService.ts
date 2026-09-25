@@ -8,11 +8,16 @@ import {
   type ResourceTabId,
   type ResourceType,
   type Topic,
+  type TopicComparison,
+  type TopicDecision,
   type TopicDetailContent,
   type TopicDetailDocument,
   type TopicDetailIssue,
   type TopicDetailNote,
   type TopicDetailStep,
+  type TopicFlowStep,
+  type TopicSourceNote,
+  type TopicTimelineItem,
   type TopicResource,
   type WorkflowStep,
 } from "../types/topic";
@@ -407,7 +412,174 @@ function parseDetail(value: unknown): TopicDetailContent | undefined {
   if (reviewIssues.length > 0) {
     detail.reviewIssues = reviewIssues;
   }
+  const externalTopicId = clip(asText(row.externalTopicId), 40);
+  if (externalTopicId) {
+    detail.externalTopicId = externalTopicId;
+  }
+  const purpose = clip(asText(row.purpose), MAX_LONG);
+  if (purpose) {
+    detail.purpose = purpose;
+  }
+  const easyExplanation = clip(asText(row.easyExplanation), MAX_LONG);
+  if (easyExplanation) {
+    detail.easyExplanation = easyExplanation;
+  }
+  const flowchart = parseFlowchart(row.flowchart);
+  if (flowchart.length > 0) {
+    detail.flowchart = flowchart;
+  }
+  const decision = parseDecision(row.decision);
+  if (decision) {
+    detail.decision = decision;
+  }
+  const timeline = parseTimeline(row.timeline);
+  if (timeline.length > 0) {
+    detail.timeline = timeline;
+  }
+  const checklist = asStringList(row.checklist, 20, MAX_TEXT);
+  if (checklist.length > 0) {
+    detail.checklist = checklist;
+  }
+  const comparison = parseComparison(row.comparison);
+  if (comparison) {
+    detail.comparison = comparison;
+  }
+  const guideDocuments = asStringList(row.guideDocuments, 12, MAX_TITLE);
+  if (guideDocuments.length > 0) {
+    detail.guideDocuments = guideDocuments;
+  }
+  const auditNotes = asStringList(row.auditNotes, 12, MAX_LONG);
+  if (auditNotes.length > 0) {
+    detail.auditNotes = auditNotes;
+  }
+  const naturalQueries = asStringList(row.naturalQueries, 20, MAX_TEXT);
+  if (naturalQueries.length > 0) {
+    detail.naturalQueries = naturalQueries;
+  }
+  const sourceNote = parseSourceNote(row.sourceNote);
+  if (sourceNote) {
+    detail.sourceNote = sourceNote;
+  }
   return Object.keys(detail).length > 0 ? detail : undefined;
+}
+
+function parseFlowchart(value: unknown): TopicFlowStep[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const steps: TopicFlowStep[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const row = item as Record<string, unknown>;
+    const order = typeof row.order === "number" ? row.order : steps.length + 1;
+    const title = clip(asText(row.title), MAX_TITLE);
+    const explanation = clip(asText(row.explanation), MAX_LONG);
+    if (!title || !explanation || !Number.isInteger(order)) {
+      continue;
+    }
+    steps.push({ order, title, explanation });
+    if (steps.length >= MAX_STEPS) {
+      break;
+    }
+  }
+  return steps;
+}
+
+function parseDecision(value: unknown): TopicDecision | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const row = value as Record<string, unknown>;
+  const condition = clip(asText(row.condition), MAX_TEXT);
+  const branches: TopicDecision["branches"] = [];
+  if (Array.isArray(row.branches)) {
+    for (const item of row.branches) {
+      if (!item || typeof item !== "object") {
+        continue;
+      }
+      const branch = item as Record<string, unknown>;
+      const when = clip(asText(branch.when), MAX_TEXT);
+      const result = clip(asText(branch.result), MAX_LONG);
+      if (!when || !result) {
+        continue;
+      }
+      branches.push({ when, result });
+      if (branches.length >= 8) {
+        break;
+      }
+    }
+  }
+  if (!condition || branches.length === 0) {
+    return undefined;
+  }
+  return { condition, branches };
+}
+
+function parseTimeline(value: unknown): TopicTimelineItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const items: TopicTimelineItem[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const row = item as Record<string, unknown>;
+    const label = clip(asText(row.label), 80);
+    const text = clip(asText(row.text), MAX_TEXT);
+    if (!label || !text) {
+      continue;
+    }
+    items.push({ label, text });
+    if (items.length >= 12) {
+      break;
+    }
+  }
+  return items;
+}
+
+function parseComparison(value: unknown): TopicComparison | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const row = value as Record<string, unknown>;
+  const title = clip(asText(row.title), MAX_TITLE);
+  const headers = asStringList(row.headers, 6, 80);
+  const rows: string[][] = [];
+  if (Array.isArray(row.rows)) {
+    for (const item of row.rows) {
+      if (!Array.isArray(item)) {
+        continue;
+      }
+      const cells = item.map((cell) => clip(asText(cell), MAX_TEXT)).slice(0, headers.length);
+      if (cells.length !== headers.length || cells.some((cell) => !cell)) {
+        continue;
+      }
+      rows.push(cells);
+      if (rows.length >= 12) {
+        break;
+      }
+    }
+  }
+  if (!title || headers.length < 2 || rows.length === 0) {
+    return undefined;
+  }
+  return { title, headers, rows };
+}
+
+function parseSourceNote(value: unknown): TopicSourceNote | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const row = value as Record<string, unknown>;
+  const title = clip(asText(row.title), MAX_TITLE);
+  const pages = clip(asText(row.pages), MAX_TEXT);
+  if (!title || !pages || row.status !== "needs-review") {
+    return undefined;
+  }
+  return { title, pages, status: "needs-review" };
 }
 
 function parseTopic(value: unknown): Topic | null {

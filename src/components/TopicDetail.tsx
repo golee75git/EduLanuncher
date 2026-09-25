@@ -5,6 +5,7 @@ import type { Topic } from "../types/topic";
 import { RelatedTopics } from "./RelatedTopics";
 import { ResourceTabs } from "./ResourceTabs";
 import { StatusBadge } from "./StatusBadge";
+import { TopicGuide, topicGuideBadges } from "./TopicGuide";
 import { WorkflowView } from "./WorkflowView";
 
 interface TopicDetailProps {
@@ -45,6 +46,10 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
   const [showRefs, setShowRefs] = useState(false);
   const kindLabel = topic.kind ? MANUAL_KIND_LABEL[topic.kind] : "";
   const detail = topic.detail;
+  const badges = topicGuideBadges(detail);
+  const easyFold = (detail?.easyExplanation ?? "").replace(/\s+/g, "");
+  const summaryFold = (topic.beginnerSummary ?? "").replace(/\s+/g, "");
+  const showEasy = Boolean(easyFold && easyFold !== summaryFold);
   const showDescription = Boolean(
     topic.description &&
       topic.description.replace(/\s+/g, "") !== (topic.beginnerSummary ?? "").replace(/\s+/g, ""),
@@ -84,6 +89,11 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
         <div className="mt-1 flex flex-wrap items-center gap-2">
           {kindLabel ? <span className="text-[11px] text-quiet">{kindLabel}</span> : null}
           <StatusBadge status={topic.status} needsReview={topic.needsReview} />
+          {badges.map((badge) => (
+            <span key={badge} className="rounded-full border border-line px-1.5 py-0.5 text-[10px] text-quiet">
+              {badge}
+            </span>
+          ))}
         </div>
         {topic.beginnerSummary ? (
           <section className="mt-3">
@@ -96,6 +106,20 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
             <h3 className="desk-label">업무 설명</h3>
             <p className="text-sm leading-6 text-desk">{topic.description}</p>
           </section>
+        ) : null}
+        {detail &&
+        (detail.purpose ||
+          detail.flowchart ||
+          detail.decision ||
+          detail.timeline ||
+          detail.checklist ||
+          detail.comparison ||
+          detail.guideDocuments ||
+          detail.auditNotes ||
+          detail.sourceNote) ? (
+          <div className="mt-3">
+            <TopicGuide detail={{ ...detail, easyExplanation: showEasy ? detail.easyExplanation : undefined }} />
+          </div>
         ) : null}
         {detail?.whenToUse ? (
           <section className="mt-3">
