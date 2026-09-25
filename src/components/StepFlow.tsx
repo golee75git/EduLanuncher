@@ -5,7 +5,10 @@ import {
   ClipboardList,
   Coins,
   FileText,
+  GraduationCap,
   Handshake,
+  HeartPulse,
+  KeyRound,
   ListOrdered,
   Package,
   Search,
@@ -18,11 +21,25 @@ export interface VisualStep {
   title: string;
   explanation?: string;
   pages?: string;
+  documents?: string[];
+  caveats?: string[];
 }
 
 const STEP_TINT = ["bg-zone-tools", "bg-zone-notice", "bg-zone-todo", "bg-zone-recent", "bg-ink-soft"] as const;
 
 function stepIcon(title: string): LucideIcon {
+  if (/요양|재해|사망|병원/.test(title)) {
+    return HeartPulse;
+  }
+  if (/대학|학교|학자/.test(title)) {
+    return GraduationCap;
+  }
+  if (/담당|인증|권한|열쇠/.test(title)) {
+    return KeyRound;
+  }
+  if (/연금|기여|공제|대부|학자금/.test(title)) {
+    return Coins;
+  }
   if (/지급|대금|예산|보수|금액/.test(title)) {
     return Coins;
   }
@@ -96,12 +113,32 @@ export function StepFlow({ steps }: StepFlowProps) {
             );
           })}
         </ol>
-        {current?.explanation || current?.pages ? (
+        {current?.explanation || current?.pages || (current?.documents?.length ?? 0) > 0 || (current?.caveats?.length ?? 0) > 0 ? (
           <div className="mt-2 rounded-xl border border-line bg-card px-2.5 py-2 text-sm leading-6 text-desk">
             <p className="text-[11px] text-quiet">
               {current.order}. {current.title}
             </p>
             {current.explanation ? <p className="mt-1 whitespace-pre-wrap">{current.explanation}</p> : null}
+            {current.documents && current.documents.length > 0 ? (
+              <div className="mt-2">
+                <p className="text-[11px] text-quiet">이 단계의 서류</p>
+                <ul className="list-disc space-y-0.5 pl-4">
+                  {current.documents.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {current.caveats && current.caveats.length > 0 ? (
+              <div className="mt-2">
+                <p className="text-[11px] text-quiet">이 단계의 주의</p>
+                <ul className="list-disc space-y-0.5 pl-4">
+                  {current.caveats.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             {current.pages ? <p className="mt-1 text-[11px] text-quiet">{current.pages}</p> : null}
           </div>
         ) : null}

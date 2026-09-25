@@ -67,11 +67,21 @@ export interface TopicFlowStep {
   order: number;
   title: string;
   explanation: string;
+  documents?: string[];
+  caveats?: string[];
+}
+
+export interface TopicDecisionBranch {
+  when: string;
+  result: string;
+  documents?: string[];
+  caution?: string;
+  nextStep?: string;
 }
 
 export interface TopicDecision {
   condition: string;
-  branches: Array<{ when: string; result: string }>;
+  branches: TopicDecisionBranch[];
 }
 
 export interface TopicTimelineItem {
@@ -84,6 +94,18 @@ export interface TopicComparison {
   headers: string[];
   rows: string[][];
 }
+
+export interface TopicGlance {
+  title: string;
+  text: string;
+}
+
+export interface TopicMetric {
+  label: string;
+  value: string;
+}
+
+export type TopicCompleteness = "source-only" | "summary" | "detailed" | "verified";
 
 export interface TopicSourceNote {
   title: string;
@@ -105,6 +127,10 @@ export interface TopicDetailContent {
   timeline?: TopicTimelineItem[];
   checklist?: string[];
   comparison?: TopicComparison;
+  comparisons?: TopicComparison[];
+  glance?: TopicGlance[];
+  metrics?: TopicMetric[];
+  reviewNotes?: string[];
   guideDocuments?: string[];
   auditNotes?: string[];
   naturalQueries?: string[];
@@ -147,6 +173,7 @@ export interface Topic {
   warnings: string[];
   status: RecordStatus;
   needsReview: boolean;
+  contentCompleteness?: TopicCompleteness;
   trail?: ManualTrailItem[];
   situations?: string[];
   exceptions?: string[];

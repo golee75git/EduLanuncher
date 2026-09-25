@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-25
+버전: 0.1.108-20260925
+설치 파일: EduLauncher_0.1.108-20260925_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-25_1509_x64-setup.exe
+작성자: 요청자
+
+내용:
+공무원연금(gwe-2026-p142)에 첨부 자료의 네 단계, 단기급여·장기급여·대부 선택, 일정, 체크, 서류, 비교표를 붙였다. ID는 바꾸지 않았다. 142~144쪽 문장은 출처로 남겼다. 금액·기간·산식은 고치지 않았다. 조건의 중복 지급과 유의사항의 중급 지급은 한쪽으로 맞추지 않았다. 그래프는 그리지 않았다. FAQ는 첨부 파일에 없어 만들지 않았다. 설명만 쪽수를 가리키는 다른 업무 205개는 채우지 않았다.
+
+새로 작성한 파일: src/services/notebookTopicMerge.ts
+재사용한 기존 파일(수정): src/data/topics.json, src/types/topic.ts, src/services/topicService.ts, src/components/StepFlow.tsx, src/components/TopicGuide.tsx, src/components/TopicDetail.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: 주제 222개, ID 유지. 검색 여섯 문장의 첫 결과가 공무원연금. tsc 통과.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음. GPL 직접 의존성 없음. 기존 @img/sharp 계열은 Apache-2.0 AND LGPL-3.0-or-later.
+보안: 문장은 앱 안 JSON만 표시. 새 네트워크 호출 없음. 체크는 화면에만 있음.
+특허: 상자 흐름과 조건 버튼. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-25
 버전: 0.1.107-20260925
 설치 파일: EduLauncher_0.1.107-20260925_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-25_1317_x64-setup.exe

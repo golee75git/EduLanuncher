@@ -9,7 +9,10 @@ import {
   type ResourceType,
   type Topic,
   type TopicComparison,
+  type TopicCompleteness,
   type TopicDecision,
+  type TopicGlance,
+  type TopicMetric,
   type TopicDetailContent,
   type TopicDetailDocument,
   type TopicDetailIssue,
@@ -281,6 +284,16 @@ function parseTrail(value: unknown): ManualTrailItem[] {
   return out;
 }
 
+const COMPLETENESS = new Set(["source-only", "summary", "detailed", "verified"]);
+
+function parseCompleteness(value: unknown): TopicCompleteness | undefined {
+  const text = asText(value);
+  if (!COMPLETENESS.has(text)) {
+    return undefined;
+  }
+  return text as TopicCompleteness;
+}
+
 function parseKind(value: unknown): ManualKind | undefined {
   const text = asText(value);
   return KIND_SET.has(text) ? (text as ManualKind) : undefined;
@@ -444,6 +457,22 @@ function parseDetail(value: unknown): TopicDetailContent | undefined {
   if (comparison) {
     detail.comparison = comparison;
   }
+  const comparisons = parseComparisonList(row.comparisons);
+  if (comparisons.length > 0) {
+    detail.comparisons = comparisons;
+  }
+  const glance = parseGlance(row.glance);
+  if (glance.length > 0) {
+    detail.glance = glance;
+  }
+  const metrics = parseMetrics(row.metrics);
+  if (metrics.length > 0) {
+    detail.metrics = metrics;
+  }
+  const reviewNotes = asStringList(row.reviewNotes, 8, MAX_LONG);
+  if (reviewNotes.length > 0) {
+    detail.reviewNotes = reviewNotes;
+  }
   const guideDocuments = asStringList(row.guideDocuments, 12, MAX_TITLE);
   if (guideDocuments.length > 0) {
     detail.guideDocuments = guideDocuments;
@@ -479,7 +508,15 @@ function parseFlowchart(value: unknown): TopicFlowStep[] {
     if (!title || !explanation || !Number.isInteger(order)) {
       continue;
     }
-    steps.push({ order, title, explanation });
+    const documents = asStringList(row.documents, 8, MAX_TEXT);
+    const caveats = asStringList(row.caveats, 6, MAX_LONG);
+    steps.push({
+      order,
+      title,
+      explanation,
+      ...(documents.length > 0 ? { documents } : {}),
+      ...(caveats.length > 0 ? { caveats } : {}),
+    });
     if (steps.length >= MAX_STEPS) {
       break;
     }
@@ -505,7 +542,16 @@ function parseDecision(value: unknown): TopicDecision | undefined {
       if (!when || !result) {
         continue;
       }
-      branches.push({ when, result });
+      const documents = asStringList(branch.documents, 8, MAX_TEXT);
+      const caution = clip(asText(branch.caution), MAX_LONG);
+      const nextStep = clip(asText(branch.nextStep), MAX_TEXT);
+      branches.push({
+        when,
+        result,
+        ...(documents.length > 0 ? { documents } : {}),
+        ...(caution ? { caution } : {}),
+        ...(nextStep ? { nextStep } : {}),
+      });
       if (branches.length >= 8) {
         break;
       }
@@ -569,6 +615,70 @@ function parseComparison(value: unknown): TopicComparison | undefined {
   return { title, headers, rows };
 }
 
+function parseComparisonList(value: unknown): TopicComparison[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const tables: TopicComparison[] = [];
+  for (const item of value) {
+    const table = parseComparison(item);
+    if (!table) {
+      continue;
+    }
+    tables.push(table);
+    if (tables.length >= 4) {
+      break;
+    }
+  }
+  return tables;
+}
+
+function parseGlance(value: unknown): TopicGlance[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const items: TopicGlance[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const row = item as Record<string, unknown>;
+    const title = clip(asText(row.title), MAX_TITLE);
+    const text = clip(asText(row.text), MAX_TEXT);
+    if (!title || !text) {
+      continue;
+    }
+    items.push({ title, text });
+    if (items.length >= 8) {
+      break;
+    }
+  }
+  return items;
+}
+
+function parseMetrics(value: unknown): TopicMetric[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const items: TopicMetric[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const row = item as Record<string, unknown>;
+    const label = clip(asText(row.label), 80);
+    const metricValue = clip(asText(row.value), MAX_TEXT);
+    if (!label || !metricValue) {
+      continue;
+    }
+    items.push({ label, value: metricValue });
+    if (items.length >= 8) {
+      break;
+    }
+  }
+  return items;
+}
+
 function parseSourceNote(value: unknown): TopicSourceNote | undefined {
   if (!value || typeof value !== "object") {
     return undefined;
@@ -621,6 +731,7 @@ function parseTopic(value: unknown): Topic | null {
     clip(asText(row.description), MAX_TEXT) || fallbackDescription(category, subcategory, warnings);
   const beginnerSummary = clip(asText(row.beginnerSummary), MAX_TEXT);
   const detail = parseDetail(row.detail);
+  const completeness = parseCompleteness(row.contentCompleteness);
   return {
     id,
     title,
@@ -642,6 +753,7 @@ function parseTopic(value: unknown): Topic | null {
     warnings,
     status: asStatus(row.status),
     needsReview: asBool(row.needsReview),
+    ...(completeness ? { contentCompleteness: completeness } : {}),
     trail: parseTrail(row.trail),
     situations: asStringList(row.situations, 12, MAX_TEXT),
     exceptions: asStringList(row.exceptions, 8, MAX_LONG),

@@ -2254,3 +2254,22 @@ External code:
 
 PATENT_REVIEW:
 문자열 포함 비교. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Pension topic detail from an attached pack
+
+Purpose:
+공무원연금 업무를 쪽수 안내 대신 첨부 자료의 단계와 조건으로 보여 준다
+
+Design source:
+이 저장소의 Topic 상세 화면. 문장은 launcherbox-topic-pension-v4.json만 사용
+
+Implementation:
+기존 ID gwe-2026-p142에 흐름, 조건, 일정, 체크, 비교표를 붙임. 금액과 기간은 고치지 않음. 그래프는 그리지 않음
+
+External code:
+없음
+
+PATENT_REVIEW:
+상자 흐름과 조건 버튼은 일반 화면 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

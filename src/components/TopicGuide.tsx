@@ -48,7 +48,45 @@ export function TopicGuide({ detail }: TopicGuideProps) {
             <span className="text-quiet">처리방법 </span>
             {selected.result}
           </p>
+          {selected.documents && selected.documents.length > 0 ? (
+            <ul className="mt-2 list-disc space-y-0.5 pl-4 text-xs leading-5 text-desk">
+              {selected.documents.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
+          {selected.caution ? <p className="mt-2 text-xs leading-5 text-desk">{selected.caution}</p> : null}
+          {selected.nextStep ? (
+            <p className="mt-1 text-xs leading-5 text-quiet">다음 단계 {selected.nextStep}</p>
+          ) : null}
           <p className="mt-1 text-[11px] text-quiet">적용 기관과 연도에 따라 원문 확인이 필요합니다.</p>
+        </section>
+      ) : null}
+      {detail.glance && detail.glance.length > 0 ? (
+        <section>
+          <h3 className="desk-label">핵심 정보</h3>
+          <ul className="m-0 list-none space-y-1 p-0">
+            {detail.glance.map((item) => (
+              <li key={item.title} className="rounded-lg border border-line bg-card px-2.5 py-2 text-sm leading-5 text-desk">
+                <p className="text-[11px] text-quiet">{item.title}</p>
+                <p>{item.text}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {detail.metrics && detail.metrics.length > 0 ? (
+        <section>
+          <h3 className="desk-label">기준 요약</h3>
+          <ul className="m-0 list-none space-y-1 p-0">
+            {detail.metrics.map((item) => (
+              <li key={item.label} className="rounded-lg border border-line bg-zone-notice px-2.5 py-2 text-sm leading-5 text-desk">
+                <p className="text-[11px] text-quiet">{item.label}</p>
+                <p>{item.value}</p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-1 text-[11px] text-quiet">기간과 금액은 첨부 자료 문장입니다. 그래프로 바꾸지 않았습니다.</p>
         </section>
       ) : null}
       {detail.timeline && detail.timeline.length > 0 ? (
@@ -90,14 +128,14 @@ export function TopicGuide({ detail }: TopicGuideProps) {
           </ul>
         </details>
       ) : null}
-      {detail.comparison ? (
-        <details className="rounded-lg border border-line bg-card px-2.5 py-2">
-          <summary className="cursor-pointer text-sm font-medium text-desk">{detail.comparison.title}</summary>
+      {(detail.comparisons ?? (detail.comparison ? [detail.comparison] : [])).map((table) => (
+        <details key={table.title} className="rounded-lg border border-line bg-card px-2.5 py-2">
+          <summary className="cursor-pointer text-sm font-medium text-desk">{table.title}</summary>
           <div className="mt-2 overflow-x-auto">
             <table className="w-full min-w-[16rem] border-collapse text-left text-xs leading-5 text-desk">
               <thead>
                 <tr>
-                  {detail.comparison.headers.map((header) => (
+                  {table.headers.map((header) => (
                     <th key={header} className="border-b border-line px-1.5 py-1 font-medium text-quiet">
                       {header}
                     </th>
@@ -105,10 +143,10 @@ export function TopicGuide({ detail }: TopicGuideProps) {
                 </tr>
               </thead>
               <tbody>
-                {detail.comparison.rows.map((row) => (
+                {table.rows.map((row) => (
                   <tr key={row.join("|")}>
-                    {row.map((cell) => (
-                      <td key={cell} className="border-b border-line/70 px-1.5 py-1 align-top">
+                    {row.map((cell, index) => (
+                      <td key={`${table.headers[index]}-${cell}`} className="border-b border-line/70 px-1.5 py-1 align-top">
                         {cell}
                       </td>
                     ))}
@@ -118,7 +156,7 @@ export function TopicGuide({ detail }: TopicGuideProps) {
             </table>
           </div>
         </details>
-      ) : null}
+      ))}
       {detail.guideDocuments && detail.guideDocuments.length > 0 ? (
         <details className="rounded-lg border border-line bg-card px-2.5 py-2">
           <summary className="cursor-pointer text-sm font-medium text-desk">필요한 서류</summary>
@@ -131,7 +169,7 @@ export function TopicGuide({ detail }: TopicGuideProps) {
       ) : null}
       {detail.auditNotes && detail.auditNotes.length > 0 ? (
         <details className="rounded-lg border border-line bg-card px-2.5 py-2">
-          <summary className="cursor-pointer text-sm font-medium text-desk">주의와 감사에서 보는 점</summary>
+          <summary className="cursor-pointer text-sm font-medium text-desk">실무 유의사항</summary>
           <ul className="mt-2 list-disc space-y-1 pl-4 text-sm leading-6 text-desk">
             {detail.auditNotes.map((item) => (
               <li key={item}>{item}</li>

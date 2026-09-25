@@ -42,6 +42,8 @@ function visualSteps(topic: Topic): VisualStep[] {
       order: step.order,
       title: step.title,
       explanation: step.explanation,
+      documents: step.documents,
+      caveats: step.caveats,
     }));
   }
   return topic.workflow.map((step) => {
@@ -81,6 +83,7 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
   const checkpoints = detail?.checkpoints ?? [];
   const documents = detail?.requiredDocuments ?? [];
   const reviewIssues = detail?.reviewIssues ?? [];
+  const reviewNotes = detail?.reviewNotes ?? [];
 
   return (
     <div className="space-y-4">
@@ -162,7 +165,10 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
           detail.decision ||
           detail.timeline ||
           detail.checklist ||
-          detail.comparison ||
+          detail.comparisons ||
+          detail.glance ||
+          detail.metrics ||
+          detail.reviewNotes ||
           detail.guideDocuments ||
           detail.auditNotes ||
           detail.sourceNote) ? (
@@ -229,7 +235,7 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
 
       <NoteBox label="주의하세요" lines={topic.warnings} />
 
-      {reviewIssues.length > 0 ? (
+      {reviewIssues.length > 0 || reviewNotes.length > 0 ? (
         <section>
           <h3 className="desk-label">원문 확인이 필요한 내용</h3>
           <ul className="list-disc space-y-1.5 pl-4 text-sm leading-6 text-desk">
@@ -238,6 +244,9 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
                 {item.issue}
                 <span className="mt-0.5 block text-[11px] text-quiet">인쇄 {item.printPages.join("·")}쪽</span>
               </li>
+            ))}
+            {reviewNotes.map((item) => (
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </section>
