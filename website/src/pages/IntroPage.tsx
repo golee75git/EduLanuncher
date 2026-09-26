@@ -12,10 +12,6 @@ const FEATURES = [
     title: "사이트·프로그램·파일·폴더",
     body: "자주 쓰는 바로가기를 종류별로 둡니다. 공통 목록은 Pack(.edupack)으로 나눠 받을 수 있습니다.",
   },
-  {
-    title: "이 PC에서만 동작",
-    body: "서버에 로그인하지 않습니다. 공지·메모·바로가기 목록은 설치한 컴퓨터에만 저장됩니다.",
-  },
 ] as const;
 
 const HOLDS = [
@@ -84,7 +80,7 @@ export function IntroPage() {
         </p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2">
         {FEATURES.map((item) => (
           <article key={item.title} className="card-surface p-5">
             <h2 className="text-sm font-semibold text-desk">{item.title}</h2>
@@ -163,6 +159,10 @@ export function IntroPage() {
       <p className="text-sm leading-relaxed text-quiet">
         사용 의견은 <a className="underline decoration-line underline-offset-2 hover:text-desk" href="/opinion">의견</a>
         에 이름과 글을 남깁니다. 계정은 없습니다.
+      </p>
+      <p className="text-sm leading-relaxed text-quiet">
+        <span className="font-semibold text-desk">이 PC에서만 동작.</span> 서버에 로그인하지 않습니다. 공지·메모·바로가기
+        목록은 설치한 컴퓨터에만 저장됩니다. 개인 사용 PC에만 설치하세요.
       </p>
     </div>
   );
