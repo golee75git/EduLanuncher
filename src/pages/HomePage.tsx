@@ -80,7 +80,8 @@ type ResultItem =
 
 function todayLabel(): string {
   const now = new Date();
-  return `${now.getMonth() + 1}월 ${now.getDate()}일`;
+  const weekday = ["일", "월", "화", "수", "목", "금", "토"][now.getDay()] ?? "";
+  return `${now.getMonth() + 1}월${now.getDate()}일(${weekday})`;
 }
 
 function flattenResults(
@@ -161,6 +162,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     () => favoriteGroups.flatMap((group) => group.shown),
     [favoriteGroups],
   );
+  const showDropHint = favoriteGroups
+    .filter((group) => group.type === "url" || group.type === "app" || group.type === "file" || group.type === "folder")
+    .every((group) => group.shown.length === 0);
   const recentUseAll = useMemo(() => {
     const fromTools: RecentUseItem[] = tools
       .filter((tool) => tool.lastUsedAt && tool.enabled !== false)
@@ -440,6 +444,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
             />
             <section className={prior ? "zone-block bg-zone-tools" : undefined}>
               {prior ? <h2 className="desk-label">자주 사용하는 도구</h2> : <SectionHeader title="자주 사용하는 도구" />}
+              {showDropHint ? (
+                <p className="text-[12px] leading-5 text-quiet">사이트·프로그램·파일·폴더를 패널에 끌어 놓으면 추가됩니다.</p>
+              ) : null}
               <div className={prior ? "space-y-3" : "space-y-4"}>
                 {favoriteGroups.map((group) => (
                   <div key={group.type}>

@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-26
+버전: 0.1.114-20260926
+설치 파일: EduLauncher_0.1.114-20260926_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-26_1014_x64-setup.exe
+작성자: 요청자
+
+내용:
+사이트·프로그램·파일·폴더가 모두 비어 있을 때만 자주 사용하는 도구 아래에 끌어 놓기 안내를 넣었다. 그중 하나라도 있으면 안내를 숨긴다. 오른쪽 위 날짜를 9월26일(토) 형식으로 바꿨다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src/pages/HomePage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: 네 종류가 모두 비어 있을 때만 안내. 날짜에 요일 붙임.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음. 직접 의존성에 GPL 없음. 기존 @img/sharp 계열은 Apache-2.0 AND LGPL-3.0-or-later.
+보안: 새 네트워크 호출 없음. 안내는 화면 표시만.
+특허: 빈 목록 안내 문구와 요일 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-26
 버전: 0.1.113-20260926
 설치 파일: EduLauncher_0.1.113-20260926_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-26_0957_x64-setup.exe

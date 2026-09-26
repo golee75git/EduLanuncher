@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.114-20260926",
+    note: "사이트·프로그램·파일·폴더가 비어 있을 때만 끌어 놓기 안내를 보여 줍니다. 오른쪽 위 날짜에 요일을 붙입니다.",
+  },
+  {
     version: "0.1.113-20260926",
     note: "홈 검색 안내를 사이트·업무·파일·폴더·컴퓨터도구·PC 문제로 바꿨습니다. 검색창의 Ctrl K 글자는 뺐습니다.",
   },

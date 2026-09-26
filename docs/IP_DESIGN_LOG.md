@@ -2387,3 +2387,22 @@ External code:
 
 PATENT_REVIEW:
 검색창 안내 문구와 단축키 글자 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Empty-state drop hint and weekday on the date
+
+Purpose:
+자주 쓰는 도구가 비어 있을 때만 끌어 놓기 방법을 알리고, 오른쪽 위 날짜에 요일을 붙인다
+
+Design source:
+이 저장소의 홈 헤더 날짜와 자주 사용하는 도구 구역
+
+Implementation:
+사이트·프로그램·파일·폴더 즐겨찾기가 모두 없을 때만 안내 문장을 표시. 날짜는 9월26일(토) 형식
+
+External code:
+없음
+
+PATENT_REVIEW:
+빈 목록 안내 문구와 요일 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
