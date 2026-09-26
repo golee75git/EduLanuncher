@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-26
+버전: 0.1.115-20260926
+설치 파일: EduLauncher_0.1.115-20260926_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-26_1031_x64-setup.exe
+작성자: 요청자
+
+내용:
+홈 위 인사를 바꿨다. 11시 30분부터 12시 59분까지는 즐거운 점심시간이에요. 13시부터는 좋은 오후예요. 아침은 5시–11시 29분, 저녁은 17시–다음날 4시 59분이다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src/components/home/WelcomeMessage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: 11:30 이상 13:00 미만만 점심 문구.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음. 직접 의존성에 GPL 없음. 기존 @img/sharp 계열은 Apache-2.0 AND LGPL-3.0-or-later.
+보안: 새 네트워크 호출 없음. 인사는 이 PC 시각만 사용.
+특허: 시간대별 인사 문구. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-26
 버전: 0.1.114-20260926
 설치 파일: EduLauncher_0.1.114-20260926_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-26_1014_x64-setup.exe

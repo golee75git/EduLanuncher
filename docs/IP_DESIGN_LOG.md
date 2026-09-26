@@ -2406,3 +2406,22 @@ External code:
 
 PATENT_REVIEW:
 빈 목록 안내 문구와 요일 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Lunch greeting
+
+Purpose:
+11시 30분부터 12시 59분까지 홈 인사를 점심 문구로 바꾼다
+
+Design source:
+이 저장소의 시간 인사. 요청자가 고른 시각과 문구
+
+Implementation:
+11시 30분 이상 13시 미만이면 즐거운 점심시간이에요. 13시부터는 좋은 오후예요
+
+External code:
+없음
+
+PATENT_REVIEW:
+시간대별 인사 문구. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
