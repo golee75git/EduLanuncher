@@ -110,7 +110,7 @@ export function IntroPage() {
       </section>
 
       <section className="max-w-2xl space-y-2">
-        <h2 className="text-sm font-semibold">버전 {SITE_CONFIG.version}</h2>
+        <h2 className="text-sm font-semibold">최신버전 {SITE_CONFIG.version}</h2>
         <p className="text-sm leading-relaxed text-quiet">{SITE_RELEASE_NOTES[0]?.note}</p>
       </section>
 
