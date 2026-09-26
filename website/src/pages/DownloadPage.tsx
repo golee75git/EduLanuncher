@@ -68,13 +68,6 @@ export function DownloadPage() {
         </article>
       </section>
 
-      <p className="text-sm leading-relaxed text-quiet">
-        릴리스가 아직 없으면 GitHub에 파일이 보이지 않습니다. 그때는 저장소에서 직접 확인할 수 있습니다.
-        {" "}
-        <a className="font-medium text-ink hover:text-ink-strong" href={SITE_CONFIG.githubRepo} rel="noreferrer" target="_blank">
-          저장소
-        </a>
-      </p>
       <section className="max-w-2xl space-y-3">
         <h2 className="text-sm font-semibold">여는 방법</h2>
         <p className="text-sm leading-relaxed text-quiet">
