@@ -2463,3 +2463,22 @@ External code:
 
 PATENT_REVIEW:
 이름과 글을 남기고 운영 열쇠로 숨기는 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Opinion desk for hidden posts
+
+Purpose:
+메뉴에 없는 주소에서 숨긴 글을 입력한 이름 그대로 보고 다시 보이게 한다. 공개 목록은 이름의 첫 글자만 보여 준다.
+
+Design source:
+이 저장소의 의견 저장과 같은 숨기기 열쇠
+
+Implementation:
+주소 /manage. 공개 이름은 첫 글자와 **. 한 글자는 그대로. 요청 수는 Cloudflare 대시보드 링크만 둠. 열쇠 값은 이 기록에 없음
+
+External code:
+없음. 새 npm 패키지 없음
+
+PATENT_REVIEW:
+열쇠로 숨긴 글을 다시 보는 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

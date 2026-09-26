@@ -4,6 +4,7 @@ import { SiteHeader } from "./components/SiteHeader";
 import { pathToView, type SiteView } from "./config";
 import { DownloadPage } from "./pages/DownloadPage";
 import { IntroPage } from "./pages/IntroPage";
+import { ManagePage } from "./pages/ManagePage";
 import { OpinionPage } from "./pages/OpinionPage";
 import { PreviewPage } from "./pages/PreviewPage";
 
@@ -58,6 +59,7 @@ export default function App() {
         {view === "preview" ? <PreviewPage /> : null}
         {view === "download" ? <DownloadPage /> : null}
         {view === "opinion" ? <OpinionPage /> : null}
+        {view === "manage" ? <ManagePage /> : null}
       </main>
       <SiteFooter />
     </div>

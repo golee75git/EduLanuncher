@@ -3,6 +3,7 @@ interface OpinionRow {
   display_name: string;
   body: string;
   created_at: string;
+  hidden?: number;
 }
 
 interface Env {
@@ -25,6 +26,7 @@ interface D1Database {
 const NAME_MAX = 20;
 const BODY_MAX = 400;
 const LIST_MAX = 30;
+const MANAGE_MAX = 100;
 const WAIT_SECONDS = 60;
 const FLOOD_WINDOW_MS = 10 * 60 * 1000;
 const FLOOD_MAX = 8;
@@ -113,8 +115,22 @@ async function readJson(request: Request): Promise<Record<string, unknown> | nul
   }
 }
 
-function toPost(row: OpinionRow) {
-  return { id: row.id, name: row.display_name, body: row.body, createdAt: row.created_at };
+function publicName(name: string): string {
+  const chars = [...name];
+  if (chars.length <= 1) {
+    return name;
+  }
+  return `${chars[0]}**`;
+}
+
+function toPost(row: OpinionRow, maskName: boolean) {
+  return {
+    id: row.id,
+    name: maskName ? publicName(row.display_name) : row.display_name,
+    body: row.body,
+    createdAt: row.created_at,
+    hidden: Number(row.hidden) === 1,
+  };
 }
 
 async function listPosts(db: D1Database): Promise<Response> {
@@ -124,7 +140,7 @@ async function listPosts(db: D1Database): Promise<Response> {
     )
     .bind(LIST_MAX)
     .all<OpinionRow>();
-  return json({ posts: (listed.results ?? []).map(toPost) });
+  return json({ posts: (listed.results ?? []).map((row) => toPost(row, true)) });
 }
 
 async function addPost(request: Request, db: D1Database): Promise<Response> {
@@ -159,25 +175,74 @@ async function addPost(request: Request, db: D1Database): Promise<Response> {
     .run();
   const headers = new Headers();
   headers.set("set-cookie", `opinion_wait=1; Max-Age=${WAIT_SECONDS}; HttpOnly; Secure; SameSite=Lax; Path=/`);
-  return json({ post: { id, name, body, createdAt } }, 201, headers);
+  return json({ post: { id, name: publicName(name), body, createdAt, hidden: false } }, 201, headers);
+}
+
+function givenKey(payload: Record<string, unknown> | null): string {
+  return typeof payload?.key === "string" ? payload.key : "";
+}
+
+function rejectKey(env: Env, given: string): Response | null {
+  const key = env.OPINION_HIDE_KEY ?? "";
+  if (!key) {
+    return json({ error: "숨기기 열쇠가 아직 없습니다." }, 503);
+  }
+  if (!sameText(given, key)) {
+    return json({ error: "열쇠가 맞지 않습니다." }, 403);
+  }
+  return null;
 }
 
 async function hidePost(request: Request, env: Env, db: D1Database): Promise<Response> {
   if (!sameSite(request)) {
     return json({ error: "이 사이트에서만 숨길 수 있습니다." }, 403);
   }
-  const key = env.OPINION_HIDE_KEY ?? "";
-  if (!key) {
-    return json({ error: "숨기기 열쇠가 아직 없습니다." }, 503);
-  }
   const payload = await readJson(request);
+  const rejected = rejectKey(env, givenKey(payload));
+  if (rejected) {
+    return rejected;
+  }
   const id = clip(payload?.id, 80);
-  const given = typeof payload?.key === "string" ? payload.key : "";
-  if (!id || !sameText(given, key)) {
+  if (!id) {
     return json({ error: "숨기지 못했습니다." }, 403);
   }
   await db.prepare("UPDATE opinion_post SET hidden = 1 WHERE id = ?").bind(id).run();
   return json({ ok: true });
+}
+
+async function showPost(request: Request, env: Env, db: D1Database): Promise<Response> {
+  if (!sameSite(request)) {
+    return json({ error: "이 사이트에서만 다시 보일 수 있습니다." }, 403);
+  }
+  const payload = await readJson(request);
+  const rejected = rejectKey(env, givenKey(payload));
+  if (rejected) {
+    return rejected;
+  }
+  const id = clip(payload?.id, 80);
+  if (!id) {
+    return json({ error: "다시 보이지 못했습니다." }, 403);
+  }
+  await db.prepare("UPDATE opinion_post SET hidden = 0 WHERE id = ?").bind(id).run();
+  return json({ ok: true });
+}
+
+async function managePosts(request: Request, env: Env, db: D1Database): Promise<Response> {
+  if (!sameSite(request)) {
+    return json({ error: "이 사이트에서만 볼 수 있습니다." }, 403);
+  }
+  const payload = await readJson(request);
+  const rejected = rejectKey(env, givenKey(payload));
+  if (rejected) {
+    return rejected;
+  }
+  const listed = await db
+    .prepare(
+      "SELECT id, display_name, body, created_at, hidden FROM opinion_post ORDER BY created_at DESC LIMIT ?",
+    )
+    .bind(MANAGE_MAX)
+    .all<OpinionRow>();
+  return json({ posts: (listed.results ?? []).map((row) => toPost(row, false)) });
 }
 
 async function handleApi(request: Request, env: Env): Promise<Response> {
@@ -197,6 +262,12 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     if (request.method === "POST" && url.pathname === "/api/opinion/hide") {
       return await hidePost(request, env, db);
     }
+    if (request.method === "POST" && url.pathname === "/api/opinion/show") {
+      return await showPost(request, env, db);
+    }
+    if (request.method === "POST" && url.pathname === "/api/opinion/manage") {
+      return await managePosts(request, env, db);
+    }
     return json({ error: "없는 주소입니다." }, 404);
   } catch {
     return json({ error: "의견을 저장하지 못했습니다." }, 500);
@@ -206,7 +277,12 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === "/api/opinion" || url.pathname === "/api/opinion/hide") {
+    if (
+      url.pathname === "/api/opinion" ||
+      url.pathname === "/api/opinion/hide" ||
+      url.pathname === "/api/opinion/show" ||
+      url.pathname === "/api/opinion/manage"
+    ) {
       return handleApi(request, env);
     }
     return env.ASSETS.fetch(request);

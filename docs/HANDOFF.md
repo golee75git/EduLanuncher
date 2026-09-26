@@ -81,7 +81,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 
 `website/wrangler.jsonc`: `main` = `src/worker/opinion.ts`, `assets.directory` = `./dist`, `not_found_handling` = `single-page-application`. `_redirects` 쓰지 않음.
 
-의견 페이지는 `/opinion`이다. 계정은 없다. 글 저장은 D1 바인딩 `OPINION_DB`, 데이터베이스 `edulanuncher-opinion` (`076c0fba-dabc-48b9-a465-b36a152d3a1a`)이다. 숨기기는 Worker 비밀 `OPINION_HIDE_KEY`가 있을 때 동작한다. 열쇠 값은 저장소에 넣지 않는다.
+의견 페이지는 `/opinion`이다. 계정은 없다. 글 저장은 D1 바인딩 `OPINION_DB`, 데이터베이스 `edulanuncher-opinion` (`076c0fba-dabc-48b9-a465-b36a152d3a1a`)이다. 공개 목록의 이름은 첫 글자만 보이고 뒤는 `**`이다. 한 글자는 그대로다. 글 관리는 메뉴에 없는 `/manage`이다. 같은 Worker 비밀 `OPINION_HIDE_KEY`로 숨긴 글을 포함해 입력한 이름을 보고, 다시 보이게 할 수 있다. 열쇠 값은 저장소에 넣지 않는다. 요청 수는 Cloudflare 대시보드 링크만 둔다.
 
 `main` 푸시하면 배포. 사이트 다운로드 버튼은 GitHub Releases.
 
