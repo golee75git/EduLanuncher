@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.117-20260926",
+    note: "설정의 보기 이름을 카드형 홈 배치로 바꿨습니다.",
+  },
+  {
     version: "0.1.116-20260926",
     note: "편람 분류의 공통 문장 그림은 숨깁니다. 같은 이름의 기존 업무 순서가 하나면 그 제목으로 그림을 그립니다.",
   },
@@ -71,7 +75,7 @@ export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   },
   {
     version: "0.1.100-20260924",
-    note: "설정의 보기에서 이전스킨을 고르면 카드형 홈 이전 배치로 돌아갑니다. 서류·밝은 화면·어두운 화면은 지금 홈입니다.",
+    note: "설정의 보기에서 카드형 홈 배치를 고르면 그 배치로 돌아갑니다. 서류·밝은 화면·어두운 화면은 지금 홈입니다.",
   },
   {
     version: "0.1.99-20260924",

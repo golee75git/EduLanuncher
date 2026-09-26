@@ -46,7 +46,7 @@ export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: str
   { id: "paper", label: "서류", hint: "차가운 회색 바탕" },
   { id: "bright", label: "밝은 화면", hint: "따뜻한 서류색 바탕" },
   { id: "dusk", label: "어두운 화면", hint: "낮은 조명 바탕" },
-  { id: "prior", label: "이전스킨", hint: "카드형 홈 이전 배치" },
+  { id: "prior", label: "카드형 홈 배치", hint: "" },
 ];
 
 export function asPanelSkin(value: unknown): PanelSkin {
