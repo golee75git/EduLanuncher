@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-26
+버전: 0.1.113-20260926
+설치 파일: EduLauncher_0.1.113-20260926_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-26_0957_x64-setup.exe
+작성자: 요청자
+
+내용:
+홈 검색 안내를 사이트·업무·파일·폴더·컴퓨터도구·PC 문제로 바꿨다. 검색창 오른쪽의 Ctrl K 글자는 뺐다. Ctrl+K로 검색창에 가는 동작은 남겼다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src/components/home/GlobalSearch.tsx, src/pages/HomePage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: 안내 문구와 Ctrl K 글자 제거. 키 처리 함수는 유지.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음. 직접 의존성에 GPL 없음. 기존 @img/sharp 계열은 Apache-2.0 AND LGPL-3.0-or-later.
+보안: 새 네트워크 호출 없음. 검색은 기존과 같이 이 PC 안에서만 동작.
+특허: 검색창 안내 문구와 단축키 글자 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-26
 버전: 0.1.112-20260926
 설치 파일: EduLauncher_0.1.112-20260926_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-26_0941_x64-setup.exe

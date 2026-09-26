@@ -9,7 +9,7 @@ interface GlobalSearchProps {
 }
 
 export const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(function GlobalSearch(
-  { value, onChange, onKeyDown, placeholder = "학교·업무·도구·공지·이 PC 폴더" },
+  { value, onChange, onKeyDown, placeholder = "사이트·업무·파일·폴더·컴퓨터도구·PC 문제" },
   ref,
 ) {
   return (
@@ -23,14 +23,8 @@ export const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(func
         placeholder={placeholder}
         aria-label="검색"
         aria-keyshortcuts="Control+K"
-        className="h-14 w-full rounded-[14px] border border-line bg-card pl-11 pr-16 text-[14px] text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
+        className="h-14 w-full rounded-[14px] border border-line bg-card pl-11 pr-4 text-[14px] text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
       />
-      <span
-        className="pointer-events-none absolute right-3 rounded-md border border-line bg-paper px-1.5 py-0.5 text-[10px] font-medium text-quiet"
-        aria-hidden="true"
-      >
-        Ctrl K
-      </span>
     </label>
   );
 });

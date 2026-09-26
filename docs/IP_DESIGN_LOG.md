@@ -2368,3 +2368,22 @@ External code:
 
 PATENT_REVIEW:
 글자 단추 앞의 작은 그림. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Home search hint text
+
+Purpose:
+홈 검색창 안내를 지금 찾는 항목에 맞추고, 안내 글자가 잘리지 않게 한다
+
+Design source:
+이 저장소의 홈 검색 결과 구역. 요청자가 고른 문구
+
+Implementation:
+안내 문구를 사이트·업무·파일·폴더·컴퓨터도구·PC 문제로 바꿈. 검색창 오른쪽 Ctrl K 글자만 제거. Ctrl+K 키 동작은 유지
+
+External code:
+없음
+
+PATENT_REVIEW:
+검색창 안내 문구와 단축키 글자 표시. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

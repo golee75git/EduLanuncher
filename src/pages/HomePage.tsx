@@ -416,7 +416,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       )}
       {prior || searching || activeSchool ? null : <WelcomeMessage />}
       {prior ? (
-        <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="학교·업무·도구·이 PC 폴더·PC 문제" />
+        <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="사이트·업무·파일·폴더·컴퓨터도구·PC 문제" />
       ) : (
         <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
       )}

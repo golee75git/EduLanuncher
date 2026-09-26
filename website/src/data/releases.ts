@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.113-20260926",
+    note: "홈 검색 안내를 사이트·업무·파일·폴더·컴퓨터도구·PC 문제로 바꿨습니다. 검색창의 Ctrl K 글자는 뺐습니다.",
+  },
+  {
     version: "0.1.112-20260926",
     note: "홈 업무도구 줄의 단축키, 업무자료, 편람 분류, 컴퓨터도구 앞에 작은 그림을 넣었습니다.",
   },

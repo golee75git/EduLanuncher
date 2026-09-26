@@ -1,9 +1,9 @@
 export const APP_CONFIG = {
   appName: "EduLauncher",
   displayName: "교육업무 런처",
-  version: "0.1.112-20260926",
-  setupFile: "EduLauncher_0.1.112-20260926_x64-setup.exe",
-  setupFileDated: "EduLauncher_2026-09-26_0941_x64-setup.exe",
+  version: "0.1.113-20260926",
+  setupFile: "EduLauncher_0.1.113-20260926_x64-setup.exe",
+  setupFileDated: "EduLauncher_2026-09-26_0957_x64-setup.exe",
   siteUrl: "https://edulanuncher.zeroorder.kr/",
   releasesUrl: "https://github.com/golee75git/EduLanuncher/releases/latest",
 } as const;
