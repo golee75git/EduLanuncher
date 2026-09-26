@@ -1,4 +1,4 @@
-import { ChevronDown, Download, LayoutPanelTop } from "lucide-react";
+import { Download, LayoutPanelTop } from "lucide-react";
 import { SITE_CONFIG } from "../config";
 import { SITE_RELEASE_NOTES } from "../data/releases";
 import { OpinionPage } from "./OpinionPage";
@@ -109,39 +109,9 @@ export function IntroPage() {
         </article>
       </section>
 
-      <section className="max-w-2xl">
-        <details className="card-surface group">
-          <summary className="flex cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-desk [&::-webkit-details-marker]:hidden">
-            <span>버전 {SITE_CONFIG.version}</span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-quiet group-open:rotate-180" />
-          </summary>
-          <div className="space-y-3 border-t border-line/70 px-4 py-3">
-            <p className="text-sm leading-relaxed text-quiet">
-              지금 받을 수 있는 설치 파일은 {SITE_CONFIG.version}입니다. 아래는 주요 수정·개선입니다. 설치 파일은
-              GitHub Releases에서 받습니다.
-            </p>
-            <ol className="divide-y divide-line/70">
-              {SITE_RELEASE_NOTES.map((item) => (
-                <li key={item.version} className="py-3">
-                  <p className="text-sm font-medium text-desk">{item.version}</p>
-                  <p className="mt-1 text-sm leading-relaxed text-quiet">{item.note}</p>
-                </li>
-              ))}
-            </ol>
-            <p className="text-sm leading-relaxed text-quiet">
-              이전 설치 파일은{" "}
-              <a
-                className="font-medium text-ink hover:text-ink-strong"
-                href={SITE_CONFIG.releasesUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                GitHub Releases
-              </a>
-              에서 볼 수 있습니다.
-            </p>
-          </div>
-        </details>
+      <section className="max-w-2xl space-y-2">
+        <h2 className="text-sm font-semibold">버전 {SITE_CONFIG.version}</h2>
+        <p className="text-sm leading-relaxed text-quiet">{SITE_RELEASE_NOTES[0]?.note}</p>
       </section>
 
       <OpinionPage section />

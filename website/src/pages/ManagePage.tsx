@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SITE_RELEASE_NOTES } from "../data/releases";
 
 interface ManagedPost {
   id: string;
@@ -85,6 +86,18 @@ export function ManagePage() {
           </a>
           에서 봅니다.
         </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold">버전</h2>
+        <ol className="card-surface divide-y divide-line/70">
+          {SITE_RELEASE_NOTES.map((item) => (
+            <li key={item.version} className="px-4 py-3">
+              <p className="text-sm font-medium text-desk">{item.version}</p>
+              <p className="mt-1 text-sm leading-relaxed text-quiet">{item.note}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <form

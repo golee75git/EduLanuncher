@@ -100,7 +100,7 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
           계정은 없습니다. 이름과 글만 남깁니다. 이름은 그 글에만 붙고, 다음 글과 이어지지 않습니다.
         </p>
         <p className="rounded-lg border border-line bg-card px-4 py-3 text-sm leading-relaxed text-desk">
-          학생 이름, 전화번호, 비밀번호는 적지 마세요.
+          이름, 전화번호, 비밀번호는 적지 마세요.
         </p>
       </section>
 
