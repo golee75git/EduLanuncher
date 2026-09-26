@@ -75,6 +75,17 @@ export function DownloadPage() {
           저장소
         </a>
       </p>
+      <section className="max-w-2xl space-y-3">
+        <h2 className="text-sm font-semibold">여는 방법</h2>
+        <p className="text-sm leading-relaxed text-quiet">
+          설치 후 트레이 아이콘을 클릭하거나, 어디서든 <kbd className="rounded border border-line bg-card px-1.5 py-0.5 text-desk">Ctrl</kbd>
+          {" + "}
+          <kbd className="rounded border border-line bg-card px-1.5 py-0.5 text-desk">Alt</kbd>
+          {" + "}
+          <kbd className="rounded border border-line bg-card px-1.5 py-0.5 text-desk">E</kbd>
+          로 패널을 엽니다. 창을 닫으면 종료되지 않고 트레이로 돌아갑니다.
+        </p>
+      </section>
     </div>
   );
 }

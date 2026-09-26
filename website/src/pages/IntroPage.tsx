@@ -145,22 +145,6 @@ export function IntroPage() {
       </section>
 
       <OpinionPage section />
-
-      <section className="max-w-2xl space-y-3">
-        <h2 className="text-sm font-semibold">여는 방법</h2>
-        <p className="text-sm leading-relaxed text-quiet">
-          설치 후 트레이 아이콘을 클릭하거나, 어디서든 <kbd className="rounded border border-line bg-card px-1.5 py-0.5 text-desk">Ctrl</kbd>
-          {" + "}
-          <kbd className="rounded border border-line bg-card px-1.5 py-0.5 text-desk">Alt</kbd>
-          {" + "}
-          <kbd className="rounded border border-line bg-card px-1.5 py-0.5 text-desk">E</kbd>
-          로 패널을 엽니다. 창을 닫으면 종료되지 않고 트레이로 돌아갑니다.
-        </p>
-      </section>
-      <p className="text-sm leading-relaxed text-quiet">
-        사용 의견은 <a className="underline decoration-line underline-offset-2 hover:text-desk" href="/opinion">의견</a>
-        에 이름과 글을 남깁니다. 계정은 없습니다.
-      </p>
     </div>
   );
 }
