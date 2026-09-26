@@ -2456,7 +2456,7 @@ Design source:
 이 저장소의 website 소개 페이지와 Cloudflare Worker 정적 자산
 
 Implementation:
-메뉴 의견, 주소 /opinion. 글은 Worker가 받고 D1이 연결되어 있을 때만 저장. 숨기기는 서버 열쇠가 있을 때만 됨
+메뉴 의견, 주소 /opinion. 글은 Worker가 받고 D1 `edulanuncher-opinion`에 저장. 숨기기는 Worker 비밀 열쇠가 있을 때만 됨. 열쇠 값은 이 기록에 없음
 
 External code:
 없음. 새 npm 패키지 없음
