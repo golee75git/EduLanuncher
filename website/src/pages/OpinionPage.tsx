@@ -20,7 +20,7 @@ function formatWhen(value: string): string {
   });
 }
 
-export function OpinionPage() {
+export function OpinionPage({ section = false }: { section?: boolean }) {
   const [posts, setPosts] = useState<OpinionPost[]>([]);
   const [name, setName] = useState("");
   const [body, setBody] = useState("");
@@ -89,9 +89,13 @@ export function OpinionPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
+    <div className={section ? "max-w-2xl space-y-4" : "mx-auto max-w-2xl space-y-8"}>
       <section className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-desk">의견</h1>
+        {section ? (
+          <h2 className="text-sm font-semibold">의견</h2>
+        ) : (
+          <h1 className="text-3xl font-semibold tracking-tight text-desk">의견</h1>
+        )}
         <p className="text-sm leading-relaxed text-quiet">
           계정은 없습니다. 이름과 글만 남깁니다. 이름은 그 글에만 붙고, 다음 글과 이어지지 않습니다.
         </p>
