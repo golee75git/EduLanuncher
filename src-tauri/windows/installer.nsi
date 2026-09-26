@@ -762,6 +762,8 @@ Function un.onInit
  !endif
 
  !insertmacro MUI_UNGETLANGUAGE
+ ; Previous installs may have saved English. The uninstall pages stay Korean.
+ StrCpy $LANGUAGE ${LANG_KOREAN}
 
  ${GetOptions} $CMDLINE "/P" $PassiveMode
  ${IfNot} ${Errors}

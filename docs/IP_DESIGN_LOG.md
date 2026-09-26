@@ -2330,3 +2330,22 @@ External code:
 
 PATENT_REVIEW:
 주소 표시와 브라우저 열기. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Korean uninstall pages and launch on finish
+
+Purpose:
+제거 창을 한글로 보여주고, 설치 완료 창의 마침을 눌렀을 때 런처를 실행한다
+
+Design source:
+이 저장소의 NSIS 마침 페이지(MUI_FINISHPAGE_RUN). 파일 복사 직후 실행은 제거
+
+Implementation:
+제거 시작 시 언어를 한글로 고정. POSTINSTALL의 즉시 실행을 뺌
+
+External code:
+없음. 기존 Tauri 템플릿의 호출 시점만 조정
+
+PATENT_REVIEW:
+설치 완료 후 실행과 제거 창 언어. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

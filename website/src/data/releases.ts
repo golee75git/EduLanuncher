@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.111-20260926",
+    note: "제거 창을 한글로 고정했습니다. 설치 완료 창에서 마침을 누르면 런처가 실행됩니다.",
+  },
+  {
     version: "0.1.110-20260926",
     note: "설치 창을 한글로 두고, 기존 버전을 지운 뒤 닫기 없이 새 설치가 이어집니다. 인증서 검색 안내에 https://www.epki.go.kr/ 을 넣었습니다.",
   },

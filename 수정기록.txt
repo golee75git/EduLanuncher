@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-26
+버전: 0.1.111-20260926
+설치 파일: EduLauncher_0.1.111-20260926_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-26_0913_x64-setup.exe
+작성자: 요청자
+
+내용:
+제거 창은 이전에 저장된 언어와 상관없이 한글로 고정했다. 파일 복사가 끝날 때 런처를 켜지 않고, 설치 완료 창에서 마침을 누르면 실행되게 했다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src-tauri/windows/hooks.nsh, src-tauri/windows/installer.nsi, src-tauri/tauri.conf.json, src/pages/SettingsPage.tsx, src/config/app.ts, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: 제거 초기화에서 언어를 한글로 지정. POSTINSTALL 실행 제거. 마침 페이지의 실행 함수는 유지.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음. 직접 의존성에 GPL 없음. 설치 스크립트 본문은 기존 Tauri Apache-2.0 OR MIT. 기존 @img/sharp 계열은 Apache-2.0 AND LGPL-3.0-or-later.
+보안: 새 네트워크 호출 없음. 마침을 누를 때만 설치 폴더의 exe를 실행.
+특허: 설치 완료 후 실행과 제거 창 언어. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-26
 버전: 0.1.110-20260926
 설치 파일: EduLauncher_0.1.110-20260926_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-26_0858_x64-setup.exe

@@ -3,7 +3,7 @@
 기준일: 2026-09-24  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.110-20260926`
+최신 커밋 시점의 앱 버전: `0.1.111-20260926`
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 
@@ -100,7 +100,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 - 소개·설치 안내 웹에 「개인 사용 PC에만 설치하세요」강조. 아랫줄에 파일·폴더를 삭제하지 않는다고 적음. 공용 PC·실습실·다른 계정 설치를 안내에서 말림
 - 업무도구 「QR코드 넣기」(이 PC 그림 + http(s) 주소 → PNG). QR Code 상표·라이선스·특허 비보장 고지
 - 공지·사이트 Pack(`edulauncher-share`): 공지+사이트 url만. 저장 시 항목 고르기. 설정에서 저장·가져오기. 받는 쪽에서 공지와 사이트를 고름. 백업·할 일·메모·설정 제외
-- 처음 설치 기본: 시작 시 자동 실행·시작 시 창 표시 켜짐. NSIS 설치 직후 앱 실행(`windows/hooks.nsh`). 이미 저장된 설정은 덮지 않음
+- 처음 설치 기본: 시작 시 자동 실행·시작 시 창 표시 켜짐. NSIS 마침을 누르면 앱 실행. 이미 저장된 설정은 덮지 않음
 - 사이트 칸에서 이 PC Edge·Chrome 북마크와 Windows `.url` 목록. Windows `.url`을 넣으면 그 파일 아이콘을 남김. 탐색기 보내기 → 교육업무 런처로 `.url`을 넣음. `.url` 기본 연결은 바꾸지 않음. `.url` 본문의 `IconFile`이 이 PC 안 `.ico/.exe/.dll`이면 그 그림을 우선 쓰고, 경로 없이 넘어오는 가상 파일 `.url`(IE 즐겨찾기 등)도 이름·본문을 읽어 같은 방식으로 처리(`drop_target.rs`, `shell_icon.rs`). 원격 아이콘 주소는 받지 않음. IE 즐겨찾기 표시줄·펼친 즐겨찾기에서 끌 때는 끌어 온 쪽이 허용한 동작(복사→링크, 이동은 받지 않음)으로 응답하고, `CF_HDROP`→`Shell IDList Array`(파일 경로)→가상 파일→`UniformResourceLocator(W)`→텍스트 순으로 읽음. 다 읽지 못하면 받은 형식 이름을 안내 문구로 보여 줌. Edge 즐겨찾기 막대 끌기는 이 PC의 보안 프로그램(AhnLab Safe Transaction·V3 Lite·INISAFE)으로 막힐 수 있어, 「인터넷 즐겨찾기」 화면의 「내보낸 즐겨찾기 파일 불러오기」로 Edge가 내보낸 HTML(`ICON="data:image/png;base64,…"`, `bookmarkHtmlService.ts`, `read_bookmark_html`)을 읽어 PNG 그림과 함께 넣는다. 사이트에 접속하지 않음. 추가로 사이트를 넣을 때(`addDroppedSiteNow`) 그림이 없으면 이 PC Edge·Chrome의 `Favicons`에서 그 주소의 PNG를 찾아 남김(`favicon_db.rs`, `favicon_for_url`): SQLite 공개 형식 문서만 보고 새로 쓴 읽기 전용 최소 코드로 `icon_mapping`·`favicon_bitmaps` 두 표만 읽고 History·쿠키·로그인은 열지 않음. 열 이름이 기대와 다르면 포기. 32px에 가까운 PNG(24KB 이하)를 고르고 같은 주소가 없으면 같은 사이트 주소로 찾음. `.url` 경로는 본문 IconFile → 브라우저 그림 → 셸 아이콘 순. 「인터넷 즐겨찾기」 목록 각 줄 앞에도 그림을 보임: 내보낸 파일의 그림 → `.url` 파일 자체 그림(`readUrlShortcut`, 200개까지) → 이 PC 브라우저 그림을 `favicon_for_urls`로 한 번에(1000개까지, 파일을 두 번만 훑음). 없으면 지구본
 - 업무도구 칸에서 컴퓨터도구(이 PC Windows 설정 화면, 이 PC IP 주소·사설/공인 IP, 제어판·소리·인터넷 옵션·작업 관리자·시스템 정보, 익스플로러 설정 복원 확인)
 - 설정에서 서류·밝은 화면·어두운 화면 스킨
