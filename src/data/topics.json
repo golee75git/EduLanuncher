@@ -1748,6 +1748,7 @@
         "type": "manual",
         "title": "교육행정전자서명(EPKI) 인증서 발급 및 관리",
         "document": "2026 학교행정 업무편람(202602)",
+        "url": "https://www.epki.go.kr/",
         "jurisdiction": "unknown",
         "status": "unknown",
         "needsReview": true
@@ -1760,11 +1761,11 @@
     "warnings": [],
     "status": "unknown",
     "needsReview": true,
-    "beginnerSummary": "교직원이 업무시스템에서 쓰는 교육행정전자서명(EPKI) 인증서를 발급·갱신·관리하는 업무입니다. 신청과 발급 후 시스템 등록 절차를 살펴봅니다.",
+    "beginnerSummary": "교직원이 업무시스템에서 쓰는 교육행정전자서명(EPKI) 인증서를 발급·갱신·관리하는 업무입니다. 신청 사이트는 https://www.epki.go.kr/ 입니다.",
     "detail": {
       "externalTopicId": "TOPIC-EPKI-01",
       "purpose": "나이스(NEIS) 및 K-에듀파인 시스템 접속을 위한 디지털 신분증(EPKI)의 안전한 발급 및 관리",
-      "easyExplanation": "선생님과 행정실 직원이 나이스와 에듀파인에 로그인할 때 쓰는 '인증서'를 새로 발급받거나 2년 3개월마다 갱신하고, PC 이동 시 백업·삭제하는 절차입니다.",
+      "easyExplanation": "선생님과 행정실 직원이 나이스와 에듀파인에 로그인할 때 쓰는 '인증서'를 새로 발급받거나 2년 3개월마다 갱신하고, PC 이동 시 백업·삭제하는 절차입니다. 신청 사이트는 https://www.epki.go.kr/ 입니다.",
       "flowchart": [
         {
           "order": 1,

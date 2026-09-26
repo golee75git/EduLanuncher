@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.110-20260926",
+    note: "설치 창을 한글로 두고, 기존 버전을 지운 뒤 닫기 없이 새 설치가 이어집니다. 인증서 검색 안내에 https://www.epki.go.kr/ 을 넣었습니다.",
+  },
+  {
     version: "0.1.109-20260925",
     note: "편람 분류 19개와 업무 91개의 흐름 그림을 기존 상자 그림으로 열 수 있습니다. 기존 업무 목록은 그대로이고, 쪽수는 출처 표기만입니다.",
   },

@@ -2292,3 +2292,41 @@ External code:
 
 PATENT_REVIEW:
 상자 클릭으로 단계를 여는 구성. 특허 청구항과 1:1 대조는 하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Korean installer pages and upgrade without a close step
+
+Purpose:
+학교 업무 담당자가 설치 창을 한글로 보고, 기존 버전을 지운 뒤 닫기 단추 없이 새 설치로 이어지게 한다
+
+Design source:
+Tauri NSIS 설정 languages. 설치 스크립트는 Tauri 템플릿(Apache-2.0 OR MIT, tauri-cli 2.11.4)이며 업그레이드 제거에 /UPDATE를 항상 붙인 한 줄만 이 저장소에서 바꿈
+
+Implementation:
+설치 언어는 Korean만. 영어 설치 파일은 만들지 않음. 제거 프로그램이 /UPDATE를 받으면 완료 페이지를 스스로 닫음
+
+External code:
+설치 스크립트 본문은 Tauri 템플릿. 앱 화면 코드는 복사하지 않음
+
+PATENT_REVIEW:
+설치 마법사 언어와 업데이트 시 자동 닫기. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Certificate search shows the EPKI site
+
+Purpose:
+인증서 검색 안내에 신청 사이트 주소를 보여 준다
+
+Design source:
+요청자가 지정한 https://www.epki.go.kr/ . 기존 업무 카드와 원문 보기
+
+Implementation:
+TASK-010 안내 문장과 자료 주소, EPKI 매뉴얼 첫 요약에만 그 주소를 넣음
+
+External code:
+없음
+
+PATENT_REVIEW:
+주소 표시와 브라우저 열기. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

@@ -5,6 +5,27 @@
 
 ---
 
+날짜: 2026-09-26
+버전: 0.1.110-20260926
+설치 파일: EduLauncher_0.1.110-20260926_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-26_0858_x64-setup.exe
+작성자: 요청자
+
+내용:
+설치 창을 한글로만 두었다. 영어 설치 파일은 만들지 않았다. 이미 설치된 버전을 지우고 다시 설치할 때 제거 프로그램에 /UPDATE를 넘겨, 삭제 완료 뒤 닫기 단추 없이 새 설치가 이어지게 했다. 그 과정에서는 바로가기와 앱 목록을 지우지 않는다. 인증서 검색 안내에 https://www.epki.go.kr/ 을 넣었고, 그 주소가 있는 자료는 원문 보기로 연다.
+
+새로 작성한 파일: src-tauri/windows/installer.nsi (Tauri 템플릿 본문, 업그레이드 제거 플래그만 로컬 변경)
+재사용한 기존 파일(수정): src-tauri/tauri.conf.json, src/data/topics.json, src/data/manuals/epki.json, src/pages/SettingsPage.tsx, src/config/app.ts, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: 설치 언어 Korean. 주소는 요청한 한 곳. tsc는 빌드에서 확인.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음. 직접 의존성에 GPL 없음. 설치 스크립트 본문은 Tauri Apache-2.0 OR MIT. 기존 @img/sharp 계열은 Apache-2.0 AND LGPL-3.0-or-later.
+보안: 인증서 주소는 https만 브라우저로 연다. 설치 플래그는 로컬 제거 프로그램에만 전달. 새 네트워크 호출 없음.
+특허: 한글 설치 창, 업데이트 시 자동 닫기, 주소 열기. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
 날짜: 2026-09-25
 버전: 0.1.109-20260925
 설치 파일: EduLauncher_0.1.109-20260925_x64-setup.exe
