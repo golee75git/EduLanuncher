@@ -230,18 +230,24 @@ function TopicBody({
         {topic.generalGuidance ? null : topic.purpose ? <p className="text-[12px] leading-5 text-desk">{topic.purpose}</p> : null}
         {topic.generalGuidance ? null : topic.easy ? <p className="text-[12px] leading-5 text-quiet">{topic.easy}</p> : null}
         <p className="text-[11px] text-quiet">편람 쪽수(원본 표기) {topic.pages || "자료에 없음"}</p>
-        {topic.generalGuidance ? (
+        {topic.generalGuidance && !topic.detailNote && topic.steps.every((item) => !item.description) ? (
           <p className="rounded-md border border-line bg-card px-2 py-1 text-[12px] leading-5 text-desk">
             구체적인 기한·서류·기준은 이 데이터에서 확인되지 않음
           </p>
         ) : null}
-        {topic.generalGuidance && topic.steps.length === 0 ? (
-          <p className="text-[12px] text-quiet">이 업무만의 순서는 이 자료에서 확인되지 않습니다.</p>
-        ) : topic.picture.tree ? (
+        {topic.detailNote ? (
+          <section className="space-y-1 rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
+            <h2 className="font-medium">주요내용</h2>
+            <p>{topic.detailNote}</p>
+          </section>
+        ) : null}
+        {topic.picture.tree ? (
           <HandbookFlowPicture root={topic.picture.tree} activeId={activeNode} onPick={pick} />
-        ) : (
+        ) : topic.generalGuidance && topic.steps.length === 0 && !topic.detailNote ? (
+          <p className="text-[12px] text-quiet">이 업무만의 순서는 이 자료에서 확인되지 않습니다.</p>
+        ) : topic.steps.length > 0 ? (
           <p className="text-[12px] text-quiet">이 업무 그림은 풀지 못했습니다. 아래 단계 목록을 씁니다.</p>
-        )}
+        ) : null}
         {topic.picture.backArrows.length > 0 ? (
           <p className="text-[11px] text-quiet">되돌아가는 연결 {topic.picture.backArrows.length}개는 그림에 넣지 않고 단계 목록에서 봅니다.</p>
         ) : null}
@@ -259,7 +265,13 @@ function TopicBody({
             </button>
           ))}
         </div>
-        {step ? (
+        {step?.description ? (
+          <section className="space-y-1 rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
+            <h2 className="font-medium">주요내용</h2>
+            <p className="text-[11px] text-quiet">{step.name}</p>
+            <p>{step.description}</p>
+          </section>
+        ) : step ? (
           <section className="space-y-1 rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
             <h2 className="font-medium">{step.name || "자료에 없음"}</h2>
             <p>설명 {stepField(step.description)}</p>
@@ -280,6 +292,22 @@ function TopicBody({
         ) : topic.steps.length === 0 ? null : (
           <p className="text-[12px] text-quiet">단계를 누르면 그 칸의 문장을 봅니다.</p>
         )}
+        {topic.id === "TOPIC-01-01" && step && (step.tip || step.reference) ? (
+          <section className="space-y-2 rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
+            {step.tip ? (
+              <div>
+                <h2 className="font-medium">팁</h2>
+                <p>{step.tip}</p>
+              </div>
+            ) : null}
+            {step.reference ? (
+              <div>
+                <h2 className="font-medium">참고</h2>
+                <p>{step.reference}</p>
+              </div>
+            ) : null}
+          </section>
+        ) : null}
         {topic.decisionText.trim() ? (
           <section className="rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
             <h2 className="font-medium">판단 문장</h2>

@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.118-20260926",
+    note: "편람 분류 1번의 순서도 칸을 누르면 그 칸의 주요내용이 나옵니다. 1-1 공인 관리만 아래에 팁과 참고가 있습니다.",
+  },
+  {
     version: "0.1.117-20260926",
     note: "설정의 보기 이름을 카드형 홈 배치로 바꿨습니다.",
   },

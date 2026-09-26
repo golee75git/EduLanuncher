@@ -1,3 +1,4 @@
+import { cat1DetailNote, cat1StepNote } from "../data/handbookCat1Notes";
 import rawPack from "../data/handbookFlowPack.json";
 import { getTopics } from "./topicService";
 import {
@@ -47,6 +48,8 @@ function flowFromTitles(topicId: string, titles: string[]): Pick<HandbookTopic, 
     caveat: "",
     nextStep: titles[index + 1] ?? "",
     relatedTopic: "",
+    tip: "",
+    reference: "",
   }));
   const links: HandbookLink[] = titles.map((label, index) => ({
     nodeId: ids[index],
@@ -60,20 +63,37 @@ function flowFromTitles(topicId: string, titles: string[]): Pick<HandbookTopic, 
   return { picture, steps, links };
 }
 
+function applyCat1(topic: HandbookTopic): HandbookTopic {
+  const detailNote = cat1DetailNote(topic.id);
+  let changed = Boolean(detailNote);
+  const steps = topic.steps.map((step) => {
+    const note = cat1StepNote(topic.id, step.name);
+    if (!note) {
+      return step;
+    }
+    changed = true;
+    return { ...step, description: note.body, tip: note.tip, reference: note.reference };
+  });
+  if (!changed) {
+    return topic;
+  }
+  return { ...topic, steps, detailNote: detailNote || undefined };
+}
+
 function presentTopic(topic: HandbookTopic): HandbookTopic {
   if (!topic.generalGuidance) {
-    return topic;
+    return applyCat1(topic);
   }
   const titles = oneExistingFlow(topic.title);
   if (!titles) {
-    return {
+    return applyCat1({
       ...topic,
       picture: { tree: null, backArrows: [], nodeIds: [] },
       steps: [],
       links: [],
-    };
+    });
   }
-  return { ...topic, ...flowFromTitles(topic.id, titles), shownFromExisting: true };
+  return applyCat1({ ...topic, ...flowFromTitles(topic.id, titles), shownFromExisting: true });
 }
 
 export function getHandbookCatalog(): HandbookCatalog {

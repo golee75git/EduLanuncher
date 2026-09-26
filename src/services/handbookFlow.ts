@@ -14,6 +14,8 @@ export interface HandbookStep {
   caveat: string;
   nextStep: string;
   relatedTopic: string;
+  tip: string;
+  reference: string;
 }
 
 export interface ChartArrow {
@@ -53,6 +55,7 @@ export interface HandbookTopic {
   links: HandbookLink[];
   generalGuidance: boolean;
   shownFromExisting?: boolean;
+  detailNote?: string;
 }
 
 export interface HandbookCategory {
@@ -307,6 +310,8 @@ function readSteps(value: unknown): HandbookStep[] {
       caveat: clip(row.caveat, MAX_TEXT),
       nextStep: clip(row.next_step, MAX_SHORT),
       relatedTopic: clip(row.related_topic, MAX_SHORT),
+      tip: "",
+      reference: "",
     });
   }
   return steps;
