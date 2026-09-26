@@ -55,8 +55,9 @@ export function IntroPage() {
           프로그램입니다. 평소에는 화면을 가리지 않고, 필요할 때만 엽니다.
         </p>
         <p className="rounded-lg border border-line bg-card px-4 py-3 text-sm leading-relaxed text-desk">
-          <strong className="font-semibold">개인 사용 PC에만 설치하세요.</strong> 공용 PC·실습실·다른 사람
-          계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다.
+          <strong className="font-semibold">개인 사용 PC에만 설치하세요.</strong> 이 PC에서만 동작합니다. 서버에
+          로그인하지 않습니다. 공지·메모·바로가기 목록은 설치한 컴퓨터에만 저장됩니다. 공용 PC·실습실·다른 사람
+          계정에는 설치하지 않습니다.
           <br />
           런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.
         </p>
@@ -159,10 +160,6 @@ export function IntroPage() {
       <p className="text-sm leading-relaxed text-quiet">
         사용 의견은 <a className="underline decoration-line underline-offset-2 hover:text-desk" href="/opinion">의견</a>
         에 이름과 글을 남깁니다. 계정은 없습니다.
-      </p>
-      <p className="text-sm leading-relaxed text-quiet">
-        <span className="font-semibold text-desk">이 PC에서만 동작.</span> 서버에 로그인하지 않습니다. 공지·메모·바로가기
-        목록은 설치한 컴퓨터에만 저장됩니다. 개인 사용 PC에만 설치하세요.
       </p>
     </div>
   );
