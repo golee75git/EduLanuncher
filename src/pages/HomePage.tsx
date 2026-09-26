@@ -1,4 +1,4 @@
-import { Plus, Settings } from "lucide-react";
+import { BookOpen, Compass, Keyboard, Plus, Settings, Wrench, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FavoriteGrid } from "../components/FavoriteGrid";
 import { HighlightText } from "../components/HighlightText";
@@ -127,6 +127,10 @@ function flattenResults(
     cardId: hit.item.id,
   }));
   return [...tools, ...recents, ...folders, ...schools, ...troubles, ...topics];
+}
+
+function WorkToolMark({ icon: Icon }: { icon: LucideIcon }) {
+  return <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />;
 }
 
 export function HomePage({ onAction, search = "" }: HomePageProps) {
@@ -374,8 +378,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const prior = isPriorSkin(settings.panelSkin);
   const cardColumns = homeFavoriteColumns(settings.panelWidth);
   const linkClass = prior
-    ? "rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
-    : "inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
+    ? "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+    : "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
   const homeJump = searching || activeSchool ? (
     <HomeJumpButton
       onClick={() => {
@@ -439,8 +443,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
               <div className={prior ? "space-y-3" : "space-y-4"}>
                 {favoriteGroups.map((group) => (
                   <div key={group.type}>
-                    <div className="mb-1.5 flex items-center gap-1">
-                      <h3 className={prior ? "min-w-0 flex-1 text-[13px] font-medium text-desk" : "min-w-0 flex-1 text-[12px] font-medium text-quiet"}>{group.label}</h3>
+                    <div className="mb-1.5 flex items-start gap-1">
+                      <h3 className={prior ? "shrink-0 pt-0.5 text-[13px] font-medium text-desk" : "shrink-0 pt-2 text-[12px] font-medium text-quiet"}>{group.label}</h3>
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1">
                       {group.type === "url" ? (
                         <button
                           type="button"
@@ -457,6 +462,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                             className={linkClass}
                             onClick={() => onAction({ type: "shortcuts" })}
                           >
+                            <WorkToolMark icon={Keyboard} />
                             단축키
                           </button>
                           <button
@@ -464,6 +470,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                             className={linkClass}
                             onClick={() => onAction({ type: "topics" })}
                           >
+                            <WorkToolMark icon={Compass} />
                             업무자료
                           </button>
                           <button
@@ -471,6 +478,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                             className={linkClass}
                             onClick={() => onAction({ type: "handbook" })}
                           >
+                            <WorkToolMark icon={BookOpen} />
                             편람 분류
                           </button>
                           <button
@@ -478,6 +486,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                             className={linkClass}
                             onClick={() => onAction({ type: "computer-tools" })}
                           >
+                            <WorkToolMark icon={Wrench} />
                             컴퓨터도구
                           </button>
                         </>
@@ -498,6 +507,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                       >
                         <Plus className="h-3.5 w-3.5" />
                       </button>
+                      </div>
                     </div>
                     {prior ? (
                       <FavoriteGrid

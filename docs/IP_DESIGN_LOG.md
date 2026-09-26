@@ -2349,3 +2349,22 @@ External code:
 
 PATENT_REVIEW:
 설치 완료 후 실행과 제거 창 언어. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Small marks on home work-tool links
+
+Purpose:
+홈 업무도구 줄에서 단축키, 업무자료, 편람 분류, 컴퓨터도구를 그림으로 구분한다
+
+Design source:
+이 저장소에 이미 있는 lucide-react 선 아이콘. 첨부된 파스텔 타일 그림은 넣지 않음
+
+Implementation:
+기존 글자 단추 앞에 Keyboard, Compass, BookOpen, Wrench를 16px로 둔다. 누르는 화면은 그대로
+
+External code:
+없음. 아이콘 패키지는 기존 의존성
+
+PATENT_REVIEW:
+글자 단추 앞의 작은 그림. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

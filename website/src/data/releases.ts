@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.112-20260926",
+    note: "홈 업무도구 줄의 단축키, 업무자료, 편람 분류, 컴퓨터도구 앞에 작은 그림을 넣었습니다.",
+  },
+  {
     version: "0.1.111-20260926",
     note: "제거 창을 한글로 고정했습니다. 설치 완료 창에서 마침을 누르면 런처가 실행됩니다.",
   },

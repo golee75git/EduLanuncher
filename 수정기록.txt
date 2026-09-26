@@ -6,6 +6,27 @@
 ---
 
 날짜: 2026-09-26
+버전: 0.1.112-20260926
+설치 파일: EduLauncher_0.1.112-20260926_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-26_0941_x64-setup.exe
+작성자: 요청자
+
+내용:
+홈 업무도구 줄의 단축키, 업무자료, 편람 분류, 컴퓨터도구 글자 앞에 작은 그림을 넣었다. 첨부된 파스텔 타일 그림은 저장소에 없어 넣지 않았고, 이미 쓰는 선 아이콘을 16px로 썼다. 누르는 화면은 그대로다.
+
+새로 작성한 파일: 없음
+재사용한 기존 파일(수정): src/pages/HomePage.tsx, src/pages/SettingsPage.tsx, src/config/app.ts, src-tauri/tauri.conf.json, website/src/config.ts, website/src/data/releases.ts, docs/HANDOFF.md, docs/IP_DESIGN_LOG.md, 수정기록.txt
+
+확인한 것: tsc 통과. 브라우저 미리보기는 Tauri 없이 홈이 비어 있어 창 화면은 확인하지 못함.
+
+글꼴: Windows 시스템 글꼴(Segoe UI, 맑은 고딕). SIL OFL 아님. 번들 없음. 글꼴은 바꾸지 않음.
+라이선스: 패키지 추가 없음. lucide-react는 기존 의존성(ISC). 직접 의존성에 GPL 없음. 기존 @img/sharp 계열은 Apache-2.0 AND LGPL-3.0-or-later.
+보안: 새 네트워크 호출 없음. 그림은 화면 표시만.
+특허: 글자 단추 앞의 작은 그림. 청구항 대조는 별도. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-26
 버전: 0.1.111-20260926
 설치 파일: EduLauncher_0.1.111-20260926_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-26_0913_x64-setup.exe
