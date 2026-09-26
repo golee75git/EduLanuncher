@@ -79,7 +79,9 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감)
 | Deploy command | `npx wrangler deploy` |
 | Output | `dist` |
 
-`website/wrangler.jsonc`: `assets.directory` = `./dist`, `not_found_handling` = `single-page-application`. `_redirects` 쓰지 않음.
+`website/wrangler.jsonc`: `main` = `src/worker/opinion.ts`, `assets.directory` = `./dist`, `not_found_handling` = `single-page-application`. `_redirects` 쓰지 않음.
+
+의견 페이지는 `/opinion`이다. 계정은 없다. 글 저장은 D1 바인딩 `OPINION_DB`(데이터베이스 이름 `edulanuncher-opinion`)가 있을 때 동작한다. 숨기기는 Worker 비밀 `OPINION_HIDE_KEY`가 있을 때 동작한다. 이 두 값은 저장소에 넣지 않는다. `website`에서 `npx wrangler login` 뒤 `npx wrangler d1 create edulanuncher-opinion`으로 만든 `database_id`를 `wrangler.jsonc`의 `d1_databases`에 넣고, `npx wrangler secret put OPINION_HIDE_KEY`로 열쇠를 넣는다.
 
 `main` 푸시하면 배포. 사이트 다운로드 버튼은 GitHub Releases.
 

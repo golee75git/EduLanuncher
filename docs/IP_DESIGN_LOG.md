@@ -2444,3 +2444,22 @@ External code:
 
 PATENT_REVIEW:
 기존 제목으로 순서 상자를 그리는 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Anonymous opinion page on the intro site
+
+Purpose:
+소개 사이트에서 계정 없이 이름과 글을 남긴다
+
+Design source:
+이 저장소의 website 소개 페이지와 Cloudflare Worker 정적 자산
+
+Implementation:
+메뉴 의견, 주소 /opinion. 글은 Worker가 받고 D1이 연결되어 있을 때만 저장. 숨기기는 서버 열쇠가 있을 때만 됨
+
+External code:
+없음. 새 npm 패키지 없음
+
+PATENT_REVIEW:
+이름과 글을 남기고 운영 열쇠로 숨기는 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

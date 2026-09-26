@@ -170,6 +170,10 @@ export function IntroPage() {
           </a>
         </div>
       </section>
+      <p className="text-sm leading-relaxed text-quiet">
+        사용 의견은 <a className="underline decoration-line underline-offset-2 hover:text-desk" href="/opinion">의견</a>
+        에 이름과 글을 남깁니다. 계정은 없습니다.
+      </p>
     </div>
   );
 }

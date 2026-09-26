@@ -10,16 +10,18 @@ export const SITE_CONFIG = {
     "https://github.com/golee75git/EduLanuncher/releases/download/0.1.116-20260926/EduLauncher_0.1.116-20260926_x64-setup.exe",
 } as const;
 
-export type SiteView = "intro" | "preview" | "download";
+export type SiteView = "intro" | "preview" | "download" | "opinion";
 
 export function pathToView(pathname: string): SiteView {
   if (pathname === "/preview" || pathname.startsWith("/preview/")) return "preview";
   if (pathname === "/download" || pathname.startsWith("/download/")) return "download";
+  if (pathname === "/opinion" || pathname.startsWith("/opinion/")) return "opinion";
   return "intro";
 }
 
 export function viewToPath(view: SiteView): string {
   if (view === "preview") return "/preview";
   if (view === "download") return "/download";
+  if (view === "opinion") return "/opinion";
   return "/";
 }
