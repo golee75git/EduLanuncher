@@ -45,10 +45,10 @@ export function IntroPage() {
     <div className="space-y-12">
       <section className="max-w-2xl space-y-4">
         <p className="text-[11px] font-semibold tracking-wide text-ink">{SITE_CONFIG.appName}</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-desk sm:text-4xl">
-          학교 사무를 위한
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <span className="text-desk">교육행정 업무 효율화를 위한</span>
           <br />
-          Windows 업무 런처
+          <span className="text-ink">Windows 업무 런처</span>
         </h1>
         <p className="text-base leading-relaxed text-quiet">
           {SITE_CONFIG.displayName}는 교육기관 직원용 작은 패널입니다. 웹 서비스가 아니라 이 PC에 설치하는
