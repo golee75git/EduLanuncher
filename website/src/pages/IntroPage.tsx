@@ -1,4 +1,4 @@
-import { Download, LayoutPanelTop, Monitor } from "lucide-react";
+import { Download, LayoutPanelTop } from "lucide-react";
 import { SITE_CONFIG } from "../config";
 import { SITE_RELEASE_NOTES } from "../data/releases";
 
@@ -149,26 +149,6 @@ export function IntroPage() {
           <kbd className="rounded border border-line bg-card px-1.5 py-0.5 text-desk">E</kbd>
           로 패널을 엽니다. 창을 닫으면 종료되지 않고 트레이로 돌아갑니다.
         </p>
-      </section>
-
-      <section className="card-surface flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <Monitor className="mt-0.5 h-5 w-5 shrink-0 text-ink" />
-          <div>
-            <h2 className="text-sm font-semibold">Windows 전용</h2>
-            <p className="mt-1 text-sm text-quiet">
-              웹 미리보기는 모양만 보여 줍니다. 실행·끌어놓기·팩 적용은 설치본에서만 됩니다.
-            </p>
-          </div>
-        </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-          <a className="btn-secondary w-full sm:w-auto" href="/preview">
-            웹 미리보기
-          </a>
-          <a className="btn-primary w-full sm:w-auto" href="/download">
-            데스크톱 받기
-          </a>
-        </div>
       </section>
       <p className="text-sm leading-relaxed text-quiet">
         사용 의견은 <a className="underline decoration-line underline-offset-2 hover:text-desk" href="/opinion">의견</a>
