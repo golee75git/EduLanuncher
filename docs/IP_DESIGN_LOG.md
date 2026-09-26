@@ -2425,3 +2425,22 @@ External code:
 
 PATENT_REVIEW:
 시간대별 인사 문구. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: Handbook picture uses an existing workflow when the chart is shared
+
+Purpose:
+여러 업무에 같은 문장으로 들어간 편람 그림 대신, 이미 있는 업무 순서 제목만 보여 준다
+
+Design source:
+이 저장소의 topics.json workflow 제목. 편람 JSON의 공통 문장은 화면에 그리지 않음
+
+Implementation:
+공통 안내인 편람 업무는 분류 이름과 같은 기존 업무 순서가 하나일 때만 그 제목으로 상자를 그린다. 순서가 없거나 서로 다르면 공통 그림과 공통 단계를 숨긴다
+
+External code:
+없음
+
+PATENT_REVIEW:
+기존 제목으로 순서 상자를 그리는 구성. 청구항 대조는 별도. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

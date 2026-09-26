@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.116-20260926",
+    note: "편람 분류의 공통 문장 그림은 숨깁니다. 같은 이름의 기존 업무 순서가 하나면 그 제목으로 그림을 그립니다.",
+  },
+  {
     version: "0.1.115-20260926",
     note: "11시 30분부터 12시 59분까지 홈 인사는 즐거운 점심시간이에요입니다.",
   },

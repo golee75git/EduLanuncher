@@ -227,15 +227,17 @@ function TopicBody({
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
         <p className="text-[11px] text-quiet">편람 흐름 자료. 기존 업무자료와 다른 목록입니다.</p>
         {topic.officialName ? <p className="text-[12px] text-desk">{topic.officialName}</p> : null}
-        {topic.purpose ? <p className="text-[12px] leading-5 text-desk">{topic.purpose}</p> : null}
-        {topic.easy ? <p className="text-[12px] leading-5 text-quiet">{topic.easy}</p> : null}
+        {topic.generalGuidance ? null : topic.purpose ? <p className="text-[12px] leading-5 text-desk">{topic.purpose}</p> : null}
+        {topic.generalGuidance ? null : topic.easy ? <p className="text-[12px] leading-5 text-quiet">{topic.easy}</p> : null}
         <p className="text-[11px] text-quiet">편람 쪽수(원본 표기) {topic.pages || "자료에 없음"}</p>
         {topic.generalGuidance ? (
           <p className="rounded-md border border-line bg-card px-2 py-1 text-[12px] leading-5 text-desk">
             구체적인 기한·서류·기준은 이 데이터에서 확인되지 않음
           </p>
         ) : null}
-        {topic.picture.tree ? (
+        {topic.generalGuidance && topic.steps.length === 0 ? (
+          <p className="text-[12px] text-quiet">이 업무만의 순서는 이 자료에서 확인되지 않습니다.</p>
+        ) : topic.picture.tree ? (
           <HandbookFlowPicture root={topic.picture.tree} activeId={activeNode} onPick={pick} />
         ) : (
           <p className="text-[12px] text-quiet">이 업무 그림은 풀지 못했습니다. 아래 단계 목록을 씁니다.</p>
@@ -275,7 +277,7 @@ function TopicBody({
               )}
             </p>
           </section>
-        ) : (
+        ) : topic.steps.length === 0 ? null : (
           <p className="text-[12px] text-quiet">단계를 누르면 그 칸의 문장을 봅니다.</p>
         )}
         {topic.decisionText.trim() ? (

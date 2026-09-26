@@ -52,6 +52,7 @@ export interface HandbookTopic {
   picture: ChartPicture;
   links: HandbookLink[];
   generalGuidance: boolean;
+  shownFromExisting?: boolean;
 }
 
 export interface HandbookCategory {
