@@ -238,7 +238,7 @@ function TopicBody({
         {topic.detailNote ? (
           <section className="space-y-1 rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
             <h2 className="font-medium">주요내용</h2>
-            <p>{topic.detailNote}</p>
+            <p className="whitespace-pre-wrap">{topic.detailNote}</p>
           </section>
         ) : null}
         {topic.picture.tree ? (
@@ -269,7 +269,7 @@ function TopicBody({
           <section className="space-y-1 rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
             <h2 className="font-medium">주요내용</h2>
             <p className="text-[11px] text-quiet">{step.name}</p>
-            <p>{step.description}</p>
+            <p className="whitespace-pre-wrap">{step.description}</p>
           </section>
         ) : step ? (
           <section className="space-y-1 rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
@@ -297,13 +297,13 @@ function TopicBody({
             {step.tip ? (
               <div>
                 <h2 className="font-medium">팁</h2>
-                <p>{step.tip}</p>
+                <p className="whitespace-pre-wrap">{step.tip}</p>
               </div>
             ) : null}
             {step.reference ? (
               <div>
                 <h2 className="font-medium">참고</h2>
-                <p>{step.reference}</p>
+                <p className="whitespace-pre-wrap">{step.reference}</p>
               </div>
             ) : null}
           </section>
