@@ -4,6 +4,7 @@ import {
   loadMenuData,
   section2ForTitle,
   type EpkiNode,
+  type FlowNode,
   type MenuData,
   type Section2Task,
 } from "../services/menuContent";
@@ -12,6 +13,42 @@ function menuPath(pathname: string): string[] {
   const path = decodeURI(pathname).replace(/\/+$/, "");
   const parts = path.split("/").filter(Boolean);
   return parts[0] === "menu" ? parts.slice(1) : [];
+}
+
+function FlowPicture({
+  node,
+  active,
+  onPick,
+}: {
+  node: FlowNode;
+  active: string;
+  onPick: (label: string) => void;
+}) {
+  const box = "rounded-md border px-3 py-2 text-left text-sm text-desk";
+  const face = active && node.pick === active ? "border-ink bg-ink-soft" : "border-line bg-card";
+  const label = node.topicId ? (
+    <a className={`${box} ${face} block`} href={`/menu/handbook/${encodeURIComponent(node.topicId)}`}>
+      {node.label}
+    </a>
+  ) : node.pick ? (
+    <button type="button" className={`${box} ${face}`} onClick={() => onPick(node.pick ?? "")}>
+      {node.label}
+    </button>
+  ) : (
+    <span className={`${box} block`}>{node.label}</span>
+  );
+  return (
+    <div className="flex flex-col items-start gap-2">
+      {label}
+      {node.children.length > 0 ? (
+        <div className="flex flex-wrap gap-4 border-l border-line pl-4">
+          {node.children.map((child) => (
+            <FlowPicture key={child.id} node={child} active={active} onPick={onPick} />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function TaskBlocks({ tasks }: { tasks: Section2Task[] }) {
@@ -84,7 +121,12 @@ export function MenuPage({ pathname }: { pathname: string }) {
   const [data, setData] = useState<MenuData | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [picked, setPicked] = useState("");
   const path = menuPath(pathname);
+
+  useEffect(() => {
+    setPicked("");
+  }, [pathname]);
 
   useEffect(() => {
     let alive = true;
@@ -180,6 +222,11 @@ export function MenuPage({ pathname }: { pathname: string }) {
           편람 분류
         </a>
         <h1 className="text-2xl font-semibold text-desk">{category?.name ?? "분류"}</h1>
+        {category?.picture ? (
+          <div className="overflow-x-auto rounded-lg border border-line bg-card p-4">
+            <FlowPicture node={category.picture} active="" onPick={() => undefined} />
+          </div>
+        ) : null}
         <ul className="space-y-2">
           {topics.map((topic) => (
             <li key={topic.id}>
@@ -204,7 +251,22 @@ export function MenuPage({ pathname }: { pathname: string }) {
         </a>
         <h1 className="text-2xl font-semibold text-desk">{topic?.officialName || topic?.title || "업무"}</h1>
         {topic?.pages ? <p className="text-xs text-quiet">쪽수 {topic.pages}</p> : null}
-        <TaskBlocks tasks={tasks} />
+        {topic?.picture ? (
+          <div className="overflow-x-auto rounded-lg border border-line bg-card p-4">
+            <FlowPicture
+              node={topic.picture}
+              active={picked}
+              onPick={(label) => setPicked((current) => (current === label ? "" : label))}
+            />
+          </div>
+        ) : null}
+        <TaskBlocks
+          tasks={
+            picked && tasks.some((task) => task.name.trim() === picked.trim())
+              ? tasks.filter((task) => task.name.trim() === picked.trim())
+              : tasks
+          }
+        />
       </div>
     );
   }

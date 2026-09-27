@@ -1,8 +1,17 @@
+export interface FlowNode {
+  id: string;
+  label: string;
+  topicId?: string;
+  pick?: string;
+  children: FlowNode[];
+}
+
 export interface HandbookCategory {
   id: string;
   name: string;
   pages: string;
   topicIds: string[];
+  picture: FlowNode | null;
 }
 
 export interface HandbookTopic {
@@ -11,6 +20,7 @@ export interface HandbookTopic {
   title: string;
   officialName: string;
   pages: string;
+  picture: FlowNode | null;
 }
 
 export interface TopicRow {
