@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.120-20260927",
+    note: "제목이 같은 업무와 편람 칸에 편람 2장 세부업무 본문을 붙였습니다. 3장 이후 공통 틀은 넣지 않았습니다.",
+  },
+  {
     version: "0.1.119-20260927",
     note: "편람 분류 1번의 칸을 누르면 편람 세부업무 본문이 나옵니다. 공통으로 붙인 금액·기한 틀은 넣지 않았습니다.",
   },

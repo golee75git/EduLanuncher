@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { section2TasksForTitle } from "../services/knowledgeService";
 import { findRelatedTopics, sourceLines } from "../services/topicService";
 import { MANUAL_KIND_LABEL } from "../types/manual";
 import type { Topic } from "../types/topic";
@@ -80,6 +81,7 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
   );
   const [plain, setPlain] = useState(true);
   const visual = visualSteps(topic);
+  const section2 = section2TasksForTitle(topic.title);
   const checkpoints = detail?.checkpoints ?? [];
   const documents = detail?.requiredDocuments ?? [];
   const reviewIssues = detail?.reviewIssues ?? [];
@@ -152,6 +154,31 @@ export function TopicDetail({ topic, onOpenRelated }: TopicDetailProps) {
           <section className="mt-3">
             <h3 className="desk-label">업무 설명</h3>
             <p className="text-sm leading-6 text-desk">{topic.description}</p>
+          </section>
+        ) : null}
+        {section2.length > 0 ? (
+          <section className="mt-3 space-y-2">
+            <h3 className="desk-label">세부업무</h3>
+            {section2.map((task) => (
+              <div key={`${task.parentTitle}-${task.name}`} className="space-y-1 text-sm leading-6 text-desk">
+                <p className="font-medium">{task.name}</p>
+                {task.body ? <p className="whitespace-pre-wrap">{task.body}</p> : null}
+                {task.tip.trim() ? (
+                  <p className="whitespace-pre-wrap">
+                    <span className="font-medium">팁</span>
+                    {"\n"}
+                    {task.tip.trim()}
+                  </p>
+                ) : null}
+                {task.reference.trim() ? (
+                  <p className="whitespace-pre-wrap">
+                    <span className="font-medium">참고</span>
+                    {"\n"}
+                    {task.reference.trim()}
+                  </p>
+                ) : null}
+              </div>
+            ))}
           </section>
         ) : null}
         {visual.length > 0 ? (

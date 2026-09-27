@@ -1,5 +1,5 @@
-import { cat1DetailNote, cat1StepNote } from "../data/handbookCat1Notes";
 import rawPack from "../data/handbookFlowPack.json";
+import { formatUnmatchedTasks, section2TopicForHandbook } from "./knowledgeService";
 import { getTopics } from "./topicService";
 import {
   readHandbookPack,
@@ -63,17 +63,27 @@ function flowFromTitles(topicId: string, titles: string[]): Pick<HandbookTopic, 
   return { picture, steps, links };
 }
 
-function applyCat1(topic: HandbookTopic): HandbookTopic {
-  const detailNote = cat1DetailNote(topic.id);
-  let changed = Boolean(detailNote);
+function applySection2(topic: HandbookTopic): HandbookTopic {
+  const source = section2TopicForHandbook(topic.officialName, topic.title);
+  if (!source || source.tasks.length === 0) {
+    return topic;
+  }
+  const used = new Set<number>();
+  let changed = false;
   const steps = topic.steps.map((step) => {
-    const note = cat1StepNote(topic.id, step.name);
-    if (!note) {
+    const index = source.tasks.findIndex((task, taskIndex) => !used.has(taskIndex) && task.name === step.name);
+    if (index < 0) {
       return step;
     }
+    used.add(index);
     changed = true;
-    return { ...step, description: note.body, tip: note.tip, reference: note.reference };
+    const task = source.tasks[index];
+    return { ...step, description: task.body, tip: task.tip, reference: task.reference };
   });
+  const detailNote = formatUnmatchedTasks(source.tasks.filter((_, index) => !used.has(index)));
+  if (detailNote) {
+    changed = true;
+  }
   if (!changed) {
     return topic;
   }
@@ -82,18 +92,18 @@ function applyCat1(topic: HandbookTopic): HandbookTopic {
 
 function presentTopic(topic: HandbookTopic): HandbookTopic {
   if (!topic.generalGuidance) {
-    return applyCat1(topic);
+    return applySection2(topic);
   }
   const titles = oneExistingFlow(topic.title);
   if (!titles) {
-    return applyCat1({
+    return applySection2({
       ...topic,
       picture: { tree: null, backArrows: [], nodeIds: [] },
       steps: [],
       links: [],
     });
   }
-  return applyCat1({ ...topic, ...flowFromTitles(topic.id, titles), shownFromExisting: true });
+  return applySection2({ ...topic, ...flowFromTitles(topic.id, titles), shownFromExisting: true });
 }
 
 export function getHandbookCatalog(): HandbookCatalog {

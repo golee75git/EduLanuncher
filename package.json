@@ -10,7 +10,8 @@
     "tauri": "tauri",
     "site:dev": "npm --prefix website run dev",
     "site:build": "npm --prefix website run build",
-    "check:handbook": "node --experimental-strip-types tools/check-handbook-flow.ts"
+    "check:handbook": "node --experimental-strip-types tools/check-handbook-flow.ts",
+    "knowledge:build": "node tools/buildKnowledge.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

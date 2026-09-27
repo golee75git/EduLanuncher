@@ -292,7 +292,7 @@ function TopicBody({
         ) : topic.steps.length === 0 ? null : (
           <p className="text-[12px] text-quiet">단계를 누르면 그 칸의 문장을 봅니다.</p>
         )}
-        {topic.id === "TOPIC-01-01" && step && (step.tip || step.reference) ? (
+        {step && (step.tip || step.reference) ? (
           <section className="space-y-2 rounded-md border border-line bg-card px-3 py-2 text-[12px] leading-5 text-desk">
             {step.tip ? (
               <div>
