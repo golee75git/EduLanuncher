@@ -44,6 +44,26 @@ function TaskBlocks({ tasks }: { tasks: Section2Task[] }) {
   );
 }
 
+const EPKI_SITE = "https://www.epki.go.kr/";
+
+function EpkiSummary({ text }: { text: string }) {
+  const parts = text.split(EPKI_SITE);
+  return (
+    <>
+      {parts.map((part, index) => (
+        <span key={index}>
+          {part}
+          {index < parts.length - 1 ? (
+            <a className="text-ink underline" href={EPKI_SITE} target="_blank" rel="noopener noreferrer">
+              {EPKI_SITE}
+            </a>
+          ) : null}
+        </span>
+      ))}
+    </>
+  );
+}
+
 function EpkiTree({ node }: { node: EpkiNode }) {
   return (
     <article className="space-y-2">
@@ -243,7 +263,11 @@ export function MenuPage({ pathname }: { pathname: string }) {
           매뉴얼
         </a>
         <h1 className="text-2xl font-semibold text-desk">{data.epki.title}</h1>
-        {data.epki.summary ? <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{data.epki.summary}</p> : null}
+        {data.epki.summary ? (
+          <p className="whitespace-pre-wrap text-sm leading-6 text-desk">
+            <EpkiSummary text={data.epki.summary} />
+          </p>
+        ) : null}
         {data.epki.securityNotes && data.epki.securityNotes.length > 0 ? (
           <div className="space-y-1">
             {data.epki.securityNotes.map((note) => (
