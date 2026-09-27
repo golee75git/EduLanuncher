@@ -764,6 +764,17 @@ function parseTopic(value: unknown): Topic | null {
 }
 
 let cached: Topic[] | null = null;
+let fileTopics: Topic[] | null = null;
+
+export function replaceTopicFile(raw: unknown): boolean {
+  const parsed = parseTopics(raw);
+  if (parsed.length < 10) {
+    return false;
+  }
+  fileTopics = parsed;
+  cached = null;
+  return true;
+}
 
 export function parseTopics(raw: unknown): Topic[] {
   if (!Array.isArray(raw)) {
@@ -784,7 +795,7 @@ export function parseTopics(raw: unknown): Topic[] {
 
 export function getTopics(): Topic[] {
   if (!cached) {
-    const fromFile = parseTopics(rawTopics);
+    const fromFile = fileTopics ?? parseTopics(rawTopics);
     const fromManuals = getManualTopics();
     const seen = new Set(fromFile.map((topic) => topic.id));
     const extra = fromManuals.filter((topic) => !seen.has(topic.id));

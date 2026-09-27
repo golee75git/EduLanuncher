@@ -135,6 +135,18 @@ let cachedRoots: ManualNode[] | null = null;
 let cachedTopics: Topic[] | null = null;
 let cachedMind: MindMapNode[] | null = null;
 
+export function replaceManualRoot(raw: unknown): boolean {
+  const seen = new Set<string>();
+  const node = parseNode(raw, seen, undefined, 0, { left: MAX_NODES });
+  if (!node) {
+    return false;
+  }
+  cachedRoots = [node];
+  cachedTopics = null;
+  cachedMind = null;
+  return true;
+}
+
 export function getManualRoots(): ManualNode[] {
   if (!cachedRoots) {
     cachedRoots = loadRoots();

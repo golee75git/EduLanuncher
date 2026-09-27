@@ -15,7 +15,18 @@ export interface Section2Topic {
   matchedTopicIds: string[];
 }
 
-const topics = master.topics as Section2Topic[];
+let topics = master.topics as Section2Topic[];
+
+export function replaceSection2(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object" || !("topics" in raw) || !Array.isArray(raw.topics)) {
+    return false;
+  }
+  if (raw.topics.length === 0) {
+    return false;
+  }
+  topics = raw.topics as Section2Topic[];
+  return true;
+}
 
 function sameName(left: string, right: string): boolean {
   return left.trim() === right.trim();

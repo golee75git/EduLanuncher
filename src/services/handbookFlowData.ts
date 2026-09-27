@@ -12,6 +12,20 @@ import {
 } from "./handbookFlow";
 
 let cached: HandbookCatalog | null = null;
+let packOverride: unknown | null = null;
+
+export function replaceHandbookPack(raw: unknown): boolean {
+  if (!raw || typeof raw !== "object") {
+    return false;
+  }
+  const record = raw as { topics?: unknown };
+  if (!Array.isArray(record.topics) || record.topics.length < 5) {
+    return false;
+  }
+  packOverride = raw;
+  cached = null;
+  return true;
+}
 
 function oneExistingFlow(title: string): string[] | null {
   const matches = getTopics().filter(
@@ -108,7 +122,7 @@ function presentTopic(topic: HandbookTopic): HandbookTopic {
 
 export function getHandbookCatalog(): HandbookCatalog {
   if (!cached) {
-    const raw = readHandbookPack(rawPack);
+    const raw = readHandbookPack(packOverride ?? rawPack);
     const topics = raw.topics.map(presentTopic);
     const byId = new Map(topics.map((topic) => [topic.id, topic]));
     cached = {

@@ -36,15 +36,20 @@ const topicIndex = topics.map((topic) => ({
   beginnerSummary: topic.beginnerSummary ?? "",
 }));
 
-fs.mkdirSync(outDir, { recursive: true });
+const packDir = path.join(outDir, "pack");
+fs.mkdirSync(packDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "handbook.json"), JSON.stringify(handbook));
 fs.writeFileSync(path.join(outDir, "topics.json"), JSON.stringify(topicIndex));
 fs.writeFileSync(path.join(outDir, "master.json"), JSON.stringify(master));
 fs.writeFileSync(path.join(outDir, "epki.json"), JSON.stringify(epki));
+fs.writeFileSync(path.join(packDir, "handbook.json"), JSON.stringify(pack));
+fs.writeFileSync(path.join(packDir, "topics.json"), JSON.stringify(topics));
+fs.writeFileSync(path.join(packDir, "master.json"), JSON.stringify(master));
+fs.writeFileSync(path.join(packDir, "epki.json"), JSON.stringify(epki));
 fs.writeFileSync(
   path.join(outDir, "catalog.json"),
   JSON.stringify({
-    generatedAt: "2026-09-27",
+    generatedAt: new Date().toISOString(),
     handbookTopics: handbook.topics.length,
     topics: topicIndex.length,
     section2Topics: master.topics?.length ?? 0,

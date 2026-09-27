@@ -47,6 +47,7 @@ import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dro
 import { focusSearchInput } from "./services/focusBus";
 import { hidePanel, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
+import { refreshManualPack } from "./services/manualPackService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { isPriorSkin } from "./types/settings";
 import { asPanelHeight, asPanelWidth } from "./types/settings";
@@ -231,6 +232,9 @@ export default function App() {
 
     const bootstrap = async () => {
       if (mapWindow || memoWindow) {
+        if (mapWindow) {
+          await refreshManualPack();
+        }
         if (!cancelled) {
           setReady(true);
         }
@@ -238,6 +242,7 @@ export default function App() {
       }
       try {
         await initStorage();
+        await refreshManualPack();
         const settings = await hydrateSettings();
         await hydrateTools();
         await hydrateTodos();
