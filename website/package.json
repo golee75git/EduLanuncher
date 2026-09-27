@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "node tools/copyKnowledge.mjs && vite",
+    "build": "node tools/copyKnowledge.mjs && tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

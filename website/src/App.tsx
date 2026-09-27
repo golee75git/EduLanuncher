@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
-import { pathToView, type SiteView } from "./config";
+import { pathToView } from "./config";
 import { DownloadPage } from "./pages/DownloadPage";
 import { IntroPage } from "./pages/IntroPage";
 import { ManagePage } from "./pages/ManagePage";
+import { MenuPage } from "./pages/MenuPage";
 import { OpinionPage } from "./pages/OpinionPage";
 import { PreviewPage } from "./pages/PreviewPage";
 
@@ -19,11 +20,12 @@ function isInternalPath(href: string): string | null {
 }
 
 export default function App() {
-  const [view, setView] = useState<SiteView>(() => pathToView(window.location.pathname));
+  const [pathname, setPathname] = useState(() => window.location.pathname);
+  const view = pathToView(pathname);
 
   useEffect(() => {
-    const applyPath = (pathname: string) => {
-      setView(pathToView(pathname));
+    const applyPath = (nextPath: string) => {
+      setPathname(nextPath);
       window.scrollTo(0, 0);
     };
 
@@ -56,6 +58,7 @@ export default function App() {
       <SiteHeader view={view} />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
         {view === "intro" ? <IntroPage /> : null}
+        {view === "menu" ? <MenuPage pathname={pathname} /> : null}
         {view === "preview" ? <PreviewPage /> : null}
         {view === "download" ? <DownloadPage /> : null}
         {view === "opinion" ? <OpinionPage /> : null}

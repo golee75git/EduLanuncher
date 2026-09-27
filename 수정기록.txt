@@ -6,6 +6,36 @@
 ---
 
 날짜: 2026-09-27
+버전: 웹사이트만. 런처 설치본은 0.1.120-20260927 그대로.
+작성자: 요청자
+
+요청: https://edulanuncher.zeroorder.kr/menu 아래에 매뉴얼을 둔다. 런처 설치본은 다시 만들지 않는다.
+
+수정한 파일:
+- website/src/config.ts — /menu 주소
+- website/src/components/SiteHeader.tsx — 상단 매뉴얼
+- website/src/App.tsx
+- website/src/pages/MenuPage.tsx
+- website/src/services/menuContent.ts
+- website/tools/copyKnowledge.mjs — 빌드 때 편람·업무·인증서 JSON을 사이트 파일로 복사
+- website/package.json
+- .gitignore — 복사된 knowledge 파일은 커밋하지 않음
+- 수정기록.txt
+
+화면:
+- /menu
+- /menu/handbook
+- /menu/topic
+- /menu/epki
+
+편람 본문은 2장 세부업무만 보여 준다. 공통 절차 틀은 넣지 않았다.
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+새 패키지는 넣지 않았다.
+특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-27
 버전: 0.1.120-20260927
 설치 파일: EduLauncher_0.1.120-20260927_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-27_2036_x64-setup.exe
