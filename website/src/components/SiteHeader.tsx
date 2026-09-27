@@ -2,7 +2,6 @@ import { SITE_CONFIG, viewToPath, type SiteView } from "../config";
 
 const NAV: Array<{ view: SiteView; label: string }> = [
   { view: "intro", label: "소개" },
-  { view: "menu", label: "매뉴얼" },
   { view: "preview", label: "웹 미리보기" },
   { view: "download", label: "다운로드" },
   { view: "opinion", label: "의견" },
