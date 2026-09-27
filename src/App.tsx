@@ -47,6 +47,7 @@ import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dro
 import { focusSearchInput } from "./services/focusBus";
 import { hidePanel, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
+import { refreshManualIndex } from "./services/manualIndexService";
 import { refreshManualPack } from "./services/manualPackService";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { isPriorSkin } from "./types/settings";
@@ -243,6 +244,7 @@ export default function App() {
       try {
         await initStorage();
         await refreshManualPack();
+        await refreshManualIndex();
         const settings = await hydrateSettings();
         await hydrateTools();
         await hydrateTodos();

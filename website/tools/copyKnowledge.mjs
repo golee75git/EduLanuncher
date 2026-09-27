@@ -269,4 +269,65 @@ fs.writeFileSync(
     section2Topics: master.topics?.length ?? 0,
   }),
 );
-console.log("knowledge files", handbook.topics.length, topicIndex.length);
+function plainManual(text) {
+  return String(text ?? "")
+    .replace(/\r/g, "")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/\*\*/g, "")
+    .replace(/^\s*>\s?/gm, "")
+    .replace(/^\s*---\s*$/gm, "")
+    .replace(/\|/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+const sourceMaster = JSON.parse(fs.readFileSync(path.join(repoRoot, "knowledge-source/master.json"), "utf8"));
+const manualTopics = (sourceMaster.topics ?? []).map((topic) => {
+  const steps = (topic.workflow ?? [])
+    .map((step) => ({ id: String(step.id ?? ""), title: String(step.title ?? "").trim() }))
+    .filter((step) => step.id && step.title);
+  const parts = (topic.subtasks ?? [])
+    .map((part) => ({
+      id: String(part.id ?? ""),
+      title: String(part.title ?? "").trim(),
+      body: plainManual(part.contentMarkdown),
+    }))
+    .filter((part) => part.id && part.title && part.body);
+  return {
+    id: String(topic.id ?? ""),
+    title: String(topic.title ?? "").trim(),
+    categoryId: String(topic.categoryId ?? ""),
+    category: String(topic.category ?? "").trim(),
+    legacyLabel: String(topic.legacyLabel ?? "").trim(),
+    steps,
+    parts,
+  };
+}).filter((topic) => topic.id && topic.title);
+
+const manualUpdatedAt = String(sourceMaster.metadata?.generatedAt ?? "");
+fs.writeFileSync(
+  path.join(outDir, "manual.json"),
+  JSON.stringify({
+    updatedAt: manualUpdatedAt,
+    categories: (sourceMaster.categories ?? []).map((category) => ({
+      id: category.id,
+      title: category.title,
+    })),
+    topics: manualTopics,
+  }),
+);
+fs.writeFileSync(
+  path.join(outDir, "search-index.json"),
+  JSON.stringify({
+    updatedAt: manualUpdatedAt,
+    topics: manualTopics.map((topic) => ({
+      id: topic.id,
+      title: topic.title,
+      category: topic.category,
+      line: (topic.parts[0]?.body ?? "").replace(/\s+/g, " ").slice(0, 140),
+      text: [topic.title, topic.legacyLabel, topic.category, ...topic.steps.map((step) => step.title), ...topic.parts.map((part) => `${part.title}\n${part.body.slice(0, 500)}`)].join("\n"),
+    })),
+  }),
+);
+console.log("knowledge files", handbook.topics.length, topicIndex.length, manualTopics.length);

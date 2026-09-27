@@ -6,6 +6,36 @@
 ---
 
 날짜: 2026-09-27
+버전: 0.1.122-20260927
+설치 파일: EduLauncher_0.1.122-20260927_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-27_2343_x64-setup.exe
+작성자: 요청자
+
+요청: knowledge-source/master.json을 웹 매뉴얼 원본으로 쓴다. 화면에 올릴 내용은 편람 2장 본문과 그 제목의 흐름만 둔다.
+
+수정한 파일:
+- website/tools/copyKnowledge.mjs — manual.json, search-index.json 생성
+- website/src/services/menuContent.ts
+- website/src/pages/MenuPage.tsx
+- src/services/manualIndexService.ts — 새 파일. 검색용 경량 파일만 받아 저장
+- src/App.tsx
+- src/pages/HomePage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md — 버전 한 줄
+- 수정기록.txt
+
+판단, 서류, 주의, 관련 업무의 공통 틀은 넣지 않았다.
+“컴퓨터를 사고 싶다”는 이 원본의 검색 문장에 없어 매뉴얼 결과로 나오지 않는다. “물품”은 제목에 있는 업무가 나온다.
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+새 패키지는 넣지 않았다.
+특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-27
 버전: 사이트만. 런처는 0.1.121-20260927
 작성자: 요청자
 

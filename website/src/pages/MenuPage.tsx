@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   handbookTopicTasks,
   loadMenuData,
+  searchManual,
   section2ForTitle,
   type EpkiNode,
   type FlowNode,
@@ -121,11 +122,14 @@ export function MenuPage({ pathname }: { pathname: string }) {
   const [data, setData] = useState<MenuData | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [manualQuery, setManualQuery] = useState("");
+  const [manualStep, setManualStep] = useState("");
   const [picked, setPicked] = useState("");
   const path = menuPath(pathname);
 
   useEffect(() => {
     setPicked("");
+    setManualStep("");
   }, [pathname]);
 
   useEffect(() => {
@@ -141,6 +145,8 @@ export function MenuPage({ pathname }: { pathname: string }) {
       alive = false;
     };
   }, []);
+
+  const manualHits = useMemo(() => (data ? searchManual(data.manual, manualQuery) : []), [data, manualQuery]);
 
   const topicHits = useMemo(() => {
     if (!data) return [];
@@ -174,6 +180,25 @@ export function MenuPage({ pathname }: { pathname: string }) {
           <h1 className="text-2xl font-semibold text-desk">매뉴얼</h1>
           <p className="text-sm leading-relaxed text-quiet">편람과 업무자료, 인증서 안내를 읽습니다. 프로그램 실행은 이 페이지에서 하지 않습니다.</p>
         </header>
+        <input
+          className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
+          value={manualQuery}
+          placeholder="업무 이름이나 세부업무"
+          onChange={(event) => setManualQuery(event.target.value)}
+        />
+        {manualQuery.trim() ? (
+          <ul className="space-y-2">
+            {manualHits.map((hit) => (
+              <li key={hit.topic.id}>
+                <a className="card-surface block px-4 py-3" href={`/menu/topic/${encodeURIComponent(hit.topic.id)}`}>
+                  <span className="block text-sm font-medium text-desk">{hit.topic.legacyLabel || hit.topic.title}</span>
+                  <span className="mt-1 block text-sm text-quiet">{hit.topic.parts[0]?.body.replace(/\s+/g, " ").slice(0, 120)}</span>
+                </a>
+              </li>
+            ))}
+            {manualHits.length === 0 ? <li className="text-sm text-quiet">이 표현은 편람 2장 본문에서 찾지 못했습니다.</li> : null}
+          </ul>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-3">
           <a className="card-surface p-4" href="/menu/handbook">
             <span className="block text-sm font-semibold text-desk">편람 분류</span>
@@ -295,6 +320,49 @@ export function MenuPage({ pathname }: { pathname: string }) {
           ))}
         </ul>
         {topicHits.length === 0 ? <p className="text-sm text-quiet">해당하는 업무가 없습니다.</p> : null}
+      </div>
+    );
+  }
+
+  if (section === "topic" && itemId.startsWith("topic-")) {
+    const topic = data.manual.find((item) => item.id === itemId);
+    const parts = topic?.parts ?? [];
+    const shown = manualStep ? parts.filter((part) => part.title === manualStep) : parts;
+    const visible = shown.length > 0 ? shown : parts;
+    return (
+      <div className="space-y-4">
+        <a className="text-sm text-ink" href="/menu">
+          매뉴얼
+        </a>
+        <h1 className="text-2xl font-semibold text-desk">{topic?.legacyLabel || topic?.title || "업무"}</h1>
+        {topic?.category ? <p className="text-xs text-quiet">{topic.category}</p> : null}
+        {topic && topic.steps.length > 0 ? (
+          <div className="overflow-x-auto rounded-lg border border-line bg-card p-4">
+            <div className="flex flex-col items-start gap-2">
+              {topic.steps.map((step, index) => (
+                <div key={step.id} className="flex flex-col items-start gap-2">
+                  {index > 0 ? <span className="ml-4 h-4 border-l border-line" /> : null}
+                  <button
+                    type="button"
+                    className={`rounded-md border px-3 py-2 text-left text-sm text-desk ${
+                      manualStep === step.title ? "border-ink bg-ink-soft" : "border-line bg-card"
+                    }`}
+                    onClick={() => setManualStep((current) => (current === step.title ? "" : step.title))}
+                  >
+                    {step.title}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {visible.map((part) => (
+          <article key={part.id} className="space-y-2">
+            <h3 className="text-base font-semibold text-desk">{part.title}</h3>
+            <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{part.body}</p>
+          </article>
+        ))}
+        {!topic ? <p className="text-sm text-quiet">이 업무는 자료에 없습니다.</p> : null}
       </div>
     );
   }

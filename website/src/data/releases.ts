@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.122-20260927",
+    note: "교육행정 매뉴얼은 사이트 편람 2장으로 찾고, 결과는 웹 페이지로 엽니다.",
+  },
+  {
     version: "0.1.121-20260927",
     note: "매뉴얼은 사이트에서 받아 이 PC에 저장합니다. 이후 매뉴얼 문장은 사이트만 고치면 됩니다.",
   },

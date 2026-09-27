@@ -17,6 +17,8 @@ import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
+import { launchQuickUrl } from "../services/launcherService";
+import { manualIndexUnavailable, manualTopicUrl, searchManualIndex, type ManualIndexTopic } from "../services/manualIndexService";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
 import {
   HOME_TROUBLE_LIMIT,
@@ -76,7 +78,8 @@ type ResultItem =
   | { kind: "recent"; id: string; tool: ToolItem }
   | { kind: "recent-topic"; id: string; topicId: string }
   | { kind: "pc-file"; id: string; hit: UserFolderHit }
-  | { kind: "trouble"; id: string; cardId: string };
+  | { kind: "trouble"; id: string; cardId: string }
+  | { kind: "manual"; id: string; topic: ManualIndexTopic };
 
 function todayLabel(): string {
   const now = new Date();
@@ -90,6 +93,7 @@ function flattenResults(
   recentUse: RecentUseItem[],
   folderHits: UserFolderHit[],
   troubleHits: TroubleSearchHit[],
+  manualHits: ManualIndexTopic[],
 ): ResultItem[] {
   const topics: ResultItem[] = topicHits.map((hit) => ({
     kind: "topic",
@@ -127,7 +131,12 @@ function flattenResults(
     id: `trouble:${hit.item.id}`,
     cardId: hit.item.id,
   }));
-  return [...tools, ...recents, ...folders, ...schools, ...troubles, ...topics];
+  const manuals: ResultItem[] = manualHits.map((topic) => ({
+    kind: "manual" as const,
+    id: `manual:${topic.id}`,
+    topic,
+  }));
+  return [...tools, ...recents, ...folders, ...schools, ...troubles, ...manuals, ...topics];
 }
 
 function WorkToolMark({ icon: Icon }: { icon: LucideIcon }) {
@@ -192,6 +201,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   );
   const results = useMemo(() => searchAll(query, tools, schools), [query, tools, schools]);
   const topicHits = useMemo(() => searchTopics(query, topicList), [query, topicList]);
+  const manualHits = useMemo(() => searchManualIndex(query), [query]);
   const troubleHits = useMemo(() => searchTroubleCards(query), [query]);
   const recentUseMatched = useMemo(() => {
     const q = query.trim();
@@ -217,8 +227,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       .slice(0, settings.recentCount);
   }, [query, recentUse, recentUseAll, settings.recentCount]);
   const flat = useMemo(
-    () => flattenResults(topicHits, results, recentUseMatched, folderHits, troubleHits),
-    [topicHits, results, recentUseMatched, folderHits, troubleHits],
+    () => flattenResults(topicHits, results, recentUseMatched, folderHits, troubleHits, manualHits),
+    [topicHits, results, recentUseMatched, folderHits, troubleHits, manualHits],
   );
   const idleItems: ResultItem[] = useMemo(
     () => [
@@ -333,6 +343,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       onAction({ type: "troubleshoot-card", cardId: item.cardId, search: query });
       return;
     }
+    if (item.kind === "manual") {
+      void launchQuickUrl(manualTopicUrl(item.topic.id));
+      return;
+    }
     onAction({ type: "launch", tool: item.tool });
   };
 
@@ -376,8 +390,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const showSchools = !hideEmpty || results.schools.length > 0;
   const showTroubles = !hideEmpty || troubleHits.length > 0;
   const showTopics = !hideEmpty || topicHits.length > 0;
+  const showManuals = !hideEmpty || manualHits.length > 0 || Boolean(manualIndexUnavailable());
   const anySearchGroup =
-    showTools || showRecents || showFolders || showSchools || showTroubles || showTopics;
+    showTools || showRecents || showFolders || showSchools || showTroubles || showManuals || showTopics;
 
   const prior = isPriorSkin(settings.panelSkin);
   const cardColumns = homeFavoriteColumns(settings.panelWidth);
@@ -712,6 +727,32 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 </div>
               )}
             </section>
+            ) : null}
+            {searching && showManuals ? (
+            <ResultGroup title="교육행정 매뉴얼" empty="일치하는 매뉴얼이 없습니다.">
+              {manualHits.length > 0 ? (
+                <div className="space-y-1">
+                  {manualHits.map((topic) => (
+                    <button
+                      key={topic.id}
+                      type="button"
+                      onClick={() => void launchQuickUrl(manualTopicUrl(topic.id))}
+                      className={`desk-row ${selectedId === `manual:${topic.id}` ? "desk-row-active" : ""}`}
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate">
+                          <HighlightText text={topic.title} query={query} />
+                        </span>
+                        {topic.line ? <span className="block truncate text-xs text-quiet">{topic.line}</span> : null}
+                      </span>
+                      <span className="ml-2 shrink-0 text-xs text-quiet">웹에서 보기</span>
+                    </button>
+                  ))}
+                </div>
+              ) : manualIndexUnavailable() ? (
+                <p className="text-sm text-quiet">{manualIndexUnavailable()}</p>
+              ) : null}
+            </ResultGroup>
             ) : null}
             {showTopics ? (
             <ResultGroup title="관련 업무" empty="일치하는 업무가 없습니다.">
