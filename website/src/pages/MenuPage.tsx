@@ -102,6 +102,24 @@ function EpkiSummary({ text }: { text: string }) {
   );
 }
 
+function epkiPicture(node: EpkiNode): FlowNode {
+  return {
+    id: node.id,
+    label: node.title,
+    pick: node.id,
+    children: (node.children ?? []).map(epkiPicture),
+  };
+}
+
+function findEpki(node: EpkiNode, id: string): EpkiNode | null {
+  if (node.id === id) return node;
+  for (const child of node.children ?? []) {
+    const found = findEpki(child, id);
+    if (found) return found;
+  }
+  return null;
+}
+
 function EpkiTree({ node }: { node: EpkiNode }) {
   return (
     <article className="space-y-2">
@@ -124,12 +142,16 @@ export function MenuPage({ pathname }: { pathname: string }) {
   const [query, setQuery] = useState("");
   const [manualQuery, setManualQuery] = useState("");
   const [manualStep, setManualStep] = useState("");
+  const [topicStep, setTopicStep] = useState("");
+  const [epkiPick, setEpkiPick] = useState("");
   const [picked, setPicked] = useState("");
   const path = menuPath(pathname);
 
   useEffect(() => {
     setPicked("");
     setManualStep("");
+    setTopicStep("");
+    setEpkiPick("");
   }, [pathname]);
 
   useEffect(() => {
@@ -377,6 +399,29 @@ export function MenuPage({ pathname }: { pathname: string }) {
         </a>
         <h1 className="text-2xl font-semibold text-desk">{row?.title ?? "업무"}</h1>
         {row ? <p className="text-xs text-quiet">{[row.category, row.subcategory].filter(Boolean).join(" · ")}</p> : null}
+        {row?.steps && row.steps.length > 0 ? (
+          <div className="overflow-x-auto rounded-lg border border-line bg-card p-4">
+            <div className="flex flex-col items-start gap-2">
+              {row.steps.map((step, index) => (
+                <div key={`${step.title}-${index}`} className="flex flex-col items-start gap-2">
+                  {index > 0 ? <span className="ml-4 h-4 border-l border-line" /> : null}
+                  <button
+                    type="button"
+                    className={`rounded-md border px-3 py-2 text-left text-sm text-desk ${
+                      topicStep === step.title ? "border-ink bg-ink-soft" : "border-line bg-card"
+                    }`}
+                    onClick={() => setTopicStep((current) => (current === step.title ? "" : step.title))}
+                  >
+                    {step.title}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {row?.steps?.find((step) => step.title === topicStep)?.note ? (
+          <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{row.steps.find((step) => step.title === topicStep)?.note}</p>
+        ) : null}
         {row?.beginnerSummary ? <p className="text-sm leading-6 text-desk">{row.beginnerSummary}</p> : null}
         {row?.description && row.description !== row.beginnerSummary ? (
           <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{row.description}</p>
@@ -406,6 +451,18 @@ export function MenuPage({ pathname }: { pathname: string }) {
               </p>
             ))}
           </div>
+        ) : null}
+        {(data.epki.children ?? []).length > 0 ? (
+          <div className="overflow-x-auto rounded-lg border border-line bg-card p-4">
+            <div className="flex flex-wrap gap-4">
+              {(data.epki.children ?? []).map((child) => (
+                <FlowPicture key={child.id} node={epkiPicture(child)} active={epkiPick} onPick={setEpkiPick} />
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {epkiPick ? (
+          <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{findEpki(data.epki, epkiPick)?.summary}</p>
         ) : null}
         <div className="space-y-4">
           {(data.epki.children ?? []).map((child) => (

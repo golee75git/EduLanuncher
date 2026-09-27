@@ -23,6 +23,11 @@ export interface HandbookTopic {
   picture: FlowNode | null;
 }
 
+export interface TopicStep {
+  title: string;
+  note: string;
+}
+
 export interface TopicRow {
   id: string;
   title: string;
@@ -30,6 +35,7 @@ export interface TopicRow {
   subcategory: string;
   description: string;
   beginnerSummary: string;
+  steps?: TopicStep[];
 }
 
 export interface Section2Task {

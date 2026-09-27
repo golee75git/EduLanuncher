@@ -6,6 +6,24 @@
 ---
 
 날짜: 2026-09-27
+버전: 사이트만. 런처는 0.1.122-20260927
+작성자: 요청자
+
+요청: 메뉴의 업무자료와 인증서에 칸 그림을 보이게 한다. 다른 화면은 그대로 둔다.
+
+수정한 파일:
+- website/tools/copyKnowledge.mjs — 업무자료 순서 제목을 topics.json에 넣음
+- website/src/services/menuContent.ts
+- website/src/pages/MenuPage.tsx
+- 수정기록.txt
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+새 패키지는 넣지 않았다.
+특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-27
 버전: 0.1.122-20260927
 설치 파일: EduLauncher_0.1.122-20260927_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-27_2343_x64-setup.exe

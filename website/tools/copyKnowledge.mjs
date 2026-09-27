@@ -248,6 +248,12 @@ const topicIndex = topics.map((topic) => ({
   subcategory: topic.subcategory ?? "",
   description: topic.description ?? "",
   beginnerSummary: topic.beginnerSummary ?? "",
+  steps: (topic.workflow ?? [])
+    .map((step) => ({
+      title: String(step.title ?? "").trim(),
+      note: String(step.description || step.explanation || "").trim(),
+    }))
+    .filter((step) => step.title),
 }));
 
 const packDir = path.join(outDir, "pack");
