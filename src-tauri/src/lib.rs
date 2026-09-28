@@ -17,6 +17,7 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_opener::OpenerExt;
 
 mod doc_shrink;
+mod document_search;
 mod pdf_pages;
 mod netutil;
 mod shortcut;
@@ -24,6 +25,10 @@ mod privacy_mask;
 mod url_mark;
 mod user_folder;
 use doc_shrink::{doc_picture_bytes, plan_doc_save, write_new_picture};
+use document_search::{
+    doc_search_add_folder, doc_search_clear, doc_search_folders, doc_search_halt, doc_search_query,
+    doc_search_remove_folder, doc_search_start, doc_search_status,
+};
 use pdf_pages::{pdf_arrange, pdf_extract, pdf_glance, pdf_halt, pdf_merge};
 use privacy_mask::{read_privacy_picture, write_privacy_picture};
 use url_mark::{build_url_mark, read_picture_file, write_png_file};
@@ -1901,6 +1906,14 @@ pub fn run() {
             pdf_merge,
             pdf_extract,
             pdf_arrange,
+            doc_search_folders,
+            doc_search_add_folder,
+            doc_search_remove_folder,
+            doc_search_clear,
+            doc_search_status,
+            doc_search_halt,
+            doc_search_start,
+            doc_search_query,
             take_startup_pack_paths,
             take_startup_url_paths,
             read_bookmark_html,

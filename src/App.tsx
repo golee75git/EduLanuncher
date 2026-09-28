@@ -24,6 +24,7 @@ import { ComputerToolPage } from "./pages/ComputerToolPage";
 import { TroubleshootDetailPage } from "./pages/TroubleshootDetailPage";
 import { TroubleshootListPage } from "./pages/TroubleshootListPage";
 import { ShortcutPage } from "./pages/ShortcutPage";
+import { DocSearchPage } from "./pages/DocSearchPage";
 import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
@@ -86,6 +87,7 @@ type View =
   | { name: "topic"; topicId: string; backTo: View }
   | { name: "pc-address" }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
+  | { name: "doc-search"; query?: string; backTo?: View }
   | { name: "doc-shrink"; backTo?: View }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
   | { name: "internal"; id: string; title: string };
@@ -501,6 +503,10 @@ export default function App() {
       setView({ name: "pc-folder-find", query: action.query, backTo: { name: "home" } });
       return;
     }
+    if (action.type === "docs") {
+      setView({ name: "doc-search", query: action.query, backTo: { name: "home", search: clipSearch(action.query) } });
+      return;
+    }
     if (action.type === "topics") {
       setView({ name: "topics" });
       return;
@@ -726,6 +732,12 @@ export default function App() {
           ) : null}
           {view.name === "pc-folder-find" ? (
             <PcFolderFindPage
+              initialQuery={view.query ?? ""}
+              onBack={() => setView(view.backTo ?? { name: "home" })}
+            />
+          ) : null}
+          {view.name === "doc-search" ? (
+            <DocSearchPage
               initialQuery={view.query ?? ""}
               onBack={() => setView(view.backTo ?? { name: "home" })}
             />

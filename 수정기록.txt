@@ -6,6 +6,50 @@
 ---
 
 날짜: 2026-09-28
+버전: 0.1.129-20260928
+설치 파일: EduLauncher_0.1.129-20260928_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-28_1538_x64-setup.exe
+작성자: 요청자
+
+요청: 고른 폴더의 문서 내용을 이 PC에서만 검색한다.
+
+수정한 파일:
+- src-tauri/Cargo.toml
+- src-tauri/Cargo.lock
+- src-tauri/src/lib.rs
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/App.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- THIRD_PARTY_NOTICES.md
+- 수정기록.txt
+
+새로 만든 파일:
+- src-tauri/src/document_search/mod.rs
+- src-tauri/src/document_search/extract.rs
+- src/services/documentSearchService.ts
+- src/components/DocumentSearchSettings.tsx
+- src/pages/DocSearchPage.tsx
+- docs/DEPENDENCY_LICENSES.md
+
+재사용한 기존 파일:
+- 홈 검색 구역, 폴더 열기, PDF 읽기(lopdf), 설정 카드
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+추가한 패키지: rusqlite 0.40.2 MIT, zip 8.6.0 MIT(deflate만), quick-xml 0.42.0 MIT. 묶인 SQLite는 공개 도메인이다. GPL/AGPL 패키지를 추가하지 않았다.
+문서 본문은 이 PC 앱 폴더의 색인에만 남긴다. 올리지 않는다.
+특허 검토가 필요한 구성: 이 PC 전체 텍스트 색인, 짧은 구절, 바뀐 파일만 다시 색인. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-28
 버전: 0.1.128-20260928
 설치 파일: EduLauncher_0.1.128-20260928_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-28_1512_x64-setup.exe

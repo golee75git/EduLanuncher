@@ -116,6 +116,29 @@ Patent: This notice does not grant or warrant freedom from third-party patents.
 
 Direct dependencies of lopdf used by this build are MIT, Apache-2.0, BSD-3-Clause, or a combination of those. No GPL or AGPL crate was added. Password and signature removal APIs in lopdf are not called.
 
+Crate: rusqlite 0.40.2
+License: MIT
+Source: https://crates.io/crates/rusqlite
+Purpose: Local SQLite FTS5 index for 내 문서 검색. `default-features = false`, feature `bundled` only.
+Modified: No
+GPL/AGPL: No
+Bundled SQLite 3.53.2 (libsqlite3-sys) is in the public domain. The amalgamation header disclaims copyright. See https://www.sqlite.org/copyright.html
+
+Crate: zip 8.6.0
+License: MIT
+Source: https://crates.io/crates/zip
+Purpose: Read HWPX, DOCX, and XLSX zip entries. `default-features = false`, feature `deflate` only.
+Modified: No
+GPL/AGPL: No
+Transitive for this build: flate2 1.1.10 (MIT OR Apache-2.0), zlib-rs 0.6.8 (zlib-style permission), zopfli 0.8.3 (Apache-2.0). No GPL or AGPL.
+
+Crate: quick-xml 0.42.0
+License: MIT
+Source: https://crates.io/crates/quick-xml
+Purpose: Read text nodes from Office XML. No extra features.
+Modified: No
+GPL/AGPL: No
+
 ## Fonts
 
 Bundled font files: none.

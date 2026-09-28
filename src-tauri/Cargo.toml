@@ -24,6 +24,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 qrcode = { version = "0.14.1", default-features = false }
 lopdf = { version = "0.45.0", default-features = false }
+rusqlite = { version = "0.40.2", default-features = false, features = ["bundled"] }
+zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+quick-xml = "0.42.0"
 
 [target.'cfg(windows)'.dependencies]
 png = "0.17"

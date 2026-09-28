@@ -2583,3 +2583,28 @@ Difference:
 
 PATENT_REVIEW:
 경로에서 상위 폴더를 여는 구성. 특정 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: 내 문서 내용 검색
+
+Purpose:
+사용자가 고른 폴더 안의 문서에서 낱말을 찾아 파일을 연다
+
+Design source:
+내부 요구사항. 기존 홈 검색 구역과 폴더 열기
+
+Implementation:
+고른 폴더만 읽고, HWPX·XLSX·DOCX는 압축 안의 XML 글자만 모은다. PDF는 이미 있는 lopdf로 글자 층만 읽는다. TXT·MD·CSV는 파일 글자를 읽는다. 결과는 이 PC의 SQLite FTS5에 둔다. 화면에는 짧은 구절만 보여 주고 파일과 폴더를 연다. 크기와 수정 시각이 같으면 다시 읽지 않는다
+
+External code:
+rusqlite 0.40.2 MIT, zip 8.6.0 MIT, quick-xml 0.42.0 MIT, 묶인 SQLite 공개 도메인. 추출과 점수 계산은 이 저장소에서 새로 씀. 다른 제품의 검색 구현을 가져오지 않음
+
+Potential similar products:
+데스크톱 파일 내용 검색
+
+Difference:
+드라이브 전체를 돌지 않고, 고른 폴더만 색인한다. 문서 내용을 올리지 않는다. HWP와 글자 없는 PDF는 읽지 않는다
+
+PATENT_REVIEW:
+이 PC 전체 텍스트 색인, 짧은 구절 창, 바뀐 파일만 다시 색인하는 구성. 특정 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

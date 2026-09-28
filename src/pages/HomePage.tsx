@@ -39,6 +39,15 @@ import {
   userFolderAsTool,
   type UserFolderHit,
 } from "../services/userFolderSearch";
+import {
+  DOC_SEARCH_HOME_LIMIT,
+  documentAsTool,
+  documentFolderLabel,
+  documentFolderPath,
+  documentFolderTool,
+  queryDocuments,
+  type DocHit,
+} from "../services/documentSearchService";
 import { hidePanel } from "../services/windowService";
 import { getSchools } from "../stores/schoolStore";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
@@ -58,6 +67,7 @@ export type HomeAction =
   | { type: "computer-tools" }
   | { type: "shortcuts" }
   | { type: "pc-folders"; query?: string }
+  | { type: "docs"; query?: string }
   | { type: "topics" }
   | { type: "handbook" }
   | { type: "troubleshoot"; search?: string }
@@ -81,6 +91,7 @@ type ResultItem =
   | { kind: "recent"; id: string; tool: ToolItem }
   | { kind: "recent-topic"; id: string; topicId: string }
   | { kind: "pc-file"; id: string; hit: UserFolderHit }
+  | { kind: "doc"; id: string; hit: DocHit }
   | { kind: "trouble"; id: string; cardId: string }
   | { kind: "manual"; id: string; topic: ManualIndexTopic };
 
@@ -95,6 +106,7 @@ function flattenResults(
   results: SearchResults,
   recentUse: RecentUseItem[],
   folderHits: UserFolderHit[],
+  docHits: DocHit[],
   troubleHits: TroubleSearchHit[],
   manualHits: ManualIndexTopic[],
 ): ResultItem[] {
@@ -129,6 +141,11 @@ function flattenResults(
     id: `pc-file:${hit.path}`,
     hit,
   }));
+  const docs: ResultItem[] = docHits.map((hit) => ({
+    kind: "doc" as const,
+    id: `doc:${hit.path}`,
+    hit,
+  }));
   const troubles: ResultItem[] = troubleHits.slice(0, HOME_TROUBLE_LIMIT).map((hit) => ({
     kind: "trouble" as const,
     id: `trouble:${hit.item.id}`,
@@ -139,7 +156,7 @@ function flattenResults(
     id: `manual:${topic.id}`,
     topic,
   }));
-  return [...tools, ...recents, ...folders, ...schools, ...troubles, ...manuals, ...topics];
+  return [...tools, ...recents, ...folders, ...docs, ...schools, ...troubles, ...manuals, ...topics];
 }
 
 function WorkToolMark({ icon: Icon }: { icon: LucideIcon }) {
@@ -154,6 +171,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const [query, setQuery] = useState(search);
   const [folderHits, setFolderHits] = useState<UserFolderHit[]>([]);
   const [folderBusy, setFolderBusy] = useState(false);
+  const [docHits, setDocHits] = useState<DocHit[]>([]);
+  const [docBusy, setDocBusy] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeSchool, setActiveSchool] = useState<SchoolItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -230,8 +249,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       .slice(0, settings.recentCount);
   }, [query, recentUse, recentUseAll, settings.recentCount]);
   const flat = useMemo(
-    () => flattenResults(topicHits, results, recentUseMatched, folderHits, troubleHits, manualHits),
-    [topicHits, results, recentUseMatched, folderHits, troubleHits, manualHits],
+    () => flattenResults(topicHits, results, recentUseMatched, folderHits, docHits, troubleHits, manualHits),
+    [topicHits, results, recentUseMatched, folderHits, docHits, troubleHits, manualHits],
   );
   const idleItems: ResultItem[] = useMemo(
     () => [
@@ -326,6 +345,39 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     };
   }, [query]);
 
+  useEffect(() => {
+    const needle = query.trim();
+    if (needle.length < 2) {
+      setDocHits([]);
+      setDocBusy(false);
+      return;
+    }
+    let cancelled = false;
+    setDocBusy(true);
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const found = await queryDocuments(needle, DOC_SEARCH_HOME_LIMIT);
+          if (!cancelled) {
+            setDocHits(found);
+          }
+        } catch {
+          if (!cancelled) {
+            setDocHits([]);
+          }
+        } finally {
+          if (!cancelled) {
+            setDocBusy(false);
+          }
+        }
+      })();
+    }, 300);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
+
   const activate = (item: ResultItem | undefined) => {
     if (!item) {
       return;
@@ -340,6 +392,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     }
     if (item.kind === "pc-file") {
       onAction({ type: "launch", tool: userFolderAsTool(item.hit) });
+      return;
+    }
+    if (item.kind === "doc") {
+      onAction({ type: "launch", tool: documentAsTool(item.hit) });
       return;
     }
     if (item.kind === "trouble") {
@@ -390,12 +446,13 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const showTools = !hideEmpty || results.tools.length > 0;
   const showRecents = !hideEmpty || recentUseMatched.length > 0;
   const showFolders = !hideEmpty || !folderReady || folderBusy || folderHits.length > 0;
+  const showDocs = !hideEmpty || !folderReady || docBusy || docHits.length > 0;
   const showSchools = !hideEmpty || results.schools.length > 0;
   const showTroubles = !hideEmpty || troubleHits.length > 0;
   const showTopics = !hideEmpty || topicHits.length > 0;
   const showManuals = !hideEmpty || manualHits.length > 0 || Boolean(manualIndexUnavailable());
   const anySearchGroup =
-    showTools || showRecents || showFolders || showSchools || showTroubles || showManuals || showTopics;
+    showTools || showRecents || showFolders || showDocs || showSchools || showTroubles || showManuals || showTopics;
 
   const prior = isPriorSkin(settings.panelSkin);
   const cardColumns = homeFavoriteColumns(settings.panelWidth);
@@ -677,6 +734,65 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                       >
                         {containingFolderLabel(hit.path)}
                       </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+            ) : null}
+            {showDocs ? (
+            <section>
+              <div className="mb-1.5 flex items-center gap-1">
+                <h2 className="min-w-0 flex-1 desk-label">내 문서</h2>
+                {query.trim().length >= 2 ? (
+                  <button
+                    type="button"
+                    className="inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                    onClick={() => onAction({ type: "docs", query: query.trim() })}
+                  >
+                    더 보기
+                  </button>
+                ) : null}
+              </div>
+              {query.trim().length < 2 ? (
+                <p className="text-sm text-quiet">두 글자 이상이면 색인한 문서 내용을 찾습니다.</p>
+              ) : docBusy && docHits.length === 0 ? (
+                <p className="text-sm text-quiet">찾는 중...</p>
+              ) : docHits.length === 0 ? (
+                <p className="text-sm text-quiet">내용이 일치하는 문서가 없습니다. 설정에서 폴더를 색인하세요.</p>
+              ) : (
+                <div className="space-y-1">
+                  {docHits.map((hit) => (
+                    <div
+                      key={hit.path}
+                      className={`rounded-lg px-2 py-2 ${
+                        selectedId === `doc:${hit.path}` ? "desk-row-active" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          title={hit.path}
+                          onClick={() => onAction({ type: "launch", tool: documentAsTool(hit) })}
+                          className="min-w-0 flex-1 truncate text-left text-sm"
+                        >
+                          <HighlightText text={hit.name} query={query} />
+                        </button>
+                        <button
+                          type="button"
+                          title={documentFolderPath(hit.path)}
+                          aria-label="폴더 열기"
+                          onClick={() => onAction({ type: "launch", tool: documentFolderTool(hit) })}
+                          className="max-w-[46%] shrink-0 truncate text-xs text-quiet"
+                        >
+                          {documentFolderLabel(hit.path)}
+                        </button>
+                      </div>
+                      {hit.snippet ? (
+                        <p className="mt-0.5 text-xs leading-5 text-quiet">
+                          <HighlightText text={hit.snippet} query={query} />
+                        </p>
+                      ) : null}
                     </div>
                   ))}
                 </div>
