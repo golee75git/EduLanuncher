@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import { EDUCATION_PACK, mergePackTools, type LauncherPack } from "../data/educationPack";
-import { COMMON_WORK_TOOLS, PRIVACY_MASK_TOOL, URL_MARK_TOOL } from "../data/sampleTools";
+import {
+  COMMON_WORK_TOOLS,
+  DOC_SHRINK_TOOL,
+  PDF_PAGES_TOOL,
+  PRIVACY_MASK_TOOL,
+  URL_MARK_TOOL,
+} from "../data/sampleTools";
 import { loadTools, saveTools } from "../services/storageService";
 import type { ToolItem } from "../types/tool";
 
@@ -22,13 +28,10 @@ async function persist(tools: ToolItem[]): Promise<void> {
   await saveTools(tools);
 }
 
+const WORK_TOOL_ORDER = [PRIVACY_MASK_TOOL, DOC_SHRINK_TOOL, URL_MARK_TOOL, PDF_PAGES_TOOL];
+
 function relabelBuiltin(tool: ToolItem): ToolItem {
-  const known =
-    tool.id === URL_MARK_TOOL.id || tool.target === URL_MARK_TOOL.target
-      ? URL_MARK_TOOL
-      : tool.id === PRIVACY_MASK_TOOL.id || tool.target === PRIVACY_MASK_TOOL.target
-        ? PRIVACY_MASK_TOOL
-        : null;
+  const known = WORK_TOOL_ORDER.find((item) => tool.id === item.id || tool.target === item.target);
   if (!known) {
     return tool;
   }
@@ -38,6 +41,23 @@ function relabelBuiltin(tool: ToolItem): ToolItem {
     description: known.description,
     keywords: known.keywords,
   };
+}
+
+function placeWorkTools(tools: ToolItem[]): { tools: ToolItem[]; changed: boolean } {
+  const next = tools.slice();
+  let cursor = 0;
+  let changed = false;
+  for (const builtin of WORK_TOOL_ORDER) {
+    const index = next.findIndex((tool) => tool.id === builtin.id || tool.target === builtin.target);
+    if (index === -1) {
+      next.splice(cursor, 0, { ...builtin, origin: "local" });
+      changed = true;
+      cursor += 1;
+    } else {
+      cursor = index + 1;
+    }
+  }
+  return { tools: next, changed };
 }
 
 function withOrigin(tools: ToolItem[]): ToolItem[] {
@@ -131,12 +151,9 @@ export async function hydrateTools(): Promise<void> {
   let tools = withOrigin(loaded);
   let changed = loaded.some((tool) => !tool.origin);
   if (tools.length > 0) {
-    for (const builtin of [PRIVACY_MASK_TOOL, URL_MARK_TOOL]) {
-      if (!tools.some((tool) => tool.id === builtin.id)) {
-        tools = [{ ...builtin, origin: "local" }, ...tools];
-        changed = true;
-      }
-    }
+    const placed = placeWorkTools(tools);
+    tools = placed.tools;
+    changed = changed || placed.changed;
   }
   useToolStore.getState().hydrate(tools);
   if (changed) {

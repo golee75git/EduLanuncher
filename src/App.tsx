@@ -29,6 +29,7 @@ import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
 import { DocShrinkPage } from "./pages/DocShrinkPage";
+import { PdfToolPage } from "./pages/PdfToolPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
@@ -39,6 +40,7 @@ import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
 import { isDocShrinkTarget, isFolderFindTarget } from "./data/computerTools";
+import { isPdfPagesTarget } from "./data/sampleTools";
 import { logEducationValidation } from "./services/mindMapService";
 import { logTroubleshootingValidation } from "./services/troubleshootingService";
 import { LaunchError, launchQuickUrl, launchTool } from "./services/launcherService";
@@ -756,6 +758,9 @@ export default function App() {
           {view.name === "internal" && isDocShrinkTarget(view.id) ? (
             <DocShrinkPage onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && isPdfPagesTarget(view.id) ? (
+            <PdfToolPage onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" && isFolderFindTarget(view.id) ? (
             <PcFolderFindPage onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -773,6 +778,7 @@ export default function App() {
           view.id !== "privacy-mask" &&
           view.id !== "tool-privacy-mask" &&
           !isDocShrinkTarget(view.id) &&
+          !isPdfPagesTarget(view.id) &&
           !isFolderFindTarget(view.id) ? (
             <InternalPlaceholderPage
               title={view.title}

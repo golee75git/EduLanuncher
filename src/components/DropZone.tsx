@@ -16,6 +16,7 @@ import {
 } from "../services/dropSiteService";
 import { privacyDropHeld, takePrivacyPicture } from "../services/privacyDropGate";
 import { docDropHeld, isDocPicturePath, takeDocPictures } from "../services/docDropGate";
+import { isPdfPath, pdfDropHeld, takePdfFiles } from "../services/pdfDropGate";
 
 interface DropZoneProps {
   children: ReactNode;
@@ -116,6 +117,13 @@ export function DropZone({
     };
 
     const applyNativePaths = (paths: string[]) => {
+      if (takePdfFiles(paths)) {
+        const rest = paths.filter((path) => !isPdfPath(path));
+        if (rest.length === 0) {
+          return;
+        }
+        paths = rest;
+      }
       if (takeDocPictures(paths)) {
         const rest = paths.filter((path) => !isDocPicturePath(path));
         if (rest.length === 0) {
@@ -142,6 +150,7 @@ export function DropZone({
       const files = Array.from(transfer.files);
       const localPaths: string[] = [];
       const docPaths: string[] = [];
+      const pdfPaths: string[] = [];
       let handled = false;
       for (const file of files) {
         const path = droppedFilePath(file);
@@ -182,6 +191,11 @@ export function DropZone({
           handled = true;
           continue;
         }
+        if (path && pdfDropHeld() && isPdfPath(path)) {
+          handled = true;
+          pdfPaths.push(path);
+          continue;
+        }
         if (path && docDropHeld() && isDocPicturePath(path)) {
           handled = true;
           docPaths.push(path);
@@ -204,6 +218,11 @@ export function DropZone({
         ].join("\n"),
       );
       for (const listedPath of listed) {
+        if (pdfDropHeld() && isPdfPath(listedPath)) {
+          handled = true;
+          pdfPaths.push(listedPath);
+          continue;
+        }
         if (docDropHeld() && isDocPicturePath(listedPath)) {
           handled = true;
           docPaths.push(listedPath);
@@ -217,6 +236,9 @@ export function DropZone({
           localPaths.push(listedPath);
           handled = true;
         }
+      }
+      if (pdfPaths.length) {
+        takePdfFiles(pdfPaths);
       }
       if (docPaths.length) {
         takeDocPictures(docPaths);
@@ -244,7 +266,7 @@ export function DropZone({
       }
       event.preventDefault();
       event.dataTransfer.dropEffect = "copy";
-      if (!privacyDropHeld() && !docDropHeld()) {
+      if (!privacyDropHeld() && !docDropHeld() && !pdfDropHeld()) {
         setActive(true);
       }
     };

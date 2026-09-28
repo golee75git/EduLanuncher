@@ -14,6 +14,38 @@ export const URL_MARK_TOOL: ToolItem = {
   enabled: true,
 };
 
+export const DOC_SHRINK_TOOL: ToolItem = {
+  id: "tool-doc-shrink",
+  name: "문서용 사진 줄이기",
+  description: "큰 사진을 문서에 알맞은 크기로 줄여 문서 용량을 줄입니다",
+  type: "internal",
+  target: "doc-shrink",
+  icon: "file",
+  category: "전산",
+  favorite: true,
+  keywords: ["사진", "문서", "용량"],
+  usageCount: 0,
+  enabled: true,
+};
+
+export const PDF_PAGES_TOOL: ToolItem = {
+  id: "tool-pdf-pages",
+  name: "PDF 도구",
+  description: "PDF를 합치고, 나누고, 페이지를 간단하게 정리합니다",
+  type: "internal",
+  target: "pdf-pages",
+  icon: "fileText",
+  category: "전산",
+  favorite: true,
+  keywords: ["pdf", "PDF", "합치기", "나누기", "페이지"],
+  usageCount: 0,
+  enabled: true,
+};
+
+export function isPdfPagesTarget(target: string): boolean {
+  return target === PDF_PAGES_TOOL.target || target === PDF_PAGES_TOOL.id;
+}
+
 export const PRIVACY_MASK_TOOL: ToolItem = {
   id: "tool-privacy-mask",
   name: "사진 정보 가리기",
@@ -151,5 +183,7 @@ export const SAMPLE_TOOLS: ToolItem[] = [
 
 export const COMMON_WORK_TOOLS: ToolItem[] = [
   PRIVACY_MASK_TOOL,
-  ...SAMPLE_TOOLS.filter((tool) => tool.id === "tool-url-mark"),
+  DOC_SHRINK_TOOL,
+  URL_MARK_TOOL,
+  PDF_PAGES_TOOL,
 ];

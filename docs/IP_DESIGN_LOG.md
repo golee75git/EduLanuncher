@@ -2532,3 +2532,29 @@ Difference:
 
 PATENT_REVIEW:
 비율을 유지한 축소와 표준 JPEG·PNG 다시 저장. 특정 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: PDF 도구
+
+Purpose:
+PDF를 합치고, 나누고, 페이지를 빼거나 순서를 바꾸거나 회전한다. 원본 파일은 그대로 둔다
+
+Design source:
+내부 요구사항. 업무도구 목록
+
+Implementation:
+lopdf 0.45.0으로 페이지 객체를 새 문서에 옮겨 저장한다. 페이지를 이미지로 바꾸지 않는다. 암호가 있으면 열지 않는다. 서명이 보이면 알리고, 서명을 지우지는 않는다. 결과 이름이 있으면 번호를 붙인다
+
+External code:
+lopdf 0.45.0. MIT. https://github.com/J-F-Liu/lopdf
+default-features를 끄고 글꼴 넣기는 쓰지 않음. 배포 패키지에 Montserrat 파일 없음. 라이브러리 예제 코드를 복사하지 않음
+
+Potential similar products:
+PDF 페이지를 합치고 나누는 일반 도구
+
+Difference:
+업무도구 안에서 새 파일로만 저장하고, 원본 경로는 쓰지 않는다. PDF를 밖으로 보내지 않는다. 암호 해제와 서명 제거는 없다
+
+PATENT_REVIEW:
+페이지 병합, 추출, 삭제, 재배열, 회전. 특정 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함

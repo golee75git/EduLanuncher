@@ -104,6 +104,18 @@ Transitive crates and full license texts are not copied here. See each package r
 QR Code is a registered trademark of DENSO WAVE INCORPORATED.
 This project does not claim ownership of that mark. The feature UI label is 「QR코드 넣기」 and screens state the trademark owner. Using the words QR Code / QR코드 does not mean this product is affiliated with or endorsed by DENSO WAVE INCORPORATED.
 
+Crate: lopdf 0.45.0
+License: MIT
+Source: https://crates.io/crates/lopdf
+Repository: https://github.com/J-F-Liu/lopdf
+Purpose: Read and write PDF page objects for PDF 도구. `default-features = false` (no chrono, rayon, image, or font embedding).
+Modified: No
+GPL/AGPL: No
+Font files: the published crate excludes `/assets`. Montserrat is not in the package used here and is not embedded.
+Patent: This notice does not grant or warrant freedom from third-party patents.
+
+Direct dependencies of lopdf used by this build are MIT, Apache-2.0, BSD-3-Clause, or a combination of those. No GPL or AGPL crate was added. Password and signature removal APIs in lopdf are not called.
+
 ## Fonts
 
 Bundled font files: none.

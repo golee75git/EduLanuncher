@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.126-20260928",
+    note: "업무도구에 PDF 도구를 넣었습니다. 합치기·나누기·페이지 정리는 이 PC에서 새 파일로 저장합니다.",
+  },
+  {
     version: "0.1.125-20260928",
     note: "컴퓨터도구에 문서용 사진 줄이기를 넣었습니다. 원본은 그대로 두고 새 파일로 저장합니다.",
   },

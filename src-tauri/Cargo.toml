@@ -23,6 +23,7 @@ tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 qrcode = { version = "0.14.1", default-features = false }
+lopdf = { version = "0.45.0", default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 png = "0.17"
