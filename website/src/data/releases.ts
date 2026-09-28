@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.123-20260928",
+    note: "업무도구에 사진 개인정보 가리기를 넣었습니다. 영역을 직접 가리고 원본은 그대로 둔 채 새 파일로 저장합니다.",
+  },
+  {
     version: "0.1.122-20260927",
     note: "교육행정 매뉴얼은 사이트 편람 2장으로 찾고, 결과는 웹 페이지로 엽니다.",
   },

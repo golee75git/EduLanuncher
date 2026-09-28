@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Briefcase,
   Camera,
+  EyeOff,
   File,
   FileText,
   Folder,
@@ -29,6 +30,7 @@ export const TOOL_ICON_MAP: Record<string, LucideIcon> = {
   camera: Camera,
   mic: Mic,
   globe: Globe,
+  eyeOff: EyeOff,
   folder: Folder,
   school: School,
   settings: Settings,
@@ -48,6 +50,7 @@ export const TOOL_ICON_OPTIONS = [
   { id: "camera", label: "CCTV" },
   { id: "mic", label: "음성" },
   { id: "globe", label: "웹" },
+  { id: "eyeOff", label: "가리기" },
   { id: "folder", label: "폴더" },
   { id: "school", label: "학교" },
   { id: "monitor", label: "프로그램" },

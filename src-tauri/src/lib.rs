@@ -18,8 +18,10 @@ use tauri_plugin_opener::OpenerExt;
 
 mod netutil;
 mod shortcut;
+mod privacy_mask;
 mod url_mark;
 mod user_folder;
+use privacy_mask::{read_privacy_picture, write_privacy_picture};
 use url_mark::{build_url_mark, read_picture_file, write_png_file};
 #[cfg(windows)]
 mod drop_target;
@@ -1885,6 +1887,8 @@ pub fn run() {
             build_url_mark,
             read_picture_file,
             write_png_file,
+            read_privacy_picture,
+            write_privacy_picture,
             take_startup_pack_paths,
             take_startup_url_paths,
             read_bookmark_html,

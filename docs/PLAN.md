@@ -12,6 +12,10 @@
 - 새 기능은 `docs/IP_DESIGN_LOG.md` 항목 추가
 - 설치본이 받아야 하는 변경이면 버전 `0.1.x-YYYYMMDD` 올리고 `.\tauri-env.cmd build` 후 GitHub Releases에 `.exe` 업로드
 
+## 2026-09-28에 넣은 것
+
+- 업무도구 「사진 개인정보 가리기」를 기본 목록에 넣음. 영역은 직접 지정. 원본 크기로 새 파일 저장. 원본은 덮어쓰지 않음. 새 라이브러리 없음
+
 ## 2026-09-19에 넣은 것
 
 - 사이트 칸 「인터넷 즐겨찾기」: 이 PC Edge·Chrome `Bookmarks`와 Windows `Favorites`의 `.url`

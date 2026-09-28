@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { EDUCATION_PACK, mergePackTools, type LauncherPack } from "../data/educationPack";
-import { COMMON_WORK_TOOLS, URL_MARK_TOOL } from "../data/sampleTools";
+import { COMMON_WORK_TOOLS, PRIVACY_MASK_TOOL, URL_MARK_TOOL } from "../data/sampleTools";
 import { loadTools, saveTools } from "../services/storageService";
 import type { ToolItem } from "../types/tool";
 
@@ -22,18 +22,28 @@ async function persist(tools: ToolItem[]): Promise<void> {
   await saveTools(tools);
 }
 
+function relabelBuiltin(tool: ToolItem): ToolItem {
+  const known =
+    tool.id === URL_MARK_TOOL.id || tool.target === URL_MARK_TOOL.target
+      ? URL_MARK_TOOL
+      : tool.id === PRIVACY_MASK_TOOL.id || tool.target === PRIVACY_MASK_TOOL.target
+        ? PRIVACY_MASK_TOOL
+        : null;
+  if (!known) {
+    return tool;
+  }
+  return {
+    ...tool,
+    name: known.name,
+    description: known.description,
+    keywords: known.keywords,
+  };
+}
+
 function withOrigin(tools: ToolItem[]): ToolItem[] {
   const packIds = new Set(EDUCATION_PACK.tools.map((tool) => tool.id));
   return tools.map((tool) => {
-    const labeled =
-      tool.id === URL_MARK_TOOL.id || tool.target === URL_MARK_TOOL.target
-        ? {
-            ...tool,
-            name: URL_MARK_TOOL.name,
-            description: URL_MARK_TOOL.description,
-            keywords: URL_MARK_TOOL.keywords,
-          }
-        : tool;
+    const labeled = relabelBuiltin(tool);
     if (labeled.origin) {
       return labeled;
     }
@@ -120,9 +130,13 @@ export async function hydrateTools(): Promise<void> {
   const loaded = await loadTools();
   let tools = withOrigin(loaded);
   let changed = loaded.some((tool) => !tool.origin);
-  if (tools.length > 0 && !tools.some((tool) => tool.id === URL_MARK_TOOL.id)) {
-    tools = [{ ...URL_MARK_TOOL, origin: "local" }, ...tools];
-    changed = true;
+  if (tools.length > 0) {
+    for (const builtin of [PRIVACY_MASK_TOOL, URL_MARK_TOOL]) {
+      if (!tools.some((tool) => tool.id === builtin.id)) {
+        tools = [{ ...builtin, origin: "local" }, ...tools];
+        changed = true;
+      }
+    }
   }
   useToolStore.getState().hydrate(tools);
   if (changed) {

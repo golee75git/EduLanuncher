@@ -6,6 +6,50 @@
 ---
 
 날짜: 2026-09-28
+버전: 0.1.123-20260928
+설치 파일: EduLauncher_0.1.123-20260928_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-28_1051_x64-setup.exe
+작성자: 요청자
+
+요청: 업무도구에 사진 개인정보 가리기를 기본으로 넣는다.
+
+수정한 파일:
+- src/data/sampleTools.ts
+- src/data/toolIcons.ts
+- src/stores/toolStore.ts
+- src/App.tsx
+- src/components/DropZone.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/src/lib.rs
+- src-tauri/src/url_mark.rs
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PRD.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+새로 만든 파일:
+- src/pages/PrivacyMaskPage.tsx
+- src/services/privacyMaskService.ts
+- src/services/privacyDropGate.ts
+- src-tauri/src/privacy_mask.rs
+
+재사용한 기존 파일:
+- 파일 선택·저장 대화상자, 그림 형식 확인, base64 변환, 업무도구 등록 방식, 기존 화면 색·단추
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴 파일은 추가하지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+사진은 이 PC 안에서만 읽고 새 파일로 저장한다. 외부 전송은 없다.
+얼굴 자동 탐지와 OCR은 넣지 않았다. 영역을 직접 지정한다.
+특허 검토: 영역 덮기, 칸 나누기, 흐림, 원본 크기로 다시 저장. 청구항 대조는 하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-28
 버전: 사이트만. 런처는 0.1.122-20260927
 작성자: 요청자
 

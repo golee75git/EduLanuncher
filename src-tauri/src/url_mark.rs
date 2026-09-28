@@ -110,7 +110,7 @@ fn is_png_path(path: &Path) -> bool {
         .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
 }
 
-fn picture_mime(bytes: &[u8]) -> Option<&'static str> {
+pub(crate) fn picture_mime(bytes: &[u8]) -> Option<&'static str> {
     if bytes.len() >= 8 && bytes.starts_with(&[0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A]) {
         return Some("image/png");
     }
@@ -122,7 +122,7 @@ fn picture_mime(bytes: &[u8]) -> Option<&'static str> {
 
 const B64: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-fn to_base64(bytes: &[u8]) -> String {
+pub(crate) fn to_base64(bytes: &[u8]) -> String {
     let mut out = String::with_capacity((bytes.len() + 2) / 3 * 4);
     let mut i = 0;
     while i + 3 <= bytes.len() {
@@ -150,7 +150,7 @@ fn to_base64(bytes: &[u8]) -> String {
     out
 }
 
-fn from_base64(text: &str) -> Result<Vec<u8>, String> {
+pub(crate) fn from_base64(text: &str) -> Result<Vec<u8>, String> {
     let cleaned: Vec<u8> = text
         .bytes()
         .filter(|b| !b.is_ascii_whitespace())

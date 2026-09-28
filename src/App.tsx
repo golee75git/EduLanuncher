@@ -27,6 +27,7 @@ import { ShortcutPage } from "./pages/ShortcutPage";
 import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
+import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
@@ -743,6 +744,9 @@ export default function App() {
           {view.name === "internal" && (view.id === "url-mark" || view.id === "tool-url-mark") ? (
             <UrlMarkPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && (view.id === "privacy-mask" || view.id === "tool-privacy-mask") ? (
+            <PrivacyMaskPage title={view.title} onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" && isFolderFindTarget(view.id) ? (
             <PcFolderFindPage onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -757,6 +761,8 @@ export default function App() {
           view.id !== "pc-sys:ie-reset" &&
           view.id !== "url-mark" &&
           view.id !== "tool-url-mark" &&
+          view.id !== "privacy-mask" &&
+          view.id !== "tool-privacy-mask" &&
           !isFolderFindTarget(view.id) ? (
             <InternalPlaceholderPage
               title={view.title}

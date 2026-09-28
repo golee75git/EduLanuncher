@@ -1,0 +1,229 @@
+import { invoke } from "@tauri-apps/api/core";
+
+export type CoverKind = "solid" | "block" | "soft";
+export type CoverLevel = "light" | "mid" | "heavy";
+export type JpegGrade = "best" | "high" | "small";
+
+export interface CoverBox {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface PrivacyShot {
+  mime: string;
+  url: string;
+  image: HTMLImageElement;
+  width: number;
+  height: number;
+}
+
+const LEVEL_RATE: Record<CoverLevel, number> = {
+  light: 0.02,
+  mid: 0.04,
+  heavy: 0.07,
+};
+
+const JPEG_QUALITY: Record<JpegGrade, number> = {
+  best: 0.95,
+  high: 0.9,
+  small: 0.75,
+};
+
+const MAX_PIXELS = 40_000_000;
+
+export function coverRate(level: CoverLevel): number {
+  return LEVEL_RATE[level];
+}
+
+export function jpegQuality(grade: JpegGrade): number {
+  return JPEG_QUALITY[grade];
+}
+
+export function privacySaveName(sourcePath: string, mime: string): string {
+  const base = sourcePath.split(/[/\\]/).pop()?.trim() || "사진";
+  const dot = base.lastIndexOf(".");
+  const stem = dot > 0 ? base.slice(0, dot) : base;
+  const ext = mime === "image/png" ? ".png" : ".jpg";
+  return `${stem}_privacy${ext}`;
+}
+
+export async function loadPrivacyShot(path: string): Promise<PrivacyShot> {
+  const file = await invoke<{ mime: string; data: string }>("read_privacy_picture", { path });
+  if (file.mime !== "image/png" && file.mime !== "image/jpeg") {
+    throw new Error("PNG 또는 JPEG 그림만 고를 수 있습니다.");
+  }
+  const bytes = bytesFromBase64(file.data);
+  const blob = new Blob([bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer], {
+    type: file.mime,
+  });
+  const url = URL.createObjectURL(blob);
+  try {
+    const image = await loadImage(url);
+    const width = image.naturalWidth;
+    const height = image.naturalHeight;
+    if (width < 2 || height < 2) {
+      throw new Error("그림 크기를 알 수 없습니다.");
+    }
+    if (width * height > MAX_PIXELS) {
+      throw new Error("그림이 너무 큽니다. 더 작은 그림을 고르세요.");
+    }
+    return { mime: file.mime, url, image, width, height };
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    throw error;
+  }
+}
+
+export async function writePrivacyFile(
+  path: string,
+  sourcePath: string,
+  blob: Blob,
+): Promise<void> {
+  const data = await blobToBase64(blob);
+  await invoke("write_privacy_picture", { path, sourcePath, data });
+}
+
+export function paintCover(
+  ctx: CanvasRenderingContext2D,
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+  boxes: CoverBox[],
+  kind: CoverKind,
+  level: CoverLevel,
+): void {
+  const base = document.createElement("canvas");
+  base.width = width;
+  base.height = height;
+  const baseCtx = base.getContext("2d");
+  if (!baseCtx) {
+    throw new Error("그림을 그리지 못했습니다.");
+  }
+  baseCtx.drawImage(source, 0, 0, width, height);
+  ctx.clearRect(0, 0, width, height);
+  ctx.drawImage(base, 0, 0);
+  const rate = coverRate(level);
+  const short = Math.min(width, height);
+  for (const box of boxes) {
+    const x = Math.round(box.x * width);
+    const y = Math.round(box.y * height);
+    const w = Math.max(1, Math.round(box.w * width));
+    const h = Math.max(1, Math.round(box.h * height));
+    if (kind === "solid") {
+      ctx.fillStyle = "#141414";
+      ctx.fillRect(x, y, w, h);
+      continue;
+    }
+    if (kind === "block") {
+      const cell = Math.max(2, Math.round(short * rate));
+      const sw = Math.max(1, Math.ceil(w / cell));
+      const sh = Math.max(1, Math.ceil(h / cell));
+      const chip = document.createElement("canvas");
+      chip.width = sw;
+      chip.height = sh;
+      const chipCtx = chip.getContext("2d");
+      if (!chipCtx) {
+        continue;
+      }
+      chipCtx.imageSmoothingEnabled = false;
+      chipCtx.drawImage(base, x, y, w, h, 0, 0, sw, sh);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(chip, 0, 0, sw, sh, x, y, w, h);
+      ctx.imageSmoothingEnabled = true;
+      chip.width = 0;
+      chip.height = 0;
+      continue;
+    }
+    const radius = Math.max(1, Math.round(short * rate));
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    ctx.filter = `blur(${radius}px)`;
+    ctx.drawImage(base, 0, 0);
+    ctx.filter = "none";
+    ctx.restore();
+  }
+  base.width = 0;
+  base.height = 0;
+}
+
+export async function exportCover(
+  shot: PrivacyShot,
+  boxes: CoverBox[],
+  kind: CoverKind,
+  level: CoverLevel,
+  grade: JpegGrade,
+): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  canvas.width = shot.width;
+  canvas.height = shot.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("그림을 그리지 못했습니다.");
+  }
+  try {
+    paintCover(ctx, shot.image, shot.width, shot.height, boxes, kind, level);
+    const mime = shot.mime === "image/png" ? "image/png" : "image/jpeg";
+    const quality = mime === "image/jpeg" ? jpegQuality(grade) : undefined;
+    return await canvasToBlob(canvas, mime, quality);
+  } finally {
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality?: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("그림을 만들지 못했습니다."));
+          return;
+        }
+        resolve(blob);
+      },
+      mime,
+      quality,
+    );
+  });
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("그림을 열지 못했습니다."));
+    image.src = src;
+  });
+}
+
+function bytesFromBase64(data: string): Uint8Array {
+  const clean = data.replace(/\s/g, "");
+  const binary = atob(clean);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === "string" ? reader.result : "";
+      const comma = text.indexOf(",");
+      if (!text.startsWith("data:") || comma < 0) {
+        reject(new Error("저장할 그림을 만들지 못했습니다."));
+        return;
+      }
+      resolve(text.slice(comma + 1));
+    };
+    reader.onerror = () => reject(new Error("저장할 그림을 만들지 못했습니다."));
+    reader.readAsDataURL(blob);
+  });
+}

@@ -14,6 +14,7 @@ import {
   parseInternetShortcut,
   pickDroppedSiteName,
 } from "../services/dropSiteService";
+import { privacyDropHeld, takePrivacyPicture } from "../services/privacyDropGate";
 
 interface DropZoneProps {
   children: ReactNode;
@@ -116,6 +117,9 @@ export function DropZone({
     const applyNativePaths = (paths: string[]) => {
       const local: string[] = [];
       for (const path of paths) {
+        if (takePrivacyPicture(path)) {
+          continue;
+        }
         if (!applySpecialPath(path)) {
           local.push(path);
         }
@@ -169,6 +173,10 @@ export function DropZone({
           handled = true;
           continue;
         }
+        if (path && takePrivacyPicture(path)) {
+          handled = true;
+          continue;
+        }
         if (path) {
           localPaths.push(path);
           handled = true;
@@ -182,6 +190,10 @@ export function DropZone({
         ].join("\n"),
       );
       for (const listedPath of listed) {
+        if (takePrivacyPicture(listedPath)) {
+          handled = true;
+          continue;
+        }
         if (!localPaths.some((item) => normalizeLocalPathKey(item) === normalizeLocalPathKey(listedPath))) {
           localPaths.push(listedPath);
           handled = true;
@@ -210,7 +222,9 @@ export function DropZone({
       }
       event.preventDefault();
       event.dataTransfer.dropEffect = "copy";
-      setActive(true);
+      if (!privacyDropHeld()) {
+        setActive(true);
+      }
     };
     const onLeave = (event: DragEvent) => {
       if (event.relatedTarget === null) {

@@ -14,6 +14,20 @@ export const URL_MARK_TOOL: ToolItem = {
   enabled: true,
 };
 
+export const PRIVACY_MASK_TOOL: ToolItem = {
+  id: "tool-privacy-mask",
+  name: "사진 개인정보 가리기",
+  description: "사진 속 얼굴·번호·문자를 가리고 안전하게 저장합니다",
+  type: "internal",
+  target: "privacy-mask",
+  icon: "eyeOff",
+  category: "전산",
+  favorite: true,
+  keywords: ["사진", "개인정보", "가리기", "얼굴", "번호"],
+  usageCount: 0,
+  enabled: true,
+};
+
 export const SAMPLE_TOOLS: ToolItem[] = [
   {
     id: "tool-portal",
@@ -135,4 +149,7 @@ export const SAMPLE_TOOLS: ToolItem[] = [
   URL_MARK_TOOL,
 ];
 
-export const COMMON_WORK_TOOLS: ToolItem[] = SAMPLE_TOOLS.filter((tool) => tool.id === "tool-url-mark");
+export const COMMON_WORK_TOOLS: ToolItem[] = [
+  PRIVACY_MASK_TOOL,
+  ...SAMPLE_TOOLS.filter((tool) => tool.id === "tool-url-mark"),
+];
