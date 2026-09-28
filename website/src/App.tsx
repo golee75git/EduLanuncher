@@ -35,7 +35,7 @@ export default function App() {
         return;
       }
       const anchor = (event.target as HTMLElement | null)?.closest("a");
-      if (!anchor) return;
+      if (!anchor || anchor.hasAttribute("download")) return;
       const pathname = isInternalPath(anchor.href);
       if (!pathname) return;
       event.preventDefault();
