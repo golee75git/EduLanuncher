@@ -43,10 +43,16 @@ export function DownloadPage() {
           </p>
           <p className="mt-1 text-sm text-quiet">x64 · 현재 사용자 설치 · WebView2 필요</p>
         </div>
-        <a className="btn-primary w-full sm:w-auto" href={SITE_CONFIG.setupDownloadUrl} rel="noreferrer" target="_blank">
-          <Download className="h-4 w-4" />
-          최신 설치 파일
-        </a>
+        <div className="flex w-full flex-col gap-2 sm:w-auto">
+          <a className="btn-primary w-full sm:w-auto" href={SITE_CONFIG.setupDownloadUrl} rel="noreferrer" target="_blank">
+            <Download className="h-4 w-4" />
+            최신 설치 파일
+          </a>
+          <a className="btn-secondary w-full sm:w-auto" href="/install-manual.pdf" download="설치매뉴얼.pdf">
+            <Download className="h-4 w-4" />
+            설치 매뉴얼
+          </a>
+        </div>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
