@@ -8,7 +8,7 @@ export interface ComputerToolEntry {
   hint: string;
   type: Extract<ToolType, "app" | "file" | "internal">;
   fileName?: string;
-  view?: "pc-address" | "ie-reset" | "pc-folder-find";
+  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink";
 }
 
 const ENTRIES: ComputerToolEntry[] = [
@@ -104,6 +104,13 @@ const ENTRIES: ComputerToolEntry[] = [
     view: "pc-folder-find",
   },
   {
+    id: "doc-shrink",
+    name: "문서용 사진 줄이기",
+    hint: "큰 사진을 문서에 알맞은 크기로 줄여 문서 용량을 줄입니다.",
+    type: "internal",
+    view: "doc-shrink",
+  },
+  {
     id: "pc-info",
     name: "시스템 정보",
     hint: "이 PC 하드웨어·Windows 정보 화면을 엽니다.",
@@ -146,31 +153,43 @@ export function isFolderFindTarget(target: string): boolean {
   return target === "pc-folder-find" || target === "pc-sys:pc-folder-find";
 }
 
+export function isDocShrinkTool(entry: ComputerToolEntry): boolean {
+  return entry.view === "doc-shrink";
+}
+
+export function isDocShrinkTarget(target: string): boolean {
+  return target === "doc-shrink" || target === "pc-sys:doc-shrink";
+}
+
 export function listComputerTools(): ComputerToolEntry[] {
   return ENTRIES;
 }
 
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
-  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry)) {
+  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry)) {
     const target = isIeResetTool(entry)
       ? "ie-reset"
       : isFolderFindTool(entry)
         ? "pc-folder-find"
-        : "pc-address";
+        : isDocShrinkTool(entry)
+          ? "doc-shrink"
+          : "pc-address";
     return {
       id: `pc-sys:${entry.id}`,
       name: entry.name,
       description: entry.hint,
       type: "internal",
       target,
-      icon: "folder",
+      icon: isDocShrinkTool(entry) ? "file" : "folder",
       category: "전산",
       favorite: true,
-      keywords: isFolderFindTool(entry)
-        ? [entry.name, "컴퓨터도구", "문서", "다운로드", "바탕"]
-        : isIeResetTool(entry)
-          ? [entry.name, "컴퓨터도구", "익스플로러", "인터넷"]
-          : [entry.name, "컴퓨터도구", "아이피", "ip"],
+      keywords: isDocShrinkTool(entry)
+        ? [entry.name, "컴퓨터도구", "사진", "문서", "용량"]
+        : isFolderFindTool(entry)
+          ? [entry.name, "컴퓨터도구", "문서", "다운로드", "바탕"]
+          : isIeResetTool(entry)
+            ? [entry.name, "컴퓨터도구", "익스플로러", "인터넷"]
+            : [entry.name, "컴퓨터도구", "아이피", "ip"],
       usageCount: 0,
       enabled: true,
       origin: "local",

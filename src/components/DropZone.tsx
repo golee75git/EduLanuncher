@@ -15,6 +15,7 @@ import {
   pickDroppedSiteName,
 } from "../services/dropSiteService";
 import { privacyDropHeld, takePrivacyPicture } from "../services/privacyDropGate";
+import { docDropHeld, isDocPicturePath, takeDocPictures } from "../services/docDropGate";
 
 interface DropZoneProps {
   children: ReactNode;
@@ -115,6 +116,13 @@ export function DropZone({
     };
 
     const applyNativePaths = (paths: string[]) => {
+      if (takeDocPictures(paths)) {
+        const rest = paths.filter((path) => !isDocPicturePath(path));
+        if (rest.length === 0) {
+          return;
+        }
+        paths = rest;
+      }
       const local: string[] = [];
       for (const path of paths) {
         if (takePrivacyPicture(path)) {
@@ -133,6 +141,7 @@ export function DropZone({
       const meta = httpUrlFromDataTransfer(transfer);
       const files = Array.from(transfer.files);
       const localPaths: string[] = [];
+      const docPaths: string[] = [];
       let handled = false;
       for (const file of files) {
         const path = droppedFilePath(file);
@@ -173,6 +182,11 @@ export function DropZone({
           handled = true;
           continue;
         }
+        if (path && docDropHeld() && isDocPicturePath(path)) {
+          handled = true;
+          docPaths.push(path);
+          continue;
+        }
         if (path && takePrivacyPicture(path)) {
           handled = true;
           continue;
@@ -190,6 +204,11 @@ export function DropZone({
         ].join("\n"),
       );
       for (const listedPath of listed) {
+        if (docDropHeld() && isDocPicturePath(listedPath)) {
+          handled = true;
+          docPaths.push(listedPath);
+          continue;
+        }
         if (takePrivacyPicture(listedPath)) {
           handled = true;
           continue;
@@ -198,6 +217,9 @@ export function DropZone({
           localPaths.push(listedPath);
           handled = true;
         }
+      }
+      if (docPaths.length) {
+        takeDocPictures(docPaths);
       }
       if (localPaths.length) {
         emitLocalPaths(localPaths);
@@ -222,7 +244,7 @@ export function DropZone({
       }
       event.preventDefault();
       event.dataTransfer.dropEffect = "copy";
-      if (!privacyDropHeld()) {
+      if (!privacyDropHeld() && !docDropHeld()) {
         setActive(true);
       }
     };

@@ -4,6 +4,7 @@ import {
   computerToolAsItem,
   computerToolPath,
   isAddressTool,
+  isDocShrinkTool,
   isFolderFindTool,
   listComputerTools,
   sameLocalPath,
@@ -16,6 +17,7 @@ interface ComputerToolPageProps {
   onLaunch: (tool: ToolItem) => void;
   onShowAddress: () => void;
   onShowFolderFind: () => void;
+  onShowDocShrink: () => void;
   onShowTroubleshoot: () => void;
 }
 
@@ -24,6 +26,7 @@ export function ComputerToolPage({
   onLaunch,
   onShowAddress,
   onShowFolderFind,
+  onShowDocShrink,
   onShowTroubleshoot,
 }: ComputerToolPageProps) {
   const tools = useToolStore((state) => state.tools);
@@ -83,7 +86,9 @@ export function ComputerToolPage({
                       ? onShowAddress()
                       : isFolderFindTool(entry)
                         ? onShowFolderFind()
-                        : onLaunch(item)
+                        : isDocShrinkTool(entry)
+                          ? onShowDocShrink()
+                          : onLaunch(item)
                   }
                 >
                   <span className="block truncate text-sm font-medium text-desk">{entry.name}</span>

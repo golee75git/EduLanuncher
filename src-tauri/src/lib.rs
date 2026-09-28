@@ -16,11 +16,13 @@ use tauri::{AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, Size, We
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_opener::OpenerExt;
 
+mod doc_shrink;
 mod netutil;
 mod shortcut;
 mod privacy_mask;
 mod url_mark;
 mod user_folder;
+use doc_shrink::{doc_picture_bytes, plan_doc_save, write_new_picture};
 use privacy_mask::{read_privacy_picture, write_privacy_picture};
 use url_mark::{build_url_mark, read_picture_file, write_png_file};
 #[cfg(windows)]
@@ -1889,6 +1891,9 @@ pub fn run() {
             write_png_file,
             read_privacy_picture,
             write_privacy_picture,
+            doc_picture_bytes,
+            plan_doc_save,
+            write_new_picture,
             take_startup_pack_paths,
             take_startup_url_paths,
             read_bookmark_html,

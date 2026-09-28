@@ -1,0 +1,181 @@
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use crate::url_mark::{from_base64, picture_mime};
+
+const MAX_READ_BYTES: u64 = 40 * 1024 * 1024;
+const MAX_WRITE_BYTES: usize = 64 * 1024 * 1024;
+
+#[tauri::command]
+pub fn doc_picture_bytes(path: String) -> Result<u64, String> {
+    let path = PathBuf::from(path.trim());
+    if !is_picture_path(&path) {
+        return Err("PNG 또는 JPEG 그림만 넣을 수 있습니다.".into());
+    }
+    let meta = fs::metadata(&path).map_err(|_| "그림을 읽지 못했습니다.".to_string())?;
+    if !meta.is_file() {
+        return Err("파일이 아닙니다.".into());
+    }
+    if meta.len() > MAX_READ_BYTES {
+        return Err("그림이 너무 큽니다.".into());
+    }
+    Ok(meta.len())
+}
+
+#[tauri::command]
+pub fn plan_doc_save(source: String, mode: String, chosen: String) -> Result<String, String> {
+    let source = PathBuf::from(source.trim());
+    if !is_picture_path(&source) {
+        return Err("PNG 또는 JPEG 그림만 넣을 수 있습니다.".into());
+    }
+    if !source.is_file() {
+        return Err("그림을 읽지 못했습니다.".into());
+    }
+    let dir = save_dir(&source, mode.trim(), chosen.trim())?;
+    let mime = mime_from_path(&source);
+    for index in 1..=99 {
+        let candidate = dir.join(doc_file_name(&source, index, mime));
+        if paths_same(&source, &candidate) {
+            continue;
+        }
+        if !candidate.exists() {
+            return candidate
+                .to_str()
+                .map(|text| text.to_string())
+                .ok_or_else(|| "저장 경로를 만들지 못했습니다.".to_string());
+        }
+    }
+    Err("같은 이름의 파일이 너무 많습니다.".into())
+}
+
+#[tauri::command]
+pub fn write_new_picture(path: String, source_path: String, data: String) -> Result<u64, String> {
+    let path = PathBuf::from(path.trim());
+    let source = PathBuf::from(source_path.trim());
+    if paths_same(&source, &path) {
+        return Err("원본 파일은 바꾸지 않습니다.".into());
+    }
+    if path.exists() {
+        return Err("이미 있는 파일은 덮어쓰지 않습니다.".into());
+    }
+    let bytes = from_base64(&data)?;
+    if bytes.len() > MAX_WRITE_BYTES {
+        return Err("저장할 내용이 너무 큽니다.".into());
+    }
+    let mime = picture_mime(&bytes).ok_or_else(|| "그림 형식이 올바르지 않습니다.".to_string())?;
+    if !extension_matches(&path, mime) {
+        return Err("저장 형식이 그림과 맞지 않습니다.".into());
+    }
+    let tmp = PathBuf::from(format!("{}.part", path.display()));
+    if tmp.exists() {
+        let _ = fs::remove_file(&tmp);
+    }
+    if let Err(err) = fs::write(&tmp, &bytes) {
+        let _ = fs::remove_file(&tmp);
+        return Err(write_error(&err));
+    }
+    if let Err(err) = fs::rename(&tmp, &path) {
+        let _ = fs::remove_file(&tmp);
+        return Err(write_error(&err));
+    }
+    Ok(bytes.len() as u64)
+}
+
+fn save_dir(source: &Path, mode: &str, chosen: &str) -> Result<PathBuf, String> {
+    let parent = source
+        .parent()
+        .filter(|dir| !dir.as_os_str().is_empty())
+        .ok_or_else(|| "저장할 폴더가 없습니다.".to_string())?;
+    match mode {
+        "beside" => Ok(parent.to_path_buf()),
+        "bundle" => {
+            let dir = parent.join("문서용_사진");
+            fs::create_dir_all(&dir).map_err(|err| write_error(&err))?;
+            Ok(dir)
+        }
+        "chosen" => {
+            let dir = PathBuf::from(chosen);
+            if !dir.is_dir() {
+                return Err("저장 폴더가 없습니다.".into());
+            }
+            Ok(dir)
+        }
+        _ => Err("저장 위치를 고르세요.".into()),
+    }
+}
+
+fn doc_file_name(source: &Path, index: u32, mime: &str) -> String {
+    let stem = source
+        .file_stem()
+        .and_then(|name| name.to_str())
+        .filter(|name| !name.is_empty())
+        .unwrap_or("사진");
+    let ext = if mime == "image/png" { "png" } else { "jpg" };
+    if index <= 1 {
+        format!("{stem}_문서용.{ext}")
+    } else {
+        format!("{stem}_문서용_{index}.{ext}")
+    }
+}
+
+fn mime_from_path(path: &Path) -> &'static str {
+    match extension(path) {
+        Some("png") => "image/png",
+        _ => "image/jpeg",
+    }
+}
+
+fn is_picture_path(path: &Path) -> bool {
+    matches!(extension(path), Some("png" | "jpg" | "jpeg"))
+}
+
+fn extension_matches(path: &Path, mime: &str) -> bool {
+    match (extension(path), mime) {
+        (Some("png"), "image/png") => true,
+        (Some("jpg" | "jpeg"), "image/jpeg") => true,
+        _ => false,
+    }
+}
+
+fn extension(path: &Path) -> Option<&'static str> {
+    let ext = path.extension()?.to_str()?;
+    if ext.eq_ignore_ascii_case("png") {
+        Some("png")
+    } else if ext.eq_ignore_ascii_case("jpg") {
+        Some("jpg")
+    } else if ext.eq_ignore_ascii_case("jpeg") {
+        Some("jpeg")
+    } else {
+        None
+    }
+}
+
+fn paths_same(source: &Path, dest: &Path) -> bool {
+    if path_key(source) == path_key(dest) {
+        return true;
+    }
+    let Ok(source_canon) = fs::canonicalize(source) else {
+        return false;
+    };
+    if path_key(&source_canon) == path_key(dest) {
+        return true;
+    }
+    fs::canonicalize(dest)
+        .map(|dest_canon| dest_canon == source_canon)
+        .unwrap_or(false)
+}
+
+fn path_key(path: &Path) -> String {
+    path.to_string_lossy()
+        .replace('/', "\\")
+        .trim_end_matches('\\')
+        .to_lowercase()
+}
+
+fn write_error(err: &std::io::Error) -> String {
+    match err.kind() {
+        std::io::ErrorKind::PermissionDenied => "저장 권한이 없습니다.".into(),
+        std::io::ErrorKind::StorageFull => "디스크 공간이 부족합니다.".into(),
+        _ => "저장하지 못했습니다.".into(),
+    }
+}

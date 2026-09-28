@@ -6,6 +6,48 @@
 ---
 
 날짜: 2026-09-28
+버전: 0.1.125-20260928
+설치 파일: EduLauncher_0.1.125-20260928_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-28_1131_x64-setup.exe
+작성자: 요청자
+
+요청: 컴퓨터도구에 문서용 사진 줄이기를 넣는다.
+
+수정한 파일:
+- src/data/computerTools.ts
+- src/pages/ComputerToolPage.tsx
+- src/pages/SettingsPage.tsx
+- src/App.tsx
+- src/components/DropZone.tsx
+- src/config/app.ts
+- src-tauri/src/lib.rs
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PRD.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+새로 만든 파일:
+- src/pages/DocShrinkPage.tsx
+- src/services/docShrinkService.ts
+- src/services/docDropGate.ts
+- src-tauri/src/doc_shrink.rs
+
+재사용한 기존 파일:
+- 컴퓨터도구 목록, 파일 선택 대화상자, 그림 읽기, 화면 그리기
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+사진은 이 PC 안에서만 읽고 새 파일로 저장한다.
+특허 검토: 비율 유지 축소, JPEG·PNG 다시 저장. 청구항 대조는 하지 않았다. 특허 비침해를 보장하지 않는다.
+아직 없는 것: 목표 전체 용량, 숫자로 직접 지정, HEIC.
+
+---
+
+날짜: 2026-09-28
 버전: 0.1.124-20260928
 설치 파일: EduLauncher_0.1.124-20260928_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-28_1110_x64-setup.exe

@@ -28,6 +28,7 @@ import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
+import { DocShrinkPage } from "./pages/DocShrinkPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
@@ -37,7 +38,7 @@ import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
-import { isFolderFindTarget } from "./data/computerTools";
+import { isDocShrinkTarget, isFolderFindTarget } from "./data/computerTools";
 import { logEducationValidation } from "./services/mindMapService";
 import { logTroubleshootingValidation } from "./services/troubleshootingService";
 import { LaunchError, launchQuickUrl, launchTool } from "./services/launcherService";
@@ -83,6 +84,7 @@ type View =
   | { name: "topic"; topicId: string; backTo: View }
   | { name: "pc-address" }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
+  | { name: "doc-shrink"; backTo?: View }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
   | { name: "internal"; id: string; title: string };
 
@@ -627,6 +629,7 @@ export default function App() {
               onShowFolderFind={() =>
                 setView({ name: "pc-folder-find", backTo: { name: "computer-tools" } })
               }
+              onShowDocShrink={() => setView({ name: "doc-shrink", backTo: { name: "computer-tools" } })}
               onShowTroubleshoot={() =>
                 setView({ name: "troubleshoot", backTo: { name: "computer-tools" } })
               }
@@ -725,6 +728,9 @@ export default function App() {
               onBack={() => setView(view.backTo ?? { name: "home" })}
             />
           ) : null}
+          {view.name === "doc-shrink" ? (
+            <DocShrinkPage onBack={() => setView(view.backTo ?? { name: "computer-tools" })} />
+          ) : null}
           {view.name === "tool-edit" ? (
             <ToolEditPage
               tool={view.tool}
@@ -747,6 +753,9 @@ export default function App() {
           {view.name === "internal" && (view.id === "privacy-mask" || view.id === "tool-privacy-mask") ? (
             <PrivacyMaskPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && isDocShrinkTarget(view.id) ? (
+            <DocShrinkPage onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" && isFolderFindTarget(view.id) ? (
             <PcFolderFindPage onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -763,6 +772,7 @@ export default function App() {
           view.id !== "tool-url-mark" &&
           view.id !== "privacy-mask" &&
           view.id !== "tool-privacy-mask" &&
+          !isDocShrinkTarget(view.id) &&
           !isFolderFindTarget(view.id) ? (
             <InternalPlaceholderPage
               title={view.title}
