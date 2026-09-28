@@ -10,7 +10,7 @@ const REQUIREMENTS = [
 ] as const;
 
 const STEPS = [
-  "아래 버튼으로 GitHub Releases의 최신 설치 파일을 받습니다.",
+  "아래 버튼으로 최신 설치 파일을 받습니다.",
   `${SITE_CONFIG.setupFile} 또는 ${SITE_CONFIG.setupFileDated} 를 실행합니다. 현재 사용자 폴더에 설치됩니다.`,
   "설치가 끝나면 프로그램이 바로 실행되고 패널이 열립니다. 시작 시 자동 실행·창 표시는 기본으로 켜져 있으며 설정에서 바꿀 수 있습니다.",
   "이미 설치되어 있으면 이전 버전을 교체한 뒤 다시 실행합니다.",
@@ -28,8 +28,7 @@ export function DownloadPage() {
           런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.
         </p>
         <p className="text-sm leading-relaxed text-quiet">
-          {SITE_CONFIG.displayName}는 이 PC에 설치하는 Windows 프로그램입니다. 설치 파일은 이 사이트에 두지 않고
-          GitHub Releases에서 받습니다. 용량이 큰 설치본을 웹 호스팅에 올리지 않기 위함입니다.
+          {SITE_CONFIG.displayName}는 이 PC에 설치하는 Windows 프로그램입니다. 설치 파일은 아래 버튼으로 받습니다.
         </p>
       </section>
 
