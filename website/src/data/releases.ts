@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.128-20260928",
+    note: "홈의 사이트·프로그램·파일·폴더 카드에서 이름이 먼저 보이고, 별표와 점 세 개는 그 아래 오른쪽에 있습니다.",
+  },
+  {
     version: "0.1.127-20260928",
     note: "홈 검색의 이 PC 폴더에서 파일이 있는 폴더를 바로 엽니다.",
   },

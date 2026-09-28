@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-09-28
+버전: 0.1.128-20260928
+설치 파일: EduLauncher_0.1.128-20260928_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-28_1512_x64-setup.exe
+작성자: 요청자
+
+요청: 홈의 사이트·프로그램·파일·폴더 카드에서 이름이 가리지 않게 두 줄로 둔다.
+
+수정한 파일:
+- src/components/home/LauncherCard.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- 수정기록.txt
+
+새로 만든 파일:
+없음
+
+재사용한 기존 파일:
+- 별표 단추, 점 세 개 메뉴, 홈 목록
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+첫째 줄은 이름, 둘째 줄 오른쪽은 별표와 점 세 개다.
+특허 검토가 필요한 새 기술 구성은 없다. 특허 비침해를 보장하지 않는다.
+
+---
+
+
+날짜: 2026-09-28
 버전: 0.1.127-20260928
 설치 파일: EduLauncher_0.1.127-20260928_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-28_1416_x64-setup.exe
