@@ -33,6 +33,9 @@ import {
   findUserFolderNames,
   haltUserFolderFind,
   USER_FOLDER_HOME_LIMIT,
+  containingFolder,
+  containingFolderLabel,
+  containingFolderTool,
   userFolderAsTool,
   type UserFolderHit,
 } from "../services/userFolderSearch";
@@ -651,22 +654,30 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
               ) : (
                 <div className="space-y-1">
                   {folderHits.map((hit) => (
-                    <button
+                    <div
                       key={hit.path}
-                      type="button"
-                      title={hit.path}
-                      onClick={() => onAction({ type: "launch", tool: userFolderAsTool(hit) })}
-                      className={`desk-row ${
+                      className={`desk-row gap-2 ${
                         selectedId === `pc-file:${hit.path}` ? "desk-row-active" : ""
                       }`}
                     >
-                      <span className="min-w-0 flex-1 truncate">
+                      <button
+                        type="button"
+                        title={hit.path}
+                        onClick={() => onAction({ type: "launch", tool: userFolderAsTool(hit) })}
+                        className="min-w-0 flex-1 truncate text-left"
+                      >
                         <HighlightText text={hit.name} query={query} />
-                      </span>
-                      <span className="ml-2 shrink-0 text-xs text-quiet">
-                        {hit.zone} · {hit.kind === "folder" ? "폴더" : "파일"}
-                      </span>
-                    </button>
+                      </button>
+                      <button
+                        type="button"
+                        title={containingFolder(hit.path)}
+                        aria-label="폴더 열기"
+                        onClick={() => onAction({ type: "launch", tool: containingFolderTool(hit) })}
+                        className="max-w-[46%] shrink-0 truncate text-xs text-quiet"
+                      >
+                        {containingFolderLabel(hit.path)}
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}

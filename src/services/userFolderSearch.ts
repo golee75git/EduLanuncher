@@ -29,6 +29,40 @@ export async function haltUserFolderFind(): Promise<void> {
   await invoke("halt_user_folder_find");
 }
 
+export function containingFolder(path: string): string {
+  const trimmed = path.trim().replace(/[\\/]+$/, "");
+  const cut = Math.max(trimmed.lastIndexOf("\\"), trimmed.lastIndexOf("/"));
+  if (cut <= 2) {
+    return trimmed;
+  }
+  return trimmed.slice(0, cut);
+}
+
+export function containingFolderLabel(path: string): string {
+  const place = containingFolder(path);
+  const parts = place.split(/[\\/]/).filter(Boolean);
+  const tail = parts.slice(-2).join("\\");
+  return tail || place;
+}
+
+export function containingFolderTool(hit: UserFolderHit) {
+  const place = containingFolder(hit.path);
+  return {
+    id: `pc-place:${place}`,
+    name: containingFolderLabel(hit.path),
+    description: place,
+    type: "folder" as const,
+    target: place,
+    icon: "folder",
+    category: hit.zone,
+    favorite: false,
+    keywords: [hit.zone],
+    usageCount: 0,
+    enabled: true,
+    origin: "local" as const,
+  };
+}
+
 export function userFolderAsTool(hit: UserFolderHit) {
   return {
     id: `pc-folder:${hit.path}`,

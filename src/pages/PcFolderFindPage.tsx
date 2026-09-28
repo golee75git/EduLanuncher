@@ -4,6 +4,9 @@ import { SearchBar } from "../components/SearchBar";
 import { HighlightText } from "../components/HighlightText";
 import { launchTool } from "../services/launcherService";
 import {
+  containingFolder,
+  containingFolderLabel,
+  containingFolderTool,
   findUserFolderNames,
   haltUserFolderFind,
   userFolderAsTool,
@@ -95,19 +98,23 @@ export function PcFolderFindPage({ initialQuery = "", onBack }: PcFolderFindPage
         ) : null}
         <ul className="card-surface divide-y divide-line/70">
           {hits.map((hit) => (
-            <li key={hit.path}>
+            <li key={hit.path} className="flex items-center gap-2 px-3 py-2">
               <button
                 type="button"
-                className="flex w-full flex-col px-3 py-2 text-left hover:bg-ink-soft/60"
+                className="min-w-0 flex-1 truncate text-left text-sm text-desk"
                 title={hit.path}
                 onClick={() => void launchTool(userFolderAsTool(hit))}
               >
-                <span className="truncate text-sm text-desk">
-                  <HighlightText text={hit.name} query={query} />
-                </span>
-                <span className="text-[11px] text-quiet">
-                  {hit.zone} · {hit.kind === "folder" ? "폴더" : "파일"}
-                </span>
+                <HighlightText text={hit.name} query={query} />
+              </button>
+              <button
+                type="button"
+                className="max-w-[46%] shrink-0 truncate text-left text-[11px] text-quiet"
+                title={containingFolder(hit.path)}
+                aria-label="폴더 열기"
+                onClick={() => void launchTool(containingFolderTool(hit))}
+              >
+                {containingFolderLabel(hit.path)}
               </button>
             </li>
           ))}
