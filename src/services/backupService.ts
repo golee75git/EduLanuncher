@@ -14,6 +14,7 @@ import {
   asPanelHeight,
   asPanelSkin,
   asPanelWidth,
+  asIdList,
   type AppSettings,
   type LauncherPosition,
 } from "../types/settings";
@@ -212,6 +213,8 @@ function parseSettings(raw: unknown): AppSettings {
     panelHeight: asPanelHeight(source.panelHeight),
     memoWidth: asMemoWidth(source.memoWidth),
     memoHeight: asMemoHeight(source.memoHeight),
+    shortcutOrder: asIdList(source.shortcutOrder),
+    computerToolOrder: asIdList(source.computerToolOrder),
   };
 }
 

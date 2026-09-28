@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.130-20260928",
+    note: "단축키와 컴퓨터도구 목록에서 위·아래로 순서를 바꿀 수 있습니다. 순서는 이 PC에만 남습니다.",
+  },
+  {
     version: "0.1.129-20260928",
     note: "설정에서 고른 폴더의 문서 내용을 이 PC에서만 검색합니다. 짧은 구절로 파일을 엽니다.",
   },

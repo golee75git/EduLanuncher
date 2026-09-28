@@ -40,6 +40,8 @@ export interface AppSettings {
   panelHeight: number;
   memoWidth: number;
   memoHeight: number;
+  shortcutOrder: string[];
+  computerToolOrder: string[];
 }
 
 export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: string }> = [
@@ -110,6 +112,24 @@ export function asMemoHeight(value: unknown): number {
   return Math.min(MEMO_SIZE.maxHeight, Math.max(MEMO_SIZE.minHeight, Math.round(parsed)));
 }
 
+export function asIdList(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  const out: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") {
+      continue;
+    }
+    const id = item.trim().slice(0, 64);
+    if (!id || out.includes(id) || out.length >= 40) {
+      continue;
+    }
+    out.push(id);
+  }
+  return out;
+}
+
 export const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   showWindowOnLaunch: true,
@@ -126,4 +146,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   panelHeight: PANEL_SIZE.defaultHeight,
   memoWidth: MEMO_SIZE.defaultWidth,
   memoHeight: MEMO_SIZE.defaultHeight,
+  shortcutOrder: [],
+  computerToolOrder: [],
 };

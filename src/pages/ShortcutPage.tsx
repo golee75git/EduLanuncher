@@ -1,7 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { OrderShift } from "../components/OrderShift";
 import { canRunShortcut, listShortcuts, type ShortcutEntry } from "../data/shortcuts";
+import { moveId, orderedByIds } from "../services/listOrder";
 import { runShortcutAction } from "../services/windowService";
+import { useSettingsStore } from "../stores/settingsStore";
 
 interface ShortcutPageProps {
   onBack: () => void;
@@ -10,6 +13,18 @@ interface ShortcutPageProps {
 export function ShortcutPage({ onBack }: ShortcutPageProps) {
   const [notice, setNotice] = useState("");
   const [busyId, setBusyId] = useState("");
+  const order = useSettingsStore((state) => state.settings.shortcutOrder);
+  const update = useSettingsStore((state) => state.update);
+  const rows = orderedByIds(listShortcuts(), order);
+
+  const shift = (id: string, step: -1 | 1) => {
+    const ids = rows.map((entry) => entry.id);
+    const next = moveId(ids, id, step);
+    if (next === ids) {
+      return;
+    }
+    void update({ shortcutOrder: next });
+  };
 
   const run = async (entry: ShortcutEntry) => {
     if (!entry.runId || busyId) {
@@ -42,7 +57,7 @@ export function ShortcutPage({ onBack }: ShortcutPageProps) {
         </p>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         <ul className="card-surface divide-y divide-line/70">
-          {listShortcuts().map((entry) => (
+          {rows.map((entry, index) => (
             <li key={entry.id} className="flex items-center gap-1 px-2 py-1.5">
               <div className="min-w-0 flex-1 px-1 py-1">
                 <span className="block truncate text-sm font-medium text-desk">
@@ -52,6 +67,12 @@ export function ShortcutPage({ onBack }: ShortcutPageProps) {
                 </span>
                 <span className="block truncate text-[11px] text-quiet">{entry.hint}</span>
               </div>
+              <OrderShift
+                first={index === 0}
+                last={index === rows.length - 1}
+                onUp={() => shift(entry.id, -1)}
+                onDown={() => shift(entry.id, 1)}
+              />
               {canRunShortcut(entry) ? (
                 <button
                   type="button"

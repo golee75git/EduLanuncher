@@ -9,6 +9,7 @@ import {
   asPanelHeight,
   asPanelSkin,
   asPanelWidth,
+  asIdList,
   type AppSettings,
 } from "../types/settings";
 import type { RecentTopicItem } from "../types/recentTopic";
@@ -81,6 +82,8 @@ export async function loadSettings(): Promise<AppSettings> {
     panelHeight: asPanelHeight(merged.panelHeight),
     memoWidth: asMemoWidth(merged.memoWidth),
     memoHeight: asMemoHeight(merged.memoHeight),
+    shortcutOrder: asIdList(merged.shortcutOrder),
+    computerToolOrder: asIdList(merged.computerToolOrder),
   };
 }
 

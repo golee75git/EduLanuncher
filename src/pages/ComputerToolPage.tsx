@@ -1,5 +1,8 @@
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
+import { OrderShift } from "../components/OrderShift";
+import { moveId, orderedByIds } from "../services/listOrder";
+import { useSettingsStore } from "../stores/settingsStore";
 import {
   computerToolAsItem,
   computerToolPath,
@@ -31,7 +34,19 @@ export function ComputerToolPage({
 }: ComputerToolPageProps) {
   const tools = useToolStore((state) => state.tools);
   const addTool = useToolStore((state) => state.addTool);
+  const order = useSettingsStore((state) => state.settings.computerToolOrder);
+  const update = useSettingsStore((state) => state.update);
   const [notice, setNotice] = useState("");
+  const rows = orderedByIds(listComputerTools(), order);
+
+  const shift = (id: string, step: -1 | 1) => {
+    const ids = rows.map((entry) => entry.id);
+    const next = moveId(ids, id, step);
+    if (next === ids) {
+      return;
+    }
+    void update({ computerToolOrder: next });
+  };
 
   const pinToLauncher = async (item: ToolItem) => {
     const exists =
@@ -74,7 +89,7 @@ export function ComputerToolPage({
         </button>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         <ul className="card-surface divide-y divide-line/70">
-          {listComputerTools().map((entry) => {
+          {rows.map((entry, index) => {
             const item = computerToolAsItem(entry);
             return (
               <li key={entry.id} className="flex items-center gap-1 px-2 py-1.5">
@@ -96,6 +111,12 @@ export function ComputerToolPage({
                     {entry.hint}
                   </span>
                 </button>
+                <OrderShift
+                  first={index === 0}
+                  last={index === rows.length - 1}
+                  onUp={() => shift(entry.id, -1)}
+                  onDown={() => shift(entry.id, 1)}
+                />
                 <button
                   type="button"
                   className="shrink-0 rounded-full px-2 py-1 text-[11px] font-medium text-ink hover:bg-ink-soft"

@@ -8,6 +8,7 @@ import {
   asPanelHeight,
   asPanelSkin,
   asPanelWidth,
+  asIdList,
   type AppSettings,
   type PanelSkin,
 } from "../types/settings";
@@ -39,6 +40,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       panelHeight: asPanelHeight(settings.panelHeight),
       memoWidth: asMemoWidth(settings.memoWidth),
       memoHeight: asMemoHeight(settings.memoHeight),
+      shortcutOrder: asIdList(settings.shortcutOrder),
+      computerToolOrder: asIdList(settings.computerToolOrder),
     };
     paintSkin(next.panelSkin);
     set({ settings: next, loaded: true });
@@ -53,6 +56,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       panelHeight: asPanelHeight(patch.panelHeight ?? get().settings.panelHeight),
       memoWidth: asMemoWidth(patch.memoWidth ?? get().settings.memoWidth),
       memoHeight: asMemoHeight(patch.memoHeight ?? get().settings.memoHeight),
+      shortcutOrder: asIdList(patch.shortcutOrder ?? get().settings.shortcutOrder),
+      computerToolOrder: asIdList(patch.computerToolOrder ?? get().settings.computerToolOrder),
     };
     set({ settings });
     await saveSettings(settings);
