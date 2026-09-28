@@ -362,7 +362,7 @@ export function PrivacyMaskPage({ title, onBack }: PrivacyMaskPageProps) {
         <button type="button" className="icon-btn" onClick={onBack} aria-label="뒤로">
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">{title || "사진 개인정보 가리기"}</h1>
+        <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">{title || "사진 정보 가리기"}</h1>
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">

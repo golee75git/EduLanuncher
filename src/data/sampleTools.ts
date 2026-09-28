@@ -16,7 +16,7 @@ export const URL_MARK_TOOL: ToolItem = {
 
 export const PRIVACY_MASK_TOOL: ToolItem = {
   id: "tool-privacy-mask",
-  name: "사진 개인정보 가리기",
+  name: "사진 정보 가리기",
   description: "사진 속 얼굴·번호·문자를 가리고 안전하게 저장합니다",
   type: "internal",
   target: "privacy-mask",

@@ -2485,7 +2485,7 @@ PATENT_REVIEW:
 
 ---
 
-Feature: 사진 개인정보 가리기
+Feature: 사진 정보 가리기
 
 Purpose:
 이 PC의 사진에서 사용자가 지정한 영역을 가리고, 원본은 그대로 둔 채 새 파일로 저장한다
