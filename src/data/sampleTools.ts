@@ -16,7 +16,7 @@ export const URL_MARK_TOOL: ToolItem = {
 
 export const DOC_SHRINK_TOOL: ToolItem = {
   id: "tool-doc-shrink",
-  name: "문서용 사진 줄이기",
+  name: "사진 용량 줄이기",
   description: "큰 사진을 문서에 알맞은 크기로 줄여 문서 용량을 줄입니다",
   type: "internal",
   target: "doc-shrink",
@@ -48,7 +48,7 @@ export function isPdfPagesTarget(target: string): boolean {
 
 export const PRIVACY_MASK_TOOL: ToolItem = {
   id: "tool-privacy-mask",
-  name: "사진 정보 가리기",
+  name: "사진 모자이크",
   description: "사진 속 얼굴·번호·문자를 가리고 안전하게 저장합니다",
   type: "internal",
   target: "privacy-mask",

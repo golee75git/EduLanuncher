@@ -77,8 +77,8 @@ struct WorkMapFocus(Mutex<String>);
 
 struct MemoDraft(Mutex<String>);
 
-const PANEL_DEFAULT_W: f64 = 440.0;
-const PANEL_DEFAULT_H: f64 = 650.0;
+const PANEL_DEFAULT_W: f64 = 520.0;
+const PANEL_DEFAULT_H: f64 = 720.0;
 const PANEL_MIN_W: f64 = 400.0;
 const PANEL_MIN_H: f64 = 550.0;
 const PANEL_MAX_W: f64 = 720.0;

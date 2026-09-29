@@ -105,7 +105,7 @@ const ENTRIES: ComputerToolEntry[] = [
   },
   {
     id: "doc-shrink",
-    name: "문서용 사진 줄이기",
+    name: "사진 용량 줄이기",
     hint: "큰 사진을 문서에 알맞은 크기로 줄여 문서 용량을 줄입니다.",
     type: "internal",
     view: "doc-shrink",

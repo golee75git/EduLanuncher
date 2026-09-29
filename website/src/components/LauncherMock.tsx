@@ -13,7 +13,7 @@ const NOTICES = [
 export function LauncherMock() {
   return (
     <div
-      className="relative mx-auto flex h-[650px] w-[440px] max-w-full flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-pop"
+      className="relative mx-auto flex h-[720px] w-[520px] max-w-full flex-col overflow-hidden rounded-xl border border-line bg-paper shadow-pop"
       aria-hidden="true"
     >
       <div className="absolute inset-x-0 top-0 z-10 bg-ink-soft/90 px-3 py-1.5 text-center text-[11px] font-medium text-ink-strong">

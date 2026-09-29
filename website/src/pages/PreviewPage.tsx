@@ -2,7 +2,7 @@ import { Download } from "lucide-react";
 import { LauncherMock } from "../components/LauncherMock";
 
 const CAN = [
-  "패널 크기(440×650)와 구역 배치를 눈으로 확인",
+  "패널 크기(520×720)와 구역 배치를 눈으로 확인",
   "공지·바로가기 그룹이 어떻게 보이는지 샘플로 확인",
 ] as const;
 

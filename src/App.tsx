@@ -585,6 +585,7 @@ export default function App() {
               onWriteNotices={() => setView({ name: "notice-edit" })}
               onWriteSharePack={() => setView({ name: "share-edit" })}
               onTopicReview={() => setView({ name: "topic-review" })}
+              onHandbook={() => setView({ name: "handbook" })}
               onNoticePack={(pack, sitePack) => {
                 setPackPick({ pack, sitePack });
                 setView({ name: "home" });

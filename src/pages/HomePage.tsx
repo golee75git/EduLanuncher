@@ -1,4 +1,4 @@
-import { BookOpen, Compass, Keyboard, Plus, Settings, Wrench, type LucideIcon } from "lucide-react";
+import { Compass, Keyboard, Plus, Settings, Wrench, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FavoriteGrid } from "../components/FavoriteGrid";
 import { HighlightText } from "../components/HighlightText";
@@ -554,14 +554,6 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                           >
                             <WorkToolMark icon={Compass} />
                             업무자료
-                          </button>
-                          <button
-                            type="button"
-                            className={linkClass}
-                            onClick={() => onAction({ type: "handbook" })}
-                          >
-                            <WorkToolMark icon={BookOpen} />
-                            편람 분류
                           </button>
                           <button
                             type="button"

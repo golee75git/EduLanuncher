@@ -4,8 +4,8 @@ export type ListColumns = 1 | 2;
 export type GridColumns = 1 | 2 | 3;
 
 export const PANEL_SIZE = {
-  defaultWidth: 440,
-  defaultHeight: 650,
+  defaultWidth: 520,
+  defaultHeight: 720,
   minWidth: 400,
   minHeight: 550,
   maxWidth: 720,
