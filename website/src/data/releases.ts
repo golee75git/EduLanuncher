@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.133-20260929",
+    note: "홈의 자주 사용하는 도구가 모두와 같은 줄로 보입니다. 아이콘과 이름, 그 아래 경로, 오른쪽 위에 별표와 점 세 개가 있습니다.",
+  },
+  {
     version: "0.1.132-20260929",
     note: "홈의 사이트·프로그램·파일·폴더 카드에서 별표와 점 세 개가 이름과 같은 줄 오른쪽에 있습니다.",
   },

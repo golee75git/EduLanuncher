@@ -6,6 +6,37 @@
 ---
 
 날짜: 2026-09-29
+버전: 0.1.133-20260929
+설치 파일: EduLauncher_0.1.133-20260929_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-29_1558_x64-setup.exe
+작성자: 요청자
+
+요청: 홈의 자주 사용하는 도구를 모두 화면과 같은 줄로 보이게 한다.
+
+수정한 파일:
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- 수정기록.txt
+
+새로 만든 파일:
+- 없음
+
+재사용한 기존 파일:
+- 모두 화면의 줄 목록
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+종류마다 최대 6개는 그대로다. 설정 사용 방법과 소개 사이트 설치 안내는 이 버전의 파일명을 표시한다.
+줄 배치는 화면 표시다. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
 버전: 0.1.132-20260929
 설치 파일: EduLauncher_0.1.132-20260929_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-29_1530_x64-setup.exe

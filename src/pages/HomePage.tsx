@@ -4,7 +4,6 @@ import { FavoriteGrid } from "../components/FavoriteGrid";
 import { HighlightText } from "../components/HighlightText";
 import { AppHeader } from "../components/home/AppHeader";
 import { GlobalSearch } from "../components/home/GlobalSearch";
-import { LauncherGrid, homeFavoriteColumns } from "../components/home/LauncherGrid";
 import { SectionHeader } from "../components/home/SectionHeader";
 import { WelcomeMessage } from "../components/home/WelcomeMessage";
 import { NoticeList } from "../components/NoticeList";
@@ -53,7 +52,7 @@ import { getSchools } from "../stores/schoolStore";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
-import { homeListColumns, isPriorSkin } from "../types/settings";
+import { allListColumns, homeListColumns, isPriorSkin } from "../types/settings";
 import type { NoticeItem } from "../types/notice";
 import type { SchoolItem } from "../types/school";
 import type { ToolItem, ToolType } from "../types/tool";
@@ -455,7 +454,6 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     showTools || showRecents || showFolders || showDocs || showSchools || showTroubles || showManuals || showTopics;
 
   const prior = isPriorSkin(settings.panelSkin);
-  const cardColumns = homeFavoriteColumns(settings.panelWidth);
   const linkClass = prior
     ? "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
     : "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
@@ -596,9 +594,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                         onDelete={(tool) => onAction({ type: "remove", tool })}
                       />
                     ) : (
-                      <LauncherGrid
+                      <FavoriteGrid
                         tools={group.shown}
-                        columns={cardColumns}
+                        layout="list"
+                        columns={allListColumns(settings.panelWidth, settings.listColumns)}
                         emptyText={favoriteEmptyText(group.type)}
                         selectedId={selectedId?.startsWith("fav:") ? selectedId.slice(4) : undefined}
                         onLaunch={(tool) => onAction({ type: "launch", tool })}
