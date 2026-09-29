@@ -88,9 +88,9 @@ type View =
   | { name: "pc-address" }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
-  | { name: "doc-shrink"; backTo?: View; initialPath?: string }
+  | { name: "doc-shrink"; backTo?: View }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
-  | { name: "internal"; id: string; title: string; path?: string; backTo?: View };
+  | { name: "internal"; id: string; title: string };
 
 function currentWindowLabel(): string {
   try {
@@ -672,22 +672,7 @@ export default function App() {
               onOpenCard={(cardId) => setView({ ...view, cardId })}
             />
           ) : null}
-          {view.name === "shortcuts" ? (
-            <ShortcutPage
-              onBack={() => setView({ name: "home" })}
-              onUseCapture={(kind, path) =>
-                kind === "shrink"
-                  ? setView({ name: "doc-shrink", backTo: { name: "shortcuts" }, initialPath: path })
-                  : setView({
-                      name: "internal",
-                      id: "privacy-mask",
-                      title: "사진 모자이크",
-                      path,
-                      backTo: { name: "shortcuts" },
-                    })
-              }
-            />
-          ) : null}
+          {view.name === "shortcuts" ? <ShortcutPage onBack={() => setView({ name: "home" })} /> : null}
           {view.name === "handbook" ? (
             <HandbookCategoryListPage
               onBack={() => setView({ name: "home" })}
@@ -759,10 +744,7 @@ export default function App() {
             />
           ) : null}
           {view.name === "doc-shrink" ? (
-            <DocShrinkPage
-              initialPath={view.initialPath}
-              onBack={() => setView(view.backTo ?? { name: "computer-tools" })}
-            />
+            <DocShrinkPage onBack={() => setView(view.backTo ?? { name: "computer-tools" })} />
           ) : null}
           {view.name === "tool-edit" ? (
             <ToolEditPage
@@ -784,11 +766,7 @@ export default function App() {
             <UrlMarkPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && (view.id === "privacy-mask" || view.id === "tool-privacy-mask") ? (
-            <PrivacyMaskPage
-              title={view.title}
-              initialPath={view.path}
-              onBack={() => setView(view.backTo ?? { name: "home" })}
-            />
+            <PrivacyMaskPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && isDocShrinkTarget(view.id) ? (
             <DocShrinkPage onBack={() => setView({ name: "home" })} />

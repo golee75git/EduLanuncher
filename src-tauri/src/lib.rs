@@ -38,10 +38,6 @@ mod drop_target;
 mod shell_icon;
 #[cfg(windows)]
 mod favicon_db;
-#[cfg(windows)]
-mod snip_clip;
-#[cfg(windows)]
-use snip_clip::{begin_screen_snip, poll_screen_snip, take_screen_snip};
 
 #[cfg(windows)]
 #[link(name = "shell32")]
@@ -1088,7 +1084,24 @@ fn run_shortcut_action(action_id: String) -> Result<(), String> {
                     .map_err(|err| err.to_string())?;
                 Ok(())
             }
-            "snip" => snip_clip::open_capture_tool(),
+            "snip" => {
+                let snip = PathBuf::from(r"C:\Windows\System32\SnippingTool.exe");
+                if snip.is_file() {
+                    std::process::Command::new(snip)
+                        .spawn()
+                        .map_err(|err| err.to_string())?;
+                    return Ok(());
+                }
+                let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
+                if !explorer.is_file() {
+                    return Err("화면 캡처를 열 수 없습니다.".into());
+                }
+                std::process::Command::new(explorer)
+                    .arg("ms-screenclip:")
+                    .spawn()
+                    .map_err(|err| err.to_string())?;
+                Ok(())
+            }
             "settings" => {
                 let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
                 if !explorer.is_file() {
@@ -1859,7 +1872,6 @@ pub fn run() {
         .manage(FolderWalkHalt(Arc::new(AtomicBool::new(false))))
         .manage(WorkMapFocus(Mutex::new(String::new())))
         .manage(MemoDraft(Mutex::new(String::new())))
-        .manage(snip_clip::SnipGate(Mutex::new(snip_clip::SnipHold::default())))
         .invoke_handler(tauri::generate_handler![
             hide_panel,
             show_panel,
@@ -1875,9 +1887,6 @@ pub fn run() {
             reveal_topic,
             launch_tool,
             run_shortcut_action,
-            begin_screen_snip,
-            poll_screen_snip,
-            take_screen_snip,
             open_ie_reset,
             read_json_file,
             read_url_shortcut,

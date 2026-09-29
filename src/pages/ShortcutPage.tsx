@@ -1,37 +1,18 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { OrderShift } from "../components/OrderShift";
 import { canRunShortcut, listShortcuts, type ShortcutEntry } from "../data/shortcuts";
 import { moveId, moveIdToFront, orderedByIds } from "../services/listOrder";
-import {
-  beginScreenSnip,
-  pollScreenSnip,
-  runShortcutAction,
-  showPanel,
-  takeScreenSnip,
-} from "../services/windowService";
+import { runShortcutAction } from "../services/windowService";
 import { useSettingsStore } from "../stores/settingsStore";
 
 interface ShortcutPageProps {
   onBack: () => void;
-  onUseCapture: (kind: "shrink" | "mask", path: string) => void;
 }
 
-export function ShortcutPage({ onBack, onUseCapture }: ShortcutPageProps) {
+export function ShortcutPage({ onBack }: ShortcutPageProps) {
   const [notice, setNotice] = useState("");
   const [busyId, setBusyId] = useState("");
-  const [captureAsk, setCaptureAsk] = useState<"" | "wait" | "ask">("");
-  const captureRef = useRef(captureAsk);
-  captureRef.current = captureAsk;
-
-  useEffect(() => {
-    return () => {
-      if (captureRef.current) {
-        captureRef.current = "";
-        void takeScreenSnip("drop");
-      }
-    };
-  }, []);
   const order = useSettingsStore((state) => state.settings.shortcutOrder);
   const update = useSettingsStore((state) => state.update);
   const rows = orderedByIds(listShortcuts(), order);
@@ -55,58 +36,18 @@ export function ShortcutPage({ onBack, onUseCapture }: ShortcutPageProps) {
   };
 
   const run = async (entry: ShortcutEntry) => {
-    if (!entry.runId || busyId || captureAsk) {
+    if (!entry.runId || busyId) {
       return;
     }
     setBusyId(entry.id);
     setNotice("");
     try {
-      if (entry.runId === "snip") {
-        await beginScreenSnip();
-        setCaptureAsk("wait");
-        const started = Date.now();
-        while (Date.now() - started < 120_000) {
-          await waitMoment(400);
-          if (!captureRef.current) {
-            return;
-          }
-          const status = await pollScreenSnip();
-          if (status === "ready") {
-            await showPanel();
-            setCaptureAsk("ask");
-            setNotice("");
-            return;
-          }
-          if (status === "off") {
-            setCaptureAsk("");
-            setNotice("캡처한 새 그림이 없습니다.");
-            return;
-          }
-        }
-        await takeScreenSnip("drop");
-        setCaptureAsk("");
-        setNotice("캡처한 새 그림이 없습니다.");
-        return;
-      }
       await runShortcutAction(entry.runId);
       setNotice(`${entry.name}을(를) 열었습니다.`);
     } catch (error) {
-      setCaptureAsk("");
       setNotice(error instanceof Error ? error.message : "실행하지 못했습니다.");
     } finally {
       setBusyId("");
-    }
-  };
-
-  const chooseCapture = async (choice: "shrink" | "mask" | "drop") => {
-    try {
-      const path = await takeScreenSnip(choice);
-      setCaptureAsk("");
-      if (choice !== "drop" && path) {
-        onUseCapture(choice, path);
-      }
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "캡처한 그림을 열지 못했습니다.");
     }
   };
 
@@ -121,28 +62,8 @@ export function ShortcutPage({ onBack, onUseCapture }: ShortcutPageProps) {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
           직장·교육기관에서 자주 쓰는 Windows·문서 단축키입니다. 이름을 누르면 이 PC에서 같은 화면이나
-          프로그램을 엽니다. 누르지 않는 이름은 키로만 됩니다. 키를 대신 누르지는 않습니다. 화면 캡처는
-          여기서 연 뒤에만 클립보드의 새 그림을 보고, 사진 줄이기와 사진 모자이크를 묻습니다.
+          프로그램을 엽니다. 누르지 않는 이름은 키로만 됩니다. 키를 대신 누르지는 않습니다.
         </p>
-        {captureAsk === "wait" ? (
-          <p className="text-sm text-desk">캡처가 끝나면 사진 줄이기와 사진 모자이크를 묻습니다.</p>
-        ) : null}
-        {captureAsk === "ask" ? (
-          <div className="space-y-2 rounded-lg border border-line bg-card px-3 py-2">
-            <p className="text-sm text-desk">캡처한 그림을 이어서 볼까요?</p>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" className="btn-secondary w-auto" onClick={() => void chooseCapture("shrink")}>
-                사진 줄이기
-              </button>
-              <button type="button" className="btn-secondary w-auto" onClick={() => void chooseCapture("mask")}>
-                사진 모자이크
-              </button>
-              <button type="button" className="btn-secondary w-auto" onClick={() => void chooseCapture("drop")}>
-                아니오
-              </button>
-            </div>
-          </div>
-        ) : null}
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         <ul className="card-surface divide-y divide-line/70">
           {rows.map((entry, index) => (
@@ -184,10 +105,4 @@ export function ShortcutPage({ onBack, onUseCapture }: ShortcutPageProps) {
       </div>
     </div>
   );
-}
-
-function waitMoment(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
 }
