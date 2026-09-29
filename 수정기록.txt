@@ -6,6 +6,71 @@
 ---
 
 날짜: 2026-09-29
+버전: 0.1.132-20260929
+설치 파일: EduLauncher_0.1.132-20260929_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-29_1530_x64-setup.exe
+작성자: 요청자
+
+요청: 홈 목록 카드에서 별표와 점 세 개를 이름과 같은 줄 오른쪽으로 옮긴다.
+
+수정한 파일:
+- src/components/home/LauncherCard.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- 수정기록.txt
+
+새로 만든 파일:
+- 없음
+
+재사용한 기존 파일:
+- 즐겨찾기 단추, 더보기 메뉴, 홈 목록 카드
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+설정 사용 방법과 소개 사이트의 설치 안내는 기존 문구에 이 버전의 파일명을 표시한다.
+별과 메뉴를 이름 줄에 두는 것은 화면 배치다. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
+버전: 0.1.131-20260929
+설치 파일: EduLauncher_0.1.131-20260929_x64-setup.exe
+작성자: 요청자
+
+요청: 설치본에 없는 시험 수정을 지우고, 저장소 내용을 그 설치본과 같게 둔다.
+
+지운 파일:
+- src-tauri/src/hwp_text.rs
+- src-tauri/src/personal_mark.rs
+- src/pages/FolderNamePage.tsx
+- src/pages/PersonalMarkPage.tsx
+- src/services/personalMarkService.ts
+
+설치본 커밋으로 되돌린 파일:
+- src-tauri/Cargo.toml
+- src-tauri/Cargo.lock
+- src-tauri/src/lib.rs
+- src-tauri/src/document_search/mod.rs
+- src/App.tsx
+- src/pages/SettingsPage.tsx
+- src/services/launcherService.ts
+- docs/DEPENDENCY_LICENSES.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 것:
+- 설치본 0.1.131-20260929의 나머지 소스
+- 이 시험과 관계없는 작업 폴더의 다른 파일
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다.
+시험 중 직접 연결했던 flate2는 설치본처럼 간접 의존으로 되돌렸다. 새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+개인정보 형태 안내와 런처 안 폴더 목록은 설치본에 없다. 그 구성에 대해 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
 버전: 0.1.131-20260929
 설치 파일: EduLauncher_0.1.131-20260929_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-29_0922_x64-setup.exe

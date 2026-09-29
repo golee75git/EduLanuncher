@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.132-20260929",
+    note: "홈의 사이트·프로그램·파일·폴더 카드에서 별표와 점 세 개가 이름과 같은 줄 오른쪽에 있습니다.",
+  },
+  {
     version: "0.1.131-20260929",
     note: "처음 창은 520×720입니다. 이미 저장한 크기는 유지합니다. 업무도구 이름은 사진 모자이크, 사진 용량 줄이기입니다. 편람 분류는 개발 실행의 설정에서만 엽니다.",
   },
