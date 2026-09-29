@@ -17,6 +17,7 @@ import {
 
 interface DocShrinkPageProps {
   onBack: () => void;
+  initialPath?: string;
 }
 
 interface DocRow {
@@ -32,7 +33,7 @@ interface DocRow {
 
 const MAX_ROWS = 100;
 
-export function DocShrinkPage({ onBack }: DocShrinkPageProps) {
+export function DocShrinkPage({ onBack, initialPath }: DocShrinkPageProps) {
   const addRef = useRef<(paths: string[]) => void>(() => {});
   const stopRef = useRef(false);
   const seenRef = useRef<string[]>([]);
@@ -85,6 +86,12 @@ export function DocShrinkPage({ onBack }: DocShrinkPageProps) {
   addRef.current = (paths) => {
     void addPaths(paths);
   };
+
+  useEffect(() => {
+    if (initialPath) {
+      addRef.current([initialPath]);
+    }
+  }, [initialPath]);
 
   const pickFiles = async () => {
     setMessage("");

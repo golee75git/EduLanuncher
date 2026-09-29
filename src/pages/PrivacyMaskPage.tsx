@@ -19,6 +19,7 @@ import {
 interface PrivacyMaskPageProps {
   title: string;
   onBack: () => void;
+  initialPath?: string;
 }
 
 interface DragState {
@@ -32,7 +33,7 @@ interface DragState {
 
 let boxSerial = 0;
 
-export function PrivacyMaskPage({ title, onBack }: PrivacyMaskPageProps) {
+export function PrivacyMaskPage({ title, onBack, initialPath }: PrivacyMaskPageProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const shotRef = useRef<PrivacyShot | null>(null);
@@ -66,6 +67,12 @@ export function PrivacyMaskPage({ title, onBack }: PrivacyMaskPageProps) {
   }, []);
 
   useEffect(() => holdPrivacyDrop((path) => openPictureRef.current(path)), []);
+
+  useEffect(() => {
+    if (initialPath) {
+      openPictureRef.current(initialPath);
+    }
+  }, [initialPath]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

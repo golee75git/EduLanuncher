@@ -6,6 +6,45 @@
 ---
 
 날짜: 2026-09-29
+버전: 0.1.138-20260929
+설치 파일: EduLauncher_0.1.138-20260929_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-29_2340_x64-setup.exe
+작성자: 요청자
+
+요청: 런처에서 화면 캡처를 열 때만 클립보드의 새 그림을 보고, 사진 줄이기와 사진 모자이크를 묻는다.
+
+수정한 파일:
+- src-tauri/src/lib.rs
+- src/services/windowService.ts
+- src/pages/ShortcutPage.tsx
+- src/pages/DocShrinkPage.tsx
+- src/pages/PrivacyMaskPage.tsx
+- src/pages/SettingsPage.tsx
+- src/App.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PRD.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+새로 만든 파일:
+- src-tauri/src/snip_clip.rs
+
+재사용한 기존 파일:
+- 화면 캡처 열기, 사진 용량 줄이기, 사진 모자이크, png 크레이트
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴을 바꾸거나 넣지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+클립보드 그림은 화면 캡처를 연 뒤 120초 동안만 본다. 글은 읽지 않는다. Print Screen 키는 등록하지 않는다. 고른 뒤에만 Screenshots 폴더에 PNG를 만든다.
+한 번의 사용자 동작 동안 클립보드 그림이 바뀌면 기존 사진 화면을 여는 구성은 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
 버전: 0.1.137-20260929
 설치 파일: EduLauncher_0.1.137-20260929_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-29_2315_x64-setup.exe

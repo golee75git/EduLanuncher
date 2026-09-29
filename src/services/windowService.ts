@@ -44,6 +44,22 @@ export async function runShortcutAction(actionId: string): Promise<void> {
   await invoke("run_shortcut_action", { actionId });
 }
 
+export async function beginScreenSnip(): Promise<void> {
+  await invoke("begin_screen_snip");
+}
+
+export async function pollScreenSnip(): Promise<"wait" | "ready" | "off"> {
+  const status = await invoke<string>("poll_screen_snip");
+  if (status === "wait" || status === "ready") {
+    return status;
+  }
+  return "off";
+}
+
+export async function takeScreenSnip(choice: "shrink" | "mask" | "drop"): Promise<string> {
+  return invoke<string>("take_screen_snip", { choice });
+}
+
 export async function readWorkMapRootId(): Promise<string> {
   try {
     return await invoke<string>("work_map_root_id");

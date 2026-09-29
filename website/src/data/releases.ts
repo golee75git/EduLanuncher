@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.138-20260929",
+    note: "런처에서 화면 캡처를 연 뒤에만 새 그림을 보고, 사진 줄이기와 사진 모자이크를 묻습니다.",
+  },
+  {
     version: "0.1.137-20260929",
     note: "단축키와 컴퓨터도구는 맨 위로 순서를 바꿉니다. 단축키는 이름을 누르면 엽니다.",
   },
