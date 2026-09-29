@@ -6,6 +6,38 @@
 ---
 
 날짜: 2026-09-29
+버전: 0.1.136-20260929
+설치 파일: EduLauncher_0.1.136-20260929_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-29_1854_x64-setup.exe
+작성자: 요청자
+
+요청: 처음 설치의 기본 스킨을 청록 모던으로 한다.
+
+수정한 파일:
+- src/types/settings.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+새로 만든 파일:
+- 없음
+
+재사용한 기존 파일:
+- 청록 모던 스킨
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴을 바꾸거나 넣지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+이미 스킨을 저장한 PC는 그 스킨을 유지한다. 설정 사용 방법과 소개 사이트 설치 안내는 이 버전의 파일명을 표시한다.
+기본 스킨은 저장값이다. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
 버전: 0.1.135-20260929
 설치 파일: EduLauncher_0.1.135-20260929_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-29_1812_x64-setup.exe

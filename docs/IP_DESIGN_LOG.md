@@ -2708,3 +2708,28 @@ Difference:
 
 PATENT_REVIEW:
 색 변수로 같은 배치의 색을 바꾸는 구성. 특정 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
+Feature: 처음 설치 기본 스킨
+
+Purpose:
+스킨을 고르지 않은 PC는 청록 모던으로 연다
+
+Design source:
+내부 요구사항. 기존 청록 모던 스킨
+
+Implementation:
+처음 설정의 panelSkin만 teal로 둔다. 이미 저장된 스킨은 그대로다
+
+External code:
+없음. 새 패키지 없음
+
+Potential similar products:
+없음
+
+Difference:
+색 선택지만 바꾸고 배치는 그대로다
+
+PATENT_REVIEW:
+기본 색 저장값. 특정 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음

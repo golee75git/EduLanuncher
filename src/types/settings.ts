@@ -142,7 +142,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showCompletedTodos: false,
   hideEmptySearchGroups: false,
   onboarded: false,
-  panelSkin: "paper",
+  panelSkin: "teal",
   listColumns: 1,
   panelWidth: PANEL_SIZE.defaultWidth,
   panelHeight: PANEL_SIZE.defaultHeight,
