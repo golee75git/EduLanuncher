@@ -30,3 +30,15 @@ export function moveId(ids: string[], id: string, step: -1 | 1): string[] {
   next.splice(target, 0, picked);
   return next;
 }
+
+export function moveIdToFront(ids: string[], id: string): string[] {
+  const index = ids.indexOf(id);
+  if (index <= 0) {
+    return ids;
+  }
+  const next = ids.slice();
+  const picked = next[index];
+  next.splice(index, 1);
+  next.unshift(picked);
+  return next;
+}

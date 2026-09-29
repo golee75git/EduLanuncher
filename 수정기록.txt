@@ -6,6 +6,43 @@
 ---
 
 날짜: 2026-09-29
+버전: 0.1.137-20260929
+설치 파일: EduLauncher_0.1.137-20260929_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-29_2315_x64-setup.exe
+작성자: 요청자
+
+요청: 단축키와 컴퓨터도구 목록에 맨 위를 넣고, 단축키는 이름을 누르면 열리게 한다.
+
+수정한 파일:
+- src/components/OrderShift.tsx
+- src/services/listOrder.ts
+- src/pages/ComputerToolPage.tsx
+- src/pages/ShortcutPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PRD.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+새로 만든 파일:
+- 없음
+
+재사용한 기존 파일:
+- 목록 순서 저장, 단축키 열기, 컴퓨터도구 이름 누르기, 설정 사용 방법
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴을 바꾸거나 넣지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+순서 버튼은 기존 id 배열만 다시 저장한다. 단축키 이름은 기존 고정 실행만 연다. 키를 대신 누르지 않는다.
+목록을 맨 앞으로 옮기는 구성은 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
 버전: 0.1.136-20260929
 설치 파일: EduLauncher_0.1.136-20260929_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-29_1854_x64-setup.exe

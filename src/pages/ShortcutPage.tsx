@@ -2,7 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { OrderShift } from "../components/OrderShift";
 import { canRunShortcut, listShortcuts, type ShortcutEntry } from "../data/shortcuts";
-import { moveId, orderedByIds } from "../services/listOrder";
+import { moveId, moveIdToFront, orderedByIds } from "../services/listOrder";
 import { runShortcutAction } from "../services/windowService";
 import { useSettingsStore } from "../stores/settingsStore";
 
@@ -20,6 +20,15 @@ export function ShortcutPage({ onBack }: ShortcutPageProps) {
   const shift = (id: string, step: -1 | 1) => {
     const ids = rows.map((entry) => entry.id);
     const next = moveId(ids, id, step);
+    if (next === ids) {
+      return;
+    }
+    void update({ shortcutOrder: next });
+  };
+
+  const shiftTop = (id: string) => {
+    const ids = rows.map((entry) => entry.id);
+    const next = moveIdToFront(ids, id);
     if (next === ids) {
       return;
     }
@@ -52,37 +61,44 @@ export function ShortcutPage({ onBack }: ShortcutPageProps) {
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          직장·교육기관에서 자주 쓰는 Windows·문서 단축키입니다. 실행이 있는 항목은 이 PC에서 같은 화면이나
-          프로그램을 엽니다. 키를 대신 누르지는 않습니다.
+          직장·교육기관에서 자주 쓰는 Windows·문서 단축키입니다. 이름을 누르면 이 PC에서 같은 화면이나
+          프로그램을 엽니다. 누르지 않는 이름은 키로만 됩니다. 키를 대신 누르지는 않습니다.
         </p>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         <ul className="card-surface divide-y divide-line/70">
           {rows.map((entry, index) => (
             <li key={entry.id} className="flex items-center gap-1 px-2 py-1.5">
-              <div className="min-w-0 flex-1 px-1 py-1">
-                <span className="block truncate text-sm font-medium text-desk">
-                  <span className="text-ink">{entry.keys}</span>
-                  <span className="text-quiet"> · </span>
-                  {entry.name}
-                </span>
-                <span className="block truncate text-[11px] text-quiet">{entry.hint}</span>
-              </div>
-              <OrderShift
-                first={index === 0}
-                last={index === rows.length - 1}
-                onUp={() => shift(entry.id, -1)}
-                onDown={() => shift(entry.id, 1)}
-              />
               {canRunShortcut(entry) ? (
                 <button
                   type="button"
-                  className="shrink-0 rounded-full px-2 py-1 text-[11px] font-medium text-ink hover:bg-ink-soft disabled:opacity-50"
+                  className="min-w-0 flex-1 rounded-md px-1 py-1 text-left transition-colors duration-150 hover:bg-paper disabled:opacity-50"
                   disabled={busyId === entry.id}
                   onClick={() => void run(entry)}
                 >
-                  실행
+                  <span className="block truncate text-sm font-medium text-desk">
+                    <span className="text-ink">{entry.keys}</span>
+                    <span className="text-quiet"> · </span>
+                    {entry.name}
+                  </span>
+                  <span className="block truncate text-[11px] text-quiet">{entry.hint}</span>
                 </button>
-              ) : null}
+              ) : (
+                <div className="min-w-0 flex-1 px-1 py-1">
+                  <span className="block truncate text-sm font-medium text-desk">
+                    <span className="text-ink">{entry.keys}</span>
+                    <span className="text-quiet"> · </span>
+                    {entry.name}
+                  </span>
+                  <span className="block truncate text-[11px] text-quiet">{entry.hint}</span>
+                </div>
+              )}
+              <OrderShift
+                first={index === 0}
+                last={index === rows.length - 1}
+                onTop={() => shiftTop(entry.id)}
+                onUp={() => shift(entry.id, -1)}
+                onDown={() => shift(entry.id, 1)}
+              />
             </li>
           ))}
         </ul>

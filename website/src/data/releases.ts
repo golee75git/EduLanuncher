@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.137-20260929",
+    note: "단축키와 컴퓨터도구는 맨 위로 순서를 바꿉니다. 단축키는 이름을 누르면 엽니다.",
+  },
+  {
     version: "0.1.136-20260929",
     note: "처음 설치의 기본 스킨은 청록 모던입니다. 이미 고른 스킨은 그대로입니다.",
   },

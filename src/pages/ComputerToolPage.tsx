@@ -1,7 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { OrderShift } from "../components/OrderShift";
-import { moveId, orderedByIds } from "../services/listOrder";
+import { moveId, moveIdToFront, orderedByIds } from "../services/listOrder";
 import { useSettingsStore } from "../stores/settingsStore";
 import {
   computerToolAsItem,
@@ -42,6 +42,15 @@ export function ComputerToolPage({
   const shift = (id: string, step: -1 | 1) => {
     const ids = rows.map((entry) => entry.id);
     const next = moveId(ids, id, step);
+    if (next === ids) {
+      return;
+    }
+    void update({ computerToolOrder: next });
+  };
+
+  const shiftTop = (id: string) => {
+    const ids = rows.map((entry) => entry.id);
+    const next = moveIdToFront(ids, id);
     if (next === ids) {
       return;
     }
@@ -114,6 +123,7 @@ export function ComputerToolPage({
                 <OrderShift
                   first={index === 0}
                   last={index === rows.length - 1}
+                  onTop={() => shiftTop(entry.id)}
                   onUp={() => shift(entry.id, -1)}
                   onDown={() => shift(entry.id, 1)}
                 />
