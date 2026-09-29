@@ -23,7 +23,7 @@ export const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(func
         placeholder={placeholder}
         aria-label="검색"
         aria-keyshortcuts="Control+K"
-        className="h-14 w-full rounded-[14px] border border-line bg-card pl-11 pr-4 text-[14px] text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
+        className="h-12 w-full rounded-[14px] border border-line bg-card pl-11 pr-4 text-[14px] text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
       />
     </label>
   );

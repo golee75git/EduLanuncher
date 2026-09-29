@@ -6,6 +6,75 @@
 ---
 
 날짜: 2026-09-29
+버전: 0.1.134-20260929
+설치 파일: EduLauncher_0.1.134-20260929_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-29_1754_x64-setup.exe
+작성자: 요청자
+
+요청: 검색 아래 아이콘은 사이트, 프로그램, 폴더, 단축키, 컴퓨터도구만 두고, 처음 창은 520×720으로 둔다. 지금 홈 검색창 높이를 48px로 낮춘다.
+
+수정한 파일:
+- src/components/home/HomeJumpRow.tsx
+- src/components/home/GlobalSearch.tsx
+- src/pages/HomePage.tsx
+- src/components/home/MemoPanel.tsx
+- src/components/home/StatusBar.tsx
+- src/pages/SettingsPage.tsx
+- src/types/settings.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- src-tauri/src/lib.rs
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+새로 만든 파일:
+- 없음 (시험 중에 만든 HomeJumpRow를 다섯 칸으로 고침)
+
+재사용한 기존 파일:
+- 홈의 사이트·프로그램·폴더 모두, 단축키, 컴퓨터도구 이동
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴을 바꾸거나 넣지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+이미 창 크기를 저장한 PC는 그 크기를 유지한다. 설정 사용 방법과 소개 사이트 설치 안내는 이 버전의 파일명을 표시한다.
+아이콘 줄과 검색창 높이는 화면 표시다. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
+버전: 시험 (설치본 없음, 0.1.133 유지)
+작성자: 요청자
+
+요청: 검색 아래에 기존 화면으로 가는 아이콘을 두고, 처음 창을 680×720으로 넓혀 시험한다.
+
+수정한 파일:
+- src/components/home/HomeJumpRow.tsx
+- src/pages/HomePage.tsx
+- src/components/home/MemoPanel.tsx
+- src/components/home/StatusBar.tsx
+- src/pages/SettingsPage.tsx
+- src/types/settings.ts
+- src-tauri/tauri.conf.json
+- src-tauri/src/lib.rs
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+새로 만든 파일:
+- src/components/home/HomeJumpRow.tsx
+
+재사용한 기존 파일:
+- 홈의 업무자료, 단축키, 컴퓨터도구, 공지, 종류별 모두 이동
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴을 바꾸거나 넣지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+개발 실행에서 저장된 너비가 680보다 좁으면 680으로 연다. 설치본은 만들지 않았다.
+아이콘 줄은 화면 이동이다. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
 버전: 0.1.133-20260929
 설치 파일: EduLauncher_0.1.133-20260929_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-29_1558_x64-setup.exe

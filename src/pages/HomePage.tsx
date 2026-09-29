@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FavoriteGrid } from "../components/FavoriteGrid";
 import { HighlightText } from "../components/HighlightText";
 import { AppHeader } from "../components/home/AppHeader";
+import { HomeJumpRow } from "../components/home/HomeJumpRow";
 import { GlobalSearch } from "../components/home/GlobalSearch";
 import { SectionHeader } from "../components/home/SectionHeader";
 import { WelcomeMessage } from "../components/home/WelcomeMessage";
@@ -496,6 +497,13 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
         <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="사이트·업무·파일·폴더·컴퓨터도구·PC 문제" />
       ) : (
         <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
+      )}
+      {prior || searching || activeSchool ? null : (
+        <HomeJumpRow
+          onShortcuts={() => onAction({ type: "shortcuts" })}
+          onComputerTools={() => onAction({ type: "computer-tools" })}
+          onGroup={(groupType) => onAction({ type: "group", groupType })}
+        />
       )}
 
       <div className={prior ? "mt-3 min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3" : "mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto px-7 pb-3"}>
