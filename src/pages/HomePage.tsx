@@ -95,6 +95,23 @@ type ResultItem =
   | { kind: "trouble"; id: string; cardId: string }
   | { kind: "manual"; id: string; topic: ManualIndexTopic };
 
+function groupDotColor(type: ToolType): string | null {
+  if (type === "app") {
+    return "var(--hue-5-fg)";
+  }
+  if (type === "file" || type === "folder") {
+    return "var(--hue-4-fg)";
+  }
+  return null;
+}
+
+function HomeDot({ color }: { color: string | null }) {
+  if (!color) {
+    return null;
+  }
+  return <span className="home-dot" style={{ background: color }} aria-hidden="true" />;
+}
+
 function todayLabel(): string {
   const now = new Date();
   const weekday = ["일", "월", "화", "수", "목", "금", "토"][now.getDay()] ?? "";
@@ -457,7 +474,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const prior = isPriorSkin(settings.panelSkin);
   const linkClass = prior
     ? "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
-    : "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
+    : "inline-flex h-8 items-center gap-1 rounded-lg px-2 text-[11px] font-medium home-link transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink";
   const homeJump = searching || activeSchool ? (
     <HomeJumpButton
       onClick={() => {
@@ -490,14 +507,15 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
           </div>
         </header>
       ) : (
-        <AppHeader dateLabel={todayLabel()} extra={homeJump} onSettings={() => onAction({ type: "settings" })} onAdd={() => onAction({ type: "edit" })} />
+        <div className="home-band">
+          <AppHeader dateLabel={todayLabel()} extra={homeJump} onSettings={() => onAction({ type: "settings" })} onAdd={() => onAction({ type: "edit" })} />
+          {searching || activeSchool ? null : <WelcomeMessage />}
+          <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
+        </div>
       )}
-      {prior || searching || activeSchool ? null : <WelcomeMessage />}
       {prior ? (
         <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="사이트·업무·파일·폴더·컴퓨터도구·PC 문제" />
-      ) : (
-        <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
-      )}
+      ) : null}
       {prior || searching || activeSchool ? null : (
         <HomeJumpRow
           onShortcuts={() => onAction({ type: "shortcuts" })}
@@ -524,7 +542,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
               onOpen={(item) => onAction({ type: "notice-item", item })}
             />
             <section className={prior ? "zone-block bg-zone-tools" : undefined}>
-              {prior ? <h2 className="desk-label">자주 사용하는 도구</h2> : <SectionHeader title="자주 사용하는 도구" />}
+              {prior ? <h2 className="desk-label">자주 사용하는 도구</h2> : <SectionHeader title="자주 사용하는 도구" dot="var(--hue-1-fg)" />}
               {showDropHint ? (
                 <p className="text-[12px] leading-5 text-quiet">사이트·프로그램·파일·폴더를 패널에 끌어 놓으면 추가됩니다.</p>
               ) : null}
@@ -532,7 +550,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 {favoriteGroups.map((group) => (
                   <div key={group.type}>
                     <div className="mb-1.5 flex items-start gap-1">
-                      <h3 className={prior ? "shrink-0 pt-0.5 text-[13px] font-medium text-desk" : "shrink-0 pt-2 text-[12px] font-medium text-quiet"}>{group.label}</h3>
+                      <h3 className={prior ? "shrink-0 pt-0.5 text-[13px] font-medium text-desk" : "flex shrink-0 items-center gap-1 pt-2 text-[12px] font-medium text-quiet"}>
+                        {prior ? null : <HomeDot color={groupDotColor(group.type)} />}
+                        {group.label}
+                      </h3>
                       <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1">
                       {group.type === "url" ? (
                         <button
@@ -580,7 +601,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                       </button>
                       <button
                         type="button"
-                        className={prior ? "icon-btn p-1" : "inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"}
+                        className={prior ? "icon-btn p-1" : "home-plus inline-flex h-8 w-8 items-center justify-center rounded-lg text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"}
                         onClick={() => onAction({ type: "edit", createType: group.type })}
                         aria-label={`${group.label} 추가`}
                         title={`${group.label} 추가`}
@@ -620,7 +641,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
             </section>
             <TodoList />
             <section className="zone-block bg-zone-recent">
-              <h2 className="desk-label">최근 사용</h2>
+              <h2 className="desk-label flex items-center gap-1">
+                <HomeDot color="var(--home-dot-recent)" />
+                최근 사용
+              </h2>
               <RecentTools
                 items={recentUse}
                 selectedId={
@@ -671,7 +695,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
             ) : null}
             {showRecents ? (
             <section className="zone-block bg-zone-recent">
-              <h2 className="desk-label">최근 사용</h2>
+              <h2 className="desk-label flex items-center gap-1">
+                <HomeDot color="var(--home-dot-recent)" />
+                최근 사용
+              </h2>
               <RecentTools
                 items={recentUseMatched}
                 query={query}

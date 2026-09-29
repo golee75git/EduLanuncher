@@ -14,7 +14,7 @@ export const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(func
 ) {
   return (
     <label className="relative mx-7 mt-3 flex items-center">
-      <Search className="pointer-events-none absolute left-4 h-4 w-4 text-quiet" aria-hidden="true" />
+      <Search className="home-search-icon pointer-events-none absolute left-4 h-4 w-4" aria-hidden="true" />
       <input
         ref={ref}
         value={value}
@@ -23,7 +23,7 @@ export const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(func
         placeholder={placeholder}
         aria-label="검색"
         aria-keyshortcuts="Control+K"
-        className="h-12 w-full rounded-[14px] border border-line bg-card pl-11 pr-4 text-[14px] text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
+        className="home-search h-12 w-full rounded-[14px] border border-line bg-card pl-11 pr-4 text-[14px] text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft"
       />
     </label>
   );

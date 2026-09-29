@@ -1,3 +1,5 @@
+import { Sun } from "lucide-react";
+
 export function greetingForTime(hour: number, minute: number): string {
   const minutes = hour * 60 + minute;
   if (minutes < 5 * 60 || minutes >= 17 * 60) {
@@ -15,7 +17,10 @@ export function greetingForTime(hour: number, minute: number): string {
 export function WelcomeMessage({ now = new Date() }: { now?: Date }) {
   return (
     <section className="px-7">
-      <h2 className="text-[15px] font-bold text-desk">{greetingForTime(now.getHours(), now.getMinutes())}</h2>
+      <h2 className="flex items-center gap-1.5 text-[15px] font-bold text-desk">
+        <Sun className="home-sun h-4 w-4 shrink-0" aria-hidden="true" />
+        {greetingForTime(now.getHours(), now.getMinutes())}
+      </h2>
       <p className="mt-0.5 text-[11px] text-quiet">오늘 필요한 업무를 빠르게 시작하세요.</p>
     </section>
   );

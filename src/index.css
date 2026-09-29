@@ -59,6 +59,240 @@ html[data-skin="dusk"] {
   --shadow-pop: 0 8px 16px -6px rgba(0, 0, 0, 0.42), 0 2px 6px -2px rgba(0, 0, 0, 0.28);
 }
 
+:root {
+  --home-band: transparent;
+  --home-band-radius: 0;
+  --home-band-pad: 0px;
+  --home-link: var(--color-ink);
+  --home-card-border: var(--color-line);
+  --home-card-radius: 12px;
+  --home-star: var(--color-ink);
+  --home-dot-display: none;
+  --home-greet-sun: var(--color-quiet);
+  --home-sun-display: none;
+  --home-date-bg: transparent;
+  --home-date-fg: var(--color-quiet);
+  --home-date-pad: 0px;
+  --home-date-radius: 0px;
+  --home-search-border: var(--color-line);
+  --home-search-icon: var(--color-quiet);
+  --home-notice-bg: var(--color-ink-soft);
+  --home-notice-fg: var(--color-ink);
+  --home-dot-notice: transparent;
+  --home-dot-recent: transparent;
+  --home-recent-fg: var(--color-quiet);
+}
+
+html[data-skin="teal"] {
+  --color-paper: #f5f7f8;
+  --color-card: #ffffff;
+  --color-desk: #1a2126;
+  --color-quiet: #5f6a71;
+  --color-line: #e3e8eb;
+  --color-ink: #0e7c6b;
+  --color-ink-strong: #0a5e51;
+  --color-ink-soft: #e2efed;
+  --color-scroll: #c9d2d7;
+  --color-zone-notice: var(--color-paper);
+  --color-zone-alert: var(--color-paper);
+  --color-zone-tools: var(--color-paper);
+  --color-zone-todo: var(--color-paper);
+  --color-zone-recent: var(--color-paper);
+  --shadow-card: 0 0 0 1px rgba(20, 33, 40, 0.05), 0 2px 6px -2px rgba(20, 33, 40, 0.08);
+  --home-band: #e7f2f0;
+  --home-band-radius: 0 0 24px 24px;
+  --home-band-pad: 20px;
+  --home-link: #0d7262;
+  --home-card-border: transparent;
+  --home-card-radius: 14px;
+  --home-star: #e2a21a;
+  --home-dot-display: inline-block;
+  --home-greet-sun: #d98a0b;
+  --home-sun-display: inline-flex;
+  --home-date-bg: var(--color-card);
+  --home-date-fg: var(--home-link);
+  --home-date-pad: 10px;
+  --home-date-radius: 14px;
+  --home-search-border: transparent;
+  --home-search-icon: var(--color-ink);
+  --home-notice-bg: #f9eae6;
+  --home-notice-fg: #d0542f;
+  --home-dot-notice: #d0542f;
+  --home-dot-recent: #6d4ae0;
+  --home-recent-fg: #6d4ae0;
+  --hue-1-bg: #e6ebf8;
+  --hue-1-fg: #2b59c3;
+  --hue-2-bg: #f6e5e9;
+  --hue-2-fg: #b4234a;
+  --hue-3-bg: #e4efe9;
+  --hue-3-fg: #1f7a45;
+  --hue-4-bg: #f1ebe0;
+  --hue-4-fg: #8a5a00;
+  --hue-5-bg: #ebe8f8;
+  --hue-5-fg: #5b3fc4;
+  --hue-6-bg: #f6e9e3;
+  --hue-6-fg: #b04a12;
+  --hue-7-bg: #e2eef0;
+  --hue-7-fg: #0b6e7f;
+  --hue-8-bg: #e9eaeb;
+  --hue-8-fg: #46515a;
+}
+
+html[data-skin="teal-dark"] {
+  --color-paper: #111416;
+  --color-card: #1b1f22;
+  --color-desk: #eceff1;
+  --color-quiet: #9aa3a9;
+  --color-line: #2a3034;
+  --color-ink: #0e7c6b;
+  --color-ink-strong: #13937f;
+  --color-ink-soft: #173936;
+  --color-scroll: #3a4247;
+  --color-zone-notice: var(--color-paper);
+  --color-zone-alert: var(--color-paper);
+  --color-zone-tools: var(--color-paper);
+  --color-zone-todo: var(--color-paper);
+  --color-zone-recent: var(--color-paper);
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --home-band: #102927;
+  --home-band-radius: 0 0 24px 24px;
+  --home-band-pad: 20px;
+  --home-link: #7ab7ae;
+  --home-card-border: transparent;
+  --home-card-radius: 14px;
+  --home-star: #e2a21a;
+  --home-dot-display: inline-block;
+  --home-greet-sun: #e3a33a;
+  --home-sun-display: inline-flex;
+  --home-date-bg: var(--color-card);
+  --home-date-fg: var(--home-link);
+  --home-date-pad: 10px;
+  --home-date-radius: 14px;
+  --home-search-border: transparent;
+  --home-search-icon: var(--color-ink);
+  --home-notice-bg: #432b25;
+  --home-notice-fg: #e5a18d;
+  --home-dot-notice: #e5a18d;
+  --home-dot-recent: #af9bee;
+  --home-recent-fg: #af9bee;
+  --hue-1-bg: #1e2b42;
+  --hue-1-fg: #8aa4de;
+  --hue-2-bg: #3a202a;
+  --hue-2-fg: #d6869b;
+  --hue-3-bg: #1c3129;
+  --hue-3-fg: #84b699;
+  --hue-4-bg: #312b1b;
+  --hue-4-fg: #bfa473;
+  --hue-5-bg: #282542;
+  --hue-5-fg: #a595df;
+  --hue-6-bg: #39281f;
+  --hue-6-fg: #d49b7d;
+  --hue-7-bg: #182f35;
+  --hue-7-fg: #79afb9;
+  --hue-8-bg: #24292d;
+  --hue-8-fg: #999fa4;
+}
+
+.home-band {
+  background: var(--home-band);
+  border-radius: var(--home-band-radius);
+  padding-bottom: var(--home-band-pad);
+}
+
+.home-link {
+  color: var(--home-link);
+}
+
+.home-date {
+  background: var(--home-date-bg);
+  color: var(--home-date-fg);
+  border-radius: var(--home-date-radius);
+  padding-left: var(--home-date-pad);
+  padding-right: var(--home-date-pad);
+}
+
+.home-sun {
+  display: var(--home-sun-display);
+  color: var(--home-greet-sun);
+}
+
+.home-dot {
+  display: var(--home-dot-display);
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  flex: none;
+}
+
+.home-star {
+  fill: var(--home-star);
+  color: var(--home-star);
+}
+
+.home-search {
+  border-color: var(--home-search-border);
+}
+
+.home-search-icon {
+  color: var(--home-search-icon);
+}
+
+.home-notice-mark {
+  background: var(--home-notice-bg);
+  color: var(--home-notice-fg);
+}
+
+html[data-skin="teal"] .home-settings,
+html[data-skin="teal-dark"] .home-settings {
+  background: var(--color-card);
+}
+
+html[data-skin="teal"] .home-plus,
+html[data-skin="teal-dark"] .home-plus {
+  height: 28px;
+  width: 28px;
+  border-radius: 8px;
+  background: var(--color-ink-soft);
+  color: var(--color-ink);
+}
+
+html[data-skin="teal"] .home-tile,
+html[data-skin="teal-dark"] .home-tile {
+  border-color: var(--home-card-border);
+  border-radius: var(--home-card-radius);
+  box-shadow: var(--shadow-card);
+}
+
+html[data-skin="teal"] .home-tile:hover,
+html[data-skin="teal-dark"] .home-tile:hover {
+  transform: none;
+  background: color-mix(in srgb, var(--color-card), var(--color-desk) 3%);
+  border-color: var(--home-card-border);
+}
+
+html[data-skin="teal"] .mark-tile,
+html[data-skin="teal-dark"] .mark-tile {
+  background: var(--mark-bg, var(--color-ink-soft));
+  color: var(--mark-fg, var(--color-ink));
+}
+
+html[data-skin="teal"] .group:hover .mark-tile,
+html[data-skin="teal-dark"] .group:hover .mark-tile {
+  background: var(--mark-bg, var(--color-ink-soft));
+  color: var(--mark-fg, var(--color-ink));
+}
+
+html[data-skin="teal"] .recent-glyph,
+html[data-skin="teal-dark"] .recent-glyph {
+  color: var(--home-recent-fg);
+}
+
+html[data-skin="teal"] .zone-block,
+html[data-skin="teal-dark"] .zone-block {
+  border-color: transparent;
+  background: var(--color-paper);
+}
+
 html,
 body,
 #root {

@@ -24,8 +24,9 @@ export function HomeJumpRow({ onShortcuts, onComputerTools, onGroup }: HomeJumpR
 
   return (
     <nav aria-label="바로 가기" className="mx-7 mt-3 grid grid-cols-5 gap-1">
-      {items.map((item) => {
+      {items.map((item, index) => {
         const Icon = item.icon;
+        const hue = index + 1;
         return (
           <button
             key={item.label}
@@ -34,7 +35,10 @@ export function HomeJumpRow({ onShortcuts, onComputerTools, onGroup }: HomeJumpR
             onClick={item.onClick}
             className="flex min-w-0 flex-col items-center gap-1 rounded-xl px-0.5 py-1 text-desk transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-ink-soft text-ink">
+            <span
+              className="mark-tile flex h-9 w-9 items-center justify-center rounded-[10px] bg-ink-soft text-ink"
+              style={{ ["--mark-bg" as string]: `var(--hue-${hue}-bg)`, ["--mark-fg" as string]: `var(--hue-${hue}-fg)` }}
+            >
               <Icon className="h-4 w-4" aria-hidden="true" />
             </span>
             <span className="w-full truncate text-center text-[11px] font-medium">{item.label}</span>

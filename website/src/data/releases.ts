@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.135-20260929",
+    note: "보기에 청록 모던과 청록 모던 (어둡게)가 있습니다. 홈 배치는 같고 색만 바뀝니다.",
+  },
+  {
     version: "0.1.134-20260929",
     note: "홈 검색 아래에 사이트, 프로그램, 폴더, 단축키, 컴퓨터도구 아이콘이 있습니다. 검색창은 조금 낮아졌습니다. 처음 창은 520×720입니다.",
   },

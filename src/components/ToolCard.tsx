@@ -3,6 +3,14 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ToolGlyph } from "./ToolGlyph";
 import { toolOriginLabel, toolTargetHint, type ToolItem } from "../types/tool";
 
+function hueOf(id: string): number {
+  let sum = 0;
+  for (let index = 0; index < id.length; index += 1) {
+    sum += id.charCodeAt(index);
+  }
+  return (sum % 8) + 1;
+}
+
 interface ToolCardProps {
   tool: ToolItem;
   selected?: boolean;
@@ -34,6 +42,7 @@ export function ToolCard({
   const origin = toolOriginLabel(tool);
   const subtitle = hint ? `${hint} · ${origin}` : origin;
   const hoverText = (tool.description ?? "").trim() || tool.name;
+  const hue = hueOf(tool.id);
 
   useLayoutEffect(() => {
     if (!menuOpen) {
@@ -76,7 +85,7 @@ export function ToolCard({
   return (
     <div
       ref={cardRef}
-      className={`group relative rounded-xl border p-2 text-left transition-all duration-150 ${
+      className={`home-tile group relative rounded-xl border p-2 text-left transition-all duration-150 ${
         isRow ? "p-1.5" : ""
       } ${menuOpen ? "z-30" : ""} ${
         selected
@@ -105,7 +114,17 @@ export function ToolCard({
         title={hoverText}
         onClick={() => onLaunch(tool)}
       >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-ink-soft text-ink transition-colors duration-150 group-hover:bg-ink group-hover:text-white">
+        <span
+          className="mark-tile flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-ink-soft text-ink transition-colors duration-150 group-hover:bg-ink group-hover:text-white"
+          style={
+            tool.iconImage
+              ? undefined
+              : {
+                  ["--mark-bg" as string]: `var(--hue-${hue}-bg)`,
+                  ["--mark-fg" as string]: `var(--hue-${hue}-fg)`,
+                }
+          }
+        >
           <ToolGlyph icon={tool.icon} iconImage={tool.iconImage} className="h-4 w-4" />
         </span>
         <span className="min-w-0">
@@ -126,7 +145,7 @@ export function ToolCard({
         aria-label={tool.favorite ? "홈에서 빼기" : "홈에 두기"}
       >
         <Star
-          className={`h-3.5 w-3.5 ${tool.favorite ? "fill-ink text-ink" : "text-quiet"}`}
+          className={`h-3.5 w-3.5 ${tool.favorite ? "home-star" : "text-quiet"}`}
         />
       </button>
       <button

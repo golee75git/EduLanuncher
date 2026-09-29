@@ -39,7 +39,7 @@ export function RecentTools({
                 onClick={() => onOpenTopic(item.topic.id)}
                 className={`desk-row gap-2 ${selected ? "desk-row-active" : ""}`}
               >
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                <span className="recent-glyph flex h-4 w-4 shrink-0 items-center justify-center">
                   <FileText className="h-4 w-4 text-quiet" />
                 </span>
                 <span className="min-w-0 flex-1 truncate">
@@ -57,7 +57,7 @@ export function RecentTools({
               onClick={() => onLaunch(item.tool)}
               className={`desk-row gap-2 ${selected ? "desk-row-active" : ""}`}
             >
-              <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+              <span className="recent-glyph flex h-4 w-4 shrink-0 items-center justify-center">
                 <ToolGlyph
                   icon={item.tool.icon}
                   iconImage={item.tool.iconImage}

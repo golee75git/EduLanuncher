@@ -6,6 +6,50 @@
 ---
 
 날짜: 2026-09-29
+버전: 0.1.135-20260929
+설치 파일: EduLauncher_0.1.135-20260929_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-29_1812_x64-setup.exe
+작성자: 요청자
+
+요청: 보기에 청록 모던과 청록 모던 (어둡게)를 더한다. 홈 배치는 그대로 두고 색만 바꾼다.
+
+수정한 파일:
+- src/types/settings.ts
+- src/index.css
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/components/home/AppHeader.tsx
+- src/components/home/WelcomeMessage.tsx
+- src/components/home/GlobalSearch.tsx
+- src/components/home/SectionHeader.tsx
+- src/components/home/HomeJumpRow.tsx
+- src/components/home/NoticeCard.tsx
+- src/components/home/FavoriteButton.tsx
+- src/components/NoticeList.tsx
+- src/components/RecentTools.tsx
+- src/components/ToolCard.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+새로 만든 파일:
+- 없음
+
+재사용한 기존 파일:
+- 지금 홈 배치와 기존 색 변수
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴을 바꾸거나 넣지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+다른 스킨은 변수 기본값이 지금 색이라 모습이 같다. 설정 사용 방법과 소개 사이트 설치 안내는 이 버전의 파일명을 표시한다.
+색 스킨은 화면 표시다. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-29
 버전: 0.1.134-20260929
 설치 파일: EduLauncher_0.1.134-20260929_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-29_1754_x64-setup.exe

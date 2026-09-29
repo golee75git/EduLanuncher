@@ -4,11 +4,13 @@ interface SectionHeaderProps {
   title: string;
   meta?: string;
   trailing?: ReactNode;
+  dot?: string;
 }
 
-export function SectionHeader({ title, meta, trailing }: SectionHeaderProps) {
+export function SectionHeader({ title, meta, trailing, dot }: SectionHeaderProps) {
   return (
     <div className="mb-2 flex items-center gap-1">
+      {dot ? <span className="home-dot" style={{ background: dot }} aria-hidden="true" /> : null}
       <h2 className="min-w-0 flex-1 truncate text-[15px] font-bold text-desk">{title}</h2>
       {meta ? <span className="shrink-0 text-[11px] text-quiet">{meta}</span> : null}
       {trailing}

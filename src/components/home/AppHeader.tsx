@@ -23,10 +23,10 @@ export function AppHeader({ dateLabel, extra, onSettings, onAdd }: AppHeaderProp
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
         {extra}
-        <span className="text-[11px] text-quiet">{dateLabel}</span>
+        <span className="home-date text-[11px]">{dateLabel}</span>
         <button
           type="button"
-          className="inline-flex h-8 min-w-8 items-center gap-1 rounded-lg bg-ink-soft px-2 text-[12px] font-medium text-desk transition-colors duration-150 hover:bg-ink-soft/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+          className="home-settings inline-flex h-8 min-w-8 items-center gap-1 rounded-lg bg-ink-soft px-2 text-[12px] font-medium text-desk transition-colors duration-150 hover:bg-ink-soft/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
           onClick={onSettings}
           aria-label="설정"
           title="설정"

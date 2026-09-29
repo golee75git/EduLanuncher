@@ -18,7 +18,7 @@ export function FavoriteButton({ active, onToggle }: FavoriteButtonProps) {
         onToggle();
       }}
     >
-      <Star className={`h-3.5 w-3.5 ${active ? "fill-ink text-ink" : ""}`} aria-hidden="true" />
+      <Star className={`h-3.5 w-3.5 ${active ? "home-star" : ""}`} aria-hidden="true" />
     </button>
   );
 }

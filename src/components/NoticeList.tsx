@@ -69,18 +69,19 @@ export function NoticeList({ onAll, onAdd, onOpen, variant = "card" }: NoticeLis
     <section>
       <SectionHeader
         title="공지"
+        dot="var(--home-dot-notice)"
         trailing={
           <>
             <button
               type="button"
-              className="inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+              className="home-link inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
               onClick={onAll}
             >
               전체 보기
             </button>
             <button
               type="button"
-              className="inline-flex h-8 items-center gap-0.5 rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+              className="home-link inline-flex h-8 items-center gap-0.5 rounded-lg px-2 text-[11px] font-medium transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
               onClick={onAdd}
               aria-label="공지 추가"
               title="공지 추가"
