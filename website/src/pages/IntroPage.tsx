@@ -43,7 +43,8 @@ const DOES_NOT = [
 export function IntroPage() {
   return (
     <div className="space-y-12">
-      <section className="max-w-2xl space-y-4">
+      <section className="space-y-4">
+        <div className="max-w-2xl space-y-4">
         <p className="text-[11px] font-semibold tracking-wide text-ink">{SITE_CONFIG.appName}</p>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
           <span className="text-desk">교육행정 업무 효율화를 위한</span>
@@ -79,12 +80,13 @@ export function IntroPage() {
           <br />
           날짜 복사본 {SITE_CONFIG.setupFileDated}
         </p>
-        <div className="grid gap-4 pt-2 sm:grid-cols-2">
+        </div>
+        <div className="grid w-full gap-4 sm:w-[62.5rem] sm:max-w-none sm:grid-cols-2">
           <figure className="space-y-2">
             <img
               src="/menu1.png"
               alt="자주 사용하는 도구"
-              className="w-full rounded-lg border border-line"
+              className="h-auto w-full rounded-lg border border-line"
             />
             <figcaption className="text-sm leading-relaxed text-quiet">
               즐겨찾는 사이트, 프로그램, 폴더를 모아 빠르게 사용
@@ -94,7 +96,7 @@ export function IntroPage() {
             <img
               src="/menu2.png"
               alt="업무도구"
-              className="w-full rounded-lg border border-line"
+              className="h-auto w-full rounded-lg border border-line"
             />
             <figcaption className="text-sm leading-relaxed text-quiet">
               사진모자이크, 사진줄이기, 윈도우 컴퓨터도구, 단축키를 쉽게 찾아 사용

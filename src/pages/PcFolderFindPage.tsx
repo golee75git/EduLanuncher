@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SearchBar } from "../components/SearchBar";
 import { HighlightText } from "../components/HighlightText";
+import { ToolGlyph } from "../components/ToolGlyph";
 import { launchTool } from "../services/launcherService";
 import {
   containingFolder,
@@ -99,6 +100,10 @@ export function PcFolderFindPage({ initialQuery = "", onBack }: PcFolderFindPage
         <ul className="card-surface divide-y divide-line/70">
           {hits.map((hit) => (
             <li key={hit.path} className="flex items-center gap-2 px-3 py-2">
+              <ToolGlyph
+                icon={hit.kind === "folder" ? "folder" : "file"}
+                className={`h-4 w-4 shrink-0 ${hit.kind === "folder" ? "text-ink" : "text-quiet"}`}
+              />
               <button
                 type="button"
                 className="min-w-0 flex-1 truncate text-left text-sm text-desk"

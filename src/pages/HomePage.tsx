@@ -743,6 +743,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                         selectedId === `pc-file:${hit.path}` ? "desk-row-active" : ""
                       }`}
                     >
+                      <ToolGlyph
+                        icon={hit.kind === "folder" ? "folder" : "file"}
+                        className={`h-4 w-4 shrink-0 ${hit.kind === "folder" ? "text-ink" : "text-quiet"}`}
+                      />
                       <button
                         type="button"
                         title={hit.path}

@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-09-30
+버전: 0.1.138-20260930
+설치 파일: EduLauncher_0.1.138-20260930_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-30_1556_x64-setup.exe
+작성자: 요청자
+
+요청: 이 PC 폴더 목록 이름 앞에 폴더와 파일 아이콘을 둔다.
+
+수정한 파일:
+- src/pages/PcFolderFindPage.tsx
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- 수정기록.txt
+
+새로 만든 파일:
+- 없음
+
+재사용한 기존 파일:
+- src/components/ToolGlyph.tsx
+- src/data/toolIcons.ts 의 folder, file
+- 이미 있는 lucide-react 1.46.0 (ISC)
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴을 바꾸거나 넣지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+아이콘은 이 PC에서 이미 구분한 folder, file 값만 그린다. 경로를 화면에 실행 코드로 넣지 않는다.
+이름 앞에 구분 아이콘을 두는 것은 표시만이다. 새 처리 절차가 없어 특정 청구항과 대조할 기술 구성이 없다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-30
 버전: 0.1.137-20260929
 설치 파일: EduLauncher_0.1.137-20260929_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-29_2315_x64-setup.exe
