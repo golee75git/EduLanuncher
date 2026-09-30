@@ -79,6 +79,28 @@ export function IntroPage() {
           <br />
           날짜 복사본 {SITE_CONFIG.setupFileDated}
         </p>
+        <div className="grid gap-4 pt-2 sm:grid-cols-2">
+          <figure className="space-y-2">
+            <img
+              src="/menu1.png"
+              alt="자주 사용하는 도구"
+              className="w-full rounded-lg border border-line"
+            />
+            <figcaption className="text-sm leading-relaxed text-quiet">
+              즐겨찾는 사이트, 프로그램, 폴더를 모아 빠르게 사용
+            </figcaption>
+          </figure>
+          <figure className="space-y-2">
+            <img
+              src="/menu2.png"
+              alt="업무도구"
+              className="w-full rounded-lg border border-line"
+            />
+            <figcaption className="text-sm leading-relaxed text-quiet">
+              사진모자이크, 사진줄이기, 윈도우 컴퓨터도구, 단축키를 쉽게 찾아 사용
+            </figcaption>
+          </figure>
+        </div>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
