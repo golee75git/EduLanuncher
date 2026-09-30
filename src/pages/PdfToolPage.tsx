@@ -18,6 +18,7 @@ import {
 
 interface PdfToolPageProps {
   onBack: () => void;
+  startPaths?: string[];
 }
 
 interface PdfFile {
@@ -33,7 +34,7 @@ type Mode = "menu" | "merge" | "split" | "arrange" | "turn" | "done";
 const SIGNED_NOTE =
   "전자서명이 포함된 PDF일 수 있습니다. 페이지를 합치거나 삭제·회전하면 기존 전자서명의 유효성에 영향을 줄 수 있습니다.";
 
-export function PdfToolPage({ onBack }: PdfToolPageProps) {
+export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
   const addRef = useRef<(paths: string[]) => void>(() => {});
   const [mode, setMode] = useState<Mode>("menu");
   const [files, setFiles] = useState<PdfFile[]>([]);
@@ -50,6 +51,12 @@ export function PdfToolPage({ onBack }: PdfToolPageProps) {
   const dragIndex = useRef<number | null>(null);
 
   useEffect(() => holdPdfDrop((paths) => addRef.current(paths)), []);
+
+  useEffect(() => {
+    if (startPaths && startPaths.length > 0) {
+      addRef.current(startPaths);
+    }
+  }, [startPaths]);
 
   const fileName = (path: string) => path.split(/[/\\]/).pop() || path;
 

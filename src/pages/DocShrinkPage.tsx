@@ -17,6 +17,7 @@ import {
 
 interface DocShrinkPageProps {
   onBack: () => void;
+  startPaths?: string[];
 }
 
 interface DocRow {
@@ -32,7 +33,7 @@ interface DocRow {
 
 const MAX_ROWS = 100;
 
-export function DocShrinkPage({ onBack }: DocShrinkPageProps) {
+export function DocShrinkPage({ onBack, startPaths }: DocShrinkPageProps) {
   const addRef = useRef<(paths: string[]) => void>(() => {});
   const stopRef = useRef(false);
   const seenRef = useRef<string[]>([]);
@@ -46,6 +47,12 @@ export function DocShrinkPage({ onBack }: DocShrinkPageProps) {
   const [folderPath, setFolderPath] = useState("");
 
   useEffect(() => holdDocDrop((paths) => addRef.current(paths)), []);
+
+  useEffect(() => {
+    if (startPaths && startPaths.length > 0) {
+      addRef.current(startPaths);
+    }
+  }, [startPaths]);
 
   const addPaths = async (paths: string[]) => {
     if (busy) {

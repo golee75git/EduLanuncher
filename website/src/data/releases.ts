@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.139-20260930",
+    note: "PNG·JPEG를 놓으면 사진 모자이크, 사진 용량 줄이기, QR코드 넣기 중에서 고릅니다. PDF를 놓으면 PDF 도구를 고릅니다.",
+  },
+  {
     version: "0.1.138-20260930",
     note: "이 PC 폴더 목록 이름 앞에 폴더는 청록 아이콘, 파일은 옅은 아이콘이 있습니다.",
   },

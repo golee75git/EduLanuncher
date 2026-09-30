@@ -6,6 +6,44 @@
 ---
 
 날짜: 2026-09-30
+버전: 0.1.139-20260930
+설치 파일: EduLauncher_0.1.139-20260930_x64-setup.exe
+날짜 복사본: EduLauncher_2026-09-30_1625_x64-setup.exe
+작성자: 요청자
+
+요청: 홈에 PNG·JPEG·PDF를 놓으면 할 수 있는 도구를 고르게 한다. 사진 한 장에는 QR코드 넣기를 포함한다.
+
+수정한 파일:
+- src/App.tsx
+- src/components/DropActionPick.tsx
+- src/pages/UrlMarkPage.tsx
+- src/pages/PrivacyMaskPage.tsx
+- src/pages/DocShrinkPage.tsx
+- src/pages/PdfToolPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- 수정기록.txt
+
+새로 만든 파일:
+- src/services/dropActionPick.ts
+- src/components/DropActionPick.tsx
+
+재사용한 기존 파일:
+- 사진 모자이크, 사진 용량 줄이기, QR코드 넣기, PDF 도구 화면
+- 확장자 구분 isDocPicturePath, isPdfPath
+- 기존 구역색
+
+글꼴은 Windows 기본 글꼴(Segoe UI, 맑은 고딕)이다. SIL OFL 글꼴이 아니다. 글꼴을 바꾸거나 넣지 않았다.
+새 패키지는 넣지 않았다. GPL/AGPL 패키지를 추가하지 않았다.
+고르기 창은 확장자만 보고, 고르기 전에는 파일을 열지 않는다. 고른 뒤에만 기존 화면이 그 파일을 읽는다.
+파일을 놓고 도구를 고르는 것은 기존 화면으로 넘기는 표시다. 특정 청구항과 대조할 새 처리 절차는 없다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-09-30
 버전: 0.1.138-20260930
 설치 파일: EduLauncher_0.1.138-20260930_x64-setup.exe
 날짜 복사본: EduLauncher_2026-09-30_1556_x64-setup.exe

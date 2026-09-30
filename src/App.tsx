@@ -2,6 +2,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "react";
+import { DropActionPick } from "./components/DropActionPick";
 import { DropZone } from "./components/DropZone";
 import { StatusBar } from "./components/home/StatusBar";
 import { MemoPad } from "./components/MemoPad";
@@ -48,6 +49,7 @@ import { LaunchError, launchQuickUrl, launchTool } from "./services/launcherServ
 import { findNewerRelease } from "./services/releaseCheckService";
 import { APP_CONFIG } from "./config/app";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
+import { splitDropActions } from "./services/dropActionPick";
 import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
 import { focusSearchInput } from "./services/focusBus";
 import { hidePanel, showPanel } from "./services/windowService";
@@ -88,9 +90,9 @@ type View =
   | { name: "pc-address" }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
-  | { name: "doc-shrink"; backTo?: View }
+  | { name: "doc-shrink"; backTo?: View; startPaths?: string[] }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
-  | { name: "internal"; id: string; title: string };
+  | { name: "internal"; id: string; title: string; startPaths?: string[] };
 
 function currentWindowLabel(): string {
   try {
@@ -121,6 +123,7 @@ export default function App() {
   const [removeNotice, setRemoveNotice] = useState<NoticeItem | null>(null);
   const [packPick, setPackPick] = useState<{ pack: NoticePack; sitePack?: LauncherPack } | null>(null);
   const [notice, setNotice] = useState("");
+  const [dropPick, setDropPick] = useState<{ pictures: string[]; pdfs: string[] } | null>(null);
   const [releaseNotice, setReleaseNotice] = useState<string | null>(null);
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
   const priorSkin = useSettingsStore((state) => isPriorSkin(state.settings.panelSkin));
@@ -202,7 +205,7 @@ export default function App() {
     [addSiteUrl, toast],
   );
 
-  const addLocalPaths = useCallback(
+  const saveDroppedShortcuts = useCallback(
     async (paths: string[]) => {
       try {
         const result = await addDroppedPaths(paths);
@@ -232,6 +235,23 @@ export default function App() {
       }
     },
     [toast],
+  );
+
+  const addLocalPaths = useCallback(
+    async (paths: string[]) => {
+      const split = splitDropActions(paths);
+      if (split.pictures.length > 0 || split.pdfs.length > 0) {
+        if (split.rest.length > 0) {
+          await saveDroppedShortcuts(split.rest);
+        }
+        setDropPick({ pictures: split.pictures, pdfs: split.pdfs });
+        setView({ name: "home" });
+        await showPanel();
+        return;
+      }
+      await saveDroppedShortcuts(paths);
+    },
+    [saveDroppedShortcuts],
   );
 
   useEffect(() => {
@@ -744,7 +764,10 @@ export default function App() {
             />
           ) : null}
           {view.name === "doc-shrink" ? (
-            <DocShrinkPage onBack={() => setView(view.backTo ?? { name: "computer-tools" })} />
+            <DocShrinkPage
+              startPaths={view.startPaths}
+              onBack={() => setView(view.backTo ?? { name: "computer-tools" })}
+            />
           ) : null}
           {view.name === "tool-edit" ? (
             <ToolEditPage
@@ -763,16 +786,24 @@ export default function App() {
             <CctvToolPage title={view.title} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && (view.id === "url-mark" || view.id === "tool-url-mark") ? (
-            <UrlMarkPage title={view.title} onBack={() => setView({ name: "home" })} />
+            <UrlMarkPage
+              title={view.title}
+              startPath={view.startPaths?.[0]}
+              onBack={() => setView({ name: "home" })}
+            />
           ) : null}
           {view.name === "internal" && (view.id === "privacy-mask" || view.id === "tool-privacy-mask") ? (
-            <PrivacyMaskPage title={view.title} onBack={() => setView({ name: "home" })} />
+            <PrivacyMaskPage
+              title={view.title}
+              startPath={view.startPaths?.[0]}
+              onBack={() => setView({ name: "home" })}
+            />
           ) : null}
           {view.name === "internal" && isDocShrinkTarget(view.id) ? (
-            <DocShrinkPage onBack={() => setView({ name: "home" })} />
+            <DocShrinkPage startPaths={view.startPaths} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && isPdfPagesTarget(view.id) ? (
-            <PdfToolPage onBack={() => setView({ name: "home" })} />
+            <PdfToolPage startPaths={view.startPaths} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && isFolderFindTarget(view.id) ? (
             <PcFolderFindPage onBack={() => setView({ name: "home" })} />
@@ -890,6 +921,44 @@ export default function App() {
               </button>
             </div>
           </div>
+        ) : null}
+        {dropPick ? (
+          <DropActionPick
+            pictures={dropPick.pictures}
+            pdfs={dropPick.pdfs}
+            onMosaic={() => {
+              const path = dropPick.pictures[0];
+              if (!path) {
+                return;
+              }
+              setDropPick(null);
+              setView({ name: "internal", id: "privacy-mask", title: "사진 모자이크", startPaths: [path] });
+            }}
+            onShrink={() => {
+              const paths = dropPick.pictures;
+              setDropPick(null);
+              setView({ name: "doc-shrink", backTo: { name: "home" }, startPaths: paths });
+            }}
+            onQr={() => {
+              const path = dropPick.pictures[0];
+              if (!path) {
+                return;
+              }
+              setDropPick(null);
+              setView({ name: "internal", id: "url-mark", title: "QR코드 넣기", startPaths: [path] });
+            }}
+            onPdf={() => {
+              const paths = dropPick.pdfs;
+              setDropPick(null);
+              setView({ name: "internal", id: "pdf-pages", title: "PDF 도구", startPaths: paths });
+            }}
+            onShortcut={() => {
+              const paths = [...dropPick.pictures, ...dropPick.pdfs];
+              setDropPick(null);
+              void saveDroppedShortcuts(paths);
+            }}
+            onClose={() => setDropPick(null)}
+          />
         ) : null}
         {notice ? (
           <div className="absolute bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-full bg-desk px-3 py-2 text-xs text-white">

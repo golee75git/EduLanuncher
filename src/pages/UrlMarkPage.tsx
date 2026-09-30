@@ -1,6 +1,6 @@
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   buildUrlMark,
   canvasPngBase64,
@@ -14,9 +14,10 @@ import {
 interface UrlMarkPageProps {
   title: string;
   onBack: () => void;
+  startPath?: string;
 }
 
-export function UrlMarkPage({ title, onBack }: UrlMarkPageProps) {
+export function UrlMarkPage({ title, onBack, startPath }: UrlMarkPageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [url, setUrl] = useState("");
   const [picture, setPicture] = useState<PictureFile | null>(null);
@@ -24,6 +25,39 @@ export function UrlMarkPage({ title, onBack }: UrlMarkPageProps) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [hasMark, setHasMark] = useState(false);
+
+  const openPicture = async (path: string) => {
+    const file = await readPictureFile(path);
+    setPicture(file);
+    setHasMark(false);
+    setPreview(pictureSrc(file));
+    if (canvasRef.current) {
+      canvasRef.current.width = 0;
+      canvasRef.current.height = 0;
+    }
+  };
+
+  useEffect(() => {
+    if (!startPath) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      setMessage("");
+      try {
+        await openPicture(startPath);
+      } catch (error) {
+        if (!cancelled) {
+          setPicture(null);
+          setPreview("");
+          setMessage(asMessage(error, "그림을 읽지 못했습니다."));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [startPath]);
 
   const pickPicture = async () => {
     setMessage("");
@@ -35,14 +69,7 @@ export function UrlMarkPage({ title, onBack }: UrlMarkPageProps) {
       if (typeof selected !== "string") {
         return;
       }
-      const file = await readPictureFile(selected);
-      setPicture(file);
-      setHasMark(false);
-      setPreview(pictureSrc(file));
-      if (canvasRef.current) {
-        canvasRef.current.width = 0;
-        canvasRef.current.height = 0;
-      }
+      await openPicture(selected);
     } catch (error) {
       setPicture(null);
       setPreview("");
