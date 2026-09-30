@@ -50,7 +50,7 @@ import { findNewerRelease } from "./services/releaseCheckService";
 import { APP_CONFIG } from "./config/app";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { splitDropActions } from "./services/dropActionPick";
-import { addDroppedPaths, addDroppedSite, readUrlShortcut } from "./services/dropSiteService";
+import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut } from "./services/dropSiteService";
 import { focusSearchInput } from "./services/focusBus";
 import { hidePanel, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
@@ -115,6 +115,40 @@ interface MissingState {
   tool?: ToolItem;
 }
 
+interface DropHold {
+  pictures: string[];
+  pdfs: string[];
+  places: { path: string; name: string; place: string }[];
+  site: { url: string; name?: string; iconImage?: string } | null;
+  urlFile: string | null;
+  packPath: string | null;
+  packText: string | null;
+}
+
+function blankDropHold(): DropHold {
+  return {
+    pictures: [],
+    pdfs: [],
+    places: [],
+    site: null,
+    urlFile: null,
+    packPath: null,
+    packText: null,
+  };
+}
+
+function dropHoldOpen(hold: DropHold): boolean {
+  return (
+    hold.pictures.length > 0 ||
+    hold.pdfs.length > 0 ||
+    hold.places.length > 0 ||
+    hold.site !== null ||
+    hold.urlFile !== null ||
+    hold.packPath !== null ||
+    hold.packText !== null
+  );
+}
+
 export default function App() {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<View>({ name: "home" });
@@ -123,7 +157,7 @@ export default function App() {
   const [removeNotice, setRemoveNotice] = useState<NoticeItem | null>(null);
   const [packPick, setPackPick] = useState<{ pack: NoticePack; sitePack?: LauncherPack } | null>(null);
   const [notice, setNotice] = useState("");
-  const [dropPick, setDropPick] = useState<{ pictures: string[]; pdfs: string[] } | null>(null);
+  const [dropPick, setDropPick] = useState<DropHold | null>(null);
   const [releaseNotice, setReleaseNotice] = useState<string | null>(null);
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
   const priorSkin = useSettingsStore((state) => isPriorSkin(state.settings.panelSkin));
@@ -237,21 +271,68 @@ export default function App() {
     [toast],
   );
 
+  const revealDropHold = useCallback(async () => {
+    setView({ name: "home" });
+    await showPanel();
+  }, []);
+
   const addLocalPaths = useCallback(
     async (paths: string[]) => {
       const split = splitDropActions(paths);
-      if (split.pictures.length > 0 || split.pdfs.length > 0) {
-        if (split.rest.length > 0) {
-          await saveDroppedShortcuts(split.rest);
+      let places: DropHold["places"] = [];
+      if (split.rest.length > 0) {
+        try {
+          places = await previewDroppedPaths(split.rest);
+        } catch (error) {
+          toast(error instanceof Error ? error.message : "넣을 곳을 확인하지 못했습니다.");
+          await showPanel();
+          return;
         }
-        setDropPick({ pictures: split.pictures, pdfs: split.pdfs });
-        setView({ name: "home" });
-        await showPanel();
-        return;
       }
-      await saveDroppedShortcuts(paths);
+      setDropPick((current) => {
+        const next: DropHold = {
+          ...(current ?? blankDropHold()),
+          pictures: split.pictures,
+          pdfs: split.pdfs,
+          places,
+        };
+        return dropHoldOpen(next) ? next : null;
+      });
+      await revealDropHold();
     },
-    [saveDroppedShortcuts],
+    [revealDropHold, toast],
+  );
+
+  const queuePackPath = useCallback(
+    (path: string) => {
+      setDropPick((current) => ({ ...(current ?? blankDropHold()), packPath: path }));
+      void revealDropHold();
+    },
+    [revealDropHold],
+  );
+
+  const queuePackText = useCallback(
+    (contents: string) => {
+      setDropPick((current) => ({ ...(current ?? blankDropHold()), packText: contents }));
+      void revealDropHold();
+    },
+    [revealDropHold],
+  );
+
+  const queueSite = useCallback(
+    (url: string, name?: string, iconImage?: string) => {
+      setDropPick((current) => ({ ...(current ?? blankDropHold()), site: { url, name, iconImage } }));
+      void revealDropHold();
+    },
+    [revealDropHold],
+  );
+
+  const queueUrlFile = useCallback(
+    (path: string) => {
+      setDropPick((current) => ({ ...(current ?? blankDropHold()), urlFile: path }));
+      void revealDropHold();
+    },
+    [revealDropHold],
   );
 
   useEffect(() => {
@@ -583,10 +664,10 @@ export default function App() {
 
   return (
     <DropZone
-      onPackFile={applyPackPath}
-      onPackText={applyPackText}
-      onSiteUrl={addSiteUrl}
-      onUrlShortcut={addUrlShortcut}
+      onPackFile={queuePackPath}
+      onPackText={queuePackText}
+      onSiteUrl={queueSite}
+      onUrlShortcut={queueUrlFile}
       onLocalPaths={addLocalPaths}
       onDropUnreadable={(formats) =>
         toast(
@@ -926,6 +1007,20 @@ export default function App() {
           <DropActionPick
             pictures={dropPick.pictures}
             pdfs={dropPick.pdfs}
+            places={dropPick.places}
+            siteLabel={[
+              dropPick.site ? dropPick.site.name || dropPick.site.url : "",
+              dropPick.urlFile ? dropPick.urlFile.split(/[/\\]/).pop() || "사이트" : "",
+            ]
+              .filter(Boolean)
+              .join(", ")}
+            packLabel={
+              dropPick.packPath
+                ? dropPick.packPath.split(/[/\\]/).pop() || "Pack"
+                : dropPick.packText
+                  ? "Pack"
+                  : ""
+            }
             onMosaic={() => {
               const path = dropPick.pictures[0];
               if (!path) {
@@ -954,8 +1049,63 @@ export default function App() {
             }}
             onShortcut={() => {
               const paths = [...dropPick.pictures, ...dropPick.pdfs];
-              setDropPick(null);
+              setDropPick((current) => {
+                if (!current) {
+                  return null;
+                }
+                const next = { ...current, pictures: [], pdfs: [] };
+                return dropHoldOpen(next) ? next : null;
+              });
               void saveDroppedShortcuts(paths);
+            }}
+            onPlaces={() => {
+              const paths = dropPick.places.map((line) => line.path);
+              setDropPick((current) => {
+                if (!current) {
+                  return null;
+                }
+                const next = { ...current, places: [] };
+                return dropHoldOpen(next) ? next : null;
+              });
+              void saveDroppedShortcuts(paths);
+            }}
+            onSite={() => {
+              const site = dropPick.site;
+              const urlFile = dropPick.urlFile;
+              setDropPick((current) => {
+                if (!current) {
+                  return null;
+                }
+                const next = { ...current, site: null, urlFile: null };
+                return dropHoldOpen(next) ? next : null;
+              });
+              void (async () => {
+                if (site) {
+                  await addSiteUrl(site.url, site.name, site.iconImage);
+                }
+                if (urlFile) {
+                  await addUrlShortcut(urlFile);
+                }
+              })();
+            }}
+            onPack={() => {
+              const path = dropPick.packPath;
+              const text = dropPick.packText;
+              setDropPick((current) => {
+                if (!current) {
+                  return null;
+                }
+                const next = { ...current, packPath: null, packText: null };
+                return dropHoldOpen(next) ? next : null;
+              });
+              void (async () => {
+                if (path) {
+                  await applyPackPath(path);
+                }
+                if (text) {
+                  await applyPackText(text);
+                }
+              })();
             }}
             onClose={() => setDropPick(null)}
           />

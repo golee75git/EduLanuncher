@@ -373,6 +373,27 @@ function iconForLocalType(type: "file" | "folder" | "app"): string {
 
 let addDroppedPathQueue: Promise<void> = Promise.resolve();
 
+export async function previewDroppedPaths(
+  paths: string[],
+): Promise<{ path: string; name: string; place: "프로그램" | "폴더" | "파일" }[]> {
+  const unique: string[] = [];
+  for (const path of paths) {
+    const trimmed = path.trim();
+    if (!trimmed || unique.some((item) => sameLocalPath(item, trimmed))) {
+      continue;
+    }
+    unique.push(trimmed);
+  }
+  const listed: { path: string; name: string; place: "프로그램" | "폴더" | "파일" }[] = [];
+  for (const path of unique.slice(0, DROP_PATH_LIMIT)) {
+    const info = await invoke<DroppedPathInfo>("dropped_path_info", { path });
+    const place = info.kind === "app" ? "프로그램" : info.kind === "folder" ? "폴더" : "파일";
+    const name = info.name.trim() || path.split(/[/\\]/).pop() || path;
+    listed.push({ path: info.path || path, name, place });
+  }
+  return listed;
+}
+
 export async function addDroppedPaths(paths: string[]): Promise<DroppedPathSummary> {
   let finish: () => void = () => undefined;
   const gate = new Promise<void>((resolve) => {
