@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.148-20261001",
+    note: "인터넷 연결 점검은 확인 주소 응답만으로 장애를 정하지 않습니다. 화면 이름은 교육업무 런처이고, 전체 확인은 15초 안에 끝납니다.",
+  },
+  {
     version: "0.1.147-20261001",
     note: "컴퓨터도구에 인터넷 연결 점검을 넣었습니다. 점검 시작을 눌렀을 때만 이 PC에서 확인하며 설정을 바꾸지 않습니다.",
   },

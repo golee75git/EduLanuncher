@@ -3,14 +3,53 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, TcpStream, ToSocketAddrs};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 
 static LINK_BUSY: AtomicBool = AtomicBool::new(false);
 static LINK_STOP: AtomicBool = AtomicBool::new(false);
 
-const STEP_WAIT: Duration = Duration::from_millis(2000);
-const NAME_HOST: &str = "example.com";
+/// 연결 확인에 쓰는 주소와 제한 시간.
+/// 평문 HTTP는 다른 페이지로 넘어가는 연결인지 보기 위한 것이다.
+/// 요청 본문에 문서, 계정, PC 정보를 넣지 않는다.
+/// 이 주소의 성공이나 실패만으로 인터넷 장애를 정하지 않는다.
+struct ConnectivityProbeConfig {
+    display_name: &'static str,
+    host: &'static str,
+    port: u16,
+    path: &'static str,
+    expected: &'static str,
+    step: Duration,
+    overall: Duration,
+}
+
+const PROBE: ConnectivityProbeConfig = ConnectivityProbeConfig {
+    display_name: "교육업무 런처",
+    host: "www.msftconnecttest.com",
+    port: 80,
+    path: "/connecttest.txt",
+    expected: "Microsoft Connect Test",
+    step: Duration::from_millis(2000),
+    overall: Duration::from_secs(15),
+};
+
+struct Budget {
+    start: Instant,
+}
+
+impl Budget {
+    fn new() -> Self {
+        Self { start: Instant::now() }
+    }
+
+    fn left(&self) -> Duration {
+        PROBE.overall.saturating_sub(self.start.elapsed())
+    }
+
+    fn slice(&self) -> Duration {
+        self.left().min(PROBE.step)
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Media {
@@ -29,6 +68,11 @@ enum Mark {
     Skip,
 }
 
+enum ProbeStop {
+    Failed,
+    TimedOut,
+}
+
 #[derive(Clone, Debug)]
 struct AdapterFact {
     media: Media,
@@ -37,6 +81,7 @@ struct AdapterFact {
     global_v6: bool,
     gateway: Option<String>,
     dns: Vec<String>,
+    if_index: u32,
 }
 
 #[derive(Clone, Debug)]
@@ -47,7 +92,9 @@ struct ProbeFacts {
     outside_tcp: Mark,
     name_lookup: Mark,
     web_reply: Mark,
+    route_index: Option<u32>,
     stopped: bool,
+    timed_out: bool,
 }
 
 #[derive(Serialize, Clone)]
@@ -150,6 +197,7 @@ pub fn begin_pc_link(app: AppHandle) -> Result<(), String> {
     }
     LINK_STOP.store(false, Ordering::SeqCst);
     thread::spawn(move || {
+        // 예상된 실패는 Result로 처리한다. 여기는 예기치 않은 panic만 막는다.
         let report = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run_link(&app)))
             .unwrap_or_else(|_| fault_report());
         emit_done(&app, report);
@@ -172,15 +220,29 @@ fn empty_facts() -> ProbeFacts {
         outside_tcp: Mark::Skip,
         name_lookup: Mark::Skip,
         web_reply: Mark::Skip,
+        route_index: None,
         stopped: false,
+        timed_out: false,
     }
 }
 
-fn run_link(app: &AppHandle) -> LinkReport {
-    let mut facts = empty_facts();
-    emit_step(app, "device", "checking", "점검 중");
+fn finish_early(facts: &mut ProbeFacts, budget: &Budget) -> bool {
     if stopped() {
         facts.stopped = true;
+        return true;
+    }
+    if budget.left().is_zero() {
+        facts.timed_out = true;
+        return true;
+    }
+    false
+}
+
+fn run_link(app: &AppHandle) -> LinkReport {
+    let budget = Budget::new();
+    let mut facts = empty_facts();
+    emit_step(app, "device", "checking", "점검 중");
+    if finish_early(&mut facts, &budget) {
         return judge(&facts);
     }
     match read_adapters() {
@@ -191,82 +253,95 @@ fn run_link(app: &AppHandle) -> LinkReport {
     if let Some(row) = early.rows.iter().find(|row| row.id == "device") {
         emit_step(app, "device", &row.status, &row.label);
     }
+    if early.rows.iter().any(|row| row.id == "device" && row.status == "error") {
+        facts.gateway_reply = Mark::Skip;
+        facts.name_lookup = Mark::Skip;
+        facts.outside_tcp = Mark::Skip;
+        facts.web_reply = Mark::Skip;
+        return emit_rows(app, judge(&facts), &["address", "inside", "names", "web"]);
+    }
     emit_step(app, "address", "checking", "점검 중");
-    if stopped() {
-        facts.stopped = true;
+    if finish_early(&mut facts, &budget) {
         return judge(&facts);
+    }
+    let mut resolved_v4 = None;
+    match resolve_name(budget.slice()) {
+        Ok(list) => {
+            facts.name_lookup = Mark::Yes;
+            if let Some(addr) = list.into_iter().find(SocketAddr::is_ipv4) {
+                facts.route_index = route_hint(addr).ok();
+                resolved_v4 = Some(addr);
+            }
+        }
+        Err(ProbeStop::TimedOut) => {
+            facts.timed_out = true;
+            facts.name_lookup = Mark::Skip;
+        }
+        Err(ProbeStop::Failed) => facts.name_lookup = Mark::No,
     }
     let after_address = judge(&facts);
     if let Some(row) = after_address.rows.iter().find(|row| row.id == "address") {
         emit_step(app, "address", &row.status, &row.label);
     }
+    let address_bad = after_address.rows.iter().any(|row| row.id == "address" && row.status == "error");
     emit_step(app, "inside", "checking", "점검 중");
-    if stopped() {
-        facts.stopped = true;
-        return judge(&facts);
+    if finish_early(&mut facts, &budget) {
+        return emit_rows(app, judge(&facts), &["inside", "names"]);
     }
-    if after_address.rows.iter().any(|row| row.id == "device" && row.status == "error")
-        || after_address.rows.iter().any(|row| row.id == "address" && row.status == "error")
-    {
+    if address_bad {
         facts.gateway_reply = Mark::Skip;
-    } else if let Some(gateway) = chosen(&facts.adapters).and_then(|item| item.gateway.clone()) {
-        facts.gateway_reply = if gateway_replies(&gateway) { Mark::Yes } else { Mark::No };
-    }
-    let after_inside = judge(&facts);
-    if let Some(row) = after_inside.rows.iter().find(|row| row.id == "inside") {
-        emit_step(app, "inside", &row.status, &row.label);
-    }
-    emit_step(app, "names", "checking", "점검 중");
-    if stopped() {
-        facts.stopped = true;
-        return judge(&facts);
-    }
-    if after_address.rows.iter().any(|row| row.id == "address" && row.status == "error")
-        || after_address.rows.iter().any(|row| row.id == "device" && row.status == "error")
-    {
-        facts.name_lookup = Mark::Skip;
         facts.outside_tcp = Mark::Skip;
         facts.web_reply = Mark::Skip;
-    } else {
-        let resolved = resolve_name();
-        facts.name_lookup = if resolved.as_ref().map(|list| !list.is_empty()).unwrap_or(false) {
-            Mark::Yes
-        } else {
-            Mark::No
-        };
-        if stopped() {
-            facts.stopped = true;
-            return judge(&facts);
-        }
-        if let Some(list) = resolved.as_ref() {
-            if let Some(addr) = list.first() {
-                facts.outside_tcp = if tcp_open(*addr) { Mark::Yes } else { Mark::No };
+        return emit_rows(app, judge(&facts), &["inside", "names", "web"]);
+    }
+    if let Some(gateway) = chosen(&facts.adapters, facts.route_index).and_then(|item| item.gateway.clone()) {
+        facts.gateway_reply = match gateway_replies(&gateway, budget.slice()) {
+            Ok(true) => Mark::Yes,
+            Ok(false) => Mark::No,
+            Err(ProbeStop::TimedOut) => {
+                facts.timed_out = true;
+                Mark::Skip
             }
-        }
-        if stopped() {
-            facts.stopped = true;
-            return judge(&facts);
-        }
-        emit_step(app, "web", "checking", "점검 중");
-        facts.web_reply = if web_replies() { Mark::Yes } else { Mark::No };
+            Err(ProbeStop::Failed) => Mark::No,
+        };
     }
-    if facts.name_lookup == Mark::Skip {
-        emit_step(app, "names", "skipped", "확인 불가");
-        emit_step(app, "web", "skipped", "확인 불가");
-    } else {
-        let named = judge(&facts);
-        if let Some(row) = named.rows.iter().find(|row| row.id == "names") {
-            emit_step(app, "names", &row.status, &row.label);
+    if finish_early(&mut facts, &budget) {
+        return emit_rows(app, judge(&facts), &["inside", "names"]);
+    }
+    if let Some(addr) = resolved_v4 {
+        facts.outside_tcp = match tcp_open(addr, budget.slice()) {
+            Ok(true) => Mark::Yes,
+            Ok(false) => Mark::No,
+            Err(ProbeStop::TimedOut) => {
+                facts.timed_out = true;
+                Mark::Skip
+            }
+            Err(ProbeStop::Failed) => Mark::No,
+        };
+    }
+    if finish_early(&mut facts, &budget) {
+        return emit_rows(app, judge(&facts), &["inside", "names"]);
+    }
+    emit_step(app, "web", "checking", "점검 중");
+    facts.web_reply = match page_matches(budget.slice()) {
+        Ok(true) => Mark::Yes,
+        Ok(false) => Mark::No,
+        Err(ProbeStop::TimedOut) => {
+            facts.timed_out = true;
+            Mark::Skip
         }
-        if facts.web_reply == Mark::Skip {
-            emit_step(app, "web", "checking", "점검 중");
-        }
-        let done = judge(&facts);
-        if let Some(row) = done.rows.iter().find(|row| row.id == "web") {
-            emit_step(app, "web", &row.status, &row.label);
+        Err(ProbeStop::Failed) => Mark::No,
+    };
+    emit_rows(app, judge(&facts), &["inside", "names", "web"])
+}
+
+fn emit_rows(app: &AppHandle, report: LinkReport, ids: &[&str]) -> LinkReport {
+    for id in ids {
+        if let Some(row) = report.rows.iter().find(|row| row.id == *id) {
+            emit_step(app, id, &row.status, &row.label);
         }
     }
-    judge(&facts)
+    report
 }
 
 fn usable_v4(text: &str) -> bool {
@@ -288,17 +363,16 @@ fn apipa_only(item: &AdapterFact) -> bool {
     }) && !item.global_v6
 }
 
-fn chosen(adapters: &[AdapterFact]) -> Option<&AdapterFact> {
-    let physical_up = adapters
-        .iter()
-        .any(|item| item.up && matches!(item.media, Media::Wired | Media::Wireless));
+fn chosen(adapters: &[AdapterFact], route_index: Option<u32>) -> Option<&AdapterFact> {
+    if let Some(index) = route_index {
+        if let Some(item) = adapters.iter().find(|item| item.up && item.media != Media::Loopback && item.if_index == index) {
+            return Some(item);
+        }
+    }
     let mut best: Option<&AdapterFact> = None;
     let mut best_key = (9u8, 9u8, 9u8);
     for item in adapters {
         if !item.up || item.media == Media::Loopback {
-            continue;
-        }
-        if physical_up && !matches!(item.media, Media::Wired | Media::Wireless) {
             continue;
         }
         let key = (
@@ -342,7 +416,7 @@ fn row(id: &str, title: &str, status: &str, label: &str) -> LinkRow {
 }
 
 fn judge(facts: &ProbeFacts) -> LinkReport {
-    let picked = chosen(&facts.adapters);
+    let picked = chosen(&facts.adapters, facts.route_index);
     let physical_up = facts.adapters.iter().any(|item| {
         item.up && matches!(item.media, Media::Wired | Media::Wireless)
     });
@@ -406,13 +480,13 @@ fn judge(facts: &ProbeFacts) -> LinkReport {
     } else if facts.web_reply == Mark::Yes {
         row("web", "웹 연결", "success", "정상")
     } else if facts.web_reply == Mark::No && names.status == "success" {
-        row("web", "웹 연결", "error", "문제 발견")
+        row("web", "웹 연결", "warning", "확인 필요")
     } else {
         row("web", "웹 연결", "skipped", "확인 불가")
     };
 
     let rows = vec![device, address, inside, names, web];
-    let (finding, advice, help_id, pages) = explain(&rows, facts.stopped);
+    let (finding, advice, help_id, pages) = explain(&rows, facts.stopped, facts.timed_out);
     let technical = technical_lines(facts, picked);
     let copy_text = copy_text(&rows, &finding);
     LinkReport {
@@ -427,7 +501,7 @@ fn judge(facts: &ProbeFacts) -> LinkReport {
     }
 }
 
-fn explain(rows: &[LinkRow], stopped: bool) -> (String, String, String, Vec<String>) {
+fn explain(rows: &[LinkRow], stopped: bool, timed_out: bool) -> (String, String, String, Vec<String>) {
     let status = |id: &str| rows.iter().find(|row| row.id == id).map(|row| row.status.as_str()).unwrap_or("skipped");
     let mut finding;
     let advice;
@@ -448,9 +522,9 @@ fn explain(rows: &[LinkRow], stopped: bool) -> (String, String, String, Vec<Stri
         advice = "기관 네트워크의 주소 찾기 상태를 확인해 주세요.".to_string();
         help = "network-dns".to_string();
         pages = vec!["network".into()];
-    } else if status("web") == "error" {
-        finding = "인터넷 주소는 정상적으로 확인되지만\n웹사이트 연결이 정상적으로 확인되지 않았습니다.".to_string();
-        advice = "기관 네트워크, 프록시 또는 보안 환경의 영향을 받을 수 있습니다.".to_string();
+    } else if status("web") == "warning" || status("web") == "error" {
+        finding = "인터넷 주소는 확인되었지만\n연결 확인 응답만으로는 웹 상태를 확정하지 못했습니다.".to_string();
+        advice = "기관 정책, 프록시 또는 확인 서버의 영향일 수 있습니다.".to_string();
         help = "network-web".to_string();
         pages = vec!["network".into(), "proxy".into()];
     } else if status("web") == "success" {
@@ -467,6 +541,9 @@ fn explain(rows: &[LinkRow], stopped: bool) -> (String, String, String, Vec<Stri
         advice = "기관 네트워크 상태를 전산 담당자에게 전달할 수 있습니다.".to_string();
         help = "network-general".to_string();
         pages = vec!["network".into()];
+    }
+    if timed_out {
+        finding = format!("확인 시간이 지나 일부만 확인했습니다.\n{finding}");
     }
     if stopped {
         finding = format!("점검을 멈췄습니다.\n{finding}");
@@ -504,6 +581,10 @@ fn technical_lines(facts: &ProbeFacts, picked: Option<&AdapterFact>) -> Vec<Tech
             value: if item.dns.is_empty() { "없음".into() } else { item.dns.join(", ") },
         });
     }
+    lines.push(TechLine {
+        label: "경로 힌트".into(),
+        value: if facts.route_index.is_some() { "확인됨".into() } else { "확인 안 함".into() },
+    });
     lines.push(TechLine { label: "장치".into(), value: mark_text(if facts.read_error { Mark::No } else if picked.is_some() { Mark::Yes } else { Mark::No }).into() });
     lines.push(TechLine { label: "경로 응답".into(), value: mark_text(facts.gateway_reply).into() });
     lines.push(TechLine { label: "바깥 연결".into(), value: mark_text(facts.outside_tcp).into() });
@@ -521,7 +602,7 @@ fn mark_text(mark: Mark) -> &'static str {
 }
 
 fn copy_text(rows: &[LinkRow], finding: &str) -> String {
-    let mut lines = vec!["[LauncherBox 인터넷 연결 점검]".to_string(), String::new()];
+    let mut lines = vec![format!("[{} 인터넷 연결 점검]", PROBE.display_name), String::new()];
     for row in rows {
         lines.push(format!("{}: {}", row.title, row.label));
     }
@@ -540,6 +621,7 @@ fn adapter(media: Media, up: bool, ipv4: &[&str], global_v6: bool, gateway: Opti
         global_v6,
         gateway: gateway.map(str::to_string),
         dns: dns.iter().map(|ip| (*ip).to_string()).collect(),
+        if_index: 0,
     }
 }
 
@@ -630,6 +712,7 @@ fn read_adapters() -> Result<Vec<AdapterFact>, ()> {
                     global_v6,
                     gateway,
                     dns,
+                    if_index: item.Anonymous1.Anonymous.IfIndex,
                 });
             }
             current = item.Next;
@@ -675,17 +758,30 @@ fn read_adapters() -> Result<Vec<AdapterFact>, ()> {
     Err(())
 }
 
-fn gateway_replies(gateway: &str) -> bool {
-    let Ok(ip) = gateway.parse::<Ipv4Addr>() else {
-        return false;
-    };
+fn wait_ms(wait: Duration) -> Result<u32, ProbeStop> {
+    if wait.is_zero() {
+        return Err(ProbeStop::TimedOut);
+    }
+    Ok(wait.as_millis().min(u128::from(u32::MAX)) as u32)
+}
+
+fn gateway_replies(gateway: &str, wait: Duration) -> Result<bool, ProbeStop> {
+    let ms = wait_ms(wait)?;
+    let ip = gateway.parse::<Ipv4Addr>().map_err(|_| ProbeStop::Failed)?;
     #[cfg(windows)]
     {
         use windows::Win32::NetworkManagement::IpHelper::{IcmpCloseHandle, IcmpCreateFile, IcmpSendEcho};
+        struct EchoGuard(windows::Win32::Foundation::HANDLE);
+        impl Drop for EchoGuard {
+            fn drop(&mut self) {
+                unsafe {
+                    let _ = IcmpCloseHandle(self.0);
+                }
+            }
+        }
         unsafe {
-            let Ok(handle) = IcmpCreateFile() else {
-                return false;
-            };
+            let handle = IcmpCreateFile().map_err(|_| ProbeStop::Failed)?;
+            let _guard = EchoGuard(handle);
             let dest = u32::from_be_bytes(ip.octets());
             let payload = [0u8; 8];
             let mut reply = [0u8; 128];
@@ -697,99 +793,154 @@ fn gateway_replies(gateway: &str) -> bool {
                 None,
                 reply.as_mut_ptr() as *mut _,
                 reply.len() as u32,
-                STEP_WAIT.as_millis() as u32,
+                ms,
             );
-            let _ = IcmpCloseHandle(handle);
-            return count > 0;
+            return Ok(count > 0);
         }
     }
     #[cfg(not(windows))]
     {
-        let _ = ip;
-        false
+        let _ = (ip, ms);
+        Err(ProbeStop::Failed)
     }
 }
 
-fn resolve_name() -> Option<Vec<SocketAddr>> {
+fn resolve_name(wait: Duration) -> Result<Vec<SocketAddr>, ProbeStop> {
+    let ms = wait_ms(wait)?;
     let (tx, rx) = mpsc::channel();
+    let host = PROBE.host;
     thread::spawn(move || {
-        let found = (NAME_HOST, 443u16).to_socket_addrs().ok().map(|iter| iter.collect::<Vec<_>>());
+        let found = (host, PROBE.port).to_socket_addrs().ok().map(|iter| iter.collect::<Vec<_>>());
         let _ = tx.send(found);
     });
-    match rx.recv_timeout(STEP_WAIT) {
-        Ok(Some(list)) if !list.is_empty() => Some(list),
-        _ => None,
+    match rx.recv_timeout(Duration::from_millis(u64::from(ms))) {
+        Ok(Some(list)) if !list.is_empty() => Ok(list),
+        Ok(_) => Err(ProbeStop::Failed),
+        Err(mpsc::RecvTimeoutError::Timeout) => Err(ProbeStop::TimedOut),
+        Err(mpsc::RecvTimeoutError::Disconnected) => Err(ProbeStop::Failed),
     }
 }
 
-fn tcp_open(addr: SocketAddr) -> bool {
-    TcpStream::connect_timeout(&addr, STEP_WAIT).is_ok()
-}
-
-fn web_replies() -> bool {
+/// 실제 경로를 고르기 위한 보조 값이다. 성공이나 실패로 인터넷 상태를 정하지 않는다.
+fn route_hint(addr: SocketAddr) -> Result<u32, ProbeStop> {
+    let SocketAddr::V4(v4) = addr else {
+        return Err(ProbeStop::Failed);
+    };
     #[cfg(windows)]
     {
-        use windows::core::{w, PCWSTR};
+        use windows::Win32::NetworkManagement::IpHelper::GetBestInterfaceEx;
+        let mut raw = [0u8; 16];
+        raw[0] = 2;
+        let port = v4.port().to_be_bytes();
+        raw[2] = port[0];
+        raw[3] = port[1];
+        raw[4..8].copy_from_slice(&v4.ip().octets());
+        let mut index = 0u32;
+        let code = unsafe { GetBestInterfaceEx(raw.as_ptr() as *const _, &mut index) };
+        if code == 0 && index != 0 {
+            Ok(index)
+        } else {
+            Err(ProbeStop::Failed)
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = v4;
+        Err(ProbeStop::Failed)
+    }
+}
+
+fn tcp_open(addr: SocketAddr, wait: Duration) -> Result<bool, ProbeStop> {
+    let ms = wait_ms(wait)?;
+    match TcpStream::connect_timeout(&addr, Duration::from_millis(u64::from(ms))) {
+        Ok(stream) => {
+            drop(stream);
+            Ok(true)
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::TimedOut => Err(ProbeStop::TimedOut),
+        Err(_) => Ok(false),
+    }
+}
+
+fn page_matches(wait: Duration) -> Result<bool, ProbeStop> {
+    let ms = wait_ms(wait)?;
+    #[cfg(windows)]
+    {
+        use std::ffi::OsStr;
+        use std::os::windows::ffi::OsStrExt;
+        use windows::core::PCWSTR;
         use windows::Win32::Networking::WinHttp::{
-            WinHttpCloseHandle, WinHttpConnect, WinHttpOpen, WinHttpOpenRequest, WinHttpQueryHeaders,
+            WinHttpCloseHandle, WinHttpConnect, WinHttpOpen, WinHttpOpenRequest, WinHttpReadData,
             WinHttpReceiveResponse, WinHttpSendRequest, WinHttpSetTimeouts, WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
-            WINHTTP_FLAG_SECURE, WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_QUERY_STATUS_CODE,
         };
+        struct InetGuard(*mut core::ffi::c_void);
+        impl Drop for InetGuard {
+            fn drop(&mut self) {
+                if !self.0.is_null() {
+                    unsafe {
+                        let _ = WinHttpCloseHandle(self.0);
+                    }
+                    self.0 = std::ptr::null_mut();
+                }
+            }
+        }
+        fn wide(text: &str) -> Vec<u16> {
+            OsStr::new(text).encode_wide().chain(std::iter::once(0)).collect()
+        }
         unsafe {
-            let session = WinHttpOpen(
-                w!("EduLauncher"),
+            let agent = wide(PROBE.display_name);
+            let session = InetGuard(WinHttpOpen(
+                PCWSTR(agent.as_ptr()),
                 WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
                 PCWSTR::null(),
                 PCWSTR::null(),
                 0,
-            );
-            if session.is_null() {
-                return false;
+            ));
+            if session.0.is_null() {
+                return Err(ProbeStop::Failed);
             }
-            let _ = WinHttpSetTimeouts(session, 2000, 2000, 2000, 2000);
-            let connect = WinHttpConnect(session, w!("example.com"), 443, 0);
-            if connect.is_null() {
-                let _ = WinHttpCloseHandle(session);
-                return false;
+            let limit = i32::try_from(ms).unwrap_or(i32::MAX);
+            if WinHttpSetTimeouts(session.0, limit, limit, limit, limit).is_err() {
+                return Err(ProbeStop::Failed);
             }
-            let request = WinHttpOpenRequest(
-                connect,
-                w!("GET"),
-                w!("/"),
+            let host = wide(PROBE.host);
+            let connect = InetGuard(WinHttpConnect(session.0, PCWSTR(host.as_ptr()), PROBE.port, 0));
+            if connect.0.is_null() {
+                return Err(ProbeStop::Failed);
+            }
+            let path = wide(PROBE.path);
+            let verb = wide("GET");
+            let request = InetGuard(WinHttpOpenRequest(
+                connect.0,
+                PCWSTR(verb.as_ptr()),
+                PCWSTR(path.as_ptr()),
                 PCWSTR::null(),
                 PCWSTR::null(),
                 std::ptr::null(),
-                WINHTTP_FLAG_SECURE,
-            );
-            if request.is_null() {
-                let _ = WinHttpCloseHandle(connect);
-                let _ = WinHttpCloseHandle(session);
-                return false;
+                windows::Win32::Networking::WinHttp::WINHTTP_OPEN_REQUEST_FLAGS(0),
+            ));
+            if request.0.is_null() {
+                return Err(ProbeStop::Failed);
             }
-            let sent = WinHttpSendRequest(request, None, None, 0, 0, 0);
-            let received = sent.is_ok() && WinHttpReceiveResponse(request, std::ptr::null_mut()).is_ok();
-            let mut code = 0u32;
-            let mut len = std::mem::size_of::<u32>() as u32;
-            let mut index = 0u32;
-            let queried = received
-                && WinHttpQueryHeaders(
-                    request,
-                    WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
-                    PCWSTR::null(),
-                    Some(&mut code as *mut u32 as *mut _),
-                    &mut len,
-                    &mut index,
-                )
-                .is_ok();
-            let _ = WinHttpCloseHandle(request);
-            let _ = WinHttpCloseHandle(connect);
-            let _ = WinHttpCloseHandle(session);
-            return queried && (200..400).contains(&code);
+            if WinHttpSendRequest(request.0, None, None, 0, 0, 0).is_err() {
+                return Err(ProbeStop::Failed);
+            }
+            if WinHttpReceiveResponse(request.0, std::ptr::null_mut()).is_err() {
+                return Err(ProbeStop::Failed);
+            }
+            let mut buf = [0u8; 64];
+            let mut read = 0u32;
+            if WinHttpReadData(request.0, buf.as_mut_ptr() as *mut _, buf.len() as u32, &mut read).is_err() {
+                return Err(ProbeStop::Failed);
+            }
+            let text = String::from_utf8_lossy(&buf[..read as usize]);
+            Ok(text.trim() == PROBE.expected)
         }
     }
     #[cfg(not(windows))]
     {
-        false
+        let _ = ms;
+        Err(ProbeStop::Failed)
     }
 }
 
@@ -805,7 +956,9 @@ mod tests {
             outside_tcp: Mark::Skip,
             name_lookup: names,
             web_reply: web,
+            route_index: None,
             stopped: false,
+            timed_out: false,
         }
     }
 
@@ -894,5 +1047,32 @@ mod tests {
         assert_eq!(report.rows[4].status, "success");
         assert_eq!(report.help_id, "network-ok");
         assert!(!report.finding.contains("받지 못했습니다"));
+    }
+
+    #[test]
+    fn route_hint_can_select_a_virtual_adapter() {
+        let mut virtual_link = adapter(Media::Virtual, true, &["10.8.8.8"], false, Some("10.8.8.1"), &[]);
+        virtual_link.if_index = 7;
+        let mut wire = adapter(Media::Wired, true, &["169.254.4.4"], false, None, &[]);
+        wire.if_index = 3;
+        let mut sample = facts(vec![wire, virtual_link], Mark::Yes, Mark::Yes, Mark::Yes);
+        sample.route_index = Some(7);
+        let report = judge(&sample);
+        assert_ne!(report.rows[0].status, "error");
+        assert_eq!(report.rows[1].status, "success");
+        assert!(report.technical.iter().any(|line| line.label == "IPv4" && line.value.contains("10.8.8.8")));
+    }
+
+    #[test]
+    fn probe_mismatch_alone_is_not_an_outage() {
+        let report = judge(&facts(
+            vec![adapter(Media::Wired, true, &["10.1.1.8"], false, Some("10.1.1.1"), &["10.1.1.2"])],
+            Mark::Yes,
+            Mark::Yes,
+            Mark::No,
+        ));
+        assert_eq!(report.rows[4].status, "warning");
+        assert!(!report.finding.contains("장애"));
+        assert!(report.finding.contains("확정하지 못했습니다"));
     }
 }
