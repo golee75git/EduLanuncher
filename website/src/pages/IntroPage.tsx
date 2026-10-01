@@ -51,6 +51,9 @@ export function IntroPage() {
           <br />
           <span className="text-ink">Windows 업무 런처</span>
         </h1>
+        <p className="text-lg leading-relaxed text-desk">
+          기능 이름을 몰라도, 하고 싶은 일을 검색하면 됩니다.
+        </p>
         <p className="text-base leading-relaxed text-quiet">
           {SITE_CONFIG.displayName}는 교육기관 직원용 작은 패널입니다. 웹 서비스가 아니라 이 PC에 설치하는
           프로그램입니다. 평소에는 화면을 가리지 않고, 필요할 때만 엽니다.
