@@ -37,8 +37,8 @@ function MemoEditor({ prior = false }: { prior?: boolean }) {
   );
 }
 
-function openSaved(note: MemoNote, index: number) {
-  void openMemoNote(note, index).catch(() => {
+function openSaved(note: MemoNote, index: number, large = false) {
+  void openMemoNote(note, index, large).catch(() => {
     // 브라우저 미리보기에는 이 명령이 없다.
   });
 }
@@ -81,12 +81,16 @@ function AddMemoButton({ compact = false }: { compact?: boolean }) {
 
 function ExtraMemoList() {
   const notes = useMemoStore((state) => state.notes);
+  const openIds = useMemoStore((state) => state.openIds);
   if (notes.length === 0) {
     return null;
   }
   return (
     <ul className="mt-1.5 flex flex-col gap-0.5">
-      {notes.map((note, index) => (
+      {notes.map((note, index) => {
+        const open = openIds.includes(note.id);
+        const moved = note.x !== null && note.y !== null;
+        return (
         <li key={note.id} className="flex items-center gap-1">
           <button
             type="button"
@@ -96,6 +100,18 @@ function ExtraMemoList() {
             {memoWindowTitle(index)}
             <span className="text-quiet"> · {memoNotePreview(note.text)}</span>
           </button>
+          {open || moved ? (
+            <span className="shrink-0 rounded-full bg-ink-soft px-1.5 py-0.5 text-[10px] text-ink">
+              {open ? "별도 창" : "자리 저장"}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            className="rounded-lg px-2 py-0.5 text-[11px] font-medium text-ink hover:bg-ink-soft"
+            onClick={() => openSaved(note, index, true)}
+          >
+            크게
+          </button>
           <button
             type="button"
             className="rounded-lg px-2 py-0.5 text-[11px] text-quiet hover:bg-ink-soft"
@@ -104,7 +120,8 @@ function ExtraMemoList() {
             빼기
           </button>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

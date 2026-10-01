@@ -1164,6 +1164,7 @@ fn open_memo_note(
     width: f64,
     height: f64,
     slot: i32,
+    large: Option<bool>,
 ) -> Result<(), String> {
     let Some(label) = note_label(&id) else {
         return Err("메모를 열 수 없습니다.".to_string());
@@ -1171,15 +1172,27 @@ fn open_memo_note(
     let title = clip_note_title(&title, slot);
     let text = clip_memo_text(&text);
     remember_note(&app, &id, text, title.clone());
-    if let Some(existing) = app.get_webview_window(&label) {
-        let _ = existing.unminimize();
-        let _ = existing.show();
-        let _ = existing.set_focus();
-        return Ok(());
-    }
+    let large = large.unwrap_or(false);
     let panel = app
         .get_webview_window("main")
         .ok_or_else(|| "패널을 열 수 없습니다.".to_string())?;
+    // 크게 보기는 런처 창과 같은 크기로 연다.
+    let (width, height) = if large {
+        panel_inner_logical(&panel)
+    } else {
+        (width, height)
+    };
+    if let Some(existing) = app.get_webview_window(&label) {
+        if large {
+            let (w, h) = clip_note_size(width, height);
+            let _ = existing.set_size(Size::Logical(LogicalSize::new(w, h)));
+        }
+        let _ = existing.unminimize();
+        let _ = existing.show();
+        let _ = existing.set_focus();
+        notify_note_open(&app, &id, true);
+        return Ok(());
+    }
     let (x, y, width, height) = match (x, y) {
         (Some(x), Some(y)) if x.is_finite() && y.is_finite() => clamp_note_box(&panel, x, y, width, height),
         _ => fresh_note_place(&panel, width, height, slot),
@@ -1212,8 +1225,26 @@ fn open_memo_note(
         ));
         let _ = created.show();
         let _ = created.set_focus();
+        notify_note_open(&app, &id, true);
     }
     Ok(())
+}
+
+#[derive(Clone, Serialize)]
+struct NoteOpenState {
+    id: String,
+    open: bool,
+}
+
+fn notify_note_open(app: &AppHandle, id: &str, open: bool) {
+    let _ = app.emit_to(
+        "main",
+        "memo-note-open",
+        NoteOpenState {
+            id: id.to_string(),
+            open,
+        },
+    );
 }
 
 #[tauri::command]
@@ -1258,6 +1289,7 @@ fn dismiss_memo_note(app: AppHandle, id: String) {
     if let Ok(mut guard) = drafts.0.lock() {
         guard.remove(&id);
     };
+    notify_note_open(&app, &id, false);
 }
 
 #[tauri::command]

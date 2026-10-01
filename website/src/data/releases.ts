@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.144-20261001",
+    note: "메모 2~4 줄에 크게 버튼이 생겼습니다. 런처 창 크기의 별도 창으로 열리고, 별도 창으로 열려 있거나 자리가 저장된 메모에는 표시가 붙습니다.",
+  },
+  {
     version: "0.1.143-20261001",
     note: "메모 2부터는 따로 두는 창입니다. 제목 줄로 옮긴 자리는 화면 안에 남습니다.",
   },

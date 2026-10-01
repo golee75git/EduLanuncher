@@ -52,7 +52,7 @@ export async function openMemoWindow(selected = ""): Promise<void> {
   await invoke("open_memo_window");
 }
 
-export async function openMemoNote(note: MemoNote, index: number): Promise<void> {
+export async function openMemoNote(note: MemoNote, index: number, large = false): Promise<void> {
   await invoke("open_memo_note", {
     id: note.id,
     text: note.text,
@@ -62,6 +62,7 @@ export async function openMemoNote(note: MemoNote, index: number): Promise<void>
     width: note.width,
     height: note.height,
     slot: index,
+    large,
   });
 }
 

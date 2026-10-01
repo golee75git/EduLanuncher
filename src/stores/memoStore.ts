@@ -24,6 +24,8 @@ interface MemoState {
   text: string;
   notes: MemoNote[];
   loaded: boolean;
+  openIds: string[];
+  setNoteOpen: (id: string, open: boolean) => void;
   hydrate: (memo: LocalMemo) => void;
   setText: (text: string) => void;
   addNote: () => MemoNote | null;
@@ -38,6 +40,14 @@ export const useMemoStore = create<MemoState>((set, get) => ({
   text: EMPTY_MEMO.text,
   notes: [],
   loaded: false,
+  openIds: [],
+  setNoteOpen: (id, open) => {
+    const current = get().openIds;
+    if (current.includes(id) === open) {
+      return;
+    }
+    set({ openIds: open ? [...current, id] : current.filter((item) => item !== id) });
+  },
   hydrate: (memo) => set({ text: memo.text, notes: memo.notes, loaded: true }),
   setText: (text) => set({ text }),
   addNote: () => {

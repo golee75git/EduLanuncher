@@ -466,6 +466,12 @@ export default function App() {
             }
           },
         ),
+        await listen<{ id?: string; open?: boolean }>("memo-note-open", (event) => {
+          const { id, open } = event.payload ?? {};
+          if (typeof id === "string" && typeof open === "boolean") {
+            useMemoStore.getState().setNoteOpen(id, open);
+          }
+        }),
         await listen("memo-add-request", () => {
           const note = useMemoStore.getState().addNote();
           if (!note) {
