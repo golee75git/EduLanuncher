@@ -6,6 +6,35 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.151-20261001
+설치 파일: EduLauncher_0.1.151-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1701_x64-setup.exe
+작성자: 요청자
+
+요청: 홈 맨 위에 AI런처박스만 보이게 한다.
+
+새로 만든 파일: 없음
+
+재사용한 기존 파일:
+- src/components/home/AppHeader.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+
+확인:
+- 새 패키지 없음. GPL 패키지 추가 없음
+- 그림 파일을 넣지 않음. 칸 안의 글자만 AI로 바꿈
+- 글꼴은 기존 Windows 글꼴 그대로. OFL 글꼴을 새로 넣지 않음
+- 설치 이름 EduLauncher는 그대로. 창 제목과 다른 화면의 교육업무 런처 문구도 그대로
+- 특허 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.150-20261001
 설치 파일: EduLauncher_0.1.150-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1600_x64-setup.exe
