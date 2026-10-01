@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.141-20261001",
+    note: "메모의 +로 평문 메모 창을 4개까지 더 엽니다. 한글을 조합하는 동안에는 그 칸의 글자를 다시 덮지 않습니다.",
+  },
+  {
     version: "0.1.140-20260930",
     note: "파일·폴더·사이트·Pack을 놓으면 들어갈 곳을 보여 주고, 넣기 전에는 저장하지 않습니다.",
   },

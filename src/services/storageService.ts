@@ -1,5 +1,5 @@
 import { Store } from "@tauri-apps/plugin-store";
-import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
+import { parseMemoNotes, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type StoredNotices } from "../types/notice";
 import {
   DEFAULT_SETTINGS,
@@ -99,8 +99,12 @@ export async function loadMemo(): Promise<LocalMemo> {
   if (!memoStore) {
     await initStorage();
   }
-  const stored = await memoStore?.get<Partial<LocalMemo>>("value");
-  return { ...EMPTY_MEMO, ...stored, text: stored?.text ?? "" };
+  const stored = await memoStore?.get<Record<string, unknown>>("value");
+  return {
+    text: typeof stored?.text === "string" ? stored.text : "",
+    updatedAt: typeof stored?.updatedAt === "string" ? stored.updatedAt : "",
+    notes: parseMemoNotes(stored?.notes),
+  };
 }
 
 export async function saveMemo(memo: LocalMemo): Promise<void> {

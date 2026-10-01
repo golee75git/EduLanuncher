@@ -4,7 +4,7 @@ import { useNoticeStore } from "../stores/noticeStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useTodoStore } from "../stores/todoStore";
 import { useToolStore } from "../stores/toolStore";
-import { EMPTY_MEMO, type LocalMemo } from "../types/memo";
+import { EMPTY_MEMO, parseMemoNotes, type LocalMemo } from "../types/memo";
 import { EMPTY_NOTICES, type NoticeItem, type NoticeKind, type StoredNotices } from "../types/notice";
 import {
   DEFAULT_SETTINGS,
@@ -179,6 +179,7 @@ function parseMemo(raw: unknown): LocalMemo {
   return {
     text: typeof source.text === "string" ? source.text.slice(0, MAX_MEMO) : "",
     updatedAt: asText(source.updatedAt),
+    notes: parseMemoNotes(source.notes),
   };
 }
 
@@ -246,6 +247,7 @@ export function buildLauncherBackup(): LauncherBackup {
     memo: {
       text: useMemoStore.getState().text,
       updatedAt: new Date().toISOString(),
+      notes: useMemoStore.getState().notes,
     },
     notices: {
       packId: noticesState.packId,

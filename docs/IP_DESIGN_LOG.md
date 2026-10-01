@@ -1402,6 +1402,31 @@ PATENT_REVIEW:
 
 ---
 
+Feature: Extra plain memo windows
+
+Purpose:
+홈 메모 한 칸 옆에, 같은 PC에만 두는 짧은 평문 창을 4개까지 더 두기 위함
+
+Design source:
+내부 요구사항. 기존 홈 메모와 memo-pad 창
+
+Implementation:
+홈 메모 글자는 그대로 둔다. `+`가 notes 항목을 하나 만들고 `memo-n-` 창을 연다. 제목은 메모 2부터 메모 5까지. 창은 제목 줄과 모서리 크기 조절만 있다. 색은 패널과 같은 서류색이다. 자리는 패널 옆에서 시작하고, 옮긴 자리와 크기는 memo.json의 notes에 남긴다. 패널을 숨기면 같이 숨긴다. X는 창만 닫고 글은 남긴다. 빼기는 그 항목을 지운다. 글 저장 파일은 메인 패널만 연다. 입력 중인 창에는 그 글을 다시 보내지 않는다. 노란 종이, 접힌 모서리, 핀, 항상 위, 여러 서식은 없다. 새 라이브러리 없음
+
+External code:
+없음 (Tauri 공식 창 API)
+
+Potential similar products:
+스티커 메모, 노트 앱
+
+Difference:
+런처와 같이 숨는 평문 창 4개까지. 바탕에 붙여 두는 메모 제품의 색·모양·이름을 쓰지 않음
+
+특허 검토:
+여러 보조 창의 자리 기억, 패널과 같이 숨기기, 조합 중인 글자를 덮지 않는 전달. 청구항 대조는 이 기록에 넣지 않음. 특허 비침해를 보장한다고 적지 않음
+
+---
+
 Feature: Resizable panel with remembered size
 
 Purpose:

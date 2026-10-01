@@ -60,6 +60,7 @@ import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { isPriorSkin } from "./types/settings";
 import { asPanelHeight, asPanelWidth } from "./types/settings";
 import { hydrateMemo, useMemoStore } from "./stores/memoStore";
+import { readMemoNoteId } from "./types/memo";
 import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
 import { hydrateRecentTopics, useRecentTopicStore } from "./stores/recentTopicStore";
 import { hydrateTodos, useTodoStore } from "./stores/todoStore";
@@ -161,8 +162,10 @@ export default function App() {
   const [releaseNotice, setReleaseNotice] = useState<string | null>(null);
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
   const priorSkin = useSettingsStore((state) => isPriorSkin(state.settings.panelSkin));
-  const mapWindow = currentWindowLabel() === "work-map";
-  const memoWindow = currentWindowLabel() === "memo-pad";
+  const windowLabel = currentWindowLabel();
+  const mapWindow = windowLabel === "work-map";
+  const memoNoteId = readMemoNoteId(windowLabel);
+  const memoWindow = windowLabel === "memo-pad" || memoNoteId !== null;
 
   const toast = useCallback((message: string) => {
     setNotice(message);
@@ -360,7 +363,7 @@ export default function App() {
         await hydrateNotices();
         await hydrateRecentTopics();
         try {
-          await invoke("set_memo_draft", { text: useMemoStore.getState().text });
+          await invoke("set_memo_draft", { text: useMemoStore.getState().text, source: "main" });
         } catch {
           // Command is unavailable in browser preview.
         }
@@ -426,6 +429,43 @@ export default function App() {
           store.setText(next);
           void store.persist();
         }),
+        await listen<{ id?: string; text?: string }>("memo-note-changed", (event) => {
+          const id = event.payload?.id;
+          const text = event.payload?.text;
+          if (typeof id !== "string" || typeof text !== "string") {
+            return;
+          }
+          if (useMemoStore.getState().updateNote(id, { text })) {
+            void useMemoStore.getState().persist();
+          }
+        }),
+        await listen<{ id?: string; x?: number; y?: number; width?: number; height?: number }>(
+          "memo-note-placed",
+          (event) => {
+            const payload = event.payload;
+            if (!payload || typeof payload.id !== "string") {
+              return;
+            }
+            if (
+              typeof payload.x !== "number" ||
+              typeof payload.y !== "number" ||
+              typeof payload.width !== "number" ||
+              typeof payload.height !== "number"
+            ) {
+              return;
+            }
+            if (
+              useMemoStore.getState().updateNote(payload.id, {
+                x: payload.x,
+                y: payload.y,
+                width: payload.width,
+                height: payload.height,
+              })
+            ) {
+              void useMemoStore.getState().persist();
+            }
+          },
+        ),
       ];
       if (cancelled) {
         listeners.forEach((unlisten) => unlisten());
@@ -433,7 +473,7 @@ export default function App() {
       }
       unlisteners.push(...listeners);
       try {
-        if (currentWindowLabel() === "main") {
+        if (windowLabel === "main") {
           const pending = await invoke<string[]>("take_startup_pack_paths");
           for (const path of pending) {
             void applyPackPath(path);
@@ -659,7 +699,7 @@ export default function App() {
   }
 
   if (memoWindow) {
-    return <MemoWindowPage />;
+    return <MemoWindowPage noteId={memoNoteId} />;
   }
 
   return (
