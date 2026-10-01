@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.150-20261001
+설치 파일: EduLauncher_0.1.150-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1600_x64-setup.exe
+작성자: 요청자
+
+요청: 프린터 목록에서 PDF·노트 항목을 빼 둔다. IP_ 포트는 네트워크로 보고 한 번만 연결한다. 주소는 화면에 남기지 않는다.
+
+새로 만든 파일: 없음
+
+재사용한 기존 파일:
+- src-tauri/src/printcheck.rs
+- src/pages/SettingsPage.tsx
+- src/data/troubleshooting/printer/printer-network.json
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+확인:
+- 새 패키지 없음. windows 크레이트 기존 기능만 사용. GPL 패키지 추가 없음
+- 주소 숫자는 화면, 기술 정보, 복사 문장에 넣지 않음
+- 연결은 고른 프린터의 기존 포트로 한 번. 다른 주소는 찾지 않음
+- 대기열을 지우거나 설정을 바꾸지 않음
+- 글꼴은 기존 Windows 글꼴 그대로. OFL 글꼴을 새로 넣지 않음
+- 특허 비침해를 보장하지 않음. PATENT_REVIEW에 한 번 연결하는 구성을 적음
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.149-20261001
 설치 파일: EduLauncher_0.1.149-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1529_x64-setup.exe

@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::net::{Ipv4Addr, TcpStream, ToSocketAddrs};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Mutex};
 use std::thread;
@@ -43,9 +44,17 @@ enum ServiceMark {
 enum ListMark {
     Some,
     None,
+    NoPaper,
     TimedOut,
     Failed,
     Skipped,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Reach {
+    Skip,
+    Open,
+    Closed,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -88,6 +97,8 @@ struct Chosen {
     status_bits: u32,
     work_offline: bool,
     shared_jobs: bool,
+    reach: Reach,
+    seen: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -344,14 +355,27 @@ fn run_list(app: &AppHandle) -> ListOutcome {
         return ListOutcome::Done(diagnose(&facts));
     }
     match read_printers(budget.slice()) {
-        Ok(list) => {
-            facts.count = list.len() as u32;
-            facts.list = if list.is_empty() { ListMark::None } else { ListMark::Some };
+        Ok(PaperList::None) => {
+            facts.count = 0;
+            facts.list = ListMark::None;
             if let Some(row) = diagnose(&facts).rows.iter().find(|row| row.id == "installed") {
                 emit_step(app, "installed", &row.status, &row.label);
             }
-            if list.is_empty() {
-                return ListOutcome::Done(diagnose(&facts));
+            return ListOutcome::Done(diagnose(&facts));
+        }
+        Ok(PaperList::NoPaper) => {
+            facts.count = 0;
+            facts.list = ListMark::NoPaper;
+            if let Some(row) = diagnose(&facts).rows.iter().find(|row| row.id == "installed") {
+                emit_step(app, "installed", &row.status, &row.label);
+            }
+            return ListOutcome::Done(diagnose(&facts));
+        }
+        Ok(PaperList::Choices(list)) => {
+            facts.count = list.len() as u32;
+            facts.list = ListMark::Some;
+            if let Some(row) = diagnose(&facts).rows.iter().find(|row| row.id == "installed") {
+                emit_step(app, "installed", &row.status, &row.label);
             }
             if let Ok(mut allowed) = ALLOWED_NAMES.lock() {
                 *allowed = list.iter().map(|item| item.name.clone()).collect();
@@ -421,6 +445,8 @@ fn diagnose(facts: &PrintFacts) -> PrintReport {
         row("installed", "프린터 설치", "skipped", "확인 불가")
     } else if facts.list == ListMark::None {
         row("installed", "프린터 설치", "error", "프린터 없음")
+    } else if facts.list == ListMark::NoPaper {
+        row("installed", "프린터 설치", "warning", "종이 출력 없음")
     } else if facts.list == ListMark::Some {
         row("installed", "프린터 설치", "success", "정상")
     } else if facts.list == ListMark::TimedOut {
@@ -461,13 +487,22 @@ fn diagnose(facts: &PrintFacts) -> PrintReport {
     } else if let Some(item) = chosen {
         match item.link {
             LinkKind::Usb => row("link", "프린터 연결", "success", "USB 연결"),
-            LinkKind::Network => row("link", "프린터 연결", "unconfirmed", "직접 연결 확인 안 함"),
-            LinkKind::Shared => row("link", "프린터 연결", "warning", "공유 프린터"),
+            LinkKind::Network => match item.reach {
+                Reach::Open => row("link", "프린터 연결", "success", "연결됨"),
+                Reach::Closed => row("link", "프린터 연결", "unconfirmed", "확인 필요"),
+                Reach::Skip => row("link", "프린터 연결", "unconfirmed", "직접 연결 확인 안 함"),
+            },
+            LinkKind::Shared => match item.reach {
+                Reach::Open => row("link", "프린터 연결", "warning", "제공 PC에 연결됨"),
+                Reach::Closed => row("link", "프린터 연결", "unconfirmed", "확인 필요"),
+                Reach::Skip => row("link", "프린터 연결", "warning", "공유 프린터"),
+            },
             LinkKind::Virtual => row("link", "프린터 연결", "success", "가상 프린터"),
-            LinkKind::Unknown => row("link", "프린터 연결", "unconfirmed", "확인되지 않음"),
+            LinkKind::Unknown if !item.seen => row("link", "프린터 연결", "unconfirmed", "확인 필요"),
+            LinkKind::Unknown => row("link", "프린터 연결", "unconfirmed", "방식 확인 필요"),
         }
     } else {
-        row("link", "프린터 연결", "unconfirmed", "확인되지 않음")
+        row("link", "프린터 연결", "unconfirmed", "확인 필요")
     };
     let rows = vec![service, installed, state, queue, link];
     let (help, finding, advice, pages) = verdict(facts, &rows);
@@ -513,6 +548,14 @@ fn verdict(facts: &PrintFacts, rows: &[PrintRow]) -> (String, String, String, Ve
             vec!["printers".into()],
         );
     }
+    if facts.list == ListMark::NoPaper {
+        return (
+            "printer-general".into(),
+            "종이로 출력하는 프린터가 없습니다.\nPDF로 저장하거나 노트로 보내는 항목은 목록에 넣지 않습니다.".into(),
+            "종이 출력이 필요하면 Windows 프린터 설정에서 복합기나 프린터를 확인해 주세요.".into(),
+            vec!["printers".into()],
+        );
+    }
     if facts.list != ListMark::Some || chosen.is_none() {
         return (
             "printer-general".into(),
@@ -540,6 +583,14 @@ fn verdict(facts: &PrintFacts, rows: &[PrintRow]) -> (String, String, String, Ve
             pages,
         );
     }
+    if item.reach == Reach::Open && matches!(item.queue, QueueMark::Blocked { .. } | QueueMark::Aged { .. }) {
+        return (
+            "printer-queue".into(),
+            "프린터까지는 연결되었습니다.\n인쇄 대기열에 바로 처리되지 않은 문서가 있습니다.".into(),
+            "인쇄 대기열 창에서 오래 멈춘 문서가 있는지 확인해 주세요. 이 점검이 문서를 지우지는 않습니다.".into(),
+            pages,
+        );
+    }
     if matches!(item.queue, QueueMark::Blocked { .. } | QueueMark::Aged { .. }) {
         return (
             "printer-queue".into(),
@@ -547,6 +598,22 @@ fn verdict(facts: &PrintFacts, rows: &[PrintRow]) -> (String, String, String, Ve
             "인쇄 대기열 창에서 오래 멈춘 문서가 있는지 확인해 주세요. 이 점검이 문서를 지우지는 않습니다.".into(),
             pages,
         );
+    }
+    if item.reach == Reach::Closed && matches!(item.link, LinkKind::Network | LinkKind::Shared) {
+        let (help, finding, advice) = if item.link == LinkKind::Shared {
+            (
+                "printer-shared",
+                "프린터를 제공하는 PC에 연결을 확인하지 못했습니다.",
+                "그 PC가 켜져 있는지 확인해 주세요. 연결이 막혀 있으면 고장으로 단정하지 않습니다.",
+            )
+        } else {
+            (
+                "printer-network",
+                "프린터까지 연결을 확인하지 못했습니다.",
+                "전원, 케이블, 같은 망인지를 먼저 확인해 주세요. 연결이 막혀 있으면 고장으로 단정하지 않습니다.",
+            )
+        };
+        return (help.into(), finding.into(), advice.into(), pages);
     }
     if item.link == LinkKind::Shared && status("state") == "unconfirmed" {
         return (
@@ -589,7 +656,8 @@ fn technical_lines(facts: &PrintFacts, chosen: Option<&Chosen>) -> Vec<TechLine>
             LinkKind::Network => "네트워크 연결".into(),
             LinkKind::Shared => "공유 프린터".into(),
             LinkKind::Virtual => "가상 프린터".into(),
-            LinkKind::Unknown => "확인되지 않음".into(),
+            LinkKind::Unknown if !item.monitor_label.is_empty() => format!("모니터 {}", item.monitor_label),
+            LinkKind::Unknown => "방식 확인 필요".into(),
         };
         lines.push(TechLine { label: "연결 유형".into(), value: link });
         lines.push(TechLine {
@@ -679,6 +747,9 @@ fn classify_link(name: &str, server: &str, port: &str, monitor: &str, driver: &s
     if virtual_name || virtual_driver || virtual_port {
         return LinkKind::Virtual;
     }
+    if port_l.starts_with("ip_") {
+        return LinkKind::Network;
+    }
     if !server.is_empty() || port_l.starts_with("\\\\") {
         return LinkKind::Shared;
     }
@@ -698,9 +769,81 @@ fn looks_like_address(port: &str) -> bool {
     port.contains('.') && port.chars().any(|ch| ch.is_ascii_digit())
 }
 
-fn name_looks_virtual(name: &str) -> bool {
+fn public_port(port: &str) -> String {
+    let lower = port.to_ascii_lowercase();
+    if lower.starts_with("ip_") || lower.contains('\\') || looks_like_address(port) {
+        String::new()
+    } else {
+        port.to_string()
+    }
+}
+
+fn paperless_name(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
-    lower.contains("microsoft print to pdf") || lower.contains("microsoft xps")
+    lower.contains("alpdf")
+        || lower.contains("hancom pdf")
+        || lower.contains("hancompdf")
+        || lower.contains("onenote")
+        || lower.contains("microsoft print to pdf")
+        || lower.contains("microsoft xps")
+}
+
+fn network_host(port: &str) -> Option<String> {
+    let lower = port.to_ascii_lowercase();
+    let rest = lower.strip_prefix("ip_")?;
+    let host = rest.split('_').next()?.trim();
+    host.parse::<Ipv4Addr>().ok()?;
+    Some(host.to_string())
+}
+
+fn share_host(server: &str, port: &str) -> Option<String> {
+    let raw = if server.trim().is_empty() { port } else { server };
+    let host = raw.trim().trim_start_matches('\\').split(['\\', '/']).next()?.trim();
+    if host.is_empty() || host.len() > 220 || host.contains(':') {
+        return None;
+    }
+    Some(host.to_string())
+}
+
+enum Dial {
+    Raw(String),
+    Share(String),
+}
+
+enum PaperList {
+    Choices(Vec<PrintChoice>),
+    None,
+    NoPaper,
+}
+
+fn dial_for(link: LinkKind, server: &str, port: &str) -> Option<Dial> {
+    match link {
+        LinkKind::Network => network_host(port).map(Dial::Raw),
+        LinkKind::Shared => share_host(server, port).map(Dial::Share),
+        _ => None,
+    }
+}
+
+/// IP_ 포트는 그 주소의 인쇄 포트 9100으로 한 번만 확인한다.
+/// 공유 프린터는 제공하는 PC의 445로 한 번만 확인한다. 다른 포트는 시도하지 않는다.
+fn probe_reach(dial: Dial, wait: Duration) -> Reach {
+    if wait.is_zero() {
+        return Reach::Closed;
+    }
+    let (host, tcp_port) = match dial {
+        Dial::Raw(host) => (host, 9100u16),
+        Dial::Share(host) => (host, 445u16),
+    };
+    let Some(addr) = (host.as_str(), tcp_port).to_socket_addrs().ok().and_then(|mut iter| iter.next()) else {
+        return Reach::Closed;
+    };
+    match TcpStream::connect_timeout(&addr, wait) {
+        Ok(stream) => {
+            drop(stream);
+            Reach::Open
+        }
+        Err(_) => Reach::Closed,
+    }
 }
 
 #[cfg(windows)]
@@ -747,12 +890,12 @@ fn service_now() -> ServiceMark {
 }
 
 #[cfg(windows)]
-fn read_printers(wait: Duration) -> Result<Vec<PrintChoice>, bool> {
+fn read_printers(wait: Duration) -> Result<PaperList, bool> {
     within(wait, || printer_names())
 }
 
 #[cfg(windows)]
-fn printer_names() -> Vec<PrintChoice> {
+fn printer_names() -> PaperList {
     use windows::Win32::Graphics::Printing::{
         EnumPrintersW, PRINTER_ENUM_CONNECTIONS, PRINTER_ENUM_LOCAL, PRINTER_INFO_4W,
     };
@@ -761,7 +904,7 @@ fn printer_names() -> Vec<PrintChoice> {
         let mut returned = 0u32;
         let _ = EnumPrintersW(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, windows::core::PCWSTR::null(), 4, None, &mut needed, &mut returned);
         if needed == 0 || needed > 1_048_576 {
-            return Vec::new();
+            return PaperList::None;
         }
         let mut buffer = vec![0u8; needed as usize];
         if EnumPrintersW(
@@ -774,9 +917,10 @@ fn printer_names() -> Vec<PrintChoice> {
         )
         .is_err()
         {
-            return Vec::new();
+            return PaperList::None;
         }
         let default_name = default_printer_name();
+        let mut seen = false;
         let mut choices = Vec::new();
         let count = returned.min((buffer.len() / std::mem::size_of::<PRINTER_INFO_4W>()) as u32);
         for index in 0..count {
@@ -785,14 +929,21 @@ fn printer_names() -> Vec<PrintChoice> {
             if name.is_empty() {
                 continue;
             }
+            seen = true;
+            if paperless_name(&name) {
+                continue;
+            }
             choices.push(PrintChoice {
-                virtual_device: name_looks_virtual(&name),
+                virtual_device: false,
                 is_default: name == default_name,
                 name,
             });
         }
-        choices.sort_by(|left, right| left.virtual_device.cmp(&right.virtual_device).then(left.name.cmp(&right.name)));
-        choices
+        if choices.is_empty() {
+            return if seen { PaperList::NoPaper } else { PaperList::None };
+        }
+        choices.sort_by(|left, right| left.name.cmp(&right.name));
+        PaperList::Choices(choices)
     }
 }
 
@@ -829,7 +980,7 @@ fn read_detail(name: &str, budget: &Budget) -> DetailRead {
         }
         Err(false) => None,
     };
-    let Some(mut snapshot) = snapshot else {
+    let Some((mut snapshot, dial)) = snapshot else {
         return DetailRead {
             chosen: Some(unknown_chosen(name)),
             timed_out,
@@ -849,6 +1000,16 @@ fn read_detail(name: &str, budget: &Budget) -> DetailRead {
         }
         Err(false) => snapshot.queue = QueueMark::Unknown,
     }
+    if let Some(dial) = dial {
+        if !stopped() && !budget.left().is_zero() {
+            let wait = budget.slice().min(Duration::from_secs(2));
+            let inner = wait.saturating_sub(Duration::from_millis(200));
+            snapshot.reach = match within(wait, move || probe_reach(dial, inner)) {
+                Ok(reach) => reach,
+                Err(_) => Reach::Closed,
+            };
+        }
+    }
     DetailRead { chosen: Some(snapshot), timed_out }
 }
 
@@ -866,11 +1027,13 @@ fn unknown_chosen(name: &str) -> Chosen {
         status_bits: 0,
         work_offline: false,
         shared_jobs: false,
+        reach: Reach::Skip,
+        seen: false,
     }
 }
 
 #[cfg(windows)]
-fn printer_snapshot(name: &str) -> Option<Chosen> {
+fn printer_snapshot(name: &str) -> Option<(Chosen, Option<Dial>)> {
     use windows::Win32::Graphics::Printing::{
         ClosePrinter, GetPrinterW, OpenPrinterW, PRINTER_ATTRIBUTE_NETWORK, PRINTER_ATTRIBUTE_WORK_OFFLINE, PRINTER_INFO_2W,
         PRINTER_STATUS_DOOR_OPEN, PRINTER_STATUS_ERROR, PRINTER_STATUS_NO_TONER, PRINTER_STATUS_OFFLINE, PRINTER_STATUS_PAPER_JAM,
@@ -925,20 +1088,29 @@ fn printer_snapshot(name: &str) -> Option<Chosen> {
             DeviceMark::Unknown
         };
         let link = classify_link(name, &server, &port, &monitor, &driver, info.Attributes & PRINTER_ATTRIBUTE_NETWORK != 0);
-        let hide_port = link == LinkKind::Network && looks_like_address(&port);
-        Some(Chosen {
-            name: name.to_string(),
-            is_default: default_printer_name() == name,
-            link,
-            device,
-            queue: QueueMark::Unknown,
-            port_label: if hide_port { String::new() } else { port },
-            monitor_label: monitor,
-            driver,
-            status_bits: info.Status,
-            work_offline,
-            shared_jobs: link == LinkKind::Shared,
-        })
+        let dial = dial_for(link, &server, &port);
+        let port_label = match link {
+            LinkKind::Network | LinkKind::Shared => String::new(),
+            _ => public_port(&port),
+        };
+        Some((
+            Chosen {
+                name: name.to_string(),
+                is_default: default_printer_name() == name,
+                link,
+                device,
+                queue: QueueMark::Unknown,
+                port_label,
+                monitor_label: monitor,
+                driver,
+                status_bits: info.Status,
+                work_offline,
+                shared_jobs: link == LinkKind::Shared,
+                reach: Reach::Skip,
+                seen: true,
+            },
+            dial,
+        ))
     }
 }
 
@@ -1088,7 +1260,7 @@ fn read_service(_wait: Duration) -> Result<ServiceMark, bool> {
 }
 
 #[cfg(not(windows))]
-fn read_printers(_wait: Duration) -> Result<Vec<PrintChoice>, bool> {
+fn read_printers(_wait: Duration) -> Result<PaperList, bool> {
     Err(false)
 }
 
@@ -1107,6 +1279,8 @@ fn read_detail(name: &str, _budget: &Budget) -> DetailRead {
             status_bits: 0,
             work_offline: false,
             shared_jobs: false,
+            reach: Reach::Skip,
+            seen: false,
         }),
         timed_out: false,
     }
@@ -1129,6 +1303,8 @@ mod tests {
             status_bits: 0,
             work_offline: device == DeviceMark::Offline,
             shared_jobs: link == LinkKind::Shared,
+            reach: Reach::Skip,
+            seen: true,
         }
     }
 
@@ -1271,5 +1447,86 @@ mod tests {
             LinkKind::Virtual
         );
         assert_eq!(classify_link("행정실", "\\\\office", "", "", "", false), LinkKind::Shared);
+    }
+
+    #[test]
+    fn paperless_names_are_not_a_generic_pdf_match() {
+        assert!(paperless_name("ALPDF"));
+        assert!(paperless_name("ALPDF ToolBox"));
+        assert!(paperless_name("Hancom PDF"));
+        assert!(paperless_name("OneNote (DeskTop)"));
+        assert!(paperless_name("Microsoft Print to PDF"));
+        assert!(paperless_name("Microsoft XPS Document Writer"));
+        assert!(!paperless_name("교무실 복합기"));
+        assert!(!paperless_name("3학년 PDF 출력"));
+    }
+
+    #[test]
+    fn ip_port_is_network_and_the_address_is_not_shown() {
+        assert_eq!(classify_link("복합기", "", "IP_10.1.2.3", "공급사 포트", "drv", false), LinkKind::Network);
+        assert_eq!(classify_link("복합기", "", "IP_10.1.2.3_2", "", "", false), LinkKind::Network);
+        assert!(public_port("IP_10.1.2.3").is_empty());
+        assert_eq!(network_host("IP_10.1.2.3").as_deref(), Some("10.1.2.3"));
+        let mut item = chosen(LinkKind::Network, DeviceMark::Quiet, QueueMark::Empty);
+        item.port_label.clear();
+        let report = diagnose(&ready(item));
+        assert!(!report.copy_text.contains("10.1.2.3"));
+        assert!(report.technical.iter().all(|line| !line.value.contains("10.1.2.3")));
+    }
+
+    #[test]
+    fn unread_link_and_unknown_class_use_different_labels() {
+        let mut unread = chosen(LinkKind::Unknown, DeviceMark::Unknown, QueueMark::Unknown);
+        unread.seen = false;
+        unread.monitor_label.clear();
+        let unread_report = diagnose(&ready(unread));
+        assert_eq!(unread_report.rows[4].label, "확인 필요");
+
+        let mut known = chosen(LinkKind::Unknown, DeviceMark::Quiet, QueueMark::Empty);
+        known.seen = true;
+        known.monitor_label = "공급사 모니터".into();
+        known.port_label.clear();
+        let known_report = diagnose(&ready(known));
+        assert_eq!(known_report.rows[4].label, "방식 확인 필요");
+        let link = known_report.technical.iter().find(|line| line.label == "연결 유형").unwrap();
+        assert!(link.value.contains("공급사 모니터"));
+    }
+
+    #[test]
+    fn closed_reach_is_unconfirmed_and_does_not_say_outage() {
+        let mut item = chosen(LinkKind::Network, DeviceMark::Quiet, QueueMark::Empty);
+        item.reach = Reach::Closed;
+        let report = diagnose(&ready(item));
+        assert_eq!(report.help_id, "printer-network");
+        assert_eq!(report.rows[4].status, "unconfirmed");
+        assert_eq!(report.rows[4].label, "확인 필요");
+        assert!(!report.finding.contains("장애"));
+        assert!(!report.copy_text.contains("장애"));
+    }
+
+    #[test]
+    fn open_reach_with_an_old_job_stays_a_queue_problem() {
+        let mut item = chosen(LinkKind::Network, DeviceMark::Quiet, QueueMark::Aged { count: 1, oldest_minutes: 10 });
+        item.reach = Reach::Open;
+        let report = diagnose(&ready(item));
+        assert_eq!(report.help_id, "printer-queue");
+        assert!(report.finding.contains("연결"));
+        assert_eq!(report.rows[4].label, "연결됨");
+    }
+
+    #[test]
+    fn paper_destinations_only_are_not_called_missing() {
+        let report = diagnose(&PrintFacts {
+            service: ServiceMark::Running,
+            list: ListMark::NoPaper,
+            count: 0,
+            chosen: None,
+            stopped: false,
+            timed_out: false,
+        });
+        assert_eq!(report.help_id, "printer-general");
+        assert_eq!(report.rows[1].label, "종이 출력 없음");
+        assert!(report.finding.contains("종이로 출력"));
+        assert!(!report.finding.contains("프린터 없음"));
     }
 }

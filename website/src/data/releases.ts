@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.150-20261001",
+    note: "프린터 출력 점검에서 PDF·노트 항목은 목록에 넣지 않습니다. 선택한 프린터에는 한 번만 연결해 보고, 주소는 화면에 남기지 않습니다.",
+  },
+  {
     version: "0.1.149-20261001",
     note: "컴퓨터도구에 프린터 출력 점검을 넣었습니다. 인터넷 연결 점검은 주소와 기본 경로가 같은 망이 아니면 담당자 확인을 안내합니다.",
   },
