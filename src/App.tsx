@@ -52,7 +52,7 @@ import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoti
 import { splitDropActions } from "./services/dropActionPick";
 import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut } from "./services/dropSiteService";
 import { focusSearchInput } from "./services/focusBus";
-import { hidePanel, openMemoWindow, publishMemoBoard, showPanel } from "./services/windowService";
+import { dismissMemoNote, hidePanel, openMemoNote, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
 import { refreshManualIndex } from "./services/manualIndexService";
 import { refreshManualPack } from "./services/manualPackService";
@@ -60,6 +60,7 @@ import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { isPriorSkin } from "./types/settings";
 import { asPanelHeight, asPanelWidth } from "./types/settings";
 import { hydrateMemo, useMemoStore } from "./stores/memoStore";
+import { readMemoNoteId } from "./types/memo";
 import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
 import { hydrateRecentTopics, useRecentTopicStore } from "./stores/recentTopicStore";
 import { hydrateTodos, useTodoStore } from "./stores/todoStore";
@@ -163,7 +164,8 @@ export default function App() {
   const priorSkin = useSettingsStore((state) => isPriorSkin(state.settings.panelSkin));
   const windowLabel = currentWindowLabel();
   const mapWindow = windowLabel === "work-map";
-  const memoWindow = windowLabel === "memo-pad";
+  const memoNoteId = readMemoNoteId(windowLabel);
+  const memoWindow = windowLabel === "memo-pad" || memoNoteId !== null;
 
   const toast = useCallback((message: string) => {
     setNotice(message);
@@ -437,14 +439,42 @@ export default function App() {
             void useMemoStore.getState().persist();
           }
         }),
+        await listen<{ id?: string; x?: number; y?: number; width?: number; height?: number }>(
+          "memo-note-placed",
+          (event) => {
+            const payload = event.payload;
+            if (!payload || typeof payload.id !== "string") {
+              return;
+            }
+            if (
+              typeof payload.x !== "number" ||
+              typeof payload.y !== "number" ||
+              typeof payload.width !== "number" ||
+              typeof payload.height !== "number"
+            ) {
+              return;
+            }
+            if (
+              useMemoStore.getState().updateNote(payload.id, {
+                x: payload.x,
+                y: payload.y,
+                width: payload.width,
+                height: payload.height,
+              })
+            ) {
+              void useMemoStore.getState().persist();
+            }
+          },
+        ),
         await listen("memo-add-request", () => {
           const note = useMemoStore.getState().addNote();
           if (!note) {
             return;
           }
+          const index = useMemoStore.getState().notes.findIndex((item) => item.id === note.id);
           void (async () => {
             await useMemoStore.getState().persist();
-            await openMemoWindow(note.id).catch(() => {
+            await openMemoNote(note, Math.max(0, index)).catch(() => {
               // 브라우저 미리보기에는 이 명령이 없다.
             });
           })();
@@ -456,9 +486,7 @@ export default function App() {
           useMemoStore.getState().removeNote(event.payload);
           void (async () => {
             await useMemoStore.getState().persist();
-            await publishMemoBoard("").catch(() => {
-              // 브라우저 미리보기에는 이 명령이 없다.
-            });
+            await dismissMemoNote(event.payload);
           })();
         }),
       ];
@@ -694,7 +722,7 @@ export default function App() {
   }
 
   if (memoWindow) {
-    return <MemoWindowPage />;
+    return <MemoWindowPage noteId={memoNoteId} />;
   }
 
   return (

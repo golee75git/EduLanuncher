@@ -6,6 +6,45 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.143-20261001
+설치 파일: EduLauncher_0.1.143-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1151_x64-setup.exe
+작성자: 요청자
+
+요청: 메모 2부터는 따로 두는 창으로 열고, 제목 줄로 옮긴 자리를 화면 안에 저장한다.
+
+새로 만든 파일:
+없음
+
+재사용한 기존 파일:
+- src-tauri/src/lib.rs
+- src/pages/MemoWindowPage.tsx
+- src/components/MemoPad.tsx
+- src/services/windowService.ts
+- src/App.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/PRD.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+
+홈 메모와 크게 보기는 옆 창 하나다. +와 메모 줄은 메모 2부터 별도 창을 연다. 처음 자리와 저장된 자리는 패널이 있는 모니터의 작업 영역 안으로 맞춘다. 옮기거나 크기를 바꾸면 memo.json에 남긴다. X는 창만 닫고 글은 남긴다. 패널을 숨기면 같이 숨긴다. 입력 중인 창에는 그 글을 다시 보내지 않는다.
+
+글꼴: Windows 기본 Segoe UI, 맑은 고딕. SIL OFL이 아니고, 묶거나 바꾸지 않았다.
+
+의존성: 새 라이브러리 없음. GPL·AGPL을 더하지 않았다. 기존 @img/sharp 계열 LGPL은 설치 파일에 넣지 않는다. 저작권·라이선스 파일은 바꾸지 않았다.
+
+보안: 메모 id는 영문 소문자와 숫자 4–16자. 글은 2000자, 제어 문자는 뺀다. 추가 메모는 4개까지. 창 제목은 메모 2부터 메모 5까지만 받는다. 자리는 작업 영역 안으로 맞춘다.
+
+특허 검토: 보조 창의 자리 기억과 작업 영역 안으로 맞추기. 청구항 대조는 하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.142-20261001
 설치 파일: EduLauncher_0.1.142-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1135_x64-setup.exe

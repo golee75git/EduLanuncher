@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -94,6 +95,13 @@ struct MemoBoardBody {
 
 struct MemoPages(Mutex<MemoBoardBody>);
 
+struct NoteSlot {
+    text: String,
+    title: String,
+}
+
+struct NoteDrafts(Mutex<HashMap<String, NoteSlot>>);
+
 const PANEL_DEFAULT_W: f64 = 520.0;
 const PANEL_DEFAULT_H: f64 = 720.0;
 const PANEL_MIN_W: f64 = 400.0;
@@ -104,6 +112,10 @@ const MEMO_MIN_W: f64 = 280.0;
 const MEMO_MIN_H: f64 = 400.0;
 const MEMO_MAX_W: f64 = 720.0;
 const MEMO_MAX_H: f64 = 900.0;
+const NOTE_MIN_W: f64 = 220.0;
+const NOTE_MIN_H: f64 = 180.0;
+const NOTE_MAX_W: f64 = 720.0;
+const NOTE_MAX_H: f64 = 900.0;
 fn clip_panel_size(width: f64, height: f64) -> (f64, f64) {
     (
         width.clamp(PANEL_MIN_W, PANEL_MAX_W),
@@ -394,11 +406,22 @@ fn show_map_window(app: &AppHandle) {
     }
 }
 
+fn each_note_window(app: &AppHandle, mut visit: impl FnMut(&tauri::WebviewWindow)) {
+    for (label, window) in app.webview_windows() {
+        if label.starts_with("memo-n-") {
+            visit(&window);
+        }
+    }
+}
+
 fn hide_memo_pad(app: &AppHandle) {
     if let Some(pad) = app.get_webview_window("memo-pad") {
         persist_memo_size(app, &pad);
         let _ = pad.hide();
     }
+    each_note_window(app, |window| {
+        let _ = window.hide();
+    });
 }
 
 fn show_memo_pad(app: &AppHandle) {
@@ -406,6 +429,10 @@ fn show_memo_pad(app: &AppHandle) {
         let _ = pad.unminimize();
         let _ = pad.show();
     }
+    each_note_window(app, |window| {
+        let _ = window.unminimize();
+        let _ = window.show();
+    });
 }
 
 fn panel_is_open(window: &tauri::WebviewWindow) -> bool {
@@ -987,6 +1014,12 @@ fn commit_memo_note(app: AppHandle, id: String, text: String) {
             note.text = clipped.clone();
         }
     }
+    let drafts = app.state::<NoteDrafts>();
+    if let Ok(mut guard) = drafts.0.lock() {
+        if let Some(slot) = guard.get_mut(&id) {
+            slot.text = clipped.clone();
+        }
+    }
     let _ = app.emit_to(
         "main",
         "memo-note-changed",
@@ -1008,6 +1041,223 @@ fn request_memo_remove(app: AppHandle, id: String) {
         return;
     }
     let _ = app.emit_to("main", "memo-remove-request", &id);
+}
+
+fn note_label(raw: &str) -> Option<String> {
+    if !note_id_ok(raw) {
+        return None;
+    }
+    Some(format!("memo-n-{raw}"))
+}
+
+fn clip_note_size(width: f64, height: f64) -> (f64, f64) {
+    (
+        width.clamp(NOTE_MIN_W, NOTE_MAX_W),
+        height.clamp(NOTE_MIN_H, NOTE_MAX_H),
+    )
+}
+
+fn title_for_slot(slot: i32) -> String {
+    let number = slot + 2;
+    if (2..=5).contains(&number) {
+        format!("메모 {number}")
+    } else {
+        "메모".to_string()
+    }
+}
+
+fn clip_note_title(raw: &str, slot: i32) -> String {
+    match raw.trim() {
+        "메모 2" | "메모 3" | "메모 4" | "메모 5" => raw.trim().to_string(),
+        _ => title_for_slot(slot),
+    }
+}
+
+fn clamp_note_box(anchor: &tauri::WebviewWindow, x: f64, y: f64, width: f64, height: f64) -> (f64, f64, f64, f64) {
+    let (mut width, mut height) = clip_note_size(width, height);
+    let Some(monitor) = anchor
+        .current_monitor()
+        .ok()
+        .flatten()
+        .or_else(|| anchor.primary_monitor().ok().flatten())
+    else {
+        return (x, y, width, height);
+    };
+    let scale = anchor.scale_factor().unwrap_or(1.0).max(0.5);
+    let work = monitor.work_area();
+    let left = work.position.x as f64 / scale;
+    let top = work.position.y as f64 / scale;
+    let work_w = (work.size.width as f64 / scale).max(NOTE_MIN_W);
+    let work_h = (work.size.height as f64 / scale).max(NOTE_MIN_H);
+    width = width.min(work_w);
+    height = height.min(work_h);
+    let max_x = left + work_w - width;
+    let max_y = top + work_h - height;
+    let x = x.clamp(left, max_x.max(left));
+    let y = y.clamp(top, max_y.max(top));
+    (x, y, width, height)
+}
+
+fn fresh_note_place(panel: &tauri::WebviewWindow, width: f64, height: f64, slot: i32) -> (f64, f64, f64, f64) {
+    let (width, height) = clip_note_size(width, height);
+    let scale = panel.scale_factor().unwrap_or(1.0).max(0.5);
+    let outer_w = (width * scale).round().max(1.0) as u32;
+    let x_px = map_end_x(panel, outer_w).unwrap_or_else(|| panel.outer_position().map(|pos| pos.x).unwrap_or(0));
+    let y_px = panel.outer_position().map(|pos| pos.y).unwrap_or(0) + slot.clamp(0, 3) * 36;
+    clamp_note_box(panel, x_px as f64 / scale, y_px as f64 / scale, width, height)
+}
+
+fn remember_note(app: &AppHandle, id: &str, text: String, title: String) {
+    let drafts = app.state::<NoteDrafts>();
+    if let Ok(mut guard) = drafts.0.lock() {
+        guard.insert(
+            id.to_string(),
+            NoteSlot { text, title },
+        );
+    };
+}
+
+#[derive(Serialize)]
+struct NoteTextBody {
+    text: String,
+    title: String,
+}
+
+#[derive(Clone, Serialize)]
+struct NotePlace {
+    id: String,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+}
+
+#[tauri::command]
+fn memo_note_text(app: AppHandle, id: String) -> NoteTextBody {
+    let drafts = app.state::<NoteDrafts>();
+    let Ok(guard) = drafts.0.lock() else {
+        return NoteTextBody {
+            text: String::new(),
+            title: "메모".to_string(),
+        };
+    };
+    guard
+        .get(&id)
+        .map(|slot| NoteTextBody {
+            text: slot.text.clone(),
+            title: slot.title.clone(),
+        })
+        .unwrap_or_else(|| NoteTextBody {
+            text: String::new(),
+            title: "메모".to_string(),
+        })
+}
+
+#[tauri::command]
+fn open_memo_note(
+    app: AppHandle,
+    id: String,
+    text: String,
+    title: String,
+    x: Option<f64>,
+    y: Option<f64>,
+    width: f64,
+    height: f64,
+    slot: i32,
+) -> Result<(), String> {
+    let Some(label) = note_label(&id) else {
+        return Err("메모를 열 수 없습니다.".to_string());
+    };
+    let title = clip_note_title(&title, slot);
+    let text = clip_memo_text(&text);
+    remember_note(&app, &id, text, title.clone());
+    if let Some(existing) = app.get_webview_window(&label) {
+        let _ = existing.unminimize();
+        let _ = existing.show();
+        let _ = existing.set_focus();
+        return Ok(());
+    }
+    let panel = app
+        .get_webview_window("main")
+        .ok_or_else(|| "패널을 열 수 없습니다.".to_string())?;
+    let (x, y, width, height) = match (x, y) {
+        (Some(x), Some(y)) if x.is_finite() && y.is_finite() => clamp_note_box(&panel, x, y, width, height),
+        _ => fresh_note_place(&panel, width, height, slot),
+    };
+    let url = if cfg!(dev) {
+        match &app.config().build.dev_url {
+            Some(dev_url) => WebviewUrl::External(dev_url.clone()),
+            None => WebviewUrl::App("index.html".into()),
+        }
+    } else {
+        WebviewUrl::App("index.html".into())
+    };
+    WebviewWindowBuilder::new(&app, &label, url)
+        .title(&title)
+        .inner_size(width, height)
+        .min_inner_size(NOTE_MIN_W, NOTE_MIN_H)
+        .max_inner_size(NOTE_MAX_W, NOTE_MAX_H)
+        .resizable(true)
+        .closable(true)
+        .visible(false)
+        .skip_taskbar(true)
+        .build()
+        .map_err(|err| err.to_string())?;
+    if let Some(created) = app.get_webview_window(&label) {
+        let scale = panel.scale_factor().unwrap_or(1.0).max(0.5);
+        let _ = created.set_size(Size::Logical(LogicalSize::new(width, height)));
+        let _ = created.set_position(PhysicalPosition::new(
+            (x * scale).round() as i32,
+            (y * scale).round() as i32,
+        ));
+        let _ = created.show();
+        let _ = created.set_focus();
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn place_memo_note(app: AppHandle, id: String, x: f64, y: f64, width: f64, height: f64) {
+    let Some(label) = note_label(&id) else {
+        return;
+    };
+    if !x.is_finite() || !y.is_finite() || !width.is_finite() || !height.is_finite() {
+        return;
+    }
+    let anchor = app
+        .get_webview_window("main")
+        .or_else(|| app.get_webview_window(&label));
+    let (x, y, width, height) = if let Some(anchor) = anchor {
+        clamp_note_box(&anchor, x, y, width, height)
+    } else {
+        let (width, height) = clip_note_size(width, height);
+        (x, y, width, height)
+    };
+    let _ = app.emit_to(
+        "main",
+        "memo-note-placed",
+        NotePlace {
+            id,
+            x,
+            y,
+            width,
+            height,
+        },
+    );
+}
+
+#[tauri::command]
+fn dismiss_memo_note(app: AppHandle, id: String) {
+    let Some(label) = note_label(&id) else {
+        return;
+    };
+    if let Some(window) = app.get_webview_window(&label) {
+        let _ = window.destroy();
+    }
+    let drafts = app.state::<NoteDrafts>();
+    if let Ok(mut guard) = drafts.0.lock() {
+        guard.remove(&id);
+    };
 }
 
 #[tauri::command]
@@ -2018,6 +2268,7 @@ pub fn run() {
             notes: Vec::new(),
             selected: String::new(),
         })))
+        .manage(NoteDrafts(Mutex::new(HashMap::new())))
         .invoke_handler(tauri::generate_handler![
             hide_panel,
             show_panel,
@@ -2034,6 +2285,10 @@ pub fn run() {
             commit_memo_note,
             request_memo_note,
             request_memo_remove,
+            memo_note_text,
+            open_memo_note,
+            place_memo_note,
+            dismiss_memo_note,
             set_memo_window_size,
             reveal_topic,
             launch_tool,

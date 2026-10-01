@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useMemoStore } from "../stores/memoStore";
+import { memoWindowTitle, type MemoNote } from "../types/memo";
 import type { LaunchResult, ToolItem, ToolType } from "../types/tool";
 
 export async function hidePanel(): Promise<void> {
@@ -49,6 +50,27 @@ export async function publishMemoBoard(selected = ""): Promise<void> {
 export async function openMemoWindow(selected = ""): Promise<void> {
   await publishMemoBoard(selected);
   await invoke("open_memo_window");
+}
+
+export async function openMemoNote(note: MemoNote, index: number): Promise<void> {
+  await invoke("open_memo_note", {
+    id: note.id,
+    text: note.text,
+    title: memoWindowTitle(index),
+    x: note.x,
+    y: note.y,
+    width: note.width,
+    height: note.height,
+    slot: index,
+  });
+}
+
+export async function dismissMemoNote(id: string): Promise<void> {
+  try {
+    await invoke("dismiss_memo_note", { id });
+  } catch {
+    // 브라우저 미리보기에는 이 명령이 없다.
+  }
 }
 
 export async function runShortcutAction(actionId: string): Promise<void> {
