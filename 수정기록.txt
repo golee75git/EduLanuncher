@@ -6,6 +6,32 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.145-20261001
+설치 파일: EduLauncher_0.1.145-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1319_x64-setup.exe
+작성자: 요청자
+
+요청: 메모 2~4의 크게 버튼을 누르면 런처가 응답 없음이 되는 문제를 고친다.
+
+새로 만든 파일:
+없음
+
+재사용한 기존 파일:
+- src-tauri/src/lib.rs
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+
+open_memo_note를 비동기 명령으로 바꿨다. 창을 만드는 다른 명령(open_memo_window, open_work_map_window)과 같은 방식이다. 원인은 코드 비교로 좁힌 추정이다.
+
+글꼴: 바꾸지 않았다. 의존성: 새 라이브러리 없음. 외부 코드·문서를 참고하지 않았다.
+특허 검토가 필요한 새 구성 없음. 특허 비침해를 보장한다고 표현하지 않는다.
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.144-20261001
 설치 파일: EduLauncher_0.1.144-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1305_x64-setup.exe

@@ -1154,7 +1154,7 @@ fn memo_note_text(app: AppHandle, id: String) -> NoteTextBody {
 }
 
 #[tauri::command]
-fn open_memo_note(
+async fn open_memo_note(
     app: AppHandle,
     id: String,
     text: String,
