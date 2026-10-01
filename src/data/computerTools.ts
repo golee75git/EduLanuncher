@@ -8,7 +8,7 @@ export interface ComputerToolEntry {
   hint: string;
   type: Extract<ToolType, "app" | "file" | "internal">;
   fileName?: string;
-  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink";
+  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink" | "pc-link";
 }
 
 const ENTRIES: ComputerToolEntry[] = [
@@ -46,6 +46,13 @@ const ENTRIES: ComputerToolEntry[] = [
     hint: "네트워크 어댑터 연결 화면을 엽니다.",
     type: "file",
     fileName: "ncpa.cpl",
+  },
+  {
+    id: "pc-link",
+    name: "인터넷 연결 점검",
+    hint: "인터넷이 안 될 때 현재 PC의 연결 상태를 단계별로 확인합니다.",
+    type: "internal",
+    view: "pc-link",
   },
   {
     id: "pc-address",
@@ -161,29 +168,62 @@ export function isDocShrinkTarget(target: string): boolean {
   return target === "doc-shrink" || target === "pc-sys:doc-shrink";
 }
 
+const LINK_WORDS = [
+  "인터넷 연결 점검",
+  "인터넷 안돼",
+  "인터넷이 안돼요",
+  "인터넷 안됨",
+  "인터넷 연결",
+  "인터넷 점검",
+  "인터넷 오류",
+  "네트워크 안돼",
+  "네트워크 오류",
+  "와이파이 안돼",
+  "Wi-Fi 안됨",
+  "랜선 연결",
+  "인터넷 끊김",
+  "인터넷 연결 확인",
+  "인터넷 문제",
+  "웹사이트가 안열려",
+  "홈페이지가 안열려",
+  "DNS 오류",
+];
+
+export function isLinkCheckTool(entry: ComputerToolEntry): boolean {
+  return entry.view === "pc-link";
+}
+
+export function isLinkCheckTarget(target: string): boolean {
+  return target === "pc-link" || target === "pc-sys:pc-link";
+}
+
 export function listComputerTools(): ComputerToolEntry[] {
   return ENTRIES;
 }
 
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
-  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry)) {
+  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry) || isLinkCheckTool(entry)) {
     const target = isIeResetTool(entry)
       ? "ie-reset"
       : isFolderFindTool(entry)
         ? "pc-folder-find"
         : isDocShrinkTool(entry)
           ? "doc-shrink"
-          : "pc-address";
+          : isLinkCheckTool(entry)
+            ? "pc-link"
+            : "pc-address";
     return {
       id: `pc-sys:${entry.id}`,
       name: entry.name,
       description: entry.hint,
       type: "internal",
       target,
-      icon: isDocShrinkTool(entry) ? "file" : "folder",
+      icon: isLinkCheckTool(entry) ? "globe" : isDocShrinkTool(entry) ? "file" : "folder",
       category: "전산",
       favorite: true,
-      keywords: isDocShrinkTool(entry)
+      keywords: isLinkCheckTool(entry)
+        ? LINK_WORDS
+        : isDocShrinkTool(entry)
         ? [entry.name, "컴퓨터도구", "사진", "문서", "용량"]
         : isFolderFindTool(entry)
           ? [entry.name, "컴퓨터도구", "문서", "다운로드", "바탕"]

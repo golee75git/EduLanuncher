@@ -1,0 +1,83 @@
+{
+  "id": "network-general",
+  "category": "network",
+  "title": "인터넷 연결을 더 확인해야 해요",
+  "aliases": [
+    "인터넷 점검이 애매해요",
+    "어디가 문제인지 모르겠어요",
+    "연결 확인이 어려워요",
+    "점검이 중간에 멈췄어요",
+    "인터넷 상태를 더 봐야 해요"
+  ],
+  "keywords": [
+    "인터넷 점검",
+    "추가 확인",
+    "연결 상태"
+  ],
+  "symptoms": [
+    "인터넷 연결의 일부 단계만 확인되었어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "원인이 하나로 확정되지 않았습니다. 설정을 바꾸기 전에 담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "점검을 끝까지 했나요?",
+      "options": [
+        { "label": "끝까지 했습니다", "next": "solution_1" },
+        { "label": "중간에 멈췄습니다", "next": "solution_2" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "결과 전달",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "점검결과 복사로 글을 복사해 담당자에게 전달하세요.",
+        "주소나 보안 설정은 바꾸지 마세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "다시 점검",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 1분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "인터넷 연결 점검에서 다시 점검을 누르세요.",
+        "끝난 뒤의 확인된 내용만 전달하면 됩니다."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": ["internet-not-working"],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows의 이더넷 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-ethernet-connection-problems-in-windows"
+    }
+  ],
+  "support": {
+    "message": "한 단계만으로 원인을 정하지 않습니다. 복사한 결과를 담당자에게 전달하세요.",
+    "collect": ["점검 결과 복사 글", "문제가 시작된 시각"]
+  }
+}

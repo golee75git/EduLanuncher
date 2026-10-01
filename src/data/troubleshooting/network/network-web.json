@@ -1,0 +1,83 @@
+{
+  "id": "network-web",
+  "category": "network",
+  "title": "웹사이트 연결이 확인되지 않아요",
+  "aliases": [
+    "웹사이트가 안 열려요",
+    "홈페이지가 안 열려요",
+    "주소는 되는데 페이지가 안 열려요",
+    "웹 연결이 안 돼요",
+    "페이지만 안 열려요"
+  ],
+  "keywords": [
+    "웹 연결",
+    "홈페이지",
+    "웹사이트"
+  ],
+  "symptoms": [
+    "인터넷 주소는 확인되지만 웹사이트 연결이 확인되지 않았어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관 프록시나 보안 장비 때문에 일부 확인이 다를 수 있습니다. 프록시 값을 직접 바꾸지 마세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "한 사이트만 안 열리나요?",
+      "options": [
+        { "label": "한 사이트만 안 됩니다", "next": "solution_1" },
+        { "label": "여러 사이트가 안 됩니다", "next": "solution_2" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "그 사이트만 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "다른 잘 아는 페이지가 열리는지 보세요.",
+        "한 곳만 안 되면 그 사이트 이름만 담당자에게 알려 주세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "보안 환경 전달",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "기관 네트워크나 보안 환경의 영향일 수 있으니 원인을 단정하지 마세요.",
+        "프록시와 보안 설정은 바꾸지 말고 점검 결과를 전달하세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": ["specific-site-not-opening"],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows에서 Wi-Fi 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-wi-fi-connection-issues-in-windows"
+    }
+  ],
+  "support": {
+    "message": "페이지가 확인되지 않아도 방화벽이나 프록시가 원인이라고 단정하지 않습니다. 담당자에게 결과를 전달하세요.",
+    "collect": ["안 열리는 페이지 이름", "점검 결과 복사 글"]
+  }
+}

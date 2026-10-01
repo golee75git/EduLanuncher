@@ -19,6 +19,7 @@ use tauri_plugin_opener::OpenerExt;
 
 mod doc_shrink;
 mod document_search;
+mod netcheck;
 mod pdf_pages;
 mod netutil;
 mod shortcut;
@@ -2359,6 +2360,9 @@ pub fn run() {
             favicon_for_urls,
             this_pc_ipv4,
             lookup_public_ipv4,
+            netcheck::begin_pc_link,
+            netcheck::halt_pc_link,
+            netcheck::open_pc_setting,
             latest_release_tag,
             scan_ipv4_range,
             scan_cctv_range,

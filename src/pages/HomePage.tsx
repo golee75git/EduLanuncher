@@ -1,4 +1,4 @@
-import { Compass, Keyboard, Plus, Settings, Wrench, type LucideIcon } from "lucide-react";
+import { Compass, Globe, Keyboard, Plus, Settings, Wrench, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FavoriteGrid } from "../components/FavoriteGrid";
 import { HighlightText } from "../components/HighlightText";
@@ -15,6 +15,7 @@ import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
+import { computerToolAsItem, isLinkCheckTarget, listComputerTools } from "../data/computerTools";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { launchQuickUrl } from "../services/launcherService";
@@ -70,6 +71,7 @@ export type HomeAction =
   | { type: "docs"; query?: string }
   | { type: "topics" }
   | { type: "handbook" }
+  | { type: "pc-link"; search?: string }
   | { type: "troubleshoot"; search?: string }
   | { type: "troubleshoot-card"; cardId: string; search?: string }
   | { type: "topic"; topicId: string; search?: string }
@@ -239,6 +241,14 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     [recentUseAll, settings.recentCount],
   );
   const results = useMemo(() => searchAll(query, tools, schools), [query, tools, schools]);
+  const linkTool = useMemo(() => {
+    const entry = listComputerTools().find((item) => item.id === "pc-link");
+    return entry ? computerToolAsItem(entry) : null;
+  }, []);
+  const showLinkCheck = Boolean(
+    linkTool &&
+      scoreText(query, linkTool.name, linkTool.description, linkTool.category, ...(linkTool.keywords ?? [])) > 0,
+  );
   const topicHits = useMemo(() => searchTopics(query, topicList), [query, topicList]);
   const manualHits = useMemo(() => searchManualIndex(query), [query]);
   const troubleHits = useMemo(() => searchTroubleCards(query), [query]);
@@ -460,7 +470,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const searching = query.trim().length > 0;
   const hideEmpty = settings.hideEmptySearchGroups;
   const folderReady = query.trim().length >= 2;
-  const showTools = !hideEmpty || results.tools.length > 0;
+  const showTools = !hideEmpty || results.tools.some((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id)) || showLinkCheck;
   const showRecents = !hideEmpty || recentUseMatched.length > 0;
   const showFolders = !hideEmpty || !folderReady || folderBusy || folderHits.length > 0;
   const showDocs = !hideEmpty || !folderReady || docBusy || docHits.length > 0;
@@ -665,7 +675,36 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
           <>
             {showTools ? (
             <ResultGroup title="관련 도구" empty="일치하는 도구가 없습니다.">
-              {results.tools.map((hit) => {
+              {[showLinkCheck && linkTool ? (
+                <div className="desk-row flex-col items-stretch gap-2 py-2">
+                  <span className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 shrink-0 text-quiet" aria-hidden="true" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-desk">
+                        <HighlightText text={linkTool.name} query={query} />
+                      </span>
+                      <span className="block text-[11px] leading-4 text-quiet">{linkTool.description}</span>
+                    </span>
+                  </span>
+                  <span className="flex flex-wrap gap-1">
+                    <button
+                      type="button"
+                      className="rounded-full bg-ink px-2.5 py-1 text-[11px] font-medium text-white"
+                      onClick={() => onAction({ type: "pc-link", search: query })}
+                    >
+                      점검 시작
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full border border-line px-2.5 py-1 text-[11px] text-desk"
+                      onClick={() => onAction({ type: "troubleshoot-card", cardId: "internet-not-working", search: query })}
+                    >
+                      해결방법 보기
+                    </button>
+                  </span>
+                </div>
+              ) : null,
+              ...results.tools.filter((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id)).map((hit) => {
                 return (
                   <button
                     key={hit.item.id}
@@ -690,7 +729,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                     </span>
                   </button>
                 );
-              })}
+              })].filter((node) => node != null)}
             </ResultGroup>
             ) : null}
             {showRecents ? (

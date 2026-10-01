@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.147-20261001",
+    note: "컴퓨터도구에 인터넷 연결 점검을 넣었습니다. 점검 시작을 눌렀을 때만 이 PC에서 확인하며 설정을 바꾸지 않습니다.",
+  },
+  {
     version: "0.1.146-20261001",
     note: "끌어 놓기 안내를 옅은 칸으로 표시합니다. 메모는 + 추가로 열고, 줄의 - 로 지웁니다.",
   },

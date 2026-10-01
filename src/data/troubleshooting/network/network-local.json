@@ -1,0 +1,83 @@
+{
+  "id": "network-local",
+  "category": "network",
+  "title": "내부 네트워크 응답이 확인되지 않아요",
+  "aliases": [
+    "내부망 응답이 없어요",
+    "경로 응답이 없어요",
+    "같은 망 확인",
+    "내부 연결 확인",
+    "망 안쪽 응답"
+  ],
+  "keywords": [
+    "내부 네트워크",
+    "경로 응답",
+    "같은 망"
+  ],
+  "symptoms": [
+    "내부 네트워크 응답을 확인하지 못했어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관 장비는 응답을 숨기도록 설정된 경우가 있습니다. 장비를 재시작하거나 설정을 바꾸지 마세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "웹사이트는 열리나요?",
+      "options": [
+        { "label": "웹사이트는 열립니다", "next": "solution_1" },
+        { "label": "웹사이트도 안 열립니다", "next": "solution_2" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "사용 가능으로 보기",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 1분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "페이지가 열리면 내부 장비의 응답이 없어도 인터넷 사용은 가능한 상태일 수 있습니다.",
+        "설정을 바꾸지 않아도 됩니다."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "담당자에게 전달",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "점검 결과 복사 글을 담당자에게 전달하세요.",
+        "케이블과 무선 이름만 확인하고 주소 값은 바꾸지 마세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": ["ethernet-connected-no-internet"],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows의 이더넷 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-ethernet-connection-problems-in-windows"
+    }
+  ],
+  "support": {
+    "message": "응답이 없어도 인터넷이 되면 장애로 단정하지 않습니다. 페이지가 안 열리면 담당자에게 알려 주세요.",
+    "collect": ["자리 번호", "점검 결과 복사 글"]
+  }
+}

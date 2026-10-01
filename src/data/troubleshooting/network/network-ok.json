@@ -1,0 +1,83 @@
+{
+  "id": "network-ok",
+  "category": "network",
+  "title": "인터넷 연결이 확인되었어요",
+  "aliases": [
+    "인터넷은 정상이에요",
+    "연결 점검은 정상",
+    "웹까지 확인됨",
+    "인터넷 사용 가능",
+    "점검 결과 정상"
+  ],
+  "keywords": [
+    "연결 정상",
+    "점검 정상",
+    "인터넷 사용 가능"
+  ],
+  "symptoms": [
+    "현재 PC에서 인터넷 연결이 확인되었어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "정상이면 주소, 프록시, 보안 설정을 바꾸지 않아도 됩니다.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "그래도 특정 페이지만 안 열리나요?",
+      "options": [
+        { "label": "특정 페이지만 안 됩니다", "next": "solution_1" },
+        { "label": "지금은 됩니다", "next": "solution_2" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "그 페이지만 전달",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 1분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "전체 연결은 확인된 상태이니 네트워크 설정을 바꾸지 마세요.",
+        "안 열리는 페이지 이름만 담당자에게 알려 주세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "추가 변경 없음",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 1분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "추가로 바꿀 설정은 없습니다.",
+        "나중에 다시 안 되면 인터넷 연결 점검을 한 번 더 실행하세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": ["internet-not-working"],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows에서 Wi-Fi 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-wi-fi-connection-issues-in-windows"
+    }
+  ],
+  "support": {
+    "message": "연결이 확인되면 설정을 바꾸지 않아도 됩니다.",
+    "collect": ["안 열리는 페이지가 있으면 그 이름"]
+  }
+}

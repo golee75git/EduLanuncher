@@ -9,6 +9,7 @@ import {
   isAddressTool,
   isDocShrinkTool,
   isFolderFindTool,
+  isLinkCheckTool,
   listComputerTools,
   sameLocalPath,
 } from "../data/computerTools";
@@ -21,6 +22,7 @@ interface ComputerToolPageProps {
   onShowAddress: () => void;
   onShowFolderFind: () => void;
   onShowDocShrink: () => void;
+  onShowLinkCheck: () => void;
   onShowTroubleshoot: () => void;
 }
 
@@ -30,6 +32,7 @@ export function ComputerToolPage({
   onShowAddress,
   onShowFolderFind,
   onShowDocShrink,
+  onShowLinkCheck,
   onShowTroubleshoot,
 }: ComputerToolPageProps) {
   const tools = useToolStore((state) => state.tools);
@@ -106,13 +109,15 @@ export function ComputerToolPage({
                   type="button"
                   className="min-w-0 flex-1 rounded-md px-1 py-1 text-left transition-colors duration-150 hover:bg-paper"
                   onClick={() =>
-                    isAddressTool(entry)
+                      isAddressTool(entry)
                       ? onShowAddress()
                       : isFolderFindTool(entry)
                         ? onShowFolderFind()
                         : isDocShrinkTool(entry)
                           ? onShowDocShrink()
-                          : onLaunch(item)
+                          : isLinkCheckTool(entry)
+                            ? onShowLinkCheck()
+                            : onLaunch(item)
                   }
                 >
                   <span className="block truncate text-sm font-medium text-desk">{entry.name}</span>

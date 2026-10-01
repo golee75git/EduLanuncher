@@ -1,0 +1,83 @@
+{
+  "id": "network-dns",
+  "category": "network",
+  "title": "인터넷 주소를 찾지 못해요",
+  "aliases": [
+    "주소 찾기가 안 돼요",
+    "이름은 안 열리고 숫자 주소는 궁금해요",
+    "사이트 이름을 못 찾아요",
+    "인터넷 주소 확인 문제",
+    "이름 확인이 안 돼요"
+  ],
+  "keywords": [
+    "인터넷 주소 확인",
+    "이름 찾기",
+    "주소 찾기"
+  ],
+  "symptoms": [
+    "인터넷 주소를 찾는 과정에서 문제가 확인되었어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관 네트워크의 주소 찾기 값은 직접 바꾸지 마세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "같은 자리의 다른 PC는 사이트가 열리나요?",
+      "options": [
+        { "label": "다른 PC는 열립니다", "next": "solution_1" },
+        { "label": "다른 PC도 안 열립니다", "next": "solution_2" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "이 PC만 전달",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "주소 찾기 값을 직접 고치지 마세요.",
+        "이 PC만 안 되면 자리와 시각을 담당자에게 알려 주세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "기관 네트워크 전달",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "여러 PC가 같으면 회선이나 기관 네트워크 문제일 수 있습니다.",
+        "장비를 직접 재시작하지 말고 담당자에게 알려 주세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": ["internet-not-working"],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows에서 Wi-Fi 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-wi-fi-connection-issues-in-windows"
+    }
+  ],
+  "support": {
+    "message": "주소 찾기가 안 되면 값을 바꾸지 말고 담당자에게 점검 결과를 전달하세요.",
+    "collect": ["자리 번호", "안 열리는 사이트 이름"]
+  }
+}

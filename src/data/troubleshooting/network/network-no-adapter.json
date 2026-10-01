@@ -1,0 +1,83 @@
+{
+  "id": "network-no-adapter",
+  "category": "network",
+  "title": "연결된 네트워크 장치가 안 보여요",
+  "aliases": [
+    "랜선이 빠졌어요",
+    "네트워크 장치가 없어요",
+    "연결 장치가 안 보여요",
+    "와이파이 장치가 꺼졌어요",
+    "인터넷 선을 확인해요"
+  ],
+  "keywords": [
+    "네트워크 장치",
+    "랜선",
+    "와이파이 꺼짐"
+  ],
+  "symptoms": [
+    "연결된 네트워크 장치를 확인하지 못했어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관에서 관리하는 PC일 수 있습니다. 설정을 바꾸기 전에 기관 전산 담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "무선과 유선 중 무엇을 쓰고 있나요?",
+      "options": [
+        { "label": "무선입니다", "next": "solution_1" },
+        { "label": "유선입니다", "next": "solution_2" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "무선 연결 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "작업 표시줄의 네트워크 표시를 눌러 무선이 꺼져 있는지 보세요.",
+        "기관에서 지정한 무선 이름이 목록에 있는지만 확인하고, 다른 설정은 바꾸지 마세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "유선 연결 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "랜 케이블이 본체와 벽면 또는 책상 단자에 꽂혀 있는지 보세요.",
+        "기관 장비의 전원이나 단자 표시는 직접 끄지 말고 담당자에게 알려 주세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": ["internet-not-working"],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows에서 Wi-Fi 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-wi-fi-connection-issues-in-windows"
+    }
+  ],
+  "support": {
+    "message": "장치 연결이 확인되지 않으면 기관 전산 담당자에게 어느 PC인지 알려 주세요.",
+    "collect": ["문제가 시작된 시각", "무선인지 유선인지"]
+  }
+}

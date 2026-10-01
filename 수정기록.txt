@@ -6,6 +6,56 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.147-20261001
+설치 파일: EduLauncher_0.1.147-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1437_x64-setup.exe
+작성자: 요청자
+
+요청: 컴퓨터도구에 인터넷 연결 점검을 넣는다. 점검 시작을 눌렀을 때만 이 PC를 확인하고 설정을 바꾸지 않는다.
+
+새로 만든 파일:
+- src-tauri/src/netcheck.rs
+- src/pages/InternetCheckPage.tsx
+- src/services/internetCheckService.ts
+- src/data/troubleshooting/network/network-no-adapter.json
+- src/data/troubleshooting/network/network-ip-assignment.json
+- src/data/troubleshooting/network/network-local.json
+- src/data/troubleshooting/network/network-dns.json
+- src/data/troubleshooting/network/network-web.json
+- src/data/troubleshooting/network/network-ok.json
+- src/data/troubleshooting/network/network-general.json
+
+재사용한 기존 파일:
+- src-tauri/Cargo.toml
+- src-tauri/src/lib.rs
+- src-tauri/tauri.conf.json
+- src/data/computerTools.ts
+- src/App.tsx
+- src/pages/ComputerToolPage.tsx
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/services/troubleshootingService.ts
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+컴퓨터도구에 인터넷 연결 점검을 넣었다. 화면이 열려도 점검 시작 전에는 확인하지 않는다. 장치, 주소, 내부 경로, 이름 확인, 웹 응답을 이 PC에서만 본다. 주소·프록시·보안 설정은 바꾸지 않는다. 복사 글에는 주소와 기기 번호를 넣지 않는다. 해결 절차는 문제 해결 카드로 연다. 홈에서 인터넷 안돼 등을 치면 점검 시작과 해결방법 보기가 나온다.
+
+글꼴: Windows 기본 Segoe UI, 맑은 고딕. SIL OFL이 아니고, 묶거나 바꾸지 않았다.
+
+의존성: 새 라이브러리 없음. windows 0.61 기능 플래그만 추가. GPL·AGPL을 더하지 않았다.
+
+보안: 사용자 파일, 브라우저 기록, 암호, 다른 PC 정보는 읽지 않는다. 포트 범위 검색과 패킷 수집은 없다. 밖으로 나가는 것은 점검 시작 뒤 example.com 이름 확인, 그 주소의 443 연결, example.com 웹 응답 한 번, 그리고 기본 경로로의 응답 확인뿐이다. 결과는 전송하지 않는다. 관리자 권한은 요구하지 않는다.
+
+특허 검토: 연결 단계를 읽어 짧은 문장으로 보여주는 구성. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.146-20261001
 설치 파일: EduLauncher_0.1.146-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1359_x64-setup.exe

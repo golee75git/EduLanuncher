@@ -1,0 +1,83 @@
+{
+  "id": "network-ip-assignment",
+  "category": "network",
+  "title": "네트워크 주소를 받지 못해요",
+  "aliases": [
+    "주소를 못 받아요",
+    "아이피가 이상해요",
+    "주소 할당이 안 돼요",
+    "임시 주소만 나와요",
+    "네트워크 주소 문제"
+  ],
+  "keywords": [
+    "주소 할당",
+    "아이피",
+    "임시 주소"
+  ],
+  "symptoms": [
+    "PC가 네트워크 주소를 정상적으로 받지 못했어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관에서 관리하는 PC일 수 있습니다. 주소나 서버 값을 직접 바꾸지 말고 담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "이 PC만 그런가요?",
+      "options": [
+        { "label": "이 PC만 그렇습니다", "next": "solution_1" },
+        { "label": "다른 기기도 그렇습니다", "next": "solution_2" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "이 PC 연결 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "케이블이 빠졌거나 무선이 다른 이름으로 바뀌었는지 보세요.",
+        "주소 값을 직접 입력하지 마세요. 기관 PC는 담당자가 주소를 정해 둡니다."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "담당자에게 전달",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "같은 자리의 다른 PC도 인터넷이 되는지 확인해 보세요.",
+        "안 되면 자리 번호와 시각을 담당자에게 알려 주세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": ["invalid-ip-configuration"],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows의 이더넷 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-ethernet-connection-problems-in-windows"
+    }
+  ],
+  "support": {
+    "message": "주소가 정상적으로 보이지 않으면 설정을 바꾸지 말고 담당자에게 알려 주세요.",
+    "collect": ["자리 번호", "문제가 시작된 시각"]
+  }
+}
