@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.142-20261001",
+    note: "메모는 옆 창 하나에서 고릅니다. 트레이 메뉴에서 업무포털·나이스·에듀파인 바로가기를 뺐습니다. 홈 인사 아래에 파일 끌어 놓기 안내가 있습니다.",
+  },
+  {
     version: "0.1.141-20261001",
     note: "메모의 +로 평문 메모 창을 4개까지 더 엽니다. 한글을 조합하는 동안에는 그 칸의 글자를 다시 덮지 않습니다.",
   },

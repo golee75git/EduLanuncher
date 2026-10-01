@@ -6,6 +6,46 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.142-20261001
+설치 파일: EduLauncher_0.1.142-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1135_x64-setup.exe
+작성자: 요청자
+
+요청: 트레이 우클릭에서 업무포털·나이스·에듀파인 바로가기만 뺀다. 메모는 옆 창 하나에서 고른다. 홈 인사 아래에 “파일을 끌어 놓으면 다음에 할 일을 보여 줍니다.”를 둔다.
+
+새로 만든 파일:
+없음
+
+재사용한 기존 파일:
+- src-tauri/src/lib.rs
+- src/pages/MemoWindowPage.tsx
+- src/components/MemoPad.tsx
+- src/components/home/WelcomeMessage.tsx
+- src/services/windowService.ts
+- src/App.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/PRD.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+
+트레이 메뉴는 교육업무 런처 열기, 설정, 종료만 남긴다. 패널의 사이트 목록은 그대로다. 메모의 +와 목록은 memo-pad 창 하나만 연다. 왼쪽 목록, 오른쪽 본문이다. 화면 밖 좌표로 창을 두지 않는다. 글 저장은 메인 패널만 한다. 입력 중인 칸에는 그 글을 다시 보내지 않는다. 홈 인사는 검색 중이 아닐 때만 보인다. 빈 목록의 끌어 놓기 문장은 그대로다.
+
+글꼴: 창 글꼴은 Windows 기본 Segoe UI, 맑은 고딕이다. SIL OFL이 아니고, 이번에도 묶거나 바꾸지 않았다.
+
+의존성: 새 라이브러리 없음. GPL·AGPL을 더하지 않았다. 기존 @img/sharp-wasm32, @img/sharp-win32-x64의 LGPL-3.0-or-later는 직접 의존이 아니고 설치 파일에 넣지 않는다. 저작권·라이선스 파일은 바꾸지 않았다.
+
+보안: 트레이는 바로가기 세 개만 뺀다. 메모 id는 영문 소문자와 숫자 4–16자, 글은 2000자, 제어 문자는 뺀다. 추가 메모는 4개까지다.
+
+특허 검토: 옆 창 하나와 그 안의 목록, 트레이 메뉴에서 항목을 빼는 것, 고정 안내 문장. 청구항 대조는 하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.141-20261001
 설치 파일: EduLauncher_0.1.141-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1046_x64-setup.exe

@@ -21,7 +21,8 @@ export function WelcomeMessage({ now = new Date() }: { now?: Date }) {
         <Sun className="home-sun h-4 w-4 shrink-0" aria-hidden="true" />
         {greetingForTime(now.getHours(), now.getMinutes())}
       </h2>
-      <p className="mt-0.5 text-[11px] text-quiet">오늘 필요한 업무를 빠르게 시작하세요.</p>
+      <p className="mt-0.5 text-[11px] leading-4 text-quiet">오늘 필요한 업무를 빠르게 시작하세요.</p>
+      <p className="text-[11px] leading-4 text-quiet">파일을 끌어 놓으면 다음에 할 일을 보여 줍니다.</p>
     </section>
   );
 }

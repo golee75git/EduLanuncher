@@ -3,8 +3,8 @@ import { MemoField } from "./MemoField";
 import { MemoPanel } from "./home/MemoPanel";
 import { useMemoStore } from "../stores/memoStore";
 import { useSettingsStore } from "../stores/settingsStore";
-import { dismissMemoNote, openMemoNote, openMemoWindow } from "../services/windowService";
-import { EXTRA_MEMO_LIMIT, memoNotePreview, memoWindowTitle, type MemoNote } from "../types/memo";
+import { openMemoWindow, publishMemoBoard } from "../services/windowService";
+import { EXTRA_MEMO_LIMIT, memoNotePreview, memoWindowTitle } from "../types/memo";
 import { isPriorSkin } from "../types/settings";
 
 function pushDraft(text: string) {
@@ -37,8 +37,8 @@ function MemoEditor({ prior = false }: { prior?: boolean }) {
   );
 }
 
-function openSaved(note: MemoNote, index: number) {
-  void openMemoNote(note, index).catch(() => {
+function openSaved(id: string) {
+  void openMemoWindow(id).catch(() => {
     // 브라우저 미리보기에는 이 명령이 없다.
   });
 }
@@ -49,14 +49,15 @@ async function addAndOpen() {
     return;
   }
   await useMemoStore.getState().persist();
-  const index = useMemoStore.getState().notes.findIndex((item) => item.id === note.id);
-  openSaved(note, Math.max(0, index));
+  await openMemoWindow(note.id);
 }
 
 async function removeSaved(id: string) {
   useMemoStore.getState().removeNote(id);
   await useMemoStore.getState().persist();
-  await dismissMemoNote(id);
+  await publishMemoBoard("").catch(() => {
+    // 브라우저 미리보기에는 이 명령이 없다.
+  });
 }
 
 function AddMemoButton({ compact = false }: { compact?: boolean }) {
@@ -71,7 +72,7 @@ function AddMemoButton({ compact = false }: { compact?: boolean }) {
           : "inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:opacity-40"
       }
       disabled={full}
-      title={full ? "메모 창은 4개까지입니다" : "메모 창 추가"}
+      title={full ? "메모는 4개까지입니다" : "메모 추가"}
       onClick={() => void addAndOpen()}
     >
       +
@@ -91,7 +92,7 @@ function ExtraMemoList() {
           <button
             type="button"
             className="min-w-0 flex-1 truncate rounded-lg px-2 py-0.5 text-left text-[12px] text-desk hover:bg-ink-soft"
-            onClick={() => openSaved(note, index)}
+            onClick={() => openSaved(note.id)}
           >
             {memoWindowTitle(index)}
             <span className="text-quiet"> · {memoNotePreview(note.text)}</span>
