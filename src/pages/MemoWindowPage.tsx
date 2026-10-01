@@ -112,7 +112,7 @@ function HomeMemoWindow() {
             });
           }}
         >
-          +
+          + 추가
         </button>
       }
     >

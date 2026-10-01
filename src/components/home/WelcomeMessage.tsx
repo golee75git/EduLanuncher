@@ -22,7 +22,9 @@ export function WelcomeMessage({ now = new Date() }: { now?: Date }) {
         {greetingForTime(now.getHours(), now.getMinutes())}
       </h2>
       <p className="mt-0.5 text-[11px] leading-4 text-quiet">오늘 필요한 업무를 빠르게 시작하세요.</p>
-      <p className="text-[11px] leading-4 text-quiet">파일을 끌어 놓으면 다음에 할 일을 보여 줍니다.</p>
+      <p className="mt-1.5 rounded-lg bg-ink-soft px-2.5 py-1.5 text-[12px] leading-4 text-desk">
+        파일을 끌어 놓으면 다음에 할 일을 보여 줍니다.
+      </p>
     </section>
   );
 }

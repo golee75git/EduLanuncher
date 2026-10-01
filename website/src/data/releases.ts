@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.146-20261001",
+    note: "끌어 놓기 안내를 옅은 칸으로 표시합니다. 메모는 + 추가로 열고, 줄의 - 로 지웁니다.",
+  },
+  {
     version: "0.1.145-20261001",
     note: "메모 2~4의 크게 버튼을 누르면 런처가 멈추던 문제를 고쳤습니다.",
   },

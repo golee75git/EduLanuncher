@@ -6,6 +6,42 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.146-20261001
+설치 파일: EduLauncher_0.1.146-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1359_x64-setup.exe
+작성자: 요청자
+
+요청: 끌어 놓기 안내를 눈에 띄게 하고, 메모 2~4 줄의 상태·크게를 빼며, 추가와 빼기 글자를 맞춘다.
+
+새로 만든 파일:
+없음
+
+재사용한 기존 파일:
+- src/components/home/WelcomeMessage.tsx
+- src/components/MemoPad.tsx
+- src/pages/MemoWindowPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/PRD.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+
+홈 인사는 그대로다. “파일을 끌어 놓으면 다음에 할 일을 보여 줍니다.”만 옅은 칸, 12px 본문 색이다. 검색 중에는 숨긴다. 빈 목록 안내는 그대로다. 메모 2~4 줄에서 별도 창, 자리 저장, 크게를 뺐다. 이름을 누르면 창이 열린다. 빼기는 - 이고, 올리면 빼기라고 나온다. 홈과 크게 보기 창의 + 는 + 추가이다. 홈 메모의 크게는 그대로다. 4개 제한은 그대로다.
+
+글꼴: Windows 기본 Segoe UI, 맑은 고딕. SIL OFL이 아니고, 묶거나 바꾸지 않았다.
+
+의존성: 새 라이브러리 없음. GPL·AGPL을 더하지 않았다. 기존 @img/sharp 계열 LGPL은 설치 파일에 넣지 않는다. 저작권·라이선스 파일은 바꾸지 않았다.
+
+보안: 글자·색만 바꿨다. 저장, 창 열기, 권한은 그대로다.
+
+특허 검토: 안내 칸과 단추 글자 변경. 새 기술 구성 없음. 청구항 대조는 하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.145-20261001
 설치 파일: EduLauncher_0.1.145-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1319_x64-setup.exe

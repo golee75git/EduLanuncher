@@ -74,23 +74,19 @@ function AddMemoButton({ compact = false }: { compact?: boolean }) {
       title={full ? "메모는 4개까지입니다" : "메모 창 추가"}
       onClick={() => void addAndOpen()}
     >
-      +
+      + 추가
     </button>
   );
 }
 
 function ExtraMemoList() {
   const notes = useMemoStore((state) => state.notes);
-  const openIds = useMemoStore((state) => state.openIds);
   if (notes.length === 0) {
     return null;
   }
   return (
     <ul className="mt-1.5 flex flex-col gap-0.5">
-      {notes.map((note, index) => {
-        const open = openIds.includes(note.id);
-        const moved = note.x !== null && note.y !== null;
-        return (
+      {notes.map((note, index) => (
         <li key={note.id} className="flex items-center gap-1">
           <button
             type="button"
@@ -100,28 +96,16 @@ function ExtraMemoList() {
             {memoWindowTitle(index)}
             <span className="text-quiet"> · {memoNotePreview(note.text)}</span>
           </button>
-          {open || moved ? (
-            <span className="shrink-0 rounded-full bg-ink-soft px-1.5 py-0.5 text-[10px] text-ink">
-              {open ? "별도 창" : "자리 저장"}
-            </span>
-          ) : null}
           <button
             type="button"
-            className="rounded-lg px-2 py-0.5 text-[11px] font-medium text-ink hover:bg-ink-soft"
-            onClick={() => openSaved(note, index, true)}
-          >
-            크게
-          </button>
-          <button
-            type="button"
-            className="rounded-lg px-2 py-0.5 text-[11px] text-quiet hover:bg-ink-soft"
+            className="rounded-lg px-2 py-0.5 text-[12px] text-quiet hover:bg-ink-soft"
+            title="빼기"
             onClick={() => void removeSaved(note.id)}
           >
-            빼기
+            -
           </button>
         </li>
-        );
-      })}
+      ))}
     </ul>
   );
 }
