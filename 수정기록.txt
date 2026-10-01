@@ -6,6 +6,37 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.152-20261001
+설치 파일: EduLauncher_0.1.152-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1713_x64-setup.exe
+작성자: 요청자
+
+요청: 홈 맨 위 칸을 로고 그림으로 바꾸고, 제목의 AI 글자색을 로고의 민트색으로 한다.
+
+새로 만든 파일:
+- src/assets/home-mark.png
+
+재사용한 기존 파일:
+- src/components/home/AppHeader.tsx
+- src/index.css
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+
+확인:
+- 새 패키지 없음. GPL 패키지 추가 없음
+- 로고는 요청자가 준 그림만 넣음. 외부 코드를 가져오지 않음
+- 글꼴은 기존 Windows 글꼴 그대로. OFL 글꼴을 새로 넣지 않음
+- 밝은 헤더에서 로고의 민트 #88efc5 는 거의 보이지 않아, 같은 색을 #0f9a70 으로 진하게 함. 어두운 화면은 #88efc5
+- 특허 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.151-20261001
 설치 파일: EduLauncher_0.1.151-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1701_x64-setup.exe

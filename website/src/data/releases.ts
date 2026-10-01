@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.152-20261001",
+    note: "홈 맨 위 칸에 로고를 넣었습니다. 제목의 AI는 로고의 민트색입니다.",
+  },
+  {
     version: "0.1.151-20261001",
     note: "홈 맨 위 표시를 AI런처박스로 바꿨습니다. 설치 이름은 EduLauncher입니다.",
   },

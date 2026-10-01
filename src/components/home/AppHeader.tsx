@@ -1,5 +1,6 @@
 import { Plus, Settings } from "lucide-react";
 import type { ReactNode } from "react";
+import markUrl from "../../assets/home-mark.png";
 
 interface AppHeaderProps {
   dateLabel: string;
@@ -12,13 +13,11 @@ export function AppHeader({ dateLabel, extra, onSettings, onAdd }: AppHeaderProp
   return (
     <header className="flex h-[82px] shrink-0 items-center justify-between gap-3 px-7">
       <div className="flex min-w-0 items-center gap-2.5">
-        <span
-          className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] bg-ink text-[13px] font-bold tracking-tight text-white"
-          aria-hidden="true"
-        >
-          AI
-        </span>
-        <h1 className="truncate text-[20px] font-bold leading-tight text-desk">AI런처박스</h1>
+        <img src={markUrl} alt="" width={38} height={38} className="h-[38px] w-[38px] shrink-0 rounded-[10px] object-cover" />
+        <h1 className="truncate text-[20px] font-bold leading-tight text-desk">
+          <span className="home-title-ai">AI</span>
+          런처박스
+        </h1>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
         {extra}
