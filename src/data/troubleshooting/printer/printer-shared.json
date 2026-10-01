@@ -1,0 +1,99 @@
+{
+  "id": "printer-shared",
+  "category": "printer",
+  "title": "공유 프린터를 확인하지 못했어요",
+  "aliases": [
+    "공유 프린터",
+    "다른 PC 프린터",
+    "서버 프린터",
+    "공유 인쇄 안 됨",
+    "프린터 서버 응답"
+  ],
+  "keywords": [
+    "공유 프린터",
+    "다른 PC 프린터",
+    "서버 프린터"
+  ],
+  "symptoms": [
+    "공유 프린터 상태를 이 PC만으로 확정하지 못했어요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": [
+    "personal",
+    "organization"
+  ],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "기관에서 관리하는 PC일 수 있습니다. 프린터 설정이나 드라이버를 직접 바꾸기 전에 전산담당자에게 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "이 PC만 그런가요?",
+      "options": [
+        {
+          "label": "이 PC만 그렇습니다",
+          "next": "solution_1"
+        },
+        {
+          "label": "다른 PC도 그렇습니다",
+          "next": "solution_2"
+        },
+        {
+          "label": "잘 모르겠습니다",
+          "next": "support"
+        }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "이 PC에서 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "프린터를 제공하는 PC 또는 서버가 켜져 있는지 확인하세요.",
+        "같은 프린터를 쓰는 다른 PC도 안 되면 자리와 시각을 담당자에게 알리세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "담당자에게 전달",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "같은 프린터를 쓰는 다른 PC도 출력되는지 확인하세요.",
+        "안 되면 프린터 이름, 자리, 시각을 전산담당자에게 알려 주세요."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows의 프린터 연결 및 인쇄 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/hardware/printer/fix-printer-connection-and-printing-problems-in-windows"
+    }
+  ],
+  "support": {
+    "message": "설정을 바꾸지 말고 확인한 내용을 전산담당자에게 알려 주세요.",
+    "collect": [
+      "프린터 이름",
+      "자리",
+      "시각"
+    ]
+  }
+}

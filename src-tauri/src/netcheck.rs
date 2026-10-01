@@ -78,6 +78,7 @@ struct AdapterFact {
     media: Media,
     up: bool,
     ipv4: Vec<String>,
+    prefixes: Vec<u8>,
     global_v6: bool,
     gateway: Option<String>,
     dns: Vec<String>,
@@ -436,7 +437,9 @@ fn judge(facts: &ProbeFacts) -> LinkReport {
     let address = if device.status == "error" {
         row("address", "IP 주소", "skipped", "확인 불가")
     } else if let Some(item) = picked {
-        if item.ipv4.iter().any(|ip| usable_v4(ip)) {
+        if item.ipv4.iter().any(|ip| usable_v4(ip)) && subnet_gap(item) {
+            row("address", "IP 주소", "warning", "확인 필요")
+        } else if item.ipv4.iter().any(|ip| usable_v4(ip)) {
             row("address", "IP 주소", "success", "정상")
         } else if apipa_only(item) || (item.ipv4.is_empty() && !item.global_v6) {
             row("address", "IP 주소", "error", "문제 발견")
@@ -486,7 +489,8 @@ fn judge(facts: &ProbeFacts) -> LinkReport {
     };
 
     let rows = vec![device, address, inside, names, web];
-    let (finding, advice, help_id, pages) = explain(&rows, facts.stopped, facts.timed_out);
+    let gap = picked.is_some_and(subnet_gap);
+    let (finding, advice, help_id, pages) = explain(&rows, facts.stopped, facts.timed_out, gap);
     let technical = technical_lines(facts, picked);
     let copy_text = copy_text(&rows, &finding);
     LinkReport {
@@ -501,7 +505,34 @@ fn judge(facts: &ProbeFacts) -> LinkReport {
     }
 }
 
-fn explain(rows: &[LinkRow], stopped: bool, timed_out: bool) -> (String, String, String, Vec<String>) {
+fn same_prefix(left: Ipv4Addr, right: Ipv4Addr, prefix: u8) -> bool {
+    let bits = u32::from(prefix);
+    let mask = u32::MAX.checked_shl(32 - bits).unwrap_or(0);
+    (u32::from(left) & mask) == (u32::from(right) & mask)
+}
+
+fn subnet_gap(item: &AdapterFact) -> bool {
+    let Some(gateway) = item.gateway.as_deref().filter(|text| usable_v4(text)).and_then(|text| text.parse::<Ipv4Addr>().ok()) else {
+        return false;
+    };
+    let mut comparable = 0u32;
+    let mut matched = 0u32;
+    for (text, prefix) in item.ipv4.iter().zip(item.prefixes.iter()) {
+        if !usable_v4(text) || !(1..=30).contains(prefix) {
+            continue;
+        }
+        let Ok(addr) = text.parse::<Ipv4Addr>() else {
+            continue;
+        };
+        comparable += 1;
+        if same_prefix(addr, gateway, *prefix) {
+            matched += 1;
+        }
+    }
+    comparable > 0 && matched == 0
+}
+
+fn explain(rows: &[LinkRow], stopped: bool, timed_out: bool, subnet_gap: bool) -> (String, String, String, Vec<String>) {
     let status = |id: &str| rows.iter().find(|row| row.id == id).map(|row| row.status.as_str()).unwrap_or("skipped");
     let mut finding;
     let advice;
@@ -515,6 +546,11 @@ fn explain(rows: &[LinkRow], stopped: bool, timed_out: bool) -> (String, String,
     } else if status("address") == "error" {
         finding = "PC가 네트워크 주소를 정상적으로 받지 못했습니다.".to_string();
         advice = "네트워크 연결 또는 기관 네트워크의 주소 할당 상태를 확인해 주세요.".to_string();
+        help = "network-ip-assignment".to_string();
+        pages = vec!["network".into()];
+    } else if subnet_gap {
+        finding = "이 PC 주소와 기본 경로가 같은 망에 있지 않습니다.\n주소가 맞게 들어갔는지 담당자와 확인해 주세요.".to_string();
+        advice = "주소 값을 직접 바꾸지 말고 담당자에게 확인해 주세요.".to_string();
         help = "network-ip-assignment".to_string();
         pages = vec!["network".into()];
     } else if status("names") == "error" && status("web") != "success" {
@@ -576,6 +612,9 @@ fn technical_lines(facts: &ProbeFacts, picked: Option<&AdapterFact>) -> Vec<Tech
             label: "기본 경로".into(),
             value: item.gateway.clone().unwrap_or_else(|| "없음".into()),
         });
+        if subnet_gap(item) {
+            lines.push(TechLine { label: "같은 망".into(), value: "아니요".into() });
+        }
         lines.push(TechLine {
             label: "주소 서버".into(),
             value: if item.dns.is_empty() { "없음".into() } else { item.dns.join(", ") },
@@ -618,6 +657,7 @@ fn adapter(media: Media, up: bool, ipv4: &[&str], global_v6: bool, gateway: Opti
         media,
         up,
         ipv4: ipv4.iter().map(|ip| (*ip).to_string()).collect(),
+        prefixes: vec![0; ipv4.len()],
         global_v6,
         gateway: gateway.map(str::to_string),
         dns: dns.iter().map(|ip| (*ip).to_string()).collect(),
@@ -660,6 +700,7 @@ fn read_adapters() -> Result<Vec<AdapterFact>, ()> {
                 _ => Media::Other,
             };
             let mut ipv4 = Vec::new();
+            let mut prefixes = Vec::new();
             let mut global_v6 = false;
             let mut address = item.FirstUnicastAddress;
             let mut address_hops = 0;
@@ -667,7 +708,10 @@ fn read_adapters() -> Result<Vec<AdapterFact>, ()> {
                 address_hops += 1;
                 let row = &*(address as *const IP_ADAPTER_UNICAST_ADDRESS_LH);
                 match read_socket(&row.Address) {
-                    Some(SockIp::V4(ip)) => ipv4.push(ip.to_string()),
+                    Some(SockIp::V4(ip)) => {
+                        ipv4.push(ip.to_string());
+                        prefixes.push(row.OnLinkPrefixLength);
+                    }
                     Some(SockIp::V6(ip)) => {
                         if is_global_v6(ip) {
                             global_v6 = true;
@@ -709,6 +753,7 @@ fn read_adapters() -> Result<Vec<AdapterFact>, ()> {
                     media,
                     up: item.OperStatus == IfOperStatusUp,
                     ipv4,
+                    prefixes,
                     global_v6,
                     gateway,
                     dns,
@@ -1074,5 +1119,25 @@ mod tests {
         assert_eq!(report.rows[4].status, "warning");
         assert!(!report.finding.contains("장애"));
         assert!(report.finding.contains("확정하지 못했습니다"));
+    }
+
+    #[test]
+    fn address_outside_the_gateway_network_asks_for_a_check() {
+        let mut item = adapter(Media::Wired, true, &["192.168.0.50"], false, Some("10.1.1.1"), &[]);
+        item.prefixes = vec![24];
+        let report = judge(&facts(vec![item], Mark::Yes, Mark::Yes, Mark::Yes));
+        assert_eq!(report.rows[1].status, "warning");
+        assert!(report.finding.contains("같은 망"));
+        assert!(!report.finding.contains("장애"));
+        assert!(!report.copy_text.contains("192.168.0.50"));
+        assert!(!report.copy_text.contains("10.1.1.1"));
+    }
+
+    #[test]
+    fn address_inside_the_gateway_network_stays_normal() {
+        let mut item = adapter(Media::Wired, true, &["10.1.1.8"], false, Some("10.1.1.1"), &[]);
+        item.prefixes = vec![24];
+        let report = judge(&facts(vec![item], Mark::Yes, Mark::Yes, Mark::Yes));
+        assert_eq!(report.rows[1].status, "success");
     }
 }

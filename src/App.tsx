@@ -28,6 +28,7 @@ import { ShortcutPage } from "./pages/ShortcutPage";
 import { DocSearchPage } from "./pages/DocSearchPage";
 import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { InternetCheckPage } from "./pages/InternetCheckPage";
+import { PrinterCheckPage } from "./pages/PrinterCheckPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
@@ -42,7 +43,7 @@ import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
-import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget } from "./data/computerTools";
+import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget } from "./data/computerTools";
 import { isPdfPagesTarget } from "./data/sampleTools";
 import { logEducationValidation } from "./services/mindMapService";
 import { logTroubleshootingValidation } from "./services/troubleshootingService";
@@ -91,6 +92,7 @@ type View =
   | { name: "topic"; topicId: string; backTo: View }
   | { name: "pc-address" }
   | { name: "pc-link"; backTo?: View }
+  | { name: "pc-print"; backTo?: View }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
   | { name: "doc-shrink"; backTo?: View; startPaths?: string[] }
@@ -606,6 +608,10 @@ export default function App() {
         setView({ name: "pc-link", backTo: { name: "home" } });
         return;
       }
+      if (tool.type === "internal" && isPrintCheckTarget(tool.target || tool.id)) {
+        setView({ name: "pc-print", backTo: { name: "home" } });
+        return;
+      }
       if (tool.type === "internal") {
         const result = await launchTool(tool);
         if (result === "internal") {
@@ -657,6 +663,10 @@ export default function App() {
     }
     if (action.type === "pc-link") {
       setView({ name: "pc-link", backTo: { name: "home", search: clipSearch(action.search) } });
+      return;
+    }
+    if (action.type === "pc-print") {
+      setView({ name: "pc-print", backTo: { name: "home", search: clipSearch(action.search) } });
       return;
     }
     if (action.type === "troubleshoot") {
@@ -820,6 +830,7 @@ export default function App() {
               }
               onShowDocShrink={() => setView({ name: "doc-shrink", backTo: { name: "computer-tools" } })}
               onShowLinkCheck={() => setView({ name: "pc-link", backTo: { name: "computer-tools" } })}
+              onShowPrintCheck={() => setView({ name: "pc-print", backTo: { name: "computer-tools" } })}
               onShowTroubleshoot={() =>
                 setView({ name: "troubleshoot", backTo: { name: "computer-tools" } })
               }
@@ -912,6 +923,18 @@ export default function App() {
           {view.name === "pc-address" ? (
             <ThisPcAddressPage onBack={() => setView({ name: "computer-tools" })} />
           ) : null}
+          {view.name === "pc-print" ? (
+            <PrinterCheckPage
+              onBack={() => setView(view.backTo ?? { name: "computer-tools" })}
+              onOpenHelp={(cardId) =>
+                setView({
+                  name: "troubleshoot-card",
+                  cardId,
+                  backTo: { name: "pc-print", backTo: view.backTo },
+                })
+              }
+            />
+          ) : null}
           {view.name === "pc-link" ? (
             <InternetCheckPage
               onBack={() => setView(view.backTo ?? { name: "computer-tools" })}
@@ -981,6 +1004,18 @@ export default function App() {
           {view.name === "internal" && isFolderFindTarget(view.id) ? (
             <PcFolderFindPage onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && isPrintCheckTarget(view.id) ? (
+            <PrinterCheckPage
+              onBack={() => setView({ name: "home" })}
+              onOpenHelp={(cardId) =>
+                setView({
+                  name: "troubleshoot-card",
+                  cardId,
+                  backTo: { name: "pc-print", backTo: { name: "home" } },
+                })
+              }
+            />
+          ) : null}
           {view.name === "internal" && isLinkCheckTarget(view.id) ? (
             <InternetCheckPage
               onBack={() => setView({ name: "home" })}
@@ -1009,7 +1044,8 @@ export default function App() {
           !isDocShrinkTarget(view.id) &&
           !isPdfPagesTarget(view.id) &&
           !isFolderFindTarget(view.id) &&
-          !isLinkCheckTarget(view.id) ? (
+          !isLinkCheckTarget(view.id) &&
+          !isPrintCheckTarget(view.id) ? (
             <InternalPlaceholderPage
               title={view.title}
               onBack={() => setView({ name: "home" })}

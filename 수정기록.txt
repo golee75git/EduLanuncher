@@ -6,6 +6,61 @@
 ---
 
 날짜: 2026-10-01
+버전: 0.1.149-20261001
+설치 파일: EduLauncher_0.1.149-20261001_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-01_1529_x64-setup.exe
+작성자: 요청자
+
+요청: 인터넷 연결 점검에서 주소와 기본 경로가 같은 망이 아니면 담당자 확인을 안내한다. 컴퓨터도구에 프린터 출력 점검을 넣는다.
+
+새로 만든 파일:
+- src-tauri/src/printcheck.rs
+- src/pages/PrinterCheckPage.tsx
+- src/services/printerCheckService.ts
+- src/data/troubleshooting/printer/printer-spooler.json
+- src/data/troubleshooting/printer/printer-not-installed.json
+- src/data/troubleshooting/printer/printer-queue.json
+- src/data/troubleshooting/printer/printer-shared.json
+- src/data/troubleshooting/printer/printer-network.json
+- src/data/troubleshooting/printer/printer-usb.json
+- src/data/troubleshooting/printer/printer-hardware-check.json
+- src/data/troubleshooting/printer/printer-general.json
+
+재사용한 기존 파일:
+- src-tauri/src/netcheck.rs
+- src-tauri/src/lib.rs
+- src-tauri/Cargo.toml
+- src-tauri/tauri.conf.json
+- src/data/computerTools.ts
+- src/data/toolIcons.ts
+- src/App.tsx
+- src/pages/ComputerToolPage.tsx
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/services/troubleshootingService.ts
+- src/data/troubleshooting/network/network-ip-assignment.json
+- src/data/troubleshooting/printer/printer-offline.json
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+주소와 기본 경로는 Windows가 알려 준 접두로만 비교한다. 접두를 짐작하지 않는다. 다르면 인터넷 장애로 쓰지 않고 담당자 확인을 안내한다. 프린터 점검은 점검 시작 뒤에만 이 PC에서 인쇄 서비스, 목록, 상태, 대기열, 연결을 본다. 인쇄 설정과 대기열 문서는 바꾸지 않는다. 문서 이름과 사용자 이름은 읽지 않는다. 대기열 창은 설정 주소가 없어 rundll32에 인자 배열로 연다. 이름은 목록에 있던 값만 쓴다.
+
+글꼴: Windows 기본 Segoe UI, 맑은 고딕. SIL OFL이 아니고, 묶거나 바꾸지 않았다.
+
+의존성: 새 라이브러리 없음. windows 0.61.3에 인쇄·서비스·시간 기능 플래그만 추가. MIT 또는 Apache-2.0. GPL·AGPL을 더하지 않았다.
+
+보안: 프린터 이름 외의 문서명, 사용자명, PC 이름, 네트워크 프린터 주소는 남기지 않는다. 외부 통신, 포트 검색, 관리자 권한, 테스트 인쇄는 없다. 결과는 전송하지 않는다.
+
+특허 검토: 주소와 기본 경로의 접두 차이를 짧은 문장으로 보여주는 구성, 인쇄 단계를 짧은 문장으로 보여주는 구성. 특정 청구항과 대조하지 않았다. 특허 비침해를 보장하지 않는다.
+
+---
+
+날짜: 2026-10-01
 버전: 0.1.148-20261001
 설치 파일: EduLauncher_0.1.148-20261001_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-01_1502_x64-setup.exe

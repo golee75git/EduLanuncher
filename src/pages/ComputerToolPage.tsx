@@ -10,6 +10,7 @@ import {
   isDocShrinkTool,
   isFolderFindTool,
   isLinkCheckTool,
+  isPrintCheckTool,
   listComputerTools,
   sameLocalPath,
 } from "../data/computerTools";
@@ -23,6 +24,7 @@ interface ComputerToolPageProps {
   onShowFolderFind: () => void;
   onShowDocShrink: () => void;
   onShowLinkCheck: () => void;
+  onShowPrintCheck: () => void;
   onShowTroubleshoot: () => void;
 }
 
@@ -33,6 +35,7 @@ export function ComputerToolPage({
   onShowFolderFind,
   onShowDocShrink,
   onShowLinkCheck,
+  onShowPrintCheck,
   onShowTroubleshoot,
 }: ComputerToolPageProps) {
   const tools = useToolStore((state) => state.tools);
@@ -117,6 +120,8 @@ export function ComputerToolPage({
                           ? onShowDocShrink()
                           : isLinkCheckTool(entry)
                             ? onShowLinkCheck()
+                            : isPrintCheckTool(entry)
+                              ? onShowPrintCheck()
                             : onLaunch(item)
                   }
                 >

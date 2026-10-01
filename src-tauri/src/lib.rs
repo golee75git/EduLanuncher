@@ -20,6 +20,7 @@ use tauri_plugin_opener::OpenerExt;
 mod doc_shrink;
 mod document_search;
 mod netcheck;
+mod printcheck;
 mod pdf_pages;
 mod netutil;
 mod shortcut;
@@ -2363,6 +2364,10 @@ pub fn run() {
             netcheck::begin_pc_link,
             netcheck::halt_pc_link,
             netcheck::open_pc_setting,
+            printcheck::begin_pc_print,
+            printcheck::carry_pc_print,
+            printcheck::halt_pc_print,
+            printcheck::open_print_view,
             latest_release_tag,
             scan_ipv4_range,
             scan_cctv_range,

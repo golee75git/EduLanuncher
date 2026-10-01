@@ -386,7 +386,7 @@ function loadCatalog(): { cards: TroubleCard[]; issues: TroubleIssue[] } {
   }
 
   for (const category of TROUBLE_CATEGORIES) {
-    const expected = category === "network" ? 17 : 10;
+    const expected = category === "network" ? 17 : category === "printer" ? 18 : 10;
     const count = kept.filter((card) => card.category === category).length;
     if (count !== expected) {
       issues.push({ id: category, reason: `카드 ${count}개입니다. ${expected}개여야 합니다.` });

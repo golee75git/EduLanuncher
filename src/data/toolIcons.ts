@@ -11,6 +11,7 @@ import {
   Mic,
   Monitor,
   Network,
+  Printer,
   School,
   Settings,
   Sheet,
@@ -36,6 +37,7 @@ export const TOOL_ICON_MAP: Record<string, LucideIcon> = {
   settings: Settings,
   star: Star,
   monitor: Monitor,
+  printer: Printer,
   wrench: Wrench,
 };
 
@@ -54,6 +56,7 @@ export const TOOL_ICON_OPTIONS = [
   { id: "folder", label: "폴더" },
   { id: "school", label: "학교" },
   { id: "monitor", label: "프로그램" },
+  { id: "printer", label: "프린터" },
   { id: "wrench", label: "도구" },
 ] as const;
 

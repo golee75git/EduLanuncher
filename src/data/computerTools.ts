@@ -8,7 +8,7 @@ export interface ComputerToolEntry {
   hint: string;
   type: Extract<ToolType, "app" | "file" | "internal">;
   fileName?: string;
-  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink" | "pc-link";
+  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink" | "pc-link" | "pc-print";
 }
 
 const ENTRIES: ComputerToolEntry[] = [
@@ -53,6 +53,13 @@ const ENTRIES: ComputerToolEntry[] = [
     hint: "인터넷이 안 될 때 현재 PC의 연결 상태를 단계별로 확인합니다.",
     type: "internal",
     view: "pc-link",
+  },
+  {
+    id: "pc-print",
+    name: "프린터 출력 점검",
+    hint: "프린터 출력이 안 될 때 현재 PC의 프린터 상태를 단계별로 확인합니다.",
+    type: "internal",
+    view: "pc-print",
   },
   {
     id: "pc-address",
@@ -197,12 +204,42 @@ export function isLinkCheckTarget(target: string): boolean {
   return target === "pc-link" || target === "pc-sys:pc-link";
 }
 
+const PRINT_WORDS = [
+  "프린터 출력 점검",
+  "프린터 안돼",
+  "프린터가 안돼",
+  "프린터 안됨",
+  "인쇄 안돼",
+  "인쇄가 안돼",
+  "출력 안돼",
+  "출력이 안돼",
+  "문서 출력 안됨",
+  "프린터 먹통",
+  "인쇄 오류",
+  "프린터 오류",
+  "프린터 오프라인",
+  "출력이 안나와",
+  "인쇄가 안나와",
+  "프린터 점검",
+  "프린터 확인",
+  "인쇄 대기",
+  "인쇄 멈춤",
+];
+
+export function isPrintCheckTool(entry: ComputerToolEntry): boolean {
+  return entry.view === "pc-print";
+}
+
+export function isPrintCheckTarget(target: string): boolean {
+  return target === "pc-print" || target === "pc-sys:pc-print";
+}
+
 export function listComputerTools(): ComputerToolEntry[] {
   return ENTRIES;
 }
 
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
-  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry) || isLinkCheckTool(entry)) {
+  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry) || isLinkCheckTool(entry) || isPrintCheckTool(entry)) {
     const target = isIeResetTool(entry)
       ? "ie-reset"
       : isFolderFindTool(entry)
@@ -211,18 +248,22 @@ export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
           ? "doc-shrink"
           : isLinkCheckTool(entry)
             ? "pc-link"
-            : "pc-address";
+            : isPrintCheckTool(entry)
+              ? "pc-print"
+              : "pc-address";
     return {
       id: `pc-sys:${entry.id}`,
       name: entry.name,
       description: entry.hint,
       type: "internal",
       target,
-      icon: isLinkCheckTool(entry) ? "globe" : isDocShrinkTool(entry) ? "file" : "folder",
+      icon: isPrintCheckTool(entry) ? "printer" : isLinkCheckTool(entry) ? "globe" : isDocShrinkTool(entry) ? "file" : "folder",
       category: "전산",
       favorite: true,
       keywords: isLinkCheckTool(entry)
         ? LINK_WORDS
+        : isPrintCheckTool(entry)
+          ? PRINT_WORDS
         : isDocShrinkTool(entry)
         ? [entry.name, "컴퓨터도구", "사진", "문서", "용량"]
         : isFolderFindTool(entry)
