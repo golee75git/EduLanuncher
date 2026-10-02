@@ -69,7 +69,7 @@ Pack 분기 (`src/services/applyNoticePack.ts`):
 ## 웹 (Cloudflare)
 
 프로젝트 이름: `edulanuncher`  
-Root directory: **`website`** (비우면 런처 화면이 웹에 올라감). `/menu/topic/업무id` 와 `/menu/handbook` 분류·업무는 업무 흐름과 한눈에 보기를 사이트에서 그린다. 편람은 분류 그림의 칸 순서다. 단계 글은 `website/tools/copyKnowledge.mjs`가 업무자료 JSON에서 만든다.
+Root directory: **`website`** (비우면 런처 화면이 웹에 올라감). `/menu` 는 왼쪽에 편람 분류·업무자료·인증서, 오른쪽에 내용을 둔다. `/menu/topic/업무id` 와 `/menu/handbook` 분류·업무는 업무 흐름과 한눈에 보기를 사이트에서 그린다. 편람은 분류 그림의 칸 순서다. 단계 글은 `website/tools/copyKnowledge.mjs`가 업무자료 JSON에서 만든다.
 
 루트 `package.json`·`vite.config.ts`에 wrangler나 `@cloudflare/vite-plugin`을 두지 않는다. 앱 `npm run build`는 패널만 묶는다. 사이트는 `npm run site:build`와 `website/wrangler.jsonc`만 쓴다.
 

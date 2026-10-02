@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { TopicStepBoards } from "../components/TopicStepBoards";
 import {
   handbookTopicTasks,
@@ -139,6 +139,39 @@ function EpkiTree({ node }: { node: EpkiNode }) {
   );
 }
 
+const MENU_RAIL = [
+  { id: "handbook", href: "/menu/handbook", label: "편람 분류" },
+  { id: "topic", href: "/menu/topic", label: "업무자료" },
+  { id: "epki", href: "/menu/epki", label: "인증서" },
+] as const;
+
+function MenuFrame({ section, children }: { section: string; children: ReactNode }) {
+  return (
+    <div className="grid items-start gap-6 md:grid-cols-[11rem_minmax(0,1fr)]">
+      <nav aria-label="매뉴얼 구분" className="flex flex-wrap gap-2 md:sticky md:top-4 md:flex-col">
+        {MENU_RAIL.map((item) => {
+          const current = section === item.id;
+          return (
+            <a
+              key={item.id}
+              href={item.href}
+              aria-current={current ? "page" : undefined}
+              className={`rounded-lg border px-3 py-2 text-sm text-desk ${current ? "border-ink bg-ink-soft" : "border-line bg-card"}`}
+            >
+              {item.label}
+            </a>
+          );
+        })}
+      </nav>
+      <div className="min-w-0">{children}</div>
+    </div>
+  );
+}
+
+function withRail(section: string, body: ReactNode) {
+  return <MenuFrame section={section}>{body}</MenuFrame>;
+}
+
 export function MenuPage({ pathname }: { pathname: string }) {
   const [data, setData] = useState<MenuData | null>(null);
   const [error, setError] = useState("");
@@ -195,11 +228,11 @@ export function MenuPage({ pathname }: { pathname: string }) {
   const itemId = path[1] ?? "";
 
   if (section === "") {
-    return (
+    return withRail("", (
       <div className="space-y-6">
         <header className="max-w-2xl space-y-2">
           <h1 className="text-2xl font-semibold text-desk">매뉴얼</h1>
-          <p className="text-sm leading-relaxed text-quiet">편람과 업무자료, 인증서 안내를 읽습니다. 프로그램 실행은 이 페이지에서 하지 않습니다.</p>
+          <p className="text-sm leading-relaxed text-quiet">왼쪽에서 편람 분류, 업무자료, 인증서를 고르면 오른쪽에 내용이 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다.</p>
         </header>
         <input
           className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
@@ -220,26 +253,12 @@ export function MenuPage({ pathname }: { pathname: string }) {
             {manualHits.length === 0 ? <li className="text-sm text-quiet">이 표현은 편람 2장 본문에서 찾지 못했습니다.</li> : null}
           </ul>
         ) : null}
-        <div className="grid gap-3 sm:grid-cols-3">
-          <a className="card-surface p-4" href="/menu/handbook">
-            <span className="block text-sm font-semibold text-desk">편람 분류</span>
-            <span className="mt-1 block text-sm text-quiet">분류를 열면 업무 흐름과 한눈에 보기가 있습니다</span>
-          </a>
-          <a className="card-surface p-4" href="/menu/topic">
-            <span className="block text-sm font-semibold text-desk">업무자료</span>
-            <span className="mt-1 block text-sm text-quiet">제목으로 찾아 업무 흐름과 한눈에 보기를 봅니다</span>
-          </a>
-          <a className="card-surface p-4" href="/menu/epki">
-            <span className="block text-sm font-semibold text-desk">인증서</span>
-            <span className="mt-1 block text-sm text-quiet">교육행정전자서명(EPKI)</span>
-          </a>
-        </div>
       </div>
-    );
+    ));
   }
 
   if (section === "handbook" && itemId === "") {
-    return (
+    return withRail("handbook", (
       <div className="space-y-4">
         <a className="text-sm text-ink" href="/menu">
           매뉴얼
@@ -257,13 +276,13 @@ export function MenuPage({ pathname }: { pathname: string }) {
           ))}
         </ul>
       </div>
-    );
+    ));
   }
 
   if (section === "handbook" && itemId.startsWith("CAT-")) {
     const category = data.handbook.categories.find((item) => item.id === itemId);
     const topics = data.handbook.topics.filter((topic) => topic.categoryId === itemId);
-    return (
+    return withRail("handbook", (
       <div className="space-y-4">
         <a className="text-sm text-ink" href="/menu/handbook">
           편람 분류
@@ -281,7 +300,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
           ))}
         </ul>
       </div>
-    );
+    ));
   }
 
   if (section === "handbook" && itemId) {
@@ -293,7 +312,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
     });
     const covered = new Set(steps.map((step) => step.title.trim()));
     const rest = tasks.filter((task) => !covered.has(task.name.trim()));
-    return (
+    return withRail("handbook", (
       <div className="space-y-4">
         <a className="text-sm text-ink" href={topic ? `/menu/handbook/${encodeURIComponent(topic.categoryId)}` : "/menu/handbook"}>
           편람 분류
@@ -303,11 +322,11 @@ export function MenuPage({ pathname }: { pathname: string }) {
         {steps.length > 0 ? <TopicStepBoards steps={steps} /> : null}
         {steps.length === 0 ? <TaskBlocks tasks={tasks} /> : rest.length > 0 ? <TaskBlocks tasks={rest} /> : null}
       </div>
-    );
+    ));
   }
 
   if (section === "topic" && itemId === "") {
-    return (
+    return withRail("topic", (
       <div className="space-y-4">
         <a className="text-sm text-ink" href="/menu">
           매뉴얼
@@ -332,7 +351,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
         </ul>
         {topicHits.length === 0 ? <p className="text-sm text-quiet">해당하는 업무가 없습니다.</p> : null}
       </div>
-    );
+    ));
   }
 
   if (section === "topic" && itemId.startsWith("topic-")) {
@@ -340,7 +359,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
     const parts = topic?.parts ?? [];
     const shown = manualStep ? parts.filter((part) => part.title === manualStep) : parts;
     const visible = shown.length > 0 ? shown : parts;
-    return (
+    return withRail("topic", (
       <div className="space-y-4">
         <a className="text-sm text-ink" href="/menu">
           매뉴얼
@@ -375,13 +394,13 @@ export function MenuPage({ pathname }: { pathname: string }) {
         ))}
         {!topic ? <p className="text-sm text-quiet">이 업무는 자료에 없습니다.</p> : null}
       </div>
-    );
+    ));
   }
 
   if (section === "topic" && itemId) {
     const row = data.topics.find((item) => item.id === itemId);
     const tasks = row ? section2ForTitle(data.section2, row.title) : [];
-    return (
+    return withRail("topic", (
       <div className="space-y-4">
         <a className="text-sm text-ink" href="/menu/topic">
           업무자료
@@ -395,11 +414,11 @@ export function MenuPage({ pathname }: { pathname: string }) {
         ) : null}
         <TaskBlocks tasks={tasks} />
       </div>
-    );
+    ));
   }
 
   if (section === "epki") {
-    return (
+    return withRail("epki", (
       <div className="space-y-4">
         <a className="text-sm text-ink" href="/menu">
           매뉴얼
@@ -437,15 +456,15 @@ export function MenuPage({ pathname }: { pathname: string }) {
           ))}
         </div>
       </div>
-    );
+    ));
   }
 
-  return (
+  return withRail("", (
     <div className="space-y-3">
       <a className="text-sm text-ink" href="/menu">
         매뉴얼
       </a>
       <p className="text-sm text-desk">이 매뉴얼 주소는 없습니다.</p>
     </div>
-  );
+  ));
 }
