@@ -20,11 +20,16 @@ use tauri_plugin_opener::OpenerExt;
 mod doc_shrink;
 mod document_search;
 mod netcheck;
+mod fixed_https;
 mod printcheck;
 mod pdf_pages;
 mod netutil;
 mod shortcut;
 mod privacy_mask;
+#[allow(dead_code)]
+mod privacy_scan;
+mod privacy_folder;
+mod file_desk;
 mod url_mark;
 mod user_folder;
 use doc_shrink::{doc_picture_bytes, plan_doc_save, write_new_picture};
@@ -442,6 +447,7 @@ fn panel_is_open(window: &tauri::WebviewWindow) -> bool {
 }
 
 fn hide_window(app: &AppHandle) {
+    file_desk::disarm(app, true);
     hide_map_window(app);
     hide_memo_pad(app);
     if let Some(window) = app.get_webview_window("main") {
@@ -2262,6 +2268,11 @@ fn list_pc_url_shortcuts() -> Result<Vec<PcUrlItem>, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .on_page_load(|webview, payload| {
+            if webview.label() == "main" && payload.event() == tauri::webview::PageLoadEvent::Started {
+                file_desk::disarm(webview.app_handle(), true);
+            }
+        })
         .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
             reveal_panel(app);
             emit_pack_paths(app, &pack_paths_from(argv.iter().cloned()));
@@ -2303,7 +2314,19 @@ pub fn run() {
             selected: String::new(),
         })))
         .manage(NoteDrafts(Mutex::new(HashMap::new())))
+        .manage(file_desk::FileDesk::new())
         .invoke_handler(tauri::generate_handler![
+            file_desk::privacy_enter,
+            file_desk::privacy_leave,
+            file_desk::privacy_reset,
+            file_desk::privacy_pick,
+            file_desk::privacy_pick_folder,
+            file_desk::privacy_folder_begin,
+            file_desk::privacy_folder_page,
+            file_desk::privacy_scan,
+            file_desk::privacy_stop,
+            file_desk::privacy_preview,
+            file_desk::privacy_reveal,
             hide_panel,
             show_panel,
             toggle_panel,

@@ -322,23 +322,7 @@ fn fetch_public_text(url: &str) -> Option<String> {
 }
 
 fn fetch_url_text(url: &str) -> Option<String> {
-    let output = hidden_command("curl")
-        .args([
-            "-sS",
-            "-4",
-            "--max-time",
-            "8",
-            "--ssl-no-revoke",
-            "-A",
-            "EduLauncher",
-            url,
-        ])
-        .output()
-        .ok()?;
-    if !output.status.success() {
-        return None;
-    }
-    let text = String::from_utf8(output.stdout).ok()?.trim().to_string();
+    let text = crate::fixed_https::read_https(url).ok()?.trim().to_string();
     if text.is_empty() {
         None
     } else {
@@ -370,27 +354,7 @@ pub fn lookup_public_ipv4() -> Result<String, String> {
             return Ok(ip);
         }
     }
-    if let Some(ip) = fetch_public_powershell() {
-        return Ok(ip);
-    }
     Err("공인 IP를 확인하지 못했습니다. 인터넷 연결을 확인하세요.".into())
-}
-
-fn fetch_public_powershell() -> Option<String> {
-    let script = "(Invoke-WebRequest -UseBasicParsing -TimeoutSec 8 -Uri 'https://api.ipify.org').Content.Trim()";
-    let output = hidden_command("powershell")
-        .args(["-NoProfile", "-NonInteractive", "-Command", script])
-        .output()
-        .ok()?;
-    if !output.status.success() {
-        return None;
-    }
-    let text = String::from_utf8(output.stdout).ok()?.trim().to_string();
-    if is_ipv4(&text) {
-        Some(text)
-    } else {
-        None
-    }
 }
 
 fn parse_ping_ms(text: &str) -> Option<u32> {

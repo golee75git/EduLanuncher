@@ -11,6 +11,7 @@ import {
   isFolderFindTool,
   isLinkCheckTool,
   isPrintCheckTool,
+  isPrivacyTool,
   listComputerTools,
   sameLocalPath,
 } from "../data/computerTools";
@@ -25,6 +26,7 @@ interface ComputerToolPageProps {
   onShowDocShrink: () => void;
   onShowLinkCheck: () => void;
   onShowPrintCheck: () => void;
+  onShowPrivacy: () => void;
   onShowTroubleshoot: () => void;
 }
 
@@ -36,6 +38,7 @@ export function ComputerToolPage({
   onShowDocShrink,
   onShowLinkCheck,
   onShowPrintCheck,
+  onShowPrivacy,
   onShowTroubleshoot,
 }: ComputerToolPageProps) {
   const tools = useToolStore((state) => state.tools);
@@ -90,7 +93,7 @@ export function ComputerToolPage({
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
           이 PC Windows 설정 화면을 열거나, 사설·공인 IP를 보고, 이 사용자 폴더에서 이름을 찾습니다. 익스플로러 설정
-          복원 확인 화면을 엽니다. 소리·인터넷 옵션·작업 관리자 화면도 엽니다. 이름을 대신 바꾸거나 권한을 올리지
+          복원 확인 화면을 엽니다. 개인정보 보호는 고른 파일이나 폴더만 이 PC 안에서 확인합니다. 소리·인터넷 옵션·작업 관리자 화면도 엽니다. 이름을 대신 바꾸거나 권한을 올리지
           않습니다. 설정 화면은 고정된 System32 파일만 실행합니다. PC 문제 해결은 질문에 답하며 안내만 보고, 명령을
           대신 실행하지 않습니다.
         </p>
@@ -122,6 +125,8 @@ export function ComputerToolPage({
                             ? onShowLinkCheck()
                             : isPrintCheckTool(entry)
                               ? onShowPrintCheck()
+                              : isPrivacyTool(entry)
+                                ? onShowPrivacy()
                             : onLaunch(item)
                   }
                 >

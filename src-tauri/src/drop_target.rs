@@ -95,6 +95,18 @@ impl IDropTarget_Impl for LauncherDropTarget_Impl {
             *pdwEffect = accepted_effect(*pdwEffect);
         }
         let _ = self.app.emit("launcher-drop-hover", false);
+        if crate::file_desk::is_armed(&self.app) {
+            if let Some(data) = pDataObj.as_ref() {
+                match read_drop(data) {
+                    Some(LauncherDrop::Paths { paths }) => {
+                        let note = crate::file_desk::take_path_strings(&self.app, &paths);
+                        let _ = self.app.emit("privacy-picked", note);
+                    }
+                    _ => crate::file_desk::foreign_drop(&self.app),
+                }
+            }
+            return Ok(());
+        }
         if let Some(data) = pDataObj.as_ref() {
             let payload = read_drop(data).unwrap_or_else(|| LauncherDrop::Unreadable {
                 formats: format_names(data),

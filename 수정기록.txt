@@ -5,6 +5,95 @@
 
 ---
 
+날짜: 2026-10-03
+대상: 개인정보 보호 폴더 검사
+작성자: 요청자
+
+요청: 고른 폴더만 이 PC 안에서 검사하고, 경로와 원문은 화면에 내보내지 않는다.
+
+새로 만든 파일:
+- src-tauri/src/privacy_folder.rs
+
+재사용한 기존 파일:
+- src-tauri/src/file_desk.rs
+- src-tauri/src/privacy_scan/
+- src-tauri/src/lib.rs
+- src-tauri/src/bin/privacy_fixtures.rs
+- src/pages/PrivacyScanPage.tsx
+- src/pages/ComputerToolPage.tsx
+- src/pages/SettingsPage.tsx
+
+새 패키지 없음. GPL 구성 요소 없음. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 글꼴을 넣지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+---
+
+날짜: 2026-10-02
+대상: 개인정보 보호 파일 검사 화면
+작성자: 요청자
+
+요청: 고른 파일만 이 PC 안에서 검사하고, 경로와 원문은 화면에 내보내지 않는다.
+
+새로 만든 파일:
+- src-tauri/src/file_desk.rs
+- src-tauri/src/bin/privacy_fixtures.rs
+- src/pages/PrivacyScanPage.tsx
+
+재사용한 기존 파일:
+- src-tauri/src/privacy_scan/ (읽기 루프에 중지 확인)
+- src-tauri/src/lib.rs
+- src-tauri/src/drop_target.rs
+- src/App.tsx
+- src/components/DropZone.tsx
+- src/data/computerTools.ts
+- src/data/toolIcons.ts
+- src/pages/HomePage.tsx
+- src/pages/ComputerToolPage.tsx
+
+확인:
+- 새 패키지 없음. GPL 패키지 추가 없음
+- 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, Malgun Gothic) 그대로. OFL 글꼴이 아님. OFL 글꼴을 새로 넣지 않음
+- 아이콘은 이미 있는 lucide-react의 ShieldCheck
+- 원본 파일은 고치거나 옮기지 않음
+- 특허 비침해를 보장하지 않으며 법적 검토가 아님
+- 설치본 0.1.156-20261002를 다시 만듦. 가짜 파일 도구는 fixtures 기능이 꺼진 기본 빌드에 들어가지 않음
+
+---
+
+날짜: 2026-10-02
+대상: 개인정보 검사 보완과 보안 1단계
+작성자: 요청자
+
+요청: 생년월일 후보, 숨은 위치 확인, 화면 연결 정책, 최신 버전·공인 IP의 HTTPS 읽기.
+
+새로 만든 파일:
+- src-tauri/src/fixed_https.rs
+
+재사용한 기존 파일:
+- src-tauri/src/privacy_scan/model.rs
+- src-tauri/src/privacy_scan/profile.rs
+- src-tauri/src/privacy_scan/detect.rs
+- src-tauri/src/privacy_scan/context.rs
+- src-tauri/src/privacy_scan/risk.rs
+- src-tauri/src/privacy_scan/mask.rs
+- src-tauri/src/privacy_scan/tests.rs
+- src-tauri/src/netutil.rs
+- src-tauri/src/lib.rs
+- src-tauri/tauri.conf.json
+- src/services/releaseCheckService.ts
+- .gitignore
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+
+확인:
+- 새 패키지 없음. GPL 패키지 추가 없음
+- 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, Malgun Gothic) 그대로. OFL 글꼴이 아님. OFL 글꼴을 새로 넣지 않음
+- 생년월일은 열 제목 또는 바로 뒤 값만. 원본 파일은 고치지 않음
+- 최신 버전과 공인 IP는 curl·PowerShell을 쓰지 않음. ping·nbtstat은 그대로
+- 특허 비침해를 보장하지 않음. 열 제목 생년월일 판정, 숨은 위치 표시, 고정 HTTPS 읽기는 특허 검토가 필요함
+- 설치본은 이 기록 시점에 다시 만들지 않음
+
+---
+
 날짜: 2026-10-02
 대상: 소개 사이트 매뉴얼 화면
 작성자: 요청자

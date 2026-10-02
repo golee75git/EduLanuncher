@@ -1,4 +1,4 @@
-import { Compass, Globe, Keyboard, Plus, Printer, Settings, Wrench, type LucideIcon } from "lucide-react";
+import { Compass, Globe, Keyboard, Plus, Printer, Settings, ShieldCheck, Wrench, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FavoriteGrid } from "../components/FavoriteGrid";
 import { HighlightText } from "../components/HighlightText";
@@ -15,7 +15,7 @@ import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
-import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, listComputerTools } from "../data/computerTools";
+import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, listComputerTools } from "../data/computerTools";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { launchQuickUrl } from "../services/launcherService";
@@ -73,6 +73,7 @@ export type HomeAction =
   | { type: "handbook" }
   | { type: "pc-link"; search?: string }
   | { type: "pc-print"; search?: string }
+  | { type: "privacy-scan"; search?: string }
   | { type: "troubleshoot"; search?: string }
   | { type: "troubleshoot-card"; cardId: string; search?: string }
   | { type: "topic"; topicId: string; search?: string }
@@ -257,6 +258,14 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const showPrintCheck = Boolean(
     printTool &&
       scoreText(query, printTool.name, printTool.description, printTool.category, ...(printTool.keywords ?? [])) > 0,
+  );
+  const privacyTool = useMemo(() => {
+    const entry = listComputerTools().find((item) => item.id === "privacy-scan");
+    return entry ? computerToolAsItem(entry) : null;
+  }, []);
+  const showPrivacy = Boolean(
+    privacyTool &&
+      scoreText(query, privacyTool.name, privacyTool.description, privacyTool.category, ...(privacyTool.keywords ?? [])) > 0,
   );
   const topicHits = useMemo(() => searchTopics(query, topicList), [query, topicList]);
   const manualHits = useMemo(() => searchManualIndex(query), [query]);
@@ -479,7 +488,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const searching = query.trim().length > 0;
   const hideEmpty = settings.hideEmptySearchGroups;
   const folderReady = query.trim().length >= 2;
-  const showTools = !hideEmpty || results.tools.some((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id)) || showLinkCheck || showPrintCheck;
+  const showTools = !hideEmpty || results.tools.some((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id) && !isPrivacyTarget(hit.item.target || hit.item.id)) || showLinkCheck || showPrintCheck || showPrivacy;
   const showRecents = !hideEmpty || recentUseMatched.length > 0;
   const showFolders = !hideEmpty || !folderReady || folderBusy || folderHits.length > 0;
   const showDocs = !hideEmpty || !folderReady || docBusy || docHits.length > 0;
@@ -742,7 +751,23 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                   </span>
                 </div>
               ) : null,
-              ...results.tools.filter((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id)).map((hit) => {
+              showPrivacy && privacyTool ? (
+                <button
+                  key="privacy-scan"
+                  type="button"
+                  onClick={() => onAction({ type: "privacy-scan", search: query })}
+                  className="desk-row gap-2"
+                >
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-quiet" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm text-desk">
+                      <HighlightText text={privacyTool.name} query={query} />
+                    </span>
+                    <span className="block text-[11px] leading-4 text-quiet">{privacyTool.description}</span>
+                  </span>
+                </button>
+              ) : null,
+              ...results.tools.filter((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id) && !isPrivacyTarget(hit.item.target || hit.item.id)).map((hit) => {
                 return (
                   <button
                     key={hit.item.id}
