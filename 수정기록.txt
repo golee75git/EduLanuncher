@@ -6,6 +6,35 @@
 ---
 
 날짜: 2026-10-02
+버전: 0.1.154-20261002
+설치 파일: EduLauncher_0.1.154-20261002_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-02_1130_x64-setup.exe
+작성자: 요청자
+
+요청: 정상 PC에서 내부 품질이 불안정으로 나와, 내부 불안정 선을 올린다.
+
+새로 만든 파일:
+- 없음
+
+재사용한 기존 파일:
+- src-tauri/src/netcheck.rs
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+
+확인:
+- 새 패키지 없음. GPL 패키지 추가 없음
+- 글꼴은 기존 Windows 시스템 글꼴 그대로. OFL 글꼴을 새로 넣지 않음
+- 내부 불안정은 중앙값 100ms 이상. 손실 2개 이상 불안정과 외부 150ms는 그대로
+- 특허 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음
+
+---
+
+날짜: 2026-10-02
 버전: 0.1.153-20261002
 설치 파일: EduLauncher_0.1.153-20261002_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-02_1110_x64-setup.exe

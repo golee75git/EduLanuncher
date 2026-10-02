@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.154-20261002",
+    note: "인터넷 연결 점검의 내부 불안정 기준을 중앙값 100ms 이상으로 올렸습니다.",
+  },
+  {
     version: "0.1.153-20261002",
     note: "인터넷 연결 점검에 네트워크 품질을 더했습니다. 웹 연결이 확인되고 품질이 나쁘면 안내가 나오고, 속도 사이트는 버튼을 눌렀을 때만 엽니다.",
   },

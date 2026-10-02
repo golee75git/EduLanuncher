@@ -3,11 +3,11 @@ export const SITE_CONFIG = {
   displayName: "교육업무 런처",
   githubRepo: "https://github.com/golee75git/EduLanuncher",
   releasesUrl: "https://github.com/golee75git/EduLanuncher/releases/latest",
-  version: "0.1.153-20261002",
-  setupFile: "EduLauncher_0.1.153-20261002_x64-setup.exe",
-  setupFileDated: "EduLauncher_2026-10-02_1110_x64-setup.exe",
+  version: "0.1.154-20261002",
+  setupFile: "EduLauncher_0.1.154-20261002_x64-setup.exe",
+  setupFileDated: "EduLauncher_2026-10-02_1130_x64-setup.exe",
   setupDownloadUrl:
-    "https://github.com/golee75git/EduLanuncher/releases/download/0.1.153-20261002/EduLauncher_0.1.153-20261002_x64-setup.exe",
+    "https://github.com/golee75git/EduLanuncher/releases/download/0.1.154-20261002/EduLauncher_0.1.154-20261002_x64-setup.exe",
 } as const;
 
 export type SiteView = "intro" | "menu" | "preview" | "download" | "opinion" | "manage";
