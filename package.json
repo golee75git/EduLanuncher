@@ -11,7 +11,8 @@
     "site:dev": "npm --prefix website run dev",
     "site:build": "npm --prefix website run build",
     "check:handbook": "node --experimental-strip-types tools/check-handbook-flow.ts",
-    "knowledge:build": "node tools/buildKnowledge.mjs"
+    "knowledge:build": "node tools/buildKnowledge.mjs",
+    "notices": "node scripts/gen-third-party-notices.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

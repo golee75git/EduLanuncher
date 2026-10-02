@@ -1815,6 +1815,36 @@ fn read_bookmark_html(path: String) -> Result<String, String> {
     Ok(String::from_utf8_lossy(bytes).into_owned())
 }
 
+fn notices_window_allowed(label: &str) -> bool {
+    label == "main"
+}
+
+#[tauri::command]
+fn read_open_source_notices(window: tauri::WebviewWindow, app: AppHandle) -> Result<String, String> {
+    if !notices_window_allowed(window.label()) {
+        return Err("이 창에서는 열 수 없습니다.".into());
+    }
+    let root = app
+        .path()
+        .resource_dir()
+        .map_err(|_| "고지 파일 위치를 찾지 못했습니다.".to_string())?;
+    let path = root.join("THIRD_PARTY_NOTICES.txt");
+    let root_real = root
+        .canonicalize()
+        .map_err(|_| "고지 파일 위치를 찾지 못했습니다.".to_string())?;
+    let file_real = path
+        .canonicalize()
+        .map_err(|_| "고지 파일을 찾지 못했습니다.".to_string())?;
+    if !file_real.starts_with(&root_real) {
+        return Err("고지 파일을 열 수 없습니다.".into());
+    }
+    let meta = fs::metadata(&file_real).map_err(|_| "고지 파일을 찾지 못했습니다.".to_string())?;
+    if !meta.is_file() || meta.len() > 5 * 1024 * 1024 {
+        return Err("고지 파일을 열 수 없습니다.".into());
+    }
+    fs::read_to_string(&file_real).map_err(|_| "고지 파일을 읽지 못했습니다.".to_string())
+}
+
 #[tauri::command]
 fn read_json_file(path: String) -> Result<String, String> {
     let path = PathBuf::from(path);
@@ -2351,6 +2381,7 @@ pub fn run() {
             launch_tool,
             run_shortcut_action,
             open_ie_reset,
+            read_open_source_notices,
             read_json_file,
             read_url_shortcut,
             dropped_path_info,

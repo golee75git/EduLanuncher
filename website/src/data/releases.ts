@@ -6,6 +6,14 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.159-20261003",
+    note: "오픈소스 고지에서 저작권 줄이 없는 라이선스 원문은 그대로 두고, 작성자 또는 저장소 표기를 원문 밖에 둡니다.",
+  },
+  {
+    version: "0.1.158-20261003",
+    note: "설정의 프로그램 정보에서 이 프로그램에 포함된 오픈소스 라이선스 고지를 봅니다.",
+  },
+  {
     version: "0.1.157-20261003",
     note: "개인정보 보호에서 고른 파일이나 폴더만 이 PC 안에서 확인합니다. 원본은 바꾸지 않습니다.",
   },

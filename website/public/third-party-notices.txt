@@ -1,0 +1,62 @@
+교육업무 런처
+이 프로그램에 포함된 오픈소스 구성요소입니다.
+라이선스 준수를 보장하지 않습니다.
+
+------------------------------------------------------------
+npm lucide-react 1.47.0
+라이선스: ISC
+선택: ISC
+설치된 패키지 폴더가 없어 package-lock.json의 license 필드만 사용함
+저작권: 저작권 줄을 찾지 못함
+라이선스 파일 없음
+
+------------------------------------------------------------
+npm react 19.3.0
+라이선스: MIT
+선택: MIT
+저작권:
+Copyright (c) Meta Platforms, Inc. and affiliates.
+라이선스 전문은 아래 "MIT" 묶음과 같습니다.
+
+------------------------------------------------------------
+npm react-dom 19.3.0
+라이선스: MIT
+선택: MIT
+저작권:
+Copyright (c) Meta Platforms, Inc. and affiliates.
+라이선스 전문은 아래 "MIT" 묶음과 같습니다.
+
+------------------------------------------------------------
+npm scheduler 0.28.0
+라이선스: MIT
+선택: MIT
+저작권:
+Copyright (c) Meta Platforms, Inc. and affiliates.
+라이선스 전문은 아래 "MIT" 묶음과 같습니다.
+
+============================================================
+라이선스 전문
+
+##### MIT
+MIT License
+
+Copyright (c) Meta Platforms, Inc. and affiliates.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+

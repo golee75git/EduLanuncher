@@ -6,6 +6,82 @@
 ---
 
 날짜: 2026-10-03
+대상: 오픈소스 고지의 저작권 줄 표기
+작성자: 요청자
+
+요청: MIT 선택 38건의 저작권 줄을 패턴, 작성자, 저장소 순으로 다시 표시한다. 라이선스 원문 안에 저작권 줄을 만들지 않는다. WebView2Loader는 링크되지만 라이선스 원문이 없어 확인 목록에 둔다.
+
+확인: 패턴 확장 2건, 작성자 또는 저장소 표기 34건, 라이선스 파일 없음 2건, 표기 없음으로 중단된 건 0건. 고지 파일 315344바이트. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 만든 파일: 없음
+
+재사용한 기존 파일:
+- scripts/gen-third-party-notices.mjs
+- src-tauri/resources/THIRD_PARTY_NOTICES.txt
+- docs/LICENSES.md
+- docs/HANDOFF.md
+- 수정기록.txt
+- src-tauri/tauri.conf.json
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+
+---
+
+날짜: 2026-10-03
+대상: 오픈소스 라이선스 고지
+작성자: 요청자
+
+요청: 승인된 MPL-2.0 4개와 unic 5개 예외로 고지 파일을 만들고, 설치본과 설정 화면, 소개 사이트 바닥글에 연결한다.
+
+확인: Cargo.toml에 [patch]/[replace] 없음. .cargo/config와 vendor 없음. 저장소에 cssparser, selectors, dtoa-short, option-ext 복사 폴더 없음. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, Malgun Gothic)이며 OFL 파일을 넣지 않음. 새 패키지 없음. GPL을 추가하지 않음. MPL-2.0 4개는 수정 없이 사용. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 고지 파일을 읽어 보여주는 구성은 별도 청구항 대조를 하지 않음.
+
+새로 만든 파일:
+- scripts/gen-third-party-notices.mjs
+- src-tauri/resources/THIRD_PARTY_NOTICES.txt
+- website/public/third-party-notices.txt
+- docs/LICENSES.md
+- docs/license-stage2-2026-10-03.md
+
+재사용한 기존 파일:
+- package.json
+- src-tauri/tauri.conf.json
+- src-tauri/src/lib.rs
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/App.tsx
+- website/src/components/SiteFooter.tsx
+- website/src/config.ts
+- website/src/data/releases.ts
+- 수정기록.txt
+
+설치본:
+- src-tauri/target/release/bundle/nsis/EduLauncher_0.1.158-20261003_x64-setup.exe
+- src-tauri/target/release/bundle/nsis/EduLauncher_2026-10-03_0116_x64-setup.exe
+이전 설치본을 지우고 이 파일로 바꿔야 한다. 릴리스 업로드와 사이트 배포는 하지 않음.
+
+---
+
+날짜: 2026-10-03
+대상: 오픈소스 라이선스 2-0 조사
+작성자: 요청자
+
+요청: Rust 전이 의존성을 확정하고, 실행 파일에 조건부·금지·판단 불가가 있으면 고지 파일과 앱은 수정하지 않고 멈춘다.
+
+결과: 실행 파일 256개 중 조건부 4개(MPL-2.0: cssparser, selectors, dtoa-short, option-ext), 판단 불가 5개(unic 계열, 라이선스 파일 없음). 직접 의존성은 tauri. 고지 파일과 앱은 수정하지 않음. 자세한 표는 docs/license-stage2-2026-10-03.md.
+
+새로 만든 파일:
+- scripts/gen-third-party-notices.mjs
+- docs/license-stage2-2026-10-03.md
+
+재사용한 기존 파일:
+- 수정기록.txt
+
+새 패키지 없음. GPL 구성 요소를 추가하지 않음. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 글꼴을 넣지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+---
+
+날짜: 2026-10-03
 대상: 개인정보 보호 폴더 검사
 작성자: 요청자
 

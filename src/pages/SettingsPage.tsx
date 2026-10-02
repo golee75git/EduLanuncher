@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -38,6 +39,8 @@ export function SettingsPage({
   const [packMessage, setPackMessage] = useState("");
   const [noticeMessage, setNoticeMessage] = useState("");
   const [shareMessage, setShareMessage] = useState("");
+  const [ossText, setOssText] = useState("");
+  const [ossError, setOssError] = useState("");
   const [backupMessage, setBackupMessage] = useState("");
   const [newerRelease, setNewerRelease] = useState<string | null>(null);
 
@@ -404,10 +407,35 @@ export function SettingsPage({
               </button>
             </div>
           ) : null}
+          <p className="mt-2 text-sm text-desk">교육업무 런처 © 2026 [저작권자]</p>
+          <button
+            type="button"
+            className="btn-secondary mt-2"
+            onClick={() => {
+              setOssError("");
+              void invoke<string>("read_open_source_notices")
+                .then((text) => {
+                  setOssText(text);
+                  setOssError("");
+                })
+                .catch(() => {
+                  setOssText("");
+                  setOssError("고지 파일을 열지 못했습니다.");
+                });
+            }}
+          >
+            오픈소스 라이선스
+          </button>
+          {ossError ? <p className="mt-2 text-xs leading-5 text-quiet">{ossError}</p> : null}
+          {ossText ? (
+            <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap font-mono text-[11px] leading-5 text-desk">
+              {ossText}
+            </pre>
+          ) : null}
           <p className="mt-2 text-xs leading-5 text-quiet">
             {APP_CONFIG.appName}의 개인 설정과 바로가기 정보는 이 PC에 저장됩니다. 글꼴은 Windows 시스템 글꼴을
             씁니다. 업무도구 「QR코드 넣기」에 쓰는 QR Code는 DENSO WAVE INCORPORATED의 등록상표이며, 이 프로그램은
-            그 상표를 소유하지 않습니다. 외부 구성 요소 고지는 저장소 THIRD_PARTY_NOTICES.md에 있습니다. 특허
+            그 상표를 소유하지 않습니다. 오픈소스 라이선스는 위 단추에서 이 PC에 포함된 고지를 봅니다. 특허
             비침해를 보장하지 않습니다.
           </p>
         </SettingsCard>
@@ -418,6 +446,7 @@ export function SettingsPage({
           </p>
           <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-5 text-quiet">
             <li>개인정보 보호는 고른 파일이나 폴더만 이 PC 안에서 확인합니다. 원본은 바꾸지 않습니다.</li>
+            <li>설정의 프로그램 정보에서 오픈소스 라이선스를 누르면 이 프로그램에 포함된 고지를 봅니다. 원격으로 받아 오지 않습니다.</li>
             <li>설치 창과 제거 창은 한글입니다. 이미 설치된 버전 위에 다시 설치하면, 이전 버전을 지운 뒤 닫기 단추 없이 새 설치가 이어집니다. 그 과정에서는 바로가기와 이 PC의 목록을 지우지 않습니다. 설치 완료 창에서 마침을 누르면 런처가 실행됩니다.</li>
             <li>개인 사용 PC에만 설치하세요. 공용 PC·실습실·다른 사람 계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다. 런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.</li>
             <li>설치 완료 창에서 마침을 누르면 프로그램이 실행되고, 처음에는 시작 시 자동 실행·시작 시 창 표시가 켜져 있습니다. 설정에서 끌 수 있습니다. Pack 연결과 시작 시 자동 실행을 넣을 때 검은 콘솔 창은 띄우지 않습니다.</li>
