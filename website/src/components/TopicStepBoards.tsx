@@ -77,7 +77,7 @@ export function TopicStepBoards({ steps }: { steps: TopicStep[] }) {
             );
           })}
         </ol>
-        {current.note || current.pages || documents.length > 0 || caveats.length > 0 ? (
+        {current.note || current.pages || current.href || documents.length > 0 || caveats.length > 0 ? (
           <div className="rounded-xl border border-line bg-card px-3 py-2 text-sm leading-6 text-desk">
             <p className="text-[11px] text-quiet">
               {current.order || open + 1}. {current.title}
@@ -104,6 +104,11 @@ export function TopicStepBoards({ steps }: { steps: TopicStep[] }) {
               </div>
             ) : null}
             {current.pages ? <p className="mt-1 text-[11px] text-quiet">{current.pages}</p> : null}
+            {current.href?.startsWith("/menu/handbook/") ? (
+              <a className="mt-2 inline-block text-sm text-ink" href={current.href}>
+                이 업무 열기
+              </a>
+            ) : null}
           </div>
         ) : null}
       </section>

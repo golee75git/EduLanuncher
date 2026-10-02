@@ -30,6 +30,7 @@ export interface TopicStep {
   pages?: string;
   documents?: string[];
   caveats?: string[];
+  href?: string;
 }
 
 export interface TopicRow {
@@ -149,6 +150,29 @@ export function section2ForTitle(topics: Section2Topic[], title: string): Sectio
 
 export function handbookTopicTasks(data: MenuData, topic: HandbookTopic): Section2Task[] {
   return section2ForTitle(data.section2, topic.officialName);
+}
+
+export function taskNote(task: Section2Task): string {
+  const parts = [task.body.trim()];
+  if (task.tip.trim()) parts.push(`팁\n${task.tip.trim()}`);
+  if (task.reference.trim()) parts.push(`참고\n${task.reference.trim()}`);
+  return parts.filter(Boolean).join("\n\n");
+}
+
+export function pictureSteps(node: FlowNode | null): TopicStep[] {
+  const steps: TopicStep[] = [];
+  const walk = (current: FlowNode) => {
+    const title = current.label.trim();
+    if (title) {
+      const step: TopicStep = { order: steps.length + 1, title, note: "" };
+      const id = current.topicId?.trim() ?? "";
+      if (/^[A-Za-z0-9_-]+$/.test(id)) step.href = `/menu/handbook/${encodeURIComponent(id)}`;
+      steps.push(step);
+    }
+    for (const child of current.children) walk(child);
+  };
+  if (node) walk(node);
+  return steps;
 }
 
 function foldManual(value: string): string {

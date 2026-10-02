@@ -3,6 +3,8 @@ import { TopicStepBoards } from "../components/TopicStepBoards";
 import {
   handbookTopicTasks,
   loadMenuData,
+  pictureSteps,
+  taskNote,
   searchManual,
   section2ForTitle,
   type EpkiNode,
@@ -144,11 +146,9 @@ export function MenuPage({ pathname }: { pathname: string }) {
   const [manualQuery, setManualQuery] = useState("");
   const [manualStep, setManualStep] = useState("");
   const [epkiPick, setEpkiPick] = useState("");
-  const [picked, setPicked] = useState("");
   const path = menuPath(pathname);
 
   useEffect(() => {
-    setPicked("");
     setManualStep("");
     setEpkiPick("");
   }, [pathname]);
@@ -223,7 +223,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
         <div className="grid gap-3 sm:grid-cols-3">
           <a className="card-surface p-4" href="/menu/handbook">
             <span className="block text-sm font-semibold text-desk">편람 분류</span>
-            <span className="mt-1 block text-sm text-quiet">업무 분류와 세부업무 본문</span>
+            <span className="mt-1 block text-sm text-quiet">분류를 열면 업무 흐름과 한눈에 보기가 있습니다</span>
           </a>
           <a className="card-surface p-4" href="/menu/topic">
             <span className="block text-sm font-semibold text-desk">업무자료</span>
@@ -245,6 +245,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
           매뉴얼
         </a>
         <h1 className="text-2xl font-semibold text-desk">편람 분류</h1>
+        <p className="text-sm text-quiet">분류를 열면 업무 흐름과 한눈에 보기가 있습니다.</p>
         <ul className="space-y-2">
           {data.handbook.categories.map((category) => (
             <li key={category.id}>
@@ -268,11 +269,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
           편람 분류
         </a>
         <h1 className="text-2xl font-semibold text-desk">{category?.name ?? "분류"}</h1>
-        {category?.picture ? (
-          <div className="overflow-x-auto rounded-lg border border-line bg-card p-4">
-            <FlowPicture node={category.picture} active="" onPick={() => undefined} />
-          </div>
-        ) : null}
+        {category?.picture ? <TopicStepBoards steps={pictureSteps(category.picture)} /> : null}
         <ul className="space-y-2">
           {topics.map((topic) => (
             <li key={topic.id}>
@@ -290,6 +287,12 @@ export function MenuPage({ pathname }: { pathname: string }) {
   if (section === "handbook" && itemId) {
     const topic = data.handbook.topics.find((item) => item.id === itemId);
     const tasks = topic ? handbookTopicTasks(data, topic) : [];
+    const steps = (topic?.picture ? pictureSteps(topic.picture) : []).map((step) => {
+      const task = tasks.find((item) => item.name.trim() === step.title.trim());
+      return task ? { ...step, note: taskNote(task) } : step;
+    });
+    const covered = new Set(steps.map((step) => step.title.trim()));
+    const rest = tasks.filter((task) => !covered.has(task.name.trim()));
     return (
       <div className="space-y-4">
         <a className="text-sm text-ink" href={topic ? `/menu/handbook/${encodeURIComponent(topic.categoryId)}` : "/menu/handbook"}>
@@ -297,22 +300,8 @@ export function MenuPage({ pathname }: { pathname: string }) {
         </a>
         <h1 className="text-2xl font-semibold text-desk">{topic?.officialName || topic?.title || "업무"}</h1>
         {topic?.pages ? <p className="text-xs text-quiet">쪽수 {topic.pages}</p> : null}
-        {topic?.picture ? (
-          <div className="overflow-x-auto rounded-lg border border-line bg-card p-4">
-            <FlowPicture
-              node={topic.picture}
-              active={picked}
-              onPick={(label) => setPicked((current) => (current === label ? "" : label))}
-            />
-          </div>
-        ) : null}
-        <TaskBlocks
-          tasks={
-            picked && tasks.some((task) => task.name.trim() === picked.trim())
-              ? tasks.filter((task) => task.name.trim() === picked.trim())
-              : tasks
-          }
-        />
+        {steps.length > 0 ? <TopicStepBoards steps={steps} /> : null}
+        {steps.length === 0 ? <TaskBlocks tasks={tasks} /> : rest.length > 0 ? <TaskBlocks tasks={rest} /> : null}
       </div>
     );
   }
