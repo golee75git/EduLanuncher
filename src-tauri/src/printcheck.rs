@@ -942,9 +942,13 @@ fn printer_names() -> PaperList {
         if choices.is_empty() {
             return if seen { PaperList::NoPaper } else { PaperList::None };
         }
-        choices.sort_by(|left, right| left.name.cmp(&right.name));
+        order_choices(&mut choices);
         PaperList::Choices(choices)
     }
+}
+
+fn order_choices(choices: &mut [PrintChoice]) {
+    choices.sort_by(|left, right| right.is_default.cmp(&left.is_default).then_with(|| left.name.cmp(&right.name)));
 }
 
 #[cfg(windows)]
@@ -1418,6 +1422,31 @@ mod tests {
         assert_eq!(report.help_id, "printer-general");
         assert_eq!(report.rows[4].label, "가상 프린터");
         assert!(!report.finding.contains("연결") || report.finding.contains("가상"));
+    }
+
+    #[test]
+    fn default_printer_is_listed_first() {
+        let mut list = vec![
+            PrintChoice {
+                virtual_device: false,
+                is_default: false,
+                name: "가나".into(),
+            },
+            PrintChoice {
+                virtual_device: false,
+                is_default: true,
+                name: "다라".into(),
+            },
+            PrintChoice {
+                virtual_device: false,
+                is_default: false,
+                name: "마바".into(),
+            },
+        ];
+        order_choices(&mut list);
+        assert_eq!(list[0].name, "다라");
+        assert!(list[0].is_default);
+        assert_eq!(list[1].name, "가나");
     }
 
     #[test]

@@ -1014,7 +1014,7 @@ const INSIDE_WAIT: Duration = Duration::from_secs(1);
 const OUTSIDE_COUNT: u32 = 5;
 const OUTSIDE_WAIT: Duration = Duration::from_secs(2);
 const INSIDE_GOOD_MS: f64 = 20.0;
-const INSIDE_WARN_MS: f64 = 100.0;
+const INSIDE_WARN_MS: f64 = 150.0;
 const OUTSIDE_GOOD_MS: f64 = 80.0;
 const OUTSIDE_WARN_MS: f64 = 150.0;
 const PROXY_NOTE: &str = "프록시 환경에서는 측정하지 않음";
@@ -1773,8 +1773,8 @@ mod tests {
     fn delay_edges_follow_the_middle_sample() {
         assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![19], note: String::new() }), Band::Good);
         assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![20], note: String::new() }), Band::Warn);
-        assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![99], note: String::new() }), Band::Warn);
-        assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![100], note: String::new() }), Band::Bad);
+        assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![149], note: String::new() }), Band::Warn);
+        assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![150], note: String::new() }), Band::Bad);
         assert_eq!(outside_band(&Pace { tries: 1, hits: 1, samples: vec![79], note: String::new() }), Band::Good);
         assert_eq!(outside_band(&Pace { tries: 1, hits: 1, samples: vec![80], note: String::new() }), Band::Warn);
         assert_eq!(outside_band(&Pace { tries: 1, hits: 1, samples: vec![149], note: String::new() }), Band::Warn);

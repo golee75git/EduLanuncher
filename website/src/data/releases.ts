@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.155-20261002",
+    note: "내부 불안정 기준을 중앙값 150ms로 올렸습니다. 프린터 목록은 기본 프린터가 맨 위입니다. 속도 측정 버튼에 색을 넣었습니다.",
+  },
+  {
     version: "0.1.154-20261002",
     note: "인터넷 연결 점검의 내부 불안정 기준을 중앙값 100ms 이상으로 올렸습니다.",
   },
