@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.153-20261002",
+    note: "인터넷 연결 점검에 네트워크 품질을 더했습니다. 웹 연결이 확인되고 품질이 나쁘면 안내가 나오고, 속도 사이트는 버튼을 눌렀을 때만 엽니다.",
+  },
+  {
     version: "0.1.152-20261001",
     note: "홈 맨 위 칸에 로고를 넣었습니다. 제목의 AI는 로고의 민트색입니다.",
   },

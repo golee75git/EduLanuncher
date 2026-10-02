@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useMemo, useState } from "react";
+import { SpeedSiteDialog } from "../components/SpeedSiteDialog";
 import { launchQuickUrl } from "../services/launcherService";
 import {
   firstQuestion,
@@ -56,6 +57,7 @@ export function TroubleshootDetailPage({ cardId, onBack, onList, onOpenCard }: T
   );
   const [history, setHistory] = useState<FlowStep[]>([]);
   const [current, setCurrent] = useState<FlowStep>(start);
+  const [speedOpen, setSpeedOpen] = useState(false);
 
   const go = (step: FlowStep) => {
     setHistory((prev) => [...prev, current]);
@@ -116,7 +118,7 @@ export function TroubleshootDetailPage({ cardId, onBack, onList, onOpenCard }: T
   const related = card.related.map((id) => getTroubleCard(id)).filter((item): item is TroubleCard => Boolean(item));
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-paper">
+    <div className="relative flex h-full min-h-0 flex-col bg-paper">
       <header className="flex items-center gap-2 px-3 pt-3">
         <button type="button" className="icon-btn" onClick={goBack} aria-label="뒤로">
           <ArrowLeft className="h-4 w-4" />
@@ -262,6 +264,12 @@ export function TroubleshootDetailPage({ cardId, onBack, onList, onOpenCard }: T
           </section>
         ) : null}
 
+        {card.id === "network-quality" ? (
+          <button type="button" className="btn-secondary" onClick={() => setSpeedOpen(true)}>
+            인터넷 속도 측정하기
+          </button>
+        ) : null}
+
         <div className="flex flex-wrap gap-1 pt-1">
           <button type="button" className="rounded-full px-2 py-1 text-[11px] text-quiet" onClick={onList}>
             목록
@@ -271,6 +279,7 @@ export function TroubleshootDetailPage({ cardId, onBack, onList, onOpenCard }: T
           </button>
         </div>
       </div>
+      {speedOpen ? <SpeedSiteDialog onClose={() => setSpeedOpen(false)} /> : null}
     </div>
   );
 }

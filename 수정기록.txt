@@ -5,6 +5,45 @@
 
 ---
 
+날짜: 2026-10-02
+버전: 0.1.153-20261002
+설치 파일: EduLauncher_0.1.153-20261002_x64-setup.exe
+날짜 복사본: EduLauncher_2026-10-02_1110_x64-setup.exe
+작성자: 요청자
+
+요청: 인터넷 연결 점검에 네트워크 품질을 더하고, 품질이 나쁠 때만 NIA 측정 사이트를 버튼으로 연다.
+
+새로 만든 파일:
+- src/config/speedSites.ts
+- src/components/SpeedSiteDialog.tsx
+- src/data/troubleshooting/network/network-quality.json
+
+재사용한 기존 파일:
+- src-tauri/src/netcheck.rs
+- src-tauri/Cargo.toml
+- src-tauri/capabilities/default.json
+- src/services/internetCheckService.ts
+- src/pages/InternetCheckPage.tsx
+- src/pages/TroubleshootDetailPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+확인:
+- 새 패키지 없음. windows 크레이트 기능 플래그 Win32_System_Threading, Win32_System_IO 만 켬. GPL 패키지 추가 없음
+- 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕) 그대로. OFL 글꼴이 아니고, 화면 글꼴은 바꾸지 않음
+- 품질 측정은 기본 경로와 기존 확인 주소만 사용. 8.8.8.8 등 새 주소 없음. 속도 숫자는 재지 않음
+- 측정 사이트는 https://speed.nia.or.kr/ 하나만, 버튼을 눌렀을 때만 염. 주소에 진단 값을 붙이지 않음
+- 특허 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음. 사람 검토가 필요함
+
+---
+
 날짜: 2026-10-01
 버전: 0.1.152-20261001
 설치 파일: EduLauncher_0.1.152-20261001_x64-setup.exe

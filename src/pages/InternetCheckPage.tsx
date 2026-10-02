@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowLeft, Check, LoaderCircle, Pause, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { SpeedSiteDialog } from "../components/SpeedSiteDialog";
 import {
   beginLinkCheck,
   haltLinkCheck,
@@ -28,6 +29,7 @@ export function InternetCheckPage({ onBack, onOpenHelp }: InternetCheckPageProps
   const [report, setReport] = useState<LinkReport | null>(null);
   const [techOpen, setTechOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const [speedOpen, setSpeedOpen] = useState(false);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -67,6 +69,7 @@ export function InternetCheckPage({ onBack, onOpenHelp }: InternetCheckPageProps
   const start = async () => {
     setNotice("");
     setTechOpen(false);
+    setSpeedOpen(false);
     setReport(null);
     setRows(LINK_ROWS.map((row, index) => (index === 0 ? { ...row, status: "checking", label: "점검 중" } : row)));
     setPhase("run");
@@ -90,8 +93,10 @@ export function InternetCheckPage({ onBack, onOpenHelp }: InternetCheckPageProps
     }
   };
 
+  const showQuality = report?.qualityStatus === "warning" || report?.qualityStatus === "bad";
+
   return (
-    <div className="flex h-full min-h-0 flex-col bg-paper">
+    <div className="relative flex h-full min-h-0 flex-col bg-paper">
       <header className="flex items-center gap-2 px-3 pt-3">
         <button type="button" className="icon-btn" onClick={onBack} aria-label="뒤로">
           <ArrowLeft className="h-4 w-4" />
@@ -121,6 +126,21 @@ export function InternetCheckPage({ onBack, onOpenHelp }: InternetCheckPageProps
                 </li>
               ))}
             </ul>
+            {showQuality && report ? (
+              <section className="card-surface space-y-2 p-3">
+                <p className="text-sm font-medium text-desk">네트워크 품질</p>
+                <div className="flex items-center gap-2">
+                  <QualityMark status={report.qualityStatus} />
+                  <span className="text-sm text-desk">{qualityLabel(report.qualityStatus)}</span>
+                </div>
+                <p className="whitespace-pre-line text-sm leading-6 text-desk">{report.qualityText}</p>
+                {report.showSpeed ? (
+                  <button type="button" className="btn-secondary" onClick={() => setSpeedOpen(true)}>
+                    인터넷 속도 측정하기
+                  </button>
+                ) : null}
+              </section>
+            ) : null}
             {phase === "run" ? (
               <button type="button" className="btn-secondary" onClick={() => void haltLinkCheck()}>
                 점검 취소
@@ -128,7 +148,7 @@ export function InternetCheckPage({ onBack, onOpenHelp }: InternetCheckPageProps
             ) : null}
             {report ? (
               <section className="card-surface space-y-3 p-3">
-                <p className="whitespace-pre-line text-sm leading-6 text-desk">{report.finding}</p>
+                {showQuality ? null : <p className="whitespace-pre-line text-sm leading-6 text-desk">{report.finding}</p>}
                 {report.advice ? (
                   <>
                     <p className="text-xs font-medium text-desk">해결방법</p>
@@ -182,7 +202,33 @@ export function InternetCheckPage({ onBack, onOpenHelp }: InternetCheckPageProps
         )}
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
       </div>
+      {speedOpen ? <SpeedSiteDialog onClose={() => setSpeedOpen(false)} /> : null}
     </div>
+  );
+}
+
+function qualityLabel(status: string): string {
+  if (status === "bad") {
+    return "불안정";
+  }
+  if (status === "warning") {
+    return "주의";
+  }
+  if (status === "unknown") {
+    return "측정 불가";
+  }
+  return "정상";
+}
+
+function QualityMark({ status }: { status: string }) {
+  const label = qualityLabel(status);
+  return (
+    <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-desk" title={label} aria-label={label}>
+      {status === "good" ? <Check className="h-4 w-4" aria-hidden="true" /> : null}
+      {status === "bad" ? <X className="h-4 w-4" aria-hidden="true" /> : null}
+      {status === "warning" ? <AlertTriangle className="h-4 w-4" aria-hidden="true" /> : null}
+      {status === "unknown" ? <Pause className="h-4 w-4" aria-hidden="true" /> : null}
+    </span>
   );
 }
 

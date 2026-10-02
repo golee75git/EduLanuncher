@@ -1,0 +1,84 @@
+{
+  "id": "network-quality",
+  "category": "network",
+  "title": "네트워크 품질이 고르지 않아요",
+  "aliases": [
+    "인터넷이 느려요",
+    "연결은 되는데 느려요",
+    "내부 네트워크가 불안정해요",
+    "외부 구간이 느려요",
+    "품질 주의"
+  ],
+  "keywords": [
+    "네트워크 품질",
+    "지연",
+    "내부 네트워크",
+    "외부 인터넷"
+  ],
+  "symptoms": [
+    "웹 연결은 확인되었지만 응답이 느리거나 고르지 않아요"
+  ],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "주소, 프록시, 보안 설정은 바꾸지 마세요. 기관 내부 네트워크 상태는 담당자와 확인하세요.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "어느 쪽이 불안정한가요?",
+      "options": [
+        { "label": "이 PC와 내부 네트워크 사이예요", "next": "solution_1" },
+        { "label": "외부 인터넷 쪽이에요", "next": "solution_2" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "내부 연결 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "랜 케이블이 빠져 있거나 Wi-Fi가 약하지 않은지 확인하세요.",
+        "주소와 프록시 값은 직접 바꾸지 말고 담당자에게 내부 네트워크 상태를 알려 주세요."
+      ],
+      "nextIfUnresolved": "solution_2"
+    },
+    {
+      "id": "solution_2",
+      "name": "외부 구간 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "같은 네트워크의 다른 PC에서도 느린지 비교해 보세요.",
+        "속도 숫자가 필요하면 화면의 인터넷 속도 측정하기를 누르고, 안내를 읽은 뒤 측정 사이트를 여세요. 점검이 사이트를 대신 열지는 않습니다."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": ["internet-slow", "network-ok"],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Windows에서 Wi-Fi 연결 문제 해결",
+      "type": "official",
+      "url": "https://support.microsoft.com/ko-kr/windows/experience/connectivity-networking/fix-wi-fi-connection-issues-in-windows"
+    }
+  ],
+  "support": {
+    "message": "웹 연결은 확인된 상태입니다. 설정을 바꾸기 전에 담당자에게 품질 안내 문장을 전달하세요.",
+    "collect": ["유선인지 무선인지", "다른 PC도 느린지"]
+  }
+}

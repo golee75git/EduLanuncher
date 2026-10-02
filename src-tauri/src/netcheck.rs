@@ -125,6 +125,9 @@ struct LinkReport {
     copy_text: String,
     pages: Vec<String>,
     stopped: bool,
+    show_speed: bool,
+    quality_status: String,
+    quality_text: String,
 }
 
 #[derive(Serialize, Clone)]
@@ -333,7 +336,19 @@ fn run_link(app: &AppHandle) -> LinkReport {
         }
         Err(ProbeStop::Failed) => Mark::No,
     };
-    emit_rows(app, judge(&facts), &["inside", "names", "web"])
+    let mut report = judge(&facts);
+    if !facts.stopped {
+        let picked = chosen(&facts.adapters, facts.route_index);
+        let gateway = picked.and_then(|item| item.gateway.clone());
+        let wifi = picked.is_some_and(|item| item.media == Media::Wireless);
+        let reading = measure_quality(gateway.as_deref(), resolved_v4, facts.web_reply == Mark::Yes, wifi);
+        if stopped() {
+            facts.stopped = true;
+            report = judge(&facts);
+        }
+        report = apply_quality(report, &reading, facts.stopped);
+    }
+    emit_rows(app, report, &["inside", "names", "web"])
 }
 
 fn emit_rows(app: &AppHandle, report: LinkReport, ids: &[&str]) -> LinkReport {
@@ -502,6 +517,9 @@ fn judge(facts: &ProbeFacts) -> LinkReport {
         copy_text,
         pages,
         stopped: facts.stopped,
+        show_speed: false,
+        quality_status: String::new(),
+        quality_text: String::new(),
     }
 }
 
@@ -989,6 +1007,490 @@ fn page_matches(wait: Duration) -> Result<bool, ProbeStop> {
     }
 }
 
+const QUALITY_LIMIT: Duration = Duration::from_secs(4);
+const INSIDE_COUNT: u32 = 20;
+const INSIDE_GAP: Duration = Duration::from_millis(100);
+const INSIDE_WAIT: Duration = Duration::from_secs(1);
+const OUTSIDE_COUNT: u32 = 5;
+const OUTSIDE_WAIT: Duration = Duration::from_secs(2);
+const INSIDE_GOOD_MS: f64 = 20.0;
+const INSIDE_WARN_MS: f64 = 50.0;
+const OUTSIDE_GOOD_MS: f64 = 80.0;
+const OUTSIDE_WARN_MS: f64 = 150.0;
+const PROXY_NOTE: &str = "프록시 환경에서는 측정하지 않음";
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Band {
+    Good,
+    Warn,
+    Bad,
+    Unknown,
+}
+
+#[derive(Clone, Debug)]
+struct Pace {
+    tries: u32,
+    hits: u32,
+    samples: Vec<u32>,
+    note: String,
+}
+
+struct QualityReading {
+    inside: Pace,
+    outside: Pace,
+    wifi: bool,
+}
+
+struct QualityClock {
+    start: Instant,
+}
+
+impl QualityClock {
+    fn new() -> Self {
+        Self { start: Instant::now() }
+    }
+
+    fn left(&self) -> Duration {
+        QUALITY_LIMIT.saturating_sub(self.start.elapsed())
+    }
+}
+
+fn empty_pace() -> Pace {
+    Pace {
+        tries: 0,
+        hits: 0,
+        samples: Vec::new(),
+        note: String::new(),
+    }
+}
+
+fn median_ms(samples: &[u32]) -> Option<f64> {
+    if samples.is_empty() {
+        return None;
+    }
+    let mut sorted = samples.to_vec();
+    sorted.sort_unstable();
+    let mid = sorted.len() / 2;
+    if sorted.len() % 2 == 1 {
+        Some(f64::from(sorted[mid]))
+    } else {
+        Some((f64::from(sorted[mid - 1]) + f64::from(sorted[mid])) / 2.0)
+    }
+}
+
+fn band_rank(band: Band) -> u8 {
+    match band {
+        Band::Unknown => 0,
+        Band::Good => 1,
+        Band::Warn => 2,
+        Band::Bad => 3,
+    }
+}
+
+fn tighter(left: Band, right: Band) -> Band {
+    match (left, right) {
+        (Band::Unknown, other) | (other, Band::Unknown) => other,
+        _ => {
+            if band_rank(left) >= band_rank(right) {
+                left
+            } else {
+                right
+            }
+        }
+    }
+}
+
+fn inside_band(pace: &Pace) -> Band {
+    if pace.hits == 0 {
+        return Band::Unknown;
+    }
+    let lost = pace.tries.saturating_sub(pace.hits);
+    let loss = if lost == 0 {
+        Band::Good
+    } else if lost == 1 {
+        Band::Warn
+    } else {
+        Band::Bad
+    };
+    let delay = match median_ms(&pace.samples) {
+        Some(ms) if ms < INSIDE_GOOD_MS => Band::Good,
+        Some(ms) if ms < INSIDE_WARN_MS => Band::Warn,
+        Some(_) => Band::Bad,
+        None => Band::Unknown,
+    };
+    tighter(loss, delay)
+}
+
+fn outside_band(pace: &Pace) -> Band {
+    if !pace.note.is_empty() || pace.hits == 0 {
+        return Band::Unknown;
+    }
+    match median_ms(&pace.samples) {
+        Some(ms) if ms < OUTSIDE_GOOD_MS => Band::Good,
+        Some(ms) if ms < OUTSIDE_WARN_MS => Band::Warn,
+        Some(_) => Band::Bad,
+        None => Band::Unknown,
+    }
+}
+
+fn quality_sentence(inside: Band, outside: Band, wifi: bool) -> String {
+    let mut text = if matches!(inside, Band::Warn | Band::Bad) {
+        "PC와 내부 네트워크 사이 구간이 불안정할 가능성이 있습니다.".to_string()
+    } else if matches!(outside, Band::Warn | Band::Bad) {
+        "외부 인터넷 구간이 느릴 가능성이 있습니다.".to_string()
+    } else {
+        return String::new();
+    };
+    if wifi && matches!(tighter(inside, outside), Band::Warn | Band::Bad) {
+        text.push('\n');
+        text.push_str("무선(Wi-Fi) 연결 상태도 함께 확인해 주세요.");
+    }
+    text
+}
+
+fn ms_label(value: Option<f64>) -> String {
+    match value {
+        Some(ms) => format!("{}ms", ms.round() as u32),
+        None => "측정 불가".into(),
+    }
+}
+
+fn push_pace(lines: &mut Vec<TechLine>, title: &str, pace: &Pace, count_loss: bool) {
+    if !pace.note.is_empty() && pace.hits == 0 {
+        lines.push(TechLine {
+            label: title.into(),
+            value: pace.note.clone(),
+        });
+        return;
+    }
+    if pace.hits == 0 {
+        lines.push(TechLine {
+            label: format!("{title} 지연"),
+            value: "측정 불가".into(),
+        });
+        if count_loss {
+            lines.push(TechLine {
+                label: format!("{title} 손실"),
+                value: "측정 불가".into(),
+            });
+        } else if pace.tries > 0 {
+            lines.push(TechLine {
+                label: format!("{title} 실패"),
+                value: format!("{} / {}회", pace.tries, pace.tries),
+            });
+        }
+        return;
+    }
+    let med = median_ms(&pace.samples);
+    let min = pace.samples.iter().copied().min().map(f64::from);
+    let max = pace.samples.iter().copied().max().map(f64::from);
+    let avg = if pace.samples.is_empty() {
+        None
+    } else {
+        let sum: u64 = pace.samples.iter().map(|ms| u64::from(*ms)).sum();
+        Some(sum as f64 / pace.samples.len() as f64)
+    };
+    lines.push(TechLine {
+        label: format!("{title} 지연 중앙값"),
+        value: ms_label(med),
+    });
+    lines.push(TechLine {
+        label: format!("{title} 지연 최소"),
+        value: ms_label(min),
+    });
+    lines.push(TechLine {
+        label: format!("{title} 지연 최대"),
+        value: ms_label(max),
+    });
+    lines.push(TechLine {
+        label: format!("{title} 지연 평균"),
+        value: ms_label(avg),
+    });
+    if count_loss {
+        let lost = pace.tries.saturating_sub(pace.hits);
+        lines.push(TechLine {
+            label: format!("{title} 손실"),
+            value: format!("{lost}개 / {}회", pace.tries),
+        });
+    } else {
+        let failed = pace.tries.saturating_sub(pace.hits);
+        lines.push(TechLine {
+            label: format!("{title} 실패"),
+            value: format!("{failed} / {}회", pace.tries),
+        });
+    }
+}
+
+fn apply_quality(mut report: LinkReport, reading: &QualityReading, stopped: bool) -> LinkReport {
+    push_pace(&mut report.technical, "내부", &reading.inside, true);
+    push_pace(&mut report.technical, "외부", &reading.outside, false);
+    if stopped {
+        return report;
+    }
+    let web_ok = report.rows.iter().any(|row| row.id == "web" && row.status == "success");
+    if !web_ok || report.help_id != "network-ok" {
+        return report;
+    }
+    let inside = inside_band(&reading.inside);
+    let outside = outside_band(&reading.outside);
+    let sentence = quality_sentence(inside, outside, reading.wifi);
+    if sentence.is_empty() {
+        return report;
+    }
+    let overall = tighter(inside, outside);
+    report.finding = sentence.clone();
+    report.help_id = "network-quality".into();
+    report.advice.clear();
+    report.copy_text = copy_text(&report.rows, &sentence);
+    report.show_speed = true;
+    report.quality_status = match overall {
+        Band::Warn => "warning".into(),
+        Band::Bad => "bad".into(),
+        _ => String::new(),
+    };
+    report.quality_text = sentence;
+    report
+}
+
+fn measure_quality(gateway: Option<&str>, outside: Option<SocketAddr>, web_ok: bool, wifi: bool) -> QualityReading {
+    let clock = QualityClock::new();
+    let mut inside = empty_pace();
+    if let Some(text) = gateway.filter(|text| usable_v4(text)) {
+        pace_gateway(&mut inside, text, &clock);
+    } else {
+        inside.note = "측정 불가".into();
+    }
+    let mut outside_pace = empty_pace();
+    if !web_ok {
+        outside_pace.note = "확인 안 함".into();
+    } else if proxy_configured() {
+        outside_pace.note = PROXY_NOTE.into();
+    } else if let Some(addr) = outside {
+        let mut aimed = addr;
+        aimed.set_port(PROBE.port);
+        pace_tcp(&mut outside_pace, aimed, &clock);
+    } else {
+        outside_pace.note = "측정 불가".into();
+    }
+    QualityReading {
+        inside,
+        outside: outside_pace,
+        wifi,
+    }
+}
+
+fn pace_gateway(pace: &mut Pace, gateway: &str, clock: &QualityClock) {
+    let Ok(ip) = gateway.parse::<Ipv4Addr>() else {
+        pace.note = "측정 불가".into();
+        return;
+    };
+    let dest = u32::from_ne_bytes(ip.octets());
+    for _ in 0..INSIDE_COUNT {
+        if stopped() || clock.left() < Duration::from_millis(50) {
+            break;
+        }
+        let began = Instant::now();
+        match echo_once(dest, INSIDE_WAIT.min(clock.left()), clock) {
+            EchoEnd::Hit(ms) => {
+                pace.tries += 1;
+                pace.hits += 1;
+                pace.samples.push(ms);
+            }
+            EchoEnd::Miss => pace.tries += 1,
+            EchoEnd::Stop => break,
+        }
+        if wait_gap(began, INSIDE_GAP) {
+            break;
+        }
+    }
+}
+
+fn wait_gap(began: Instant, gap: Duration) -> bool {
+    while began.elapsed() < gap {
+        if stopped() {
+            return true;
+        }
+        let rest = gap.saturating_sub(began.elapsed());
+        thread::sleep(rest.min(Duration::from_millis(50)));
+    }
+    stopped()
+}
+
+enum EchoEnd {
+    Hit(u32),
+    Miss,
+    Stop,
+}
+
+fn echo_once(dest: u32, limit: Duration, clock: &QualityClock) -> EchoEnd {
+    if limit.is_zero() || stopped() {
+        return EchoEnd::Stop;
+    }
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::{GetLastError, ERROR_IO_PENDING, WAIT_OBJECT_0};
+        use windows::Win32::NetworkManagement::IpHelper::{IcmpCloseHandle, IcmpCreateFile, IcmpSendEcho2, IP_SUCCESS};
+        use windows::Win32::System::Threading::{CreateEventW, WaitForSingleObject};
+        use windows::core::PCWSTR;
+        struct EchoGuard(windows::Win32::Foundation::HANDLE);
+        impl Drop for EchoGuard {
+            fn drop(&mut self) {
+                unsafe {
+                    let _ = IcmpCloseHandle(self.0);
+                }
+            }
+        }
+        struct EventGuard(windows::Win32::Foundation::HANDLE);
+        impl Drop for EventGuard {
+            fn drop(&mut self) {
+                unsafe {
+                    let _ = windows::Win32::Foundation::CloseHandle(self.0);
+                }
+            }
+        }
+        unsafe {
+            let Ok(icmp) = IcmpCreateFile() else {
+                return EchoEnd::Miss;
+            };
+            let _icmp = EchoGuard(icmp);
+            let Ok(event) = CreateEventW(None, false, false, PCWSTR::null()) else {
+                return EchoEnd::Miss;
+            };
+            let _event = EventGuard(event);
+            let payload = [0u8; 8];
+            let mut reply = vec![0u8; 256];
+            let timeout = wait_ms(limit).unwrap_or(1);
+            let code = IcmpSendEcho2(
+                icmp,
+                Some(event),
+                None,
+                None,
+                dest,
+                payload.as_ptr() as *const _,
+                payload.len() as u16,
+                None,
+                reply.as_mut_ptr() as *mut _,
+                reply.len() as u32,
+                timeout,
+            );
+            if code == 0 && GetLastError() != ERROR_IO_PENDING {
+                return EchoEnd::Miss;
+            }
+            if code == 0 {
+                let echo_end = Instant::now() + limit;
+                loop {
+                    if stopped() || clock.left().is_zero() {
+                        return EchoEnd::Stop;
+                    }
+                    let wait = WaitForSingleObject(event, 50);
+                    if wait == WAIT_OBJECT_0 {
+                        break;
+                    }
+                    if Instant::now() >= echo_end {
+                        return EchoEnd::Miss;
+                    }
+                }
+            }
+            if reply.len() < 12 {
+                return EchoEnd::Miss;
+            }
+            let status = u32::from_ne_bytes([reply[4], reply[5], reply[6], reply[7]]);
+            let rtt = u32::from_ne_bytes([reply[8], reply[9], reply[10], reply[11]]);
+            if status == IP_SUCCESS {
+                EchoEnd::Hit(rtt)
+            } else {
+                EchoEnd::Miss
+            }
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (dest, limit, clock);
+        EchoEnd::Miss
+    }
+}
+
+fn pace_tcp(pace: &mut Pace, addr: SocketAddr, clock: &QualityClock) {
+    for _ in 0..OUTSIDE_COUNT {
+        if stopped() || clock.left() < Duration::from_millis(50) {
+            break;
+        }
+        let limit = OUTSIDE_WAIT.min(clock.left());
+        match tcp_once(addr, limit) {
+            EchoEnd::Hit(ms) => {
+                pace.tries += 1;
+                pace.hits += 1;
+                pace.samples.push(ms);
+            }
+            EchoEnd::Miss => pace.tries += 1,
+            EchoEnd::Stop => break,
+        }
+    }
+}
+
+fn tcp_once(addr: SocketAddr, limit: Duration) -> EchoEnd {
+    if limit.is_zero() || stopped() {
+        return EchoEnd::Stop;
+    }
+    let (tx, rx) = mpsc::channel();
+    let began = Instant::now();
+    thread::spawn(move || {
+        let opened = TcpStream::connect_timeout(&addr, limit).map(|_| began.elapsed());
+        let _ = tx.send(opened);
+    });
+    let deadline = Instant::now() + limit;
+    loop {
+        if stopped() {
+            return EchoEnd::Stop;
+        }
+        match rx.recv_timeout(Duration::from_millis(50)) {
+            Ok(Ok(elapsed)) => return EchoEnd::Hit(elapsed.as_millis().min(u128::from(u32::MAX)) as u32),
+            Ok(Err(_)) => return EchoEnd::Miss,
+            Err(mpsc::RecvTimeoutError::Timeout) => {
+                if Instant::now() >= deadline {
+                    return EchoEnd::Miss;
+                }
+            }
+            Err(mpsc::RecvTimeoutError::Disconnected) => return EchoEnd::Miss,
+        }
+    }
+}
+
+fn proxy_configured() -> bool {
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::{GlobalFree, HGLOBAL};
+        use windows::Win32::Networking::WinHttp::{WinHttpGetIEProxyConfigForCurrentUser, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG};
+        use windows::core::PWSTR;
+        unsafe fn wide_set(text: PWSTR) -> bool {
+            !text.is_null() && !text.is_empty()
+        }
+        unsafe fn free_wide(text: PWSTR) {
+            if !text.is_null() {
+                let _ = GlobalFree(Some(HGLOBAL(text.as_ptr() as *mut _)));
+            }
+        }
+        unsafe {
+            let mut cfg = WINHTTP_CURRENT_USER_IE_PROXY_CONFIG {
+                fAutoDetect: false.into(),
+                lpszAutoConfigUrl: PWSTR::null(),
+                lpszProxy: PWSTR::null(),
+                lpszProxyBypass: PWSTR::null(),
+            };
+            let ok = WinHttpGetIEProxyConfigForCurrentUser(&mut cfg).is_ok();
+            let hit = ok && (wide_set(cfg.lpszProxy) || wide_set(cfg.lpszAutoConfigUrl));
+            free_wide(cfg.lpszAutoConfigUrl);
+            free_wide(cfg.lpszProxy);
+            free_wide(cfg.lpszProxyBypass);
+            hit
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        false
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1139,5 +1641,143 @@ mod tests {
         item.prefixes = vec![24];
         let report = judge(&facts(vec![item], Mark::Yes, Mark::Yes, Mark::Yes));
         assert_eq!(report.rows[1].status, "success");
+    }
+
+    fn ready_link() -> ProbeFacts {
+        facts(
+            vec![adapter(Media::Wired, true, &["10.1.1.8"], false, Some("10.1.1.1"), &["10.1.1.2"])],
+            Mark::Yes,
+            Mark::Yes,
+            Mark::Yes,
+        )
+    }
+
+    #[test]
+    fn gateway_with_no_replies_is_unknown_not_bad() {
+        let reading = QualityReading {
+            inside: Pace {
+                tries: 20,
+                hits: 0,
+                samples: Vec::new(),
+                note: String::new(),
+            },
+            outside: empty_pace(),
+            wifi: false,
+        };
+        assert_eq!(inside_band(&reading.inside), Band::Unknown);
+        let report = apply_quality(judge(&ready_link()), &reading, false);
+        assert!(!report.show_speed);
+        assert_eq!(report.help_id, "network-ok");
+        assert_ne!(report.quality_status, "bad");
+        assert!(report.technical.iter().any(|line| line.value == "측정 불가"));
+        assert!(report.technical.iter().all(|line| !line.value.contains("0ms") && !line.value.contains("0%")));
+    }
+
+    #[test]
+    fn one_lost_gateway_reply_warns_about_the_inside() {
+        let inside = Pace {
+            tries: 20,
+            hits: 19,
+            samples: vec![8; 19],
+            note: String::new(),
+        };
+        assert_eq!(inside_band(&inside), Band::Warn);
+        let reading = QualityReading {
+            inside,
+            outside: Pace {
+                tries: 5,
+                hits: 5,
+                samples: vec![30; 5],
+                note: String::new(),
+            },
+            wifi: false,
+        };
+        let report = apply_quality(judge(&ready_link()), &reading, false);
+        assert_eq!(report.quality_status, "warning");
+        assert!(report.finding.contains("내부 네트워크"));
+        assert!(report.show_speed);
+    }
+
+    #[test]
+    fn slow_outside_span_is_bad() {
+        let reading = QualityReading {
+            inside: Pace {
+                tries: 20,
+                hits: 20,
+                samples: vec![8; 20],
+                note: String::new(),
+            },
+            outside: Pace {
+                tries: 5,
+                hits: 5,
+                samples: vec![160; 5],
+                note: String::new(),
+            },
+            wifi: false,
+        };
+        assert_eq!(inside_band(&reading.inside), Band::Good);
+        assert_eq!(outside_band(&reading.outside), Band::Bad);
+        let report = apply_quality(judge(&ready_link()), &reading, false);
+        assert_eq!(report.quality_status, "bad");
+        assert!(report.finding.contains("외부"));
+        assert_eq!(report.help_id, "network-quality");
+        assert!(report.show_speed);
+    }
+
+    #[test]
+    fn web_failure_does_not_turn_into_a_clear_link() {
+        let mut sample = ready_link();
+        sample.web_reply = Mark::No;
+        let reading = QualityReading {
+            inside: Pace {
+                tries: 20,
+                hits: 20,
+                samples: vec![8; 20],
+                note: String::new(),
+            },
+            outside: empty_pace(),
+            wifi: false,
+        };
+        let report = apply_quality(judge(&sample), &reading, false);
+        assert!(!report.show_speed);
+        assert_ne!(report.help_id, "network-ok");
+        assert!(report.quality_status.is_empty());
+        assert!(!report.finding.contains("정상적으로 확인되었습니다"));
+    }
+
+    #[test]
+    fn proxy_uses_only_the_inside_span() {
+        let reading = QualityReading {
+            inside: Pace {
+                tries: 20,
+                hits: 19,
+                samples: vec![8; 19],
+                note: String::new(),
+            },
+            outside: Pace {
+                tries: 0,
+                hits: 0,
+                samples: Vec::new(),
+                note: PROXY_NOTE.into(),
+            },
+            wifi: false,
+        };
+        assert_eq!(outside_band(&reading.outside), Band::Unknown);
+        let report = apply_quality(judge(&ready_link()), &reading, false);
+        assert_eq!(report.quality_status, "warning");
+        assert!(report.finding.contains("내부 네트워크"));
+        assert!(report.technical.iter().any(|line| line.value == PROXY_NOTE));
+    }
+
+    #[test]
+    fn delay_edges_follow_the_middle_sample() {
+        assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![19], note: String::new() }), Band::Good);
+        assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![20], note: String::new() }), Band::Warn);
+        assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![49], note: String::new() }), Band::Warn);
+        assert_eq!(inside_band(&Pace { tries: 1, hits: 1, samples: vec![50], note: String::new() }), Band::Bad);
+        assert_eq!(outside_band(&Pace { tries: 1, hits: 1, samples: vec![79], note: String::new() }), Band::Good);
+        assert_eq!(outside_band(&Pace { tries: 1, hits: 1, samples: vec![80], note: String::new() }), Band::Warn);
+        assert_eq!(outside_band(&Pace { tries: 1, hits: 1, samples: vec![149], note: String::new() }), Band::Warn);
+        assert_eq!(outside_band(&Pace { tries: 1, hits: 1, samples: vec![150], note: String::new() }), Band::Bad);
     }
 }

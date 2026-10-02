@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { SPEED_SITE } from "../config/speedSites";
 
 export type LinkStatus = "checking" | "waiting" | "success" | "warning" | "error" | "unconfirmed" | "skipped";
 
@@ -24,6 +26,9 @@ export interface LinkReport {
   copyText: string;
   pages: string[];
   stopped: boolean;
+  showSpeed: boolean;
+  qualityStatus: string;
+  qualityText: string;
 }
 
 export interface LinkNote {
@@ -58,4 +63,8 @@ export async function haltLinkCheck(): Promise<void> {
 
 export async function openPcSetting(page: "network" | "wifi" | "proxy"): Promise<void> {
   await invoke("open_pc_setting", { page });
+}
+
+export async function openSpeedSite(): Promise<void> {
+  await openUrl(SPEED_SITE);
 }
