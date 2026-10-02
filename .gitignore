@@ -23,3 +23,16 @@ website/public/knowledge/
 *.njsproj
 *.sln
 *.sw?
+
+*.exe
+*.msi
+.wrangler/
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.p8
+knowledge-signing*
+

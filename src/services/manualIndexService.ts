@@ -1,4 +1,3 @@
-import { Store } from "@tauri-apps/plugin-store";
 import { APP_CONFIG } from "../config/app";
 
 export interface ManualIndexTopic {
@@ -53,29 +52,11 @@ function applyFile(file: ManualIndexFile | null | undefined): boolean {
   return topics.length >= 10;
 }
 
-export async function refreshManualIndex(): Promise<void> {
-  let store: Store;
-  try {
-    store = await Store.load("manual-index.json");
-  } catch {
-    unavailable = "교육행정 매뉴얼을 불러올 수 없습니다. 인터넷 연결 후 다시 시도해 주세요.";
+export function applyVerifiedIndex(file: ManualIndexFile | null | undefined): void {
+  if (file && applyFile(file)) {
     return;
   }
-  const saved = await store.get<ManualIndexFile>("index");
-  applyFile(saved);
-  try {
-    const response = await fetch(`${APP_CONFIG.siteUrl}knowledge/search-index.json`, { signal: AbortSignal.timeout(12000) });
-    if (!response.ok) throw new Error(String(response.status));
-    const text = await response.text();
-    if (text.length === 0 || text.length > 8_000_000) throw new Error("size");
-    const next = JSON.parse(text) as ManualIndexFile;
-    if (saved?.updatedAt && saved.updatedAt === next.updatedAt) return;
-    if (!applyFile(next)) return;
-    await store.set("index", next);
-    await store.save();
-  } catch {
-    if (topics.length === 0) {
-      unavailable = "교육행정 매뉴얼을 불러올 수 없습니다. 인터넷 연결 후 다시 시도해 주세요.";
-    }
+  if (topics.length === 0) {
+    unavailable = "업무 자료를 불러올 수 없습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.";
   }
 }

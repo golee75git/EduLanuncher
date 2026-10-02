@@ -27,6 +27,8 @@ export const MEMO_SIZE = {
 export interface AppSettings {
   autoStart: boolean;
   showWindowOnLaunch: boolean;
+  checkUpdatesOnLaunch: boolean;
+  fetchKnowledgeOnLaunch: boolean;
   launcherPosition: LauncherPosition;
   globalShortcut: string;
   favoriteCount: number;
@@ -135,6 +137,8 @@ export function asIdList(value: unknown): string[] {
 export const DEFAULT_SETTINGS: AppSettings = {
   autoStart: true,
   showWindowOnLaunch: true,
+  checkUpdatesOnLaunch: true,
+  fetchKnowledgeOnLaunch: true,
   launcherPosition: "bottom-right",
   globalShortcut: "Ctrl+Alt+E",
   favoriteCount: 9,

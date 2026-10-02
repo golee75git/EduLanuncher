@@ -26,6 +26,7 @@ interface DropZoneProps {
   onUrlShortcut: (path: string) => void;
   onLocalPaths: (paths: string[]) => void;
   onDropUnreadable?: (formats: string[]) => void;
+  holdDrops?: boolean;
 }
 
 const recentDrop = new Map<string, number>();
@@ -67,8 +68,11 @@ export function DropZone({
   onUrlShortcut,
   onLocalPaths,
   onDropUnreadable,
+  holdDrops = false,
 }: DropZoneProps) {
   const [active, setActive] = useState(false);
+  const holdRef = useRef(holdDrops);
+  holdRef.current = holdDrops;
   const callbacks = useRef({
     onPackFile,
     onPackText,
@@ -261,6 +265,10 @@ export function DropZone({
     };
 
     const onOver = (event: DragEvent) => {
+      if (holdRef.current) {
+        event.preventDefault();
+        return;
+      }
       if (!event.dataTransfer || !isDroppableDrag(event.dataTransfer)) {
         return;
       }
@@ -278,6 +286,9 @@ export function DropZone({
     const onDrop = (event: DragEvent) => {
       event.preventDefault();
       setActive(false);
+      if (holdRef.current) {
+        return;
+      }
       if (event.dataTransfer) {
         void applyHtmlDrop(event.dataTransfer);
       }
@@ -291,7 +302,8 @@ export function DropZone({
     const unlistens: Array<() => void> = [];
     const attachNative = async () => {
       const handle = (event: { payload: DragDropEvent }) => {
-        if (cancelled) {
+        if (cancelled || holdRef.current) {
+          setActive(false);
           return;
         }
         if (event.payload.type === "enter" || event.payload.type === "over") {
@@ -325,7 +337,7 @@ export function DropZone({
       try {
         unlistens.push(
           await listen<boolean>("launcher-drop-hover", (event) => {
-            if (!cancelled) {
+            if (!cancelled && !holdRef.current) {
               setActive(event.payload);
             }
           }),
@@ -341,7 +353,7 @@ export function DropZone({
           }>(
             "launcher-drop",
             (event) => {
-              if (cancelled) {
+              if (cancelled || holdRef.current) {
                 return;
               }
               if (event.payload.type === "unreadable") {

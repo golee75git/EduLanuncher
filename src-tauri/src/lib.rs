@@ -21,6 +21,7 @@ mod doc_shrink;
 mod document_search;
 mod netcheck;
 mod fixed_https;
+mod knowledge_sign;
 mod printcheck;
 mod pdf_pages;
 mod netutil;
@@ -2423,6 +2424,8 @@ pub fn run() {
             printcheck::halt_pc_print,
             printcheck::open_print_view,
             latest_release_tag,
+            knowledge_sign::verified_knowledge,
+            knowledge_sign::refresh_verified_knowledge,
             scan_ipv4_range,
             scan_cctv_range,
             halt_range_check,

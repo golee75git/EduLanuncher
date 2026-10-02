@@ -6,6 +6,45 @@
 ---
 
 날짜: 2026-10-03
+대상: 업무자료 서명 검증과 링크 허용 목록
+작성자: 요청자
+
+요청: 서명되지 않았거나 변조된 업무자료를 런처가 쓰지 않게 한다. 수신은 Rust로 옮기고, 허용된 https 주소만 연다.
+
+확인: 개인키는 만들지 않음. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 새 패키지 없음. windows crate에 Win32_Security_Cryptography feature만 추가. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. THIRD_PARTY_NOTICES 재생성은 필요 없음.
+
+새로 만든 파일:
+- src-tauri/src/knowledge_sign.rs
+- src/services/knowledgeSync.ts
+- src/services/startupNetwork.ts
+- website/scripts/sign-knowledge.mjs
+- website/scripts/show-knowledge-public-key.mjs
+- docs/knowledge-signing.md
+- docs/security-knowledge-sign-stage1-2026-10-03.md
+
+재사용한 기존 파일:
+- src-tauri/src/fixed_https.rs
+- src-tauri/src/lib.rs
+- src-tauri/Cargo.toml
+- src-tauri/tauri.conf.json
+- src/App.tsx
+- src/pages/SettingsPage.tsx
+- src/services/manualPackService.ts
+- src/services/manualIndexService.ts
+- src/services/backupService.ts
+- src/services/storageService.ts
+- src/types/settings.ts
+- src/config/app.ts
+- website/package.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- .gitignore
+- 수정기록.txt
+
+---
+
+날짜: 2026-10-03
 대상: 오픈소스 고지의 저작권 줄 표기
 작성자: 요청자
 

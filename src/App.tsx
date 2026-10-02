@@ -29,6 +29,7 @@ import { DocSearchPage } from "./pages/DocSearchPage";
 import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { InternetCheckPage } from "./pages/InternetCheckPage";
 import { PrinterCheckPage } from "./pages/PrinterCheckPage";
+import { PrivacyScanPage } from "./pages/PrivacyScanPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
@@ -43,7 +44,7 @@ import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
-import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget } from "./data/computerTools";
+import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget } from "./data/computerTools";
 import { isPdfPagesTarget } from "./data/sampleTools";
 import { logEducationValidation } from "./services/mindMapService";
 import { logTroubleshootingValidation } from "./services/troubleshootingService";
@@ -56,8 +57,8 @@ import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut }
 import { focusSearchInput } from "./services/focusBus";
 import { dismissMemoNote, hidePanel, openMemoNote, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
-import { refreshManualIndex } from "./services/manualIndexService";
-import { refreshManualPack } from "./services/manualPackService";
+import { startupKnowledge } from "./services/knowledgeSync";
+import { wantsLaunchUpdates } from "./services/startupNetwork";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { isPriorSkin } from "./types/settings";
 import { asPanelHeight, asPanelWidth } from "./types/settings";
@@ -93,6 +94,7 @@ type View =
   | { name: "pc-address" }
   | { name: "pc-link"; backTo?: View }
   | { name: "pc-print"; backTo?: View }
+  | { name: "privacy-scan"; backTo?: View }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
   | { name: "doc-shrink"; backTo?: View; startPaths?: string[] }
@@ -349,7 +351,8 @@ export default function App() {
     const bootstrap = async () => {
       if (mapWindow || memoWindow) {
         if (mapWindow) {
-          await refreshManualPack();
+          const settings = await hydrateSettings();
+          await startupKnowledge(settings.fetchKnowledgeOnLaunch);
         }
         if (!cancelled) {
           setReady(true);
@@ -358,9 +361,8 @@ export default function App() {
       }
       try {
         await initStorage();
-        await refreshManualPack();
-        await refreshManualIndex();
         const settings = await hydrateSettings();
+        await startupKnowledge(settings.fetchKnowledgeOnLaunch);
         await hydrateTools();
         await hydrateTodos();
         await hydrateMemo();
@@ -376,11 +378,13 @@ export default function App() {
         if (cancelled) {
           return;
         }
-        void findNewerRelease().then((tag) => {
-          if (!cancelled && tag) {
-            setReleaseNotice(tag);
-          }
-        });
+        if (wantsLaunchUpdates(settings.checkUpdatesOnLaunch)) {
+          void findNewerRelease().then((tag) => {
+            if (!cancelled && tag) {
+              setReleaseNotice(tag);
+            }
+          });
+        }
         if (settings.showWindowOnLaunch || !settings.onboarded) {
           await showPanel();
         } else {
@@ -589,6 +593,11 @@ export default function App() {
         setView(view.backTo);
         return;
       }
+      if (view.name === "privacy-scan") {
+        const next = view.backTo ?? { name: "home" };
+        void invoke("privacy_leave").finally(() => setView(next));
+        return;
+      }
       if (view.name !== "home") {
         setView({ name: "home" });
         return;
@@ -597,6 +606,24 @@ export default function App() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [missing, view]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let cancelled = false;
+    void listen("privacy-disarmed", () => {
+      setView((current) => (current.name === "privacy-scan" ? { name: "home" } : current));
+    }).then((stop) => {
+      if (cancelled) {
+        stop();
+      } else {
+        unlisten = stop;
+      }
+    });
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
+  }, []);
 
   const handleLaunch = async (tool: ToolItem) => {
     try {
@@ -610,6 +637,11 @@ export default function App() {
       }
       if (tool.type === "internal" && isPrintCheckTarget(tool.target || tool.id)) {
         setView({ name: "pc-print", backTo: { name: "home" } });
+        return;
+      }
+      if (tool.type === "internal" && isPrivacyTarget(tool.target || tool.id)) {
+        await invoke("privacy_enter");
+        setView({ name: "privacy-scan", backTo: { name: "home" } });
         return;
       }
       if (tool.type === "internal") {
@@ -667,6 +699,12 @@ export default function App() {
     }
     if (action.type === "pc-print") {
       setView({ name: "pc-print", backTo: { name: "home", search: clipSearch(action.search) } });
+      return;
+    }
+    if (action.type === "privacy-scan") {
+      void invoke("privacy_enter").then(() => {
+        setView({ name: "privacy-scan", backTo: { name: "home", search: clipSearch(action.search) } });
+      });
       return;
     }
     if (action.type === "troubleshoot") {
@@ -757,6 +795,7 @@ export default function App() {
       onPackText={queuePackText}
       onSiteUrl={queueSite}
       onUrlShortcut={queueUrlFile}
+      holdDrops={view.name === "privacy-scan"}
       onLocalPaths={addLocalPaths}
       onDropUnreadable={(formats) =>
         toast(
@@ -831,6 +870,11 @@ export default function App() {
               onShowDocShrink={() => setView({ name: "doc-shrink", backTo: { name: "computer-tools" } })}
               onShowLinkCheck={() => setView({ name: "pc-link", backTo: { name: "computer-tools" } })}
               onShowPrintCheck={() => setView({ name: "pc-print", backTo: { name: "computer-tools" } })}
+              onShowPrivacy={() => {
+                void invoke("privacy_enter").then(() => {
+                  setView({ name: "privacy-scan", backTo: { name: "computer-tools" } });
+                });
+              }}
               onShowTroubleshoot={() =>
                 setView({ name: "troubleshoot", backTo: { name: "computer-tools" } })
               }
@@ -922,6 +966,14 @@ export default function App() {
           ) : null}
           {view.name === "pc-address" ? (
             <ThisPcAddressPage onBack={() => setView({ name: "computer-tools" })} />
+          ) : null}
+          {view.name === "privacy-scan" ? (
+            <PrivacyScanPage
+              onBack={() => {
+                const next = view.backTo ?? { name: "computer-tools" };
+                void invoke("privacy_leave").finally(() => setView(next));
+              }}
+            />
           ) : null}
           {view.name === "pc-print" ? (
             <PrinterCheckPage

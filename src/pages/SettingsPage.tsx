@@ -6,6 +6,7 @@ import { APP_CONFIG } from "../config/app";
 import type { LauncherPack } from "../data/educationPack";
 import { applyPackFromPath } from "../services/applyNoticePack";
 import { launchQuickUrl } from "../services/launcherService";
+import { refreshVerifiedKnowledge } from "../services/knowledgeSync";
 import { findNewerRelease } from "../services/releaseCheckService";
 import { applyLauncherBackup, buildLauncherBackup, parseLauncherBackup } from "../services/backupService";
 import { buildLauncherPack } from "../services/launcherPackService";
@@ -44,18 +45,6 @@ export function SettingsPage({
   const [backupMessage, setBackupMessage] = useState("");
   const [newerRelease, setNewerRelease] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    void findNewerRelease().then((tag) => {
-      if (!cancelled) {
-        setNewerRelease(tag);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   return (
     <div className="flex h-full flex-col bg-paper">
       <header className="flex items-center gap-2 px-3 pt-3">
@@ -76,6 +65,34 @@ export function SettingsPage({
             checked={settings.showWindowOnLaunch}
             onChange={(showWindowOnLaunch) => void update({ showWindowOnLaunch })}
           />
+          <Toggle
+            label="시작할 때 새 버전 확인"
+            checked={settings.checkUpdatesOnLaunch}
+            onChange={(checkUpdatesOnLaunch) => void update({ checkUpdatesOnLaunch })}
+          />
+          <button
+            type="button"
+            className="btn-secondary"
+            aria-label="새 버전 지금 확인"
+            onClick={() => {
+              void findNewerRelease().then((tag) => setNewerRelease(tag));
+            }}
+          >
+            지금 확인
+          </button>
+          <Toggle
+            label="시작할 때 업무자료 받기"
+            checked={settings.fetchKnowledgeOnLaunch}
+            onChange={(fetchKnowledgeOnLaunch) => void update({ fetchKnowledgeOnLaunch })}
+          />
+          <button
+            type="button"
+            className="btn-secondary"
+            aria-label="업무자료 지금 확인"
+            onClick={() => void refreshVerifiedKnowledge()}
+          >
+            지금 확인
+          </button>
         </SettingsCard>
 
         <SettingsCard title="런처">
@@ -449,7 +466,7 @@ export function SettingsPage({
             <li>설정의 프로그램 정보에서 오픈소스 라이선스를 누르면 이 프로그램에 포함된 고지를 봅니다. 원격으로 받아 오지 않습니다.</li>
             <li>설치 창과 제거 창은 한글입니다. 이미 설치된 버전 위에 다시 설치하면, 이전 버전을 지운 뒤 닫기 단추 없이 새 설치가 이어집니다. 그 과정에서는 바로가기와 이 PC의 목록을 지우지 않습니다. 설치 완료 창에서 마침을 누르면 런처가 실행됩니다.</li>
             <li>개인 사용 PC에만 설치하세요. 공용 PC·실습실·다른 사람 계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다. 런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.</li>
-            <li>설치 완료 창에서 마침을 누르면 프로그램이 실행되고, 처음에는 시작 시 자동 실행·시작 시 창 표시가 켜져 있습니다. 설정에서 끌 수 있습니다. Pack 연결과 시작 시 자동 실행을 넣을 때 검은 콘솔 창은 띄우지 않습니다.</li>
+            <li>설치 완료 창에서 마침을 누르면 프로그램이 실행되고, 처음에는 시작 시 자동 실행·시작 시 창 표시·시작할 때 새 버전 확인·시작할 때 업무자료 받기가 켜져 있습니다. 설정에서 끌 수 있습니다. 꺼져 있으면 켤 때 그 통신을 하지 않고, 설정의 지금 확인으로만 받습니다. Pack 연결과 시작 시 자동 실행을 넣을 때 검은 콘솔 창은 띄우지 않습니다.</li>
             <li>설정의 보기에서 서류·밝은 화면·어두운 화면·카드형 홈 배치·청록 모던·청록 모던 (어둡게)와 모두 목록 1열·2열을 고릅니다. 처음 설치의 기본 스킨은 청록 모던입니다. 이미 고른 스킨은 그대로입니다. 카드형 홈 배치의 색은 서류입니다. 청록 모던은 같은 홈에서 색만 바꿉니다. 홈의 자주 사용하는 도구는 모두와 같은 줄입니다. 1열 설정은 유지하고, 2열 설정일 때 가로로 넓히면(약 560px 이상) 3열이 됩니다. 카드형 홈 배치의 홈 목록은 좁으면 2열, 넓으면 3열입니다. 홈 검색 빈 구역 숨김은 기본이 꺼져 있어 지금처럼 빈 안내를 둡니다. 켜면 일치가 없는 구역만 숨기고 순서는 그대로입니다.</li>
             <li>트레이, 작업 표시줄 아이콘 또는 Ctrl+Alt+E로 패널을 엽니다. 홈 검색창 안내는 사이트·업무·파일·폴더·컴퓨터도구·PC 문제입니다. 홈에서 Ctrl+K를 누르면 검색창으로 이동합니다. 검색창에는 그 키 글자를 그리지 않습니다. 창을 닫아도 작업 표시줄 아이콘은 남고, 아이콘을 누르면 설정한 자리(기본은 오른쪽 아래)에 다시 열립니다. 컴퓨터를 켜 두면 아이콘이 있습니다. 완전히 끄려면 트레이에서 종료합니다. 창 모서리를 끌어 크기를 바꿀 수 있고, 바꾼 크기는 이 PC에 남습니다. 처음 설치는 520×720입니다. 이미 크기를 저장한 PC는 그 크기를 유지합니다. 카드형 홈 배치가 아닐 때 검색 아래에는 사이트, 프로그램, 폴더, 단축키, 컴퓨터도구로 가는 아이콘이 있습니다. 검색 중이거나 학교 결과를 볼 때는 이 줄을 숨깁니다.</li>
             <li>설정의 공지·사이트 Pack에서 나눌 공지·사이트를 고른 뒤 한 파일로 저장합니다. 받는 쪽에서 공지와 사이트를 고릅니다. 할 일·메모·설정은 넣지 않으며, 다른 PC로 옮기기(백업)와는 다릅니다.</li>
@@ -480,7 +497,7 @@ export function SettingsPage({
             <li>홈 할 일은 오늘·내일·모레를 고른 뒤 넣습니다. 파일에는 달력 날짜만 남고, 화면에는 오늘(9.20)처럼 보입니다. 지난 날짜의 미완료는 오늘 칸에 남습니다.</li>
             <li>할 일 칸 오늘·내일·모레 줄 오른쪽의 캘린더를 누르면 구글·네이버 공식 누리집을 고릅니다. 일정은 가져오지 않습니다.</li>
             <li>최근 사용에는 실행한 바로가기와 열어 본 관련 업무만 남습니다. 검색창에 친 말은 넣지 않습니다.</li>
-            <li>설정 맨 아래 소개 사이트에서 https://edulanuncher.zeroorder.kr/ 를 엽니다. 소개 웹은 website 폴더만 올리고, 설치 파일은 GitHub Releases에 있습니다. 프로그램을 켤 때 한 번, 그리고 설정의 프로그램 정보에서 이 PC 버전과 새 버전을 보여 줍니다. 새 설치 파일이 있으면 패널에 안내가 나오고 소개 사이트만 엽니다. 창을 숨긴 채 켜면 다음에 패널을 열었을 때 보입니다. 자동으로 설치하거나 파일을 받지는 않습니다.</li>
+            <li>설정 맨 아래 소개 사이트에서 https://edulanuncher.zeroorder.kr/ 를 엽니다. 소개 웹은 website 폴더만 올리고, 설치 파일은 GitHub Releases에 있습니다. 시작할 때 새 버전 확인이 켜져 있으면 프로그램을 켤 때 한 번 새 버전을 보고, 설정의 지금 확인으로도 봅니다. 새 설치 파일이 있으면 패널에 안내가 나오고 소개 사이트만 엽니다. 창을 숨긴 채 켜면 다음에 패널을 열었을 때 보입니다. 자동으로 설치하거나 파일을 받지는 않습니다.</li>
             <li>QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 이 프로그램은 그 상표를 소유하지 않습니다.</li>
           </ul>
         </SettingsCard>

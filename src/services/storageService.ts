@@ -84,6 +84,8 @@ export async function loadSettings(): Promise<AppSettings> {
     memoHeight: asMemoHeight(merged.memoHeight),
     shortcutOrder: asIdList(merged.shortcutOrder),
     computerToolOrder: asIdList(merged.computerToolOrder),
+    checkUpdatesOnLaunch: merged.checkUpdatesOnLaunch !== false,
+    fetchKnowledgeOnLaunch: merged.fetchKnowledgeOnLaunch !== false,
   };
 }
 

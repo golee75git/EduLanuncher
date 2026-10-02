@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node tools/copyKnowledge.mjs && vite",
     "build": "node tools/copyKnowledge.mjs && tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && node scripts/sign-knowledge.mjs dist/knowledge && npx wrangler deploy"
   },
   "dependencies": {
     "lucide-react": "^1.46.0",

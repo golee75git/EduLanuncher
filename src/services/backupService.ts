@@ -201,6 +201,8 @@ function parseSettings(raw: unknown): AppSettings {
   return {
     autoStart: source.autoStart === false ? false : DEFAULT_SETTINGS.autoStart,
     showWindowOnLaunch: source.showWindowOnLaunch === false ? false : DEFAULT_SETTINGS.showWindowOnLaunch,
+    checkUpdatesOnLaunch: source.checkUpdatesOnLaunch === false ? false : DEFAULT_SETTINGS.checkUpdatesOnLaunch,
+    fetchKnowledgeOnLaunch: source.fetchKnowledgeOnLaunch === false ? false : DEFAULT_SETTINGS.fetchKnowledgeOnLaunch,
     launcherPosition: position,
     globalShortcut: asText(source.globalShortcut) || DEFAULT_SETTINGS.globalShortcut,
     favoriteCount,
