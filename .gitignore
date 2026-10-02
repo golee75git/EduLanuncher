@@ -34,5 +34,8 @@ website/public/knowledge/
 *.pem
 *.key
 *.p8
-knowledge-signing*
+knowledge-signing-key*
+knowledge-signing*.pem
+knowledge-signing*.key
+knowledge-signing*.p8
 
