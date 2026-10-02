@@ -6,6 +6,32 @@
 ---
 
 날짜: 2026-10-02
+대상: 소개 사이트 매뉴얼
+작성자: 요청자
+
+요청: 메뉴 사이트의 업무 페이지에 업무 흐름과 한눈에 보기를 넣는다.
+
+새로 만든 파일:
+- website/src/components/TopicStepBoards.tsx
+
+재사용한 기존 파일:
+- website/tools/copyKnowledge.mjs
+- website/src/services/menuContent.ts
+- website/src/pages/MenuPage.tsx
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+
+확인:
+- 새 패키지 없음. GPL 패키지 추가 없음
+- 글꼴은 기존 Windows 시스템 글꼴 그대로. OFL 글꼴이 아님. OFL 글꼴을 새로 넣지 않음
+- 단계 글은 화면에 글자로만 표시. 주소나 스크립트를 실행하지 않음
+- 특허 청구항과 대조하지 않음. 특허 비침해를 보장하지 않음
+- 런처 설치본은 바꾸지 않음
+
+---
+
+날짜: 2026-10-02
 버전: 0.1.155-20261002
 설치 파일: EduLauncher_0.1.155-20261002_x64-setup.exe
 날짜 복사본: EduLauncher_2026-10-02_1320_x64-setup.exe

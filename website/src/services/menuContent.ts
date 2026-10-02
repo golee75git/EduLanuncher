@@ -24,8 +24,12 @@ export interface HandbookTopic {
 }
 
 export interface TopicStep {
+  order: number;
   title: string;
   note: string;
+  pages?: string;
+  documents?: string[];
+  caveats?: string[];
 }
 
 export interface TopicRow {

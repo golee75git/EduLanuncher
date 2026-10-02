@@ -241,6 +241,50 @@ const handbook = {
   })),
 };
 
+function textList(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+}
+
+function menuSteps(topic) {
+  const detail = topic.detail && typeof topic.detail === "object" ? topic.detail : {};
+  const flow = Array.isArray(detail.flowchart) ? detail.flowchart : [];
+  if (flow.length > 0) {
+    return flow
+      .map((step, index) => ({
+        order: Number(step?.order) || index + 1,
+        title: String(step?.title ?? "").trim(),
+        note: String(step?.explanation ?? "").trim(),
+        documents: textList(step?.documents),
+        caveats: textList(step?.caveats),
+      }))
+      .filter((step) => step.title);
+  }
+  const notes = Array.isArray(detail.steps) ? detail.steps : [];
+  return (topic.workflow ?? [])
+    .map((step, index) => {
+      const title = String(step?.title ?? "").trim();
+      const match = notes.find((item) => String(item?.workflowTitle ?? "").trim() === title);
+      const note = [step?.description, match?.explanation]
+        .map((item) => String(item ?? "").trim())
+        .filter(Boolean)
+        .join("\n");
+      const pages =
+        match && Array.isArray(match.printPages) && match.printPages.length > 0
+          ? `인쇄 ${match.printPages.join("·")}쪽`
+          : "";
+      return {
+        order: Number(step?.order) || index + 1,
+        title,
+        note,
+        pages,
+        documents: [],
+        caveats: [],
+      };
+    })
+    .filter((step) => step.title);
+}
+
 const topicIndex = topics.map((topic) => ({
   id: topic.id,
   title: topic.title,
@@ -248,12 +292,7 @@ const topicIndex = topics.map((topic) => ({
   subcategory: topic.subcategory ?? "",
   description: topic.description ?? "",
   beginnerSummary: topic.beginnerSummary ?? "",
-  steps: (topic.workflow ?? [])
-    .map((step) => ({
-      title: String(step.title ?? "").trim(),
-      note: String(step.description || step.explanation || "").trim(),
-    }))
-    .filter((step) => step.title),
+  steps: menuSteps(topic),
 }));
 
 const packDir = path.join(outDir, "pack");
