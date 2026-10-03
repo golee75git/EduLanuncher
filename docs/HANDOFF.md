@@ -3,7 +3,9 @@
 기준일: 2026-09-24  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.163-20261003`
+최신 커밋 시점의 앱 버전: `0.1.164-20261003`
+
+지원 종료 표는 해마다 새 버전 출시 때 갱신 필요, 출처: Microsoft Windows 11 release information. 표는 `src-tauri/src/security_judge.rs`의 `SUPPORT_ENDS`이다. 날짜가 비어 있으면 그 버전은 확인 불가다. Windows 11 25H2 칸은 비어 있다.
 
 이 파일이 작업 인계본이다. 채팅 기록보다 이 문서와 git을 따른다.
 

@@ -2958,3 +2958,28 @@ Difference:
 
 PATENT_REVIEW:
 해시된 문서 색인은 특허 검토가 필요할 수 있다. 검증된 청구항 원문은 보지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음
+
+---
+
+Feature: 보안 상태 점검
+
+Purpose:
+사용자가 점검 시작을 눌렀을 때만 이 PC의 업데이트, 백신, 방화벽, 화면 잠금, 공유 폴더를 쉬운 말로 보여 주기 위함
+
+Design source:
+내부 요구사항. Windows 레지스트리, 보안 센터 제품 목록, 방화벽 프로필 조회, 업데이트 설치 기록, 공유 이름 목록
+
+Implementation:
+수집과 문구 판단을 나누어 이 저장소에서 새로 작성. 인터넷 점검과 프린터 점검 코드는 공통 엔진으로 옮기지 않음. 설정 값은 바꾸지 않음. 지원 종료일은 앱 안 표 한 곳에만 둠. 읽기 경로에서는 다른 프로그램을 실행하지 않음. 설정 화면을 여는 단추만 기존과 같이 탐색기로 허용한 주소를 염
+
+External code:
+없음. 새 패키지 없음. windows 크레이트에 Win32_System_SecurityCenter, Win32_NetworkManagement_WindowsFirewall, Win32_NetworkManagement_NetManagement, Win32_System_UpdateAgent 기능을 추가함. GPL 구성 요소 없음
+
+Potential similar products:
+운영체제의 Windows 보안 화면과 업데이트 기록
+
+Difference:
+자동 복구, 설정 변경, 결과 저장, 외부 전송이 없다. 읽지 못한 항목은 확인 불가로 두고 나머지는 계속한다
+
+PATENT_REVIEW:
+여러 보안 상태를 읽어 짧은 문장으로 바꾸는 구성. 특정 특허 청구항과 대조하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음. 검증된 청구항 원문은 보지 않음

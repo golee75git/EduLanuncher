@@ -1,0 +1,57 @@
+{
+  "id": "security-screen-lock",
+  "category": "security",
+  "title": "화면 잠금 확인",
+  "aliases": ["화면 잠금", "잠금 화면", "자리 비움", "윈도우 키 L", "화면 보호기"],
+  "keywords": ["화면 잠금", "잠금 화면", "Windows 키 L"],
+  "symptoms": ["자리를 비울 때 화면이 잠기는지 확인하고 싶어요"],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "이 안내는 확인 방법입니다. 앱이 잠금 설정을 바꾸지는 않습니다.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "잠금 화면 설정이 열리나요?",
+      "options": [
+        { "label": "열립니다", "next": "solution_1" },
+        { "label": "설정이 회색입니다", "next": "support" },
+        { "label": "잘 모르겠습니다", "next": "solution_1" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "잠금 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "설정을 열고 개인 설정, 잠금 화면을 선택하세요.",
+        "화면 보호기를 쓰는 경우 다시 시작할 때 로그온 화면 표시가 켜져 있는지 확인하세요.",
+        "자리를 비울 때는 Windows 키와 L을 눌러 바로 잠글 수 있습니다."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Troubleshoot problems updating Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows"
+    }
+  ],
+  "support": {
+    "message": "잠금 화면 설정이 회색이면 그 PC의 관리 정책을 확인해야 합니다. 앱은 정책을 바꾸지 않습니다.",
+    "collect": ["잠금 화면 설정이 열리는지"]
+  }
+}

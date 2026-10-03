@@ -1,0 +1,57 @@
+{
+  "id": "security-windows-support",
+  "category": "security",
+  "title": "Windows 지원 상태 확인",
+  "aliases": ["윈도우 지원 종료", "보안 업데이트 종료", "윈도우 버전 확인", "지원 기간", "윈도우 업그레이드"],
+  "keywords": ["Windows 지원", "버전", "보안 업데이트"],
+  "symptoms": ["이 PC의 Windows가 보안 업데이트를 받는지 확인하고 싶어요"],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "이 안내는 확인 방법입니다. 앱이 설정을 바꾸지는 않습니다.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "설정에서 Windows 버전을 볼 수 있나요?",
+      "options": [
+        { "label": "버전이 보입니다", "next": "solution_1" },
+        { "label": "설정이 열리지 않습니다", "next": "support" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "버전 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "설정을 열고 시스템, 정보를 선택하세요.",
+        "Windows 사양에서 버전과 빌드를 확인하세요.",
+        "최신 버전이 필요하면 설정, Windows 업데이트에서 업데이트 확인을 누르세요. 설치는 Windows가 안내합니다."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Troubleshoot problems updating Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows"
+    }
+  ],
+  "support": {
+    "message": "버전 이름을 적어 두고 Microsoft의 Windows 지원 기간 안내에서 같은 버전을 찾으세요.",
+    "collect": ["Windows 버전", "빌드 번호"]
+  }
+}

@@ -15,7 +15,7 @@ import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
-import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, listComputerTools } from "../data/computerTools";
+import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget, listComputerTools } from "../data/computerTools";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { launchQuickUrl } from "../services/launcherService";
@@ -74,6 +74,7 @@ export type HomeAction =
   | { type: "handbook" }
   | { type: "pc-link"; search?: string }
   | { type: "pc-print"; search?: string }
+  | { type: "pc-security"; search?: string }
   | { type: "privacy-scan"; search?: string }
   | { type: "troubleshoot"; search?: string }
   | { type: "troubleshoot-card"; cardId: string; search?: string }
@@ -264,6 +265,14 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const showPrintCheck = Boolean(
     printTool &&
       scoreText(query, printTool.name, printTool.description, printTool.category, ...(printTool.keywords ?? [])) > 0,
+  );
+  const securityTool = useMemo(() => {
+    const entry = listComputerTools().find((item) => item.id === "pc-security");
+    return entry ? computerToolAsItem(entry) : null;
+  }, []);
+  const showSecurityCheck = Boolean(
+    securityTool &&
+      scoreText(query, securityTool.name, securityTool.description, securityTool.category, ...(securityTool.keywords ?? [])) > 0,
   );
   const privacyTool = useMemo(() => {
     const entry = listComputerTools().find((item) => item.id === "privacy-scan");
@@ -497,7 +506,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const searching = query.trim().length > 0;
   const hideEmpty = settings.hideEmptySearchGroups;
   const folderReady = query.trim().length >= 2;
-  const showTools = !hideEmpty || results.tools.some((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id) && !isPrivacyTarget(hit.item.target || hit.item.id)) || showLinkCheck || showPrintCheck || showPrivacy;
+  const showTools = !hideEmpty || results.tools.some((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id) && !isSecurityCheckTarget(hit.item.target || hit.item.id) && !isPrivacyTarget(hit.item.target || hit.item.id)) || showLinkCheck || showPrintCheck || showSecurityCheck || showPrivacy;
   const showRecents = !hideEmpty || recentUseMatched.length > 0;
   const showFolders = !hideEmpty || !folderReady || folderBusy || folderHits.length > 0;
   const showDocs = !hideEmpty || !folderReady || docBusy || docHits.length > 0;
@@ -760,6 +769,35 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                   </span>
                 </div>
               ) : null,
+              showSecurityCheck && securityTool ? (
+                <div key="pc-security" className="desk-row flex-col items-stretch gap-2 py-2">
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 shrink-0 text-quiet" aria-hidden="true" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-desk">
+                        <HighlightText text={securityTool.name} query={query} />
+                      </span>
+                      <span className="block text-[11px] leading-4 text-quiet">{securityTool.description}</span>
+                    </span>
+                  </span>
+                  <span className="flex flex-wrap gap-1">
+                    <button
+                      type="button"
+                      className="rounded-full bg-ink px-2.5 py-1 text-[11px] font-medium text-white"
+                      onClick={() => onAction({ type: "pc-security", search: query })}
+                    >
+                      점검 화면
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full border border-line px-2.5 py-1 text-[11px] text-desk"
+                      onClick={() => onAction({ type: "troubleshoot-card", cardId: "security-general", search: query })}
+                    >
+                      해결방법 보기
+                    </button>
+                  </span>
+                </div>
+              ) : null,
               showPrivacy && privacyTool ? (
                 <button
                   key="privacy-scan"
@@ -776,7 +814,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                   </span>
                 </button>
               ) : null,
-              ...results.tools.filter((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id) && !isPrivacyTarget(hit.item.target || hit.item.id)).map((hit) => {
+              ...results.tools.filter((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id) && !isSecurityCheckTarget(hit.item.target || hit.item.id) && !isPrivacyTarget(hit.item.target || hit.item.id)).map((hit) => {
                 return (
                   <button
                     key={hit.item.id}

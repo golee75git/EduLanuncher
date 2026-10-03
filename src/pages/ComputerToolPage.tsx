@@ -11,6 +11,7 @@ import {
   isFolderFindTool,
   isLinkCheckTool,
   isPrintCheckTool,
+  isSecurityCheckTool,
   isPrivacyTool,
   listComputerTools,
   sameLocalPath,
@@ -26,6 +27,7 @@ interface ComputerToolPageProps {
   onShowDocShrink: () => void;
   onShowLinkCheck: () => void;
   onShowPrintCheck: () => void;
+  onShowSecurityCheck: () => void;
   onShowPrivacy: () => void;
   onShowTroubleshoot: () => void;
 }
@@ -38,6 +40,7 @@ export function ComputerToolPage({
   onShowDocShrink,
   onShowLinkCheck,
   onShowPrintCheck,
+  onShowSecurityCheck,
   onShowPrivacy,
   onShowTroubleshoot,
 }: ComputerToolPageProps) {
@@ -103,7 +106,7 @@ export function ComputerToolPage({
           onClick={onShowTroubleshoot}
         >
           <span className="block text-sm font-medium text-desk">PC 문제 해결</span>
-          <span className="block text-[11px] text-quiet">인터넷·프린터·Windows 증상 안내</span>
+          <span className="block text-[11px] text-quiet">인터넷·프린터·보안·Windows 증상 안내</span>
         </button>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         <ul className="card-surface divide-y divide-line/70">
@@ -125,6 +128,8 @@ export function ComputerToolPage({
                             ? onShowLinkCheck()
                             : isPrintCheckTool(entry)
                               ? onShowPrintCheck()
+                              : isSecurityCheckTool(entry)
+                                ? onShowSecurityCheck()
                               : isPrivacyTool(entry)
                                 ? onShowPrivacy()
                             : onLaunch(item)

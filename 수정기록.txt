@@ -6,6 +6,41 @@
 ---
 
 날짜: 2026-10-03
+대상: 보안 상태 점검
+작성자: 요청자
+
+요청: 점검 시작을 눌렀을 때만 이 PC의 업데이트, 백신, 방화벽, 화면 잠금, 공유 폴더를 읽고 쉬운 말로 보여 준다. 설정은 바꾸지 않는다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. windows 크레이트 기능 Win32_System_SecurityCenter, Win32_NetworkManagement_WindowsFirewall, Win32_NetworkManagement_NetManagement, Win32_System_UpdateAgent를 추가. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 검증된 청구항 원문은 보지 않음.
+
+새로 만든 파일:
+- src-tauri/src/security_judge.rs
+- src-tauri/src/security_read.rs
+- src-tauri/src/securitycheck.rs
+- src/pages/SecurityCheckPage.tsx
+- src/services/securityCheckService.ts
+- src/data/troubleshooting/security/*.json
+- docs/security-status-check-analysis-2026-10-03.md
+
+다시 쓴 파일:
+- src-tauri/Cargo.toml
+- src-tauri/src/lib.rs
+- src-tauri/tauri.conf.json
+- src/data/computerTools.ts
+- src/pages/HomePage.tsx
+- src/pages/ComputerToolPage.tsx
+- src/App.tsx
+- src/types/troubleshooting.ts
+- src/services/troubleshootingService.ts
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+
+---
+
+날짜: 2026-10-03
 대상: 문서 검색 색인과 기관 정책
 작성자: 요청자
 

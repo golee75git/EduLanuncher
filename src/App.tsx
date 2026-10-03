@@ -29,6 +29,7 @@ import { DocSearchPage } from "./pages/DocSearchPage";
 import { PcFolderFindPage } from "./pages/PcFolderFindPage";
 import { InternetCheckPage } from "./pages/InternetCheckPage";
 import { PrinterCheckPage } from "./pages/PrinterCheckPage";
+import { SecurityCheckPage } from "./pages/SecurityCheckPage";
 import { PrivacyScanPage } from "./pages/PrivacyScanPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
@@ -44,7 +45,7 @@ import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
-import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget } from "./data/computerTools";
+import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget } from "./data/computerTools";
 import { isPdfPagesTarget } from "./data/sampleTools";
 import { logEducationValidation } from "./services/mindMapService";
 import { logTroubleshootingValidation } from "./services/troubleshootingService";
@@ -97,6 +98,7 @@ type View =
   | { name: "pc-address" }
   | { name: "pc-link"; backTo?: View }
   | { name: "pc-print"; backTo?: View }
+  | { name: "pc-security"; backTo?: View }
   | { name: "privacy-scan"; backTo?: View }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
@@ -662,6 +664,10 @@ export default function App() {
         setView({ name: "pc-print", backTo: { name: "home" } });
         return;
       }
+      if (tool.type === "internal" && isSecurityCheckTarget(tool.target || tool.id)) {
+        setView({ name: "pc-security", backTo: { name: "home" } });
+        return;
+      }
       if (tool.type === "internal" && isPrivacyTarget(tool.target || tool.id)) {
         await invoke("privacy_enter");
         setView({ name: "privacy-scan", backTo: { name: "home" } });
@@ -722,6 +728,10 @@ export default function App() {
     }
     if (action.type === "pc-print") {
       setView({ name: "pc-print", backTo: { name: "home", search: clipSearch(action.search) } });
+      return;
+    }
+    if (action.type === "pc-security") {
+      setView({ name: "pc-security", backTo: { name: "home", search: clipSearch(action.search) } });
       return;
     }
     if (action.type === "privacy-scan") {
@@ -893,6 +903,7 @@ export default function App() {
               onShowDocShrink={() => setView({ name: "doc-shrink", backTo: { name: "computer-tools" } })}
               onShowLinkCheck={() => setView({ name: "pc-link", backTo: { name: "computer-tools" } })}
               onShowPrintCheck={() => setView({ name: "pc-print", backTo: { name: "computer-tools" } })}
+              onShowSecurityCheck={() => setView({ name: "pc-security", backTo: { name: "computer-tools" } })}
               onShowPrivacy={() => {
                 void invoke("privacy_enter").then(() => {
                   setView({ name: "privacy-scan", backTo: { name: "computer-tools" } });
@@ -1010,6 +1021,18 @@ export default function App() {
               }
             />
           ) : null}
+          {view.name === "pc-security" ? (
+            <SecurityCheckPage
+              onBack={() => setView(view.backTo ?? { name: "computer-tools" })}
+              onOpenHelp={(cardId) =>
+                setView({
+                  name: "troubleshoot-card",
+                  cardId,
+                  backTo: { name: "pc-security", backTo: view.backTo },
+                })
+              }
+            />
+          ) : null}
           {view.name === "pc-link" ? (
             <InternetCheckPage
               onBack={() => setView(view.backTo ?? { name: "computer-tools" })}
@@ -1091,6 +1114,18 @@ export default function App() {
               }
             />
           ) : null}
+          {view.name === "internal" && isSecurityCheckTarget(view.id) ? (
+            <SecurityCheckPage
+              onBack={() => setView({ name: "home" })}
+              onOpenHelp={(cardId) =>
+                setView({
+                  name: "troubleshoot-card",
+                  cardId,
+                  backTo: { name: "pc-security", backTo: { name: "home" } },
+                })
+              }
+            />
+          ) : null}
           {view.name === "internal" && isLinkCheckTarget(view.id) ? (
             <InternetCheckPage
               onBack={() => setView({ name: "home" })}
@@ -1120,7 +1155,8 @@ export default function App() {
           !isPdfPagesTarget(view.id) &&
           !isFolderFindTarget(view.id) &&
           !isLinkCheckTarget(view.id) &&
-          !isPrintCheckTarget(view.id) ? (
+          !isPrintCheckTarget(view.id) &&
+          !isSecurityCheckTarget(view.id) ? (
             <InternalPlaceholderPage
               title={view.title}
               onBack={() => setView({ name: "home" })}

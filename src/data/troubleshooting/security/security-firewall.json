@@ -1,0 +1,57 @@
+{
+  "id": "security-firewall",
+  "category": "security",
+  "title": "방화벽 상태 확인",
+  "aliases": ["방화벽 확인", "윈도우 방화벽", "네트워크 프로필", "방화벽 켜기", "공용 네트워크"],
+  "keywords": ["방화벽", "개인 네트워크", "공용 네트워크"],
+  "symptoms": ["방화벽이 켜져 있는지 확인하고 싶어요"],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "이 안내는 확인 방법입니다. 앱이 방화벽을 바꾸지는 않습니다.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Windows 보안의 방화벽 화면이 열리나요?",
+      "options": [
+        { "label": "열립니다", "next": "solution_1" },
+        { "label": "다른 방화벽 프로그램이 있습니다", "next": "solution_1" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "프로필 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 3분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "Windows 보안을 열고 방화벽 및 네트워크 보호를 선택하세요.",
+        "도메인, 개인, 공용 네트워크가 켜져 있는지 각각 확인하세요.",
+        "다른 방화벽 프로그램이 켜져 있다면 그 프로그램의 상태도 확인하세요. 켜고 끄는 것은 그 화면에서 직접 정합니다."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Troubleshoot problems updating Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows"
+    }
+  ],
+  "support": {
+    "message": "어떤 네트워크 프로필이 꺼져 있는지 적어 두세요.",
+    "collect": ["도메인, 개인, 공용 중 꺼진 프로필"]
+  }
+}

@@ -23,6 +23,9 @@ mod netcheck;
 mod fixed_https;
 mod knowledge_sign;
 mod printcheck;
+mod security_judge;
+mod security_read;
+mod securitycheck;
 mod pdf_pages;
 mod admin_tools;
 mod org_policy;
@@ -2491,6 +2494,9 @@ pub fn run() {
             printcheck::carry_pc_print,
             printcheck::halt_pc_print,
             printcheck::open_print_view,
+            securitycheck::begin_pc_security,
+            securitycheck::halt_pc_security,
+            securitycheck::open_security_setting,
             latest_release_tag,
             org_policy_flags,
             knowledge_sign::verified_knowledge,

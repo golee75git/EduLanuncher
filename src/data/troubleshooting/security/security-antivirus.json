@@ -1,0 +1,57 @@
+{
+  "id": "security-antivirus",
+  "category": "security",
+  "title": "백신 상태 확인",
+  "aliases": ["백신 확인", "바이러스 검사", "실시간 보호", "윈도우 보안", "정의 업데이트"],
+  "keywords": ["백신", "바이러스", "실시간 보호"],
+  "symptoms": ["백신의 실시간 보호가 켜져 있는지 확인하고 싶어요"],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "이 안내는 확인 방법입니다. 앱이 백신을 켜거나 끄지는 않습니다.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Windows 보안 화면이 열리나요?",
+      "options": [
+        { "label": "열립니다", "next": "solution_1" },
+        { "label": "다른 백신 프로그램이 있습니다", "next": "solution_1" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "실시간 보호 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 3분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "Windows 보안을 열고 바이러스 및 위협 방지를 선택하세요.",
+        "실시간 보호가 켜져 있는지, 정의가 오래되지 않았는지 확인하세요.",
+        "다른 백신 프로그램이 켜져 있다면 그 프로그램의 상태 화면도 확인하세요. 켜고 끄는 것은 그 화면에서 직접 정합니다."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Troubleshoot problems updating Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows"
+    }
+  ],
+  "support": {
+    "message": "백신 이름과 실시간 보호가 켜져 있는지 적어 두세요.",
+    "collect": ["백신 이름", "실시간 보호 켜짐 여부"]
+  }
+}

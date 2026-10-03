@@ -1,4 +1,4 @@
-export const TROUBLE_CATEGORIES = ["network", "printer", "windows"] as const;
+export const TROUBLE_CATEGORIES = ["network", "printer", "windows", "security"] as const;
 
 export type TroubleCategory = (typeof TROUBLE_CATEGORIES)[number];
 
@@ -65,4 +65,5 @@ export const TROUBLE_CATEGORY_LABEL: Record<TroubleCategory, string> = {
   network: "인터넷",
   printer: "프린터",
   windows: "Windows",
+  security: "보안",
 };

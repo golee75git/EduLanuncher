@@ -26,7 +26,7 @@ const MAX_RELATED = 5;
 const MAX_SOURCES = 8;
 const MAX_COLLECT = 10;
 
-const catalog = import.meta.glob("../data/troubleshooting/{network,printer,windows}/*.json", {
+const catalog = import.meta.glob("../data/troubleshooting/{network,printer,windows,security}/*.json", {
   eager: true,
 });
 
@@ -79,7 +79,7 @@ function asRisk(value: unknown): TroubleRisk | "" {
 }
 
 function asCategory(value: unknown): TroubleCategory | "" {
-  if (value === "network" || value === "printer" || value === "windows") {
+  if (value === "network" || value === "printer" || value === "windows" || value === "security") {
     return value;
   }
   return "";
@@ -386,7 +386,7 @@ function loadCatalog(): { cards: TroubleCard[]; issues: TroubleIssue[] } {
   }
 
   for (const category of TROUBLE_CATEGORIES) {
-    const expected = category === "network" ? 17 : category === "printer" ? 18 : 10;
+    const expected = category === "network" ? 17 : category === "printer" ? 18 : category === "windows" ? 10 : 7;
     const count = kept.filter((card) => card.category === category).length;
     if (count !== expected) {
       issues.push({ id: category, reason: `카드 ${count}개입니다. ${expected}개여야 합니다.` });

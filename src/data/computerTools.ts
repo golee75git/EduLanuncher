@@ -8,7 +8,7 @@ export interface ComputerToolEntry {
   hint: string;
   type: Extract<ToolType, "app" | "file" | "internal">;
   fileName?: string;
-  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink" | "pc-link" | "pc-print" | "privacy-scan";
+  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink" | "pc-link" | "pc-print" | "pc-security" | "privacy-scan";
 }
 
 const ENTRIES: ComputerToolEntry[] = [
@@ -60,6 +60,13 @@ const ENTRIES: ComputerToolEntry[] = [
     hint: "프린터 출력이 안 될 때 현재 PC의 프린터 상태를 단계별로 확인합니다.",
     type: "internal",
     view: "pc-print",
+  },
+  {
+    id: "pc-security",
+    name: "보안 상태 점검",
+    hint: "이 PC의 업데이트, 백신, 방화벽 등 기본 보안 상태를 확인합니다.",
+    type: "internal",
+    view: "pc-security",
   },
   {
     id: "pc-address",
@@ -241,6 +248,28 @@ export function isPrintCheckTarget(target: string): boolean {
   return target === "pc-print" || target === "pc-sys:pc-print";
 }
 
+const SECURITY_WORDS = [
+  "보안 상태 점검",
+  "보안 점검",
+  "보안 상태",
+  "백신",
+  "바이러스",
+  "방화벽",
+  "윈도우 업데이트",
+  "업데이트 확인",
+  "화면 잠금",
+  "공유 폴더",
+  "내 PC 보안",
+];
+
+export function isSecurityCheckTool(entry: ComputerToolEntry): boolean {
+  return entry.view === "pc-security";
+}
+
+export function isSecurityCheckTarget(target: string): boolean {
+  return target === "pc-security" || target === "pc-sys:pc-security";
+}
+
 const PRIVACY_WORDS = [
   "개인정보 보호",
   "개인정보",
@@ -270,7 +299,7 @@ export function listComputerTools(): ComputerToolEntry[] {
 }
 
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
-  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry) || isLinkCheckTool(entry) || isPrintCheckTool(entry) || isPrivacyTool(entry)) {
+  if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry) || isLinkCheckTool(entry) || isPrintCheckTool(entry) || isSecurityCheckTool(entry) || isPrivacyTool(entry)) {
     const target = isIeResetTool(entry)
       ? "ie-reset"
       : isFolderFindTool(entry)
@@ -281,6 +310,8 @@ export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
             ? "pc-link"
             : isPrintCheckTool(entry)
               ? "pc-print"
+              : isSecurityCheckTool(entry)
+                ? "pc-security"
               : isPrivacyTool(entry)
                 ? "privacy-scan"
                 : "pc-address";
@@ -290,13 +321,15 @@ export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
       description: entry.hint,
       type: "internal",
       target,
-      icon: isPrivacyTool(entry) ? "shield" : isPrintCheckTool(entry) ? "printer" : isLinkCheckTool(entry) ? "globe" : isDocShrinkTool(entry) ? "file" : "folder",
+      icon: isPrivacyTool(entry) || isSecurityCheckTool(entry) ? "shield" : isPrintCheckTool(entry) ? "printer" : isLinkCheckTool(entry) ? "globe" : isDocShrinkTool(entry) ? "file" : "folder",
       category: "전산",
       favorite: true,
       keywords: isLinkCheckTool(entry)
         ? LINK_WORDS
         : isPrintCheckTool(entry)
           ? PRINT_WORDS
+          : isSecurityCheckTool(entry)
+            ? SECURITY_WORDS
           : isPrivacyTool(entry)
             ? PRIVACY_WORDS
         : isDocShrinkTool(entry)

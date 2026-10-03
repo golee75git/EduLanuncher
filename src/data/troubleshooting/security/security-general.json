@@ -1,0 +1,57 @@
+{
+  "id": "security-general",
+  "category": "security",
+  "title": "기본 보안 상태 확인",
+  "aliases": ["보안 점검", "보안 상태", "내 PC 보안", "보안 확인", "기본 보안"],
+  "keywords": ["보안 점검", "보안 상태", "내 PC 보안"],
+  "symptoms": ["이 PC의 업데이트, 백신, 방화벽 상태를 확인하고 싶어요"],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "이 안내는 확인 방법입니다. 앱이 설정을 바꾸지는 않습니다.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "어떤 항목을 볼까요?",
+      "options": [
+        { "label": "업데이트", "next": "solution_1" },
+        { "label": "백신이나 방화벽", "next": "solution_1" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "설정에서 확인",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 5분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "설정에서 Windows 업데이트를 열어 설치 기록을 확인하세요.",
+        "Windows 보안에서 바이러스 및 위협 방지와 방화벽을 확인하세요.",
+        "자리를 비울 때는 Windows 키와 L로 잠그세요. 바꾸기는 각 설정 화면에서 직접 정합니다."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Troubleshoot problems updating Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows"
+    }
+  ],
+  "support": {
+    "message": "확인이 안 되는 항목은 그 설정 화면의 문구를 적어 두세요.",
+    "collect": ["확인이 안 된 항목 이름"]
+  }
+}

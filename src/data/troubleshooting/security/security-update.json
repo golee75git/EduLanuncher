@@ -1,0 +1,57 @@
+{
+  "id": "security-update",
+  "category": "security",
+  "title": "Windows 업데이트 설치일 확인",
+  "aliases": ["업데이트 확인", "윈도우 업데이트", "마지막 업데이트", "업데이트 날짜", "업데이트 기록"],
+  "keywords": ["Windows 업데이트", "설치일", "업데이트 기록"],
+  "symptoms": ["마지막으로 업데이트가 설치된 날을 확인하고 싶어요"],
+  "errorMessages": [],
+  "windowsVersion": "Windows 10/11",
+  "environment": ["personal", "organization"],
+  "risk": "safe",
+  "adminRequired": false,
+  "actionType": "guided",
+  "organizationNotice": "이 안내는 확인 방법입니다. 앱이 업데이트를 설치하지는 않습니다.",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Windows 업데이트 화면이 열리나요?",
+      "options": [
+        { "label": "열립니다", "next": "solution_1" },
+        { "label": "열리지 않습니다", "next": "support" },
+        { "label": "잘 모르겠습니다", "next": "support" }
+      ]
+    }
+  ],
+  "solutions": [
+    {
+      "id": "solution_1",
+      "name": "설치 기록 보기",
+      "difficulty": "쉬움",
+      "risk": "safe",
+      "adminRequired": false,
+      "estimatedTime": "약 2분",
+      "dataLossRisk": "없음",
+      "prerequisites": [],
+      "steps": [
+        "설정을 열고 Windows 업데이트를 선택하세요.",
+        "업데이트 기록에서 최근에 설치된 항목의 날짜를 확인하세요.",
+        "오래되었다면 업데이트 확인을 누르세요. 설치 여부는 그 화면에서 직접 정합니다."
+      ],
+      "nextIfUnresolved": "support"
+    }
+  ],
+  "related": [],
+  "sources": [
+    {
+      "publisher": "Microsoft",
+      "title": "Troubleshoot problems updating Windows",
+      "type": "official",
+      "url": "https://support.microsoft.com/en-us/windows/deployment/updates-lifecycle/troubleshoot-problems-updating-windows"
+    }
+  ],
+  "support": {
+    "message": "업데이트 기록의 날짜를 적어 두세요. 앱에 나온 날짜는 마지막으로 확인된 설치일입니다.",
+    "collect": ["업데이트 기록에 나온 날짜"]
+  }
+}
