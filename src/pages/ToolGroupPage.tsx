@@ -4,6 +4,7 @@ import { FavoriteGrid } from "../components/FavoriteGrid";
 import { toolGroupLabel } from "../data/toolGroups";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
+import { isLockedScanTool, useAdminToolStore } from "../stores/adminToolStore";
 import { allListColumns } from "../types/settings";
 import type { ToolItem, ToolType } from "../types/tool";
 
@@ -30,7 +31,11 @@ export function ToolGroupPage({
   onTopics,
   onRemove,
 }: ToolGroupPageProps) {
-  const tools = useToolStore((state) => state.tools);
+  const storedTools = useToolStore((state) => state.tools);
+  const adminOn = useAdminToolStore((state) => state.enabled);
+  const tools = adminOn
+    ? storedTools
+    : storedTools.filter((tool) => !isLockedScanTool(tool.id, tool.target));
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
   const listColumns = useSettingsStore((state) => state.settings.listColumns);
   const panelWidth = useSettingsStore((state) => state.settings.panelWidth);

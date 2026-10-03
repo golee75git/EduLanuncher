@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.162-20261003",
+    note: "IP 검색과 CCTV 검색은 설정의 관리자 도구 사용을 켠 뒤에만 나옵니다. 기본은 꺼짐입니다.",
+  },
+  {
     version: "0.1.161-20261003",
     note: "업무자료 서명에 쓰는 공개키를 앱에 넣었습니다. 서명이 맞을 때만 받은 자료를 씁니다.",
   },

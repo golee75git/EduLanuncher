@@ -6,6 +6,44 @@
 ---
 
 날짜: 2026-10-03
+대상: 관리자 도구(IP 검색, CCTV 검색) 설정 스위치
+작성자: 요청자
+
+요청: 기능 팩 없이 설치 파일 하나를 유지하고, 설정의 관리자 도구 사용이 켜진 경우에만 IP 검색·CCTV 검색이 보이게 한다. 기본은 꺼짐. 검색 경로는 이 PC의 사설 대역 안에서만 동작하고 외부 프로그램을 부르지 않는다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 같은 네트워크에 응답 확인을 보내는 구성은 특허 검토가 필요할 수 있음. 검증된 청구항 원문은 보지 않음. THIRD_PARTY_NOTICES 재생성은 필요 없음.
+
+새로 만든 파일:
+- src-tauri/src/admin_tools.rs
+- src/stores/adminToolStore.ts
+- scripts/check-knowledge-apply.ts
+
+다시 쓴 파일:
+- src-tauri/src/lib.rs
+- src-tauri/src/netutil.rs
+- src-tauri/src/knowledge_sign.rs
+- src/stores/toolStore.ts
+- src/services/backupService.ts
+- src/services/applyNoticePack.ts
+- src/components/NoticePackPick.tsx
+- src/pages/SettingsPage.tsx
+- src/pages/HomePage.tsx
+- src/pages/ToolGroupPage.tsx
+- src/pages/NetworkToolPage.tsx
+- src/pages/CctvToolPage.tsx
+- src/App.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- website/src/worker/opinion.ts
+- website/wrangler.jsonc
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- 수정기록.txt
+
+---
+
+날짜: 2026-10-03
 대상: 업무자료 서명 공개키 반영
 작성자: 요청자
 

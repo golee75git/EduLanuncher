@@ -24,6 +24,7 @@ mod fixed_https;
 mod knowledge_sign;
 mod printcheck;
 mod pdf_pages;
+mod admin_tools;
 mod netutil;
 mod shortcut;
 mod privacy_mask;
@@ -1989,13 +1990,54 @@ fn latest_release_tag() -> Result<String, String> {
     netutil::latest_release_tag()
 }
 
+fn admin_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    app.path()
+        .app_data_dir()
+        .map_err(|_| "관리자 도구 설정을 읽지 못했습니다.".to_string())
+}
+
+#[tauri::command]
+fn admin_tools_query(app: AppHandle, window: tauri::WebviewWindow) -> Result<bool, String> {
+    if window.label() != "main" {
+        return Err("denied".into());
+    }
+    Ok(admin_tools::allowed(&admin_dir(&app)?))
+}
+
+#[tauri::command]
+fn admin_tools_enable(app: AppHandle, window: tauri::WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("denied".into());
+    }
+    admin_tools::write_enabled(&admin_dir(&app)?, true)
+}
+
+#[tauri::command]
+fn admin_tools_disable(
+    app: AppHandle,
+    window: tauri::WebviewWindow,
+    halt: tauri::State<RangeHalt>,
+) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("denied".into());
+    }
+    halt.0.store(true, Ordering::SeqCst);
+    admin_tools::write_enabled(&admin_dir(&app)?, false)
+}
+
 #[tauri::command]
 fn scan_ipv4_range(
     app: AppHandle,
+    window: tauri::WebviewWindow,
     halt: tauri::State<RangeHalt>,
     start: String,
     end: String,
 ) -> Result<Vec<netutil::HostHit>, String> {
+    if window.label() != "main" {
+        return Err("denied".into());
+    }
+    let dir = admin_dir(&app)?;
+    admin_tools::caller_result("main", &dir).map_err(|code| code.to_string())?;
     halt.0.store(false, Ordering::SeqCst);
     netutil::scan_ipv4_range(&app, &halt.0, &start, &end)
 }
@@ -2003,17 +2045,27 @@ fn scan_ipv4_range(
 #[tauri::command]
 fn scan_cctv_range(
     app: AppHandle,
+    window: tauri::WebviewWindow,
     halt: tauri::State<RangeHalt>,
     start: String,
     end: String,
 ) -> Result<Vec<netutil::HostHit>, String> {
+    if window.label() != "main" {
+        return Err("denied".into());
+    }
+    let dir = admin_dir(&app)?;
+    admin_tools::caller_result("main", &dir).map_err(|code| code.to_string())?;
     halt.0.store(false, Ordering::SeqCst);
     netutil::scan_cctv_range(&app, &halt.0, &start, &end)
 }
 
 #[tauri::command]
-fn halt_range_check(halt: tauri::State<RangeHalt>) {
+fn halt_range_check(window: tauri::WebviewWindow, halt: tauri::State<RangeHalt>) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("denied".into());
+    }
     halt.0.store(true, Ordering::SeqCst);
+    Ok(())
 }
 
 #[tauri::command]
@@ -2414,6 +2466,9 @@ pub fn run() {
             read_bookmark_html,
             favicon_for_url,
             favicon_for_urls,
+            admin_tools_query,
+            admin_tools_enable,
+            admin_tools_disable,
             this_pc_ipv4,
             lookup_public_ipv4,
             netcheck::begin_pc_link,

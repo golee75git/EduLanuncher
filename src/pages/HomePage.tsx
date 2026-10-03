@@ -54,6 +54,7 @@ import { getSchools } from "../stores/schoolStore";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
+import { isLockedScanTool, useAdminToolStore } from "../stores/adminToolStore";
 import { allListColumns, homeListColumns, isPriorSkin } from "../types/settings";
 import type { NoticeItem } from "../types/notice";
 import type { SchoolItem } from "../types/school";
@@ -185,7 +186,11 @@ function WorkToolMark({ icon: Icon }: { icon: LucideIcon }) {
 }
 
 export function HomePage({ onAction, search = "" }: HomePageProps) {
-  const tools = useToolStore((state) => state.tools);
+  const storedTools = useToolStore((state) => state.tools);
+  const adminOn = useAdminToolStore((state) => state.enabled);
+  const tools = adminOn
+    ? storedTools
+    : storedTools.filter((tool) => !isLockedScanTool(tool.id, tool.target));
   const toggleFavorite = useToolStore((state) => state.toggleFavorite);
   const settings = useSettingsStore((state) => state.settings);
   const recentTopicItems = useRecentTopicStore((state) => state.items);

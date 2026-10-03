@@ -707,4 +707,75 @@ mod tests {
             assert_eq!(point[0], 0x04);
         }
     }
+
+    #[test]
+    fn built_site_knowledge_uses_the_receiver_link_check() {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../website/dist/knowledge");
+        let names = [
+            "search-index.json",
+            "pack/handbook.json",
+            "pack/topics.json",
+            "pack/master.json",
+            "pack/epki.json",
+        ];
+        if names.iter().any(|name| !dir.join(name).is_file()) {
+            return;
+        }
+        let mut files = BTreeMap::new();
+        for name in names {
+            let bytes = fs::read(dir.join(name)).expect("업무자료");
+            files.insert(name.to_string(), bytes);
+        }
+        let dropped = view_of(&files).dropped_links;
+        let mut hosts = BTreeMap::new();
+        for bytes in files.values() {
+            let value = serde_json::from_slice::<Value>(bytes).expect("json");
+            rejected_hosts(&value, &mut hosts);
+        }
+        let listed: u32 = hosts.values().sum();
+        assert_eq!(listed, dropped);
+        println!("droppedLinks {dropped}");
+        for (host, count) in &hosts {
+            println!("host {host} {count}");
+        }
+    }
+
+    fn rejected_hosts(value: &Value, hosts: &mut BTreeMap<String, u32>) {
+    match value {
+        Value::Object(map) => {
+            for (key, child) in map {
+                if key == "url" || key == "sourceUrl" || key == "href" {
+                    if let Some(text) = child.as_str() {
+                        if !text.trim().is_empty() && !link_allowed(text) {
+                            let host = rejected_host_label(text);
+                            *hosts.entry(host).or_insert(0) += 1;
+                        }
+                    }
+                } else {
+                    rejected_hosts(child, hosts);
+                }
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                rejected_hosts(item, hosts);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn rejected_host_label(value: &str) -> String {
+    let text = value.trim();
+    let rest = text.split_once("://").map(|(_, rest)| rest).unwrap_or(text);
+    let hostport = rest.split(['/', '?', '#']).next().unwrap_or("");
+    let host = hostport.rsplit_once('@').map(|(_, host)| host).unwrap_or(hostport);
+    let host = if let Some((name, _)) = host.rsplit_once(':') {
+        if name.contains(':') { host } else { name }
+    } else {
+        host
+    };
+    let host = host.trim().trim_end_matches('.').to_ascii_lowercase();
+    if host.is_empty() { "(호스트 없음)".to_string() } else { host }
+    }
 }

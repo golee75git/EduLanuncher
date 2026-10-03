@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RangeCheckBar } from "../components/RangeCheckBar";
 import { calculateIpv4Range } from "../services/ipv4Math";
+import { useAdminToolStore } from "../stores/adminToolStore";
 import {
   haltRangeCheck,
   hostsToCsv,
@@ -33,6 +34,8 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
   const [stopped, setStopped] = useState(false);
   const haltRef = useRef(false);
   const [exportMessage, setExportMessage] = useState("");
+  const [askScan, setAskScan] = useState(false);
+  const adminOn = useAdminToolStore((state) => state.enabled);
   const result = useMemo(() => calculateIpv4Range(address, prefix), [address, prefix]);
 
   const applyLocal = (item: LocalAddress) => {
@@ -64,6 +67,14 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
       setScanError("한 번에 /24 이하 구간만 검색합니다.");
       return;
     }
+    setAskScan(true);
+  };
+
+  const startScan = async () => {
+    if (!result?.firstHost || !result.lastHost) {
+      return;
+    }
+    setAskScan(false);
     setScanning(true);
     setScanError("");
     setHits([]);
@@ -231,6 +242,20 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
           <p className="text-sm text-quiet">IP와 마스크를 확인하세요. 예: 10.0.0.5 와 24</p>
         )}
 
+        {askScan ? (
+          <div className="space-y-2 rounded-lg border border-line p-3 text-sm leading-6 text-desk">
+            <p>같은 네트워크의 기기에 응답 확인 요청을 보냅니다. 보안 정책에 따라 탐지될 수 있습니다.</p>
+            <div className="flex gap-2">
+              <button type="button" className="btn-primary" onClick={() => void startScan()}>
+                시작
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setAskScan(false)}>
+                취소
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         <section className="space-y-2">
           <button
             type="button"
@@ -256,7 +281,7 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
               응답하는 주소가 없습니다. ICMP가 막혀 있으면 목록이 비어 있을 수 있습니다.
             </p>
           ) : null}
-          {didScan ? (
+          {didScan && adminOn ? (
             <button type="button" className="btn-secondary" onClick={() => void exportExcel()}>
               엑셀로 저장
             </button>

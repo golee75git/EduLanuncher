@@ -1,5 +1,6 @@
 import { saveTools, saveTodos, saveMemo, saveNotices } from "./storageService";
 import { useMemoStore } from "../stores/memoStore";
+import { isLockedScanTool, useAdminToolStore } from "../stores/adminToolStore";
 import { useNoticeStore } from "../stores/noticeStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useTodoStore } from "../stores/todoStore";
@@ -279,7 +280,16 @@ export function describeBackupApply(backup: LauncherBackup): string {
 }
 
 export async function applyLauncherBackup(backup: LauncherBackup): Promise<string> {
-  useToolStore.getState().hydrate(backup.tools);
+  let tools = backup.tools;
+  let skipped = 0;
+  if (!useAdminToolStore.getState().enabled) {
+    const incoming = backup.tools.filter((tool) => !isLockedScanTool(tool.id, tool.target));
+    skipped = backup.tools.length - incoming.length;
+    const kept = useToolStore.getState().tools.filter((tool) => isLockedScanTool(tool.id, tool.target));
+    const keptIds = new Set(kept.map((tool) => tool.id));
+    tools = [...incoming.filter((tool) => !keptIds.has(tool.id)), ...kept];
+  }
+  useToolStore.getState().hydrate(tools);
   await saveTools(useToolStore.getState().tools);
 
   useTodoStore.getState().hydrate(backup.todos);
@@ -297,5 +307,6 @@ export async function applyLauncherBackup(backup: LauncherBackup): Promise<strin
   });
 
   await useSettingsStore.getState().update(backup.settings);
-  return describeBackupApply(backup);
+  const note = skipped > 0 ? ` 관리자 도구가 꺼져 있어 ${skipped}개 항목을 건너뛰었습니다.` : "";
+  return `${describeBackupApply(backup)}${note}`;
 }

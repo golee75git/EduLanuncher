@@ -143,6 +143,9 @@ export function NoticePackPick({ pack, sitePack, onClose, onAdded }: NoticePackP
                       tools: chosen,
                     });
                     parts.push(describePackApply(result.added, result.updated));
+                    if (result.skipped > 0) {
+                      parts.push(`관리자 도구가 꺼져 있어 ${result.skipped}개 항목을 건너뛰었습니다.`);
+                    }
                   }
                   onAdded(parts.filter(Boolean).join(". ") || "넣을 항목이 없습니다.");
                 } finally {

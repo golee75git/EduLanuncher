@@ -76,7 +76,10 @@ async function openParsedPack(parsed: unknown): Promise<PackOpenResult> {
   if (Array.isArray(source.tools)) {
     const pack = parseLauncherPack(parsed);
     const result = await useToolStore.getState().applyLauncherPack(pack);
-    return { mode: "done", message: describePackApply(result.added, result.updated) };
+    return {
+      mode: "done",
+      message: `${describePackApply(result.added, result.updated)}${result.skipped > 0 ? ` 관리자 도구가 꺼져 있어 ${result.skipped}개 항목을 건너뛰었습니다.` : ""}`,
+    };
   }
   throw new Error("공지 Pack 또는 바로가기 Pack이 아닙니다.");
 }

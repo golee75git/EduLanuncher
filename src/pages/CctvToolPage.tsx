@@ -22,6 +22,7 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
   const [scanning, setScanning] = useState(false);
   const [didScan, setDidScan] = useState(false);
   const [stopped, setStopped] = useState(false);
+  const [askScan, setAskScan] = useState(false);
   const haltRef = useRef(false);
   const plannedTotal = useMemo(() => {
     const source = localAddresses[0];
@@ -46,6 +47,16 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
       setError("한 번에 /24 이하 구간만 검색합니다.");
       return;
     }
+    setAskScan(true);
+  };
+
+  const startScan = async (adapters: LocalAddress[]) => {
+    const source = adapters[0];
+    const range = source ? calculateIpv4Range(source.ip, source.mask || "24") : null;
+    if (!range?.firstHost || !range.lastHost) {
+      return;
+    }
+    setAskScan(false);
     setScanning(true);
     setError("");
     setHits([]);
@@ -116,6 +127,20 @@ export function CctvToolPage({ title, onBack }: CctvToolPageProps) {
           <p className="text-sm text-desk">
             검색 구간 {localAddresses[0].ip} / {localAddresses[0].mask || "24"}
           </p>
+        ) : null}
+        {askScan ? (
+          <div className="space-y-2 rounded-lg border border-line p-3 text-sm leading-6 text-desk">
+            <p>같은 네트워크의 기기에 응답 확인 요청을 보냅니다. 보안 정책에 따라 탐지될 수 있습니다.</p>
+            <p>영상 장비가 쓰는 포트(554)에 연결을 시도합니다.</p>
+            <div className="flex gap-2">
+              <button type="button" className="btn-primary" onClick={() => void startScan(localAddresses)}>
+                시작
+              </button>
+              <button type="button" className="btn-secondary" onClick={() => setAskScan(false)}>
+                취소
+              </button>
+            </div>
+          </div>
         ) : null}
         <button
           type="button"

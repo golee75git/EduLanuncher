@@ -274,17 +274,73 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   }
 }
 
+function hasFileExtension(pathname: string): boolean {
+  const leaf = pathname.split("/").pop() ?? "";
+  return leaf.includes(".");
+}
+
+function isKnowledgePath(pathname: string): boolean {
+  return pathname === "/knowledge" || pathname.startsWith("/knowledge/");
+}
+
+function plain(body: string, status: number): Response {
+  return new Response(body, {
+    status,
+    headers: {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": "no-store",
+    },
+  });
+}
+
+function withShortKnowledgeCache(pathname: string, response: Response): Response {
+  if (!isKnowledgePath(pathname) || response.status !== 200) {
+    return response;
+  }
+  const headers = new Headers(response.headers);
+  headers.set("cache-control", "public, max-age=60");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+async function readAsset(request: Request, env: Env): Promise<Response> {
+  try {
+    return await env.ASSETS.fetch(request);
+  } catch {
+    return new Response(null, { status: 404 });
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-    if (
-      url.pathname === "/api/opinion" ||
-      url.pathname === "/api/opinion/hide" ||
-      url.pathname === "/api/opinion/show" ||
-      url.pathname === "/api/opinion/manage"
-    ) {
-      return handleApi(request, env);
+    try {
+      const url = new URL(request.url);
+      if (
+        url.pathname === "/api/opinion" ||
+        url.pathname === "/api/opinion/hide" ||
+        url.pathname === "/api/opinion/show" ||
+        url.pathname === "/api/opinion/manage"
+      ) {
+        return await handleApi(request, env);
+      }
+      const asset = await readAsset(request, env);
+      if (asset.status !== 404) {
+        return withShortKnowledgeCache(url.pathname, asset);
+      }
+      if (hasFileExtension(url.pathname) || isKnowledgePath(url.pathname)) {
+        return plain("없는 파일입니다.", 404);
+      }
+      const indexUrl = new URL("/index.html", request.url);
+      const index = await readAsset(new Request(indexUrl, { method: "GET" }), env);
+      if (index.status === 404) {
+        return plain("없는 파일입니다.", 404);
+      }
+      return index;
+    } catch {
+      return plain("요청을 처리하지 못했습니다.", 500);
     }
-    return env.ASSETS.fetch(request);
   },
 };

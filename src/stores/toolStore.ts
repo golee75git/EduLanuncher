@@ -8,6 +8,7 @@ import {
   URL_MARK_TOOL,
 } from "../data/sampleTools";
 import { loadTools, saveTools } from "../services/storageService";
+import { isLockedScanTool, useAdminToolStore } from "./adminToolStore";
 import type { ToolItem } from "../types/tool";
 
 interface ToolState {
@@ -15,7 +16,7 @@ interface ToolState {
   loaded: boolean;
   hydrate: (tools: ToolItem[]) => void;
   seedIfEmpty: () => Promise<void>;
-  applyLauncherPack: (pack: LauncherPack) => Promise<{ added: number; updated: number }>;
+  applyLauncherPack: (pack: LauncherPack) => Promise<{ added: number; updated: number; skipped: number }>;
   addTool: (tool: ToolItem) => Promise<void>;
   updateTool: (id: string, patch: Partial<ToolItem>) => Promise<void>;
   removeTool: (id: string) => Promise<void>;
@@ -101,10 +102,17 @@ export const useToolStore = create<ToolState>((set, get) => ({
     }
   },
   applyLauncherPack: async (pack) => {
-    const { tools, added, updated } = mergePackTools(get().tools, pack.tools, { name: pack.name });
+    let incoming = pack.tools;
+    let skipped = 0;
+    if (!useAdminToolStore.getState().enabled) {
+      const kept = incoming.filter((tool) => !isLockedScanTool(tool.id, tool.target));
+      skipped = incoming.length - kept.length;
+      incoming = kept;
+    }
+    const { tools, added, updated } = mergePackTools(get().tools, incoming, { name: pack.name });
     set({ tools });
     await persist(tools);
-    return { added, updated };
+    return { added, updated, skipped };
   },
   addTool: async (tool) => {
     const next = { ...tool, origin: tool.origin ?? "local" };

@@ -13,6 +13,7 @@ import { buildLauncherPack } from "../services/launcherPackService";
 import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/noticePackService";
 import type { NoticePack } from "../types/notice";
 import { useSettingsStore } from "../stores/settingsStore";
+import { useAdminToolStore } from "../stores/adminToolStore";
 import { useToolStore } from "../stores/toolStore";
 import { DocumentSearchSettings } from "../components/DocumentSearchSettings";
 import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
@@ -44,6 +45,8 @@ export function SettingsPage({
   const [ossError, setOssError] = useState("");
   const [backupMessage, setBackupMessage] = useState("");
   const [newerRelease, setNewerRelease] = useState<string | null>(null);
+  const [adminAsk, setAdminAsk] = useState(false);
+  const adminOn = useAdminToolStore((state) => state.enabled);
 
   return (
     <div className="flex h-full flex-col bg-paper">
@@ -177,6 +180,49 @@ export function SettingsPage({
             기본은 끕니다. 켜면 홈 검색에서 일치가 없는 구역을 숨깁니다. 구역 순서는 그대로입니다. 이 PC
             폴더는 한 글자일 때 두 글자 안내를 남기고, 두 글자 이상에서만 빈 결과를 숨깁니다.
           </p>
+        </SettingsCard>
+
+        <SettingsCard title="고급">
+          <label className="flex items-center justify-between gap-3 text-sm text-desk">
+            관리자 도구 사용
+            <input
+              type="checkbox"
+              checked={adminOn || adminAsk}
+              onChange={(event) => {
+                if (event.target.checked) {
+                  setAdminAsk(true);
+                  return;
+                }
+                setAdminAsk(false);
+                void useAdminToolStore.getState().turnOff();
+              }}
+              className="h-4 w-4"
+            />
+          </label>
+          {adminAsk && !adminOn ? (
+            <div className="space-y-2 rounded-lg border border-line p-3 text-sm leading-6 text-desk">
+              <p>관리자 도구를 켭니다.</p>
+              <p>IP 검색과 CCTV 검색은 같은 네트워크의 다른 기기에 응답 확인 요청을 보내는 기능입니다.</p>
+              <p>소속 기관이나 회사의 보안 정책에서 허용된 경우에만 사용하세요.</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => {
+                    void (async () => {
+                      await useAdminToolStore.getState().turnOn();
+                      setAdminAsk(false);
+                    })();
+                  }}
+                >
+                  켜기
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setAdminAsk(false)}>
+                  취소
+                </button>
+              </div>
+            </div>
+          ) : null}
         </SettingsCard>
 
         <DocumentSearchSettings />
@@ -471,7 +517,7 @@ export function SettingsPage({
             <li>트레이, 작업 표시줄 아이콘 또는 Ctrl+Alt+E로 패널을 엽니다. 홈 검색창 안내는 사이트·업무·파일·폴더·컴퓨터도구·PC 문제입니다. 홈에서 Ctrl+K를 누르면 검색창으로 이동합니다. 검색창에는 그 키 글자를 그리지 않습니다. 창을 닫아도 작업 표시줄 아이콘은 남고, 아이콘을 누르면 설정한 자리(기본은 오른쪽 아래)에 다시 열립니다. 컴퓨터를 켜 두면 아이콘이 있습니다. 완전히 끄려면 트레이에서 종료합니다. 창 모서리를 끌어 크기를 바꿀 수 있고, 바꾼 크기는 이 PC에 남습니다. 처음 설치는 520×720입니다. 이미 크기를 저장한 PC는 그 크기를 유지합니다. 카드형 홈 배치가 아닐 때 검색 아래에는 사이트, 프로그램, 폴더, 단축키, 컴퓨터도구로 가는 아이콘이 있습니다. 검색 중이거나 학교 결과를 볼 때는 이 줄을 숨깁니다.</li>
             <li>설정의 공지·사이트 Pack에서 나눌 공지·사이트를 고른 뒤 한 파일로 저장합니다. 받는 쪽에서 공지와 사이트를 고릅니다. 할 일·메모·설정은 넣지 않으며, 다른 PC로 옮기기(백업)와는 다릅니다.</li>
             <li>홈 위 인사는 5시–11시 29분에 좋은 아침이에요, 11시 30분–12시 59분에 즐거운 점심시간이에요, 13시–16시 59분에 좋은 오후예요, 17시–다음날 4시 59분에 좋은 저녁이에요입니다. 그 아래 “오늘 필요한 업무를 빠르게 시작하세요.”가 있고, “파일을 끌어 놓으면 다음에 할 일을 보여 줍니다.”는 옅은 칸으로 보입니다.</li>
-            <li>처음 설치에는 사이트·프로그램·파일·폴더와 할 일이 비어 있습니다. 그때만 자주 사용하는 도구 아래에 “사이트·프로그램·파일·폴더를 패널에 끌어 놓으면 추가됩니다.”가 나옵니다. 파일·폴더·사이트·Pack을 놓으면 들어갈 곳을 보여 주고, 넣기 전에는 저장하지 않습니다. PNG·JPEG는 사진 모자이크, 사진 용량 줄이기, QR코드 넣기 중에서 고르고, PDF는 PDF 도구를 고릅니다. 도구를 고르면 그 화면만 열고 나머지 항목은 넣지 않습니다. 그중 하나라도 있으면 이 문장은 숨깁니다. 오른쪽 위 날짜는 9월26일(토)처럼 요일을 붙입니다. 홈의 자주 사용하는 도구에 끌어놓기나 + 안내가 나옵니다. 종류 이름(사이트·프로그램 등)은 구역 제목보다 한 단계 작게 두고, 모두·즐겨찾기 등 단추 글자는 그대로입니다. 종류마다 모두와 같은 줄로 최대 6개까지 보입니다. 아이콘과 이름, 그 아래 경로, 오른쪽 위에 별표와 점 세 개가 있습니다. 더 있으면 모두에서 봅니다. + 또는 끌어놓기로 넣고, 설정에서 Pack으로 나눠 줍니다. 이미 쓰는 PC의 바로가기·할 일 목록은 그대로입니다. 업무도구에는 사진 모자이크, 사진 용량 줄이기, QR코드 넣기, PDF 도구가 있고, 컴퓨터도구와 업무자료는 앱에 있습니다. Network·CCTV는 첫 설치에 넣지 않으며, 담당자용 Pack을 적용한 PC에만 목록에 생깁니다.</li>
+            <li>처음 설치에는 사이트·프로그램·파일·폴더와 할 일이 비어 있습니다. 그때만 자주 사용하는 도구 아래에 “사이트·프로그램·파일·폴더를 패널에 끌어 놓으면 추가됩니다.”가 나옵니다. 파일·폴더·사이트·Pack을 놓으면 들어갈 곳을 보여 주고, 넣기 전에는 저장하지 않습니다. PNG·JPEG는 사진 모자이크, 사진 용량 줄이기, QR코드 넣기 중에서 고르고, PDF는 PDF 도구를 고릅니다. 도구를 고르면 그 화면만 열고 나머지 항목은 넣지 않습니다. 그중 하나라도 있으면 이 문장은 숨깁니다. 오른쪽 위 날짜는 9월26일(토)처럼 요일을 붙입니다. 홈의 자주 사용하는 도구에 끌어놓기나 + 안내가 나옵니다. 종류 이름(사이트·프로그램 등)은 구역 제목보다 한 단계 작게 두고, 모두·즐겨찾기 등 단추 글자는 그대로입니다. 종류마다 모두와 같은 줄로 최대 6개까지 보입니다. 아이콘과 이름, 그 아래 경로, 오른쪽 위에 별표와 점 세 개가 있습니다. 더 있으면 모두에서 봅니다. + 또는 끌어놓기로 넣고, 설정에서 Pack으로 나눠 줍니다. 이미 쓰는 PC의 바로가기·할 일 목록은 그대로입니다. 업무도구에는 사진 모자이크, 사진 용량 줄이기, QR코드 넣기, PDF 도구가 있고, 컴퓨터도구와 업무자료는 앱에 있습니다. IP 검색·CCTV 검색은 설정의 관리자 도구 사용이 켜진 PC에서만 목록에 보입니다. 기본은 꺼짐입니다.</li>
             <li>바로가기 위에 마우스를 올리면 설명이 나옵니다. 설명이 없으면 이름이 나옵니다.</li>
             <li>카드 오른쪽 클릭 또는 점 세 개로 메뉴를 엽니다.</li>
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다. Windows .url을 넣으면 그 파일 아이콘을 같이 남깁니다. Edge·Chrome 북마크는 주소만 넣습니다.</li>

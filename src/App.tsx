@@ -68,6 +68,8 @@ import { hydrateNotices, useNoticeStore } from "./stores/noticeStore";
 import { hydrateRecentTopics, useRecentTopicStore } from "./stores/recentTopicStore";
 import { hydrateTodos, useTodoStore } from "./stores/todoStore";
 import { hydrateTools, useToolStore } from "./stores/toolStore";
+import { useAdminToolStore } from "./stores/adminToolStore";
+import { haltRangeCheck } from "./services/networkService";
 import type { NoticeItem, NoticePack } from "./types/notice";
 import type { LauncherPack } from "./data/educationPack";
 import type { ToolItem, ToolType } from "./types/tool";
@@ -177,6 +179,19 @@ export default function App() {
     setNotice(message);
     window.setTimeout(() => setNotice(""), 2800);
   }, []);
+  const adminOn = useAdminToolStore((state) => state.enabled);
+  const adminLoaded = useAdminToolStore((state) => state.loaded);
+
+  useEffect(() => {
+    if (!adminLoaded || adminOn || view.name !== "internal") {
+      return;
+    }
+    const id = view.id;
+    if (id === "network" || id === "tool-network" || id === "cctv" || id === "tool-cctv") {
+      void haltRangeCheck();
+      setView({ name: "home" });
+    }
+  }, [adminLoaded, adminOn, view]);
 
   const applyPackPath = useCallback(
     async (path: string) => {
@@ -364,6 +379,7 @@ export default function App() {
         const settings = await hydrateSettings();
         await startupKnowledge(settings.fetchKnowledgeOnLaunch);
         await hydrateTools();
+        await useAdminToolStore.getState().refresh();
         await hydrateTodos();
         await hydrateMemo();
         await hydrateNotices();
