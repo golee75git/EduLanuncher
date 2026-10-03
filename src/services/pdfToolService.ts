@@ -10,8 +10,13 @@ export interface PdfSlot {
   turn: number;
 }
 
+export interface PdfMadeFile {
+  name: string;
+  revealId: string;
+}
+
 export interface PdfMade {
-  paths: string[];
+  files: PdfMadeFile[];
   pages: number;
   bytes: number;
   signed: boolean;

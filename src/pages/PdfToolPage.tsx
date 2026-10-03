@@ -1,8 +1,7 @@
-import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { ArrowDown, ArrowLeft, ArrowUp, RotateCw, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { holdPdfDrop } from "../services/pdfDropGate";
-import { pickOpenFiles } from "../services/savePick";
+import { clearMadeReveals, pickOpenFiles, revealMadeFile } from "../services/savePick";
 import type { GrantedFile } from "../services/dropSiteService";
 import {
   arrangePdf,
@@ -51,6 +50,12 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
   const dragIndex = useRef<number | null>(null);
 
   useEffect(() => holdPdfDrop((files) => addRef.current(files)), []);
+
+  useEffect(() => {
+    return () => {
+      void clearMadeReveals();
+    };
+  }, []);
 
   useEffect(() => {
     if (startFiles && startFiles.length > 0) {
@@ -187,6 +192,7 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
       return;
     }
     setBusy(true);
+    await clearMadeReveals();
     setProgress(`PDF를 처리하고 있습니다. 1 / ${ready.length} 파일`);
     setMessage("");
     try {
@@ -214,6 +220,7 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
       return;
     }
     setBusy(true);
+    await clearMadeReveals();
     setProgress(eachPage ? `PDF를 처리하고 있습니다. 0 / ${pages.length} 페이지` : "PDF를 처리하고 있습니다.");
     setMessage("");
     try {
@@ -233,6 +240,7 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
       return;
     }
     setBusy(true);
+    await clearMadeReveals();
     setProgress(`PDF를 처리하고 있습니다. ${slots.length} / ${file.pages} 페이지`);
     setMessage("");
     try {
@@ -484,12 +492,18 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
               {made.stopped ? "작업을 멈췄습니다." : "PDF 처리가 완료되었습니다."}
             </p>
             <p className="text-xs leading-5 text-quiet">
-              {made.paths.length}개 PDF · {made.pages}페이지 · {formatByteSize(made.bytes)}
+              {made.files.map((file) => file.name).join(", ") || "파일 없음"} · {made.files.length}개 PDF · {made.pages}페이지 · {formatByteSize(made.bytes)}
             </p>
             {made.signed ? <p className="text-xs leading-5 text-desk">{SIGNED_NOTE}</p> : null}
             <p className="text-[11px] leading-5 text-quiet">특허 비침해를 보장하지 않습니다.</p>
-            {made.paths[0] ? (
-              <button type="button" className="btn-secondary w-full" onClick={() => void revealItemInDir(made.paths[0])}>
+            {made.files[0] ? (
+              <button
+                type="button"
+                className="btn-secondary w-full"
+                onClick={() => {
+                  void revealMadeFile(made.files[0].revealId).catch((error) => setMessage(asMessage(error)));
+                }}
+              >
                 저장 폴더 열기
               </button>
             ) : null}
@@ -497,6 +511,7 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
               type="button"
               className="btn-primary w-full"
               onClick={() => {
+                void clearMadeReveals();
                 setMode("menu");
                 setMade(null);
                 setFiles([]);

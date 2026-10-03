@@ -75,18 +75,15 @@ export async function readDocByteSize(id: string): Promise<number> {
   return invoke<number>("doc_picture_bytes", { id });
 }
 
-export async function planDocSave(id: string, mode: DocSaveMode, chosen: string): Promise<string> {
-  return invoke<string>("plan_doc_save", { id, mode, chosen });
-}
-
 export async function shrinkOnePicture(
   sourceId: string,
   preset: DocPreset,
   mode: DocSaveMode,
-  chosen: string,
+  folderId: string,
 ): Promise<{
   saved: boolean;
-  outPath: string;
+  name: string;
+  revealId: string;
   outBytes: number;
   beforeWidth: number;
   beforeHeight: number;
@@ -115,7 +112,8 @@ export async function shrinkOnePicture(
     if (output.size >= sourceBytes) {
       return {
         saved: false,
-        outPath: "",
+        name: "",
+        revealId: "",
         outBytes: sourceBytes,
         beforeWidth,
         beforeHeight,
@@ -124,16 +122,17 @@ export async function shrinkOnePicture(
         note: "용량이 줄지 않아 새 파일을 만들지 않았습니다.",
       };
     }
-    const outPath = await planDocSave(sourceId, mode, chosen);
-    const written = await invoke<number>("write_new_picture", {
-      path: outPath,
+    const written = await invoke<{ name: string; revealId: string; bytes: number }>("write_new_picture", {
       sourceId,
+      mode,
+      folderId: folderId || null,
       data: await blobToBase64(output),
     });
     return {
       saved: true,
-      outPath,
-      outBytes: written,
+      name: written.name,
+      revealId: written.revealId,
+      outBytes: written.bytes,
       beforeWidth,
       beforeHeight,
       afterWidth: next.width,

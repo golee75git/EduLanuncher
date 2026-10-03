@@ -40,7 +40,7 @@ mod file_desk;
 mod path_grant;
 mod url_mark;
 mod user_folder;
-use doc_shrink::{doc_picture_bytes, plan_doc_save, write_new_picture};
+use doc_shrink::{doc_picture_bytes, write_new_picture};
 use document_search::{
     doc_search_add_folder, doc_search_clear, doc_search_folders, doc_search_halt, doc_search_query,
     doc_search_remove_folder, doc_search_start, doc_search_status,
@@ -2507,6 +2507,10 @@ pub fn run() {
             bind_dropped_shortcut,
             path_grant::pick_save_file,
             path_grant::pick_open_files,
+            path_grant::pick_save_folder,
+            path_grant::reveal_made_file,
+            path_grant::clear_made_reveals,
+            path_grant::forget_save_folder,
             write_json_file,
             write_csv_file,
             build_url_mark,
@@ -2515,7 +2519,6 @@ pub fn run() {
             read_privacy_picture,
             write_privacy_picture,
             doc_picture_bytes,
-            plan_doc_save,
             write_new_picture,
             pdf_glance,
             pdf_halt,

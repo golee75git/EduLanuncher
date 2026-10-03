@@ -31,6 +31,30 @@ export async function pickOpenFiles(kind: OpenKind): Promise<SaveCard[]> {
   }
 }
 
+export async function pickSaveFolder(): Promise<SaveCard | null> {
+  try {
+    return await invoke<SaveCard>("pick_save_folder");
+  } catch (error) {
+    const text = asError(error);
+    if (text.message.includes("cancelled")) {
+      return null;
+    }
+    throw text;
+  }
+}
+
+export async function revealMadeFile(id: string): Promise<void> {
+  await invoke("reveal_made_file", { id });
+}
+
+export async function clearMadeReveals(): Promise<void> {
+  await invoke("clear_made_reveals");
+}
+
+export async function forgetSaveFolder(id: string): Promise<void> {
+  await invoke("forget_save_folder", { id });
+}
+
 export async function pickSaveFile(kind: SaveKind, fileName: string, picture?: "png" | "jpeg"): Promise<SaveCard | null> {
   try {
     return await invoke<SaveCard>("pick_save_file", { kind, fileName, picture: picture ?? null });

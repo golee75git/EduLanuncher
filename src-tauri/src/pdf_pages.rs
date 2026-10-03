@@ -26,13 +26,55 @@ pub struct PdfSlot {
     pub turn: i32,
 }
 
+struct SavedPdf {
+    paths: Vec<PathBuf>,
+    pages: u32,
+    bytes: u64,
+    signed: bool,
+    stopped: bool,
+}
+
 #[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MadeFile {
+    pub name: String,
+    pub reveal_id: String,
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PdfMade {
-    pub paths: Vec<String>,
+    pub files: Vec<MadeFile>,
     pub pages: u32,
     pub bytes: u64,
     pub signed: bool,
     pub stopped: bool,
+}
+
+fn publish(app: &AppHandle, saved: SavedPdf) -> Result<PdfMade, String> {
+    let book = app.state::<path_grant::GrantBook>();
+    let mut files = Vec::new();
+    for path in saved.paths {
+        let write_id = path_grant::begin_derived_write(&book, &path).map_err(|text| text.to_string())?;
+        let card = match path_grant::finish_made(&book, write_id) {
+            Ok(card) => card,
+            Err(text) => {
+                path_grant::drop_grant(&book, write_id);
+                return Err(text.to_string());
+            }
+        };
+        files.push(MadeFile {
+            name: card.name,
+            reveal_id: card.reveal_id,
+        });
+    }
+    Ok(PdfMade {
+        files,
+        pages: saved.pages,
+        bytes: saved.bytes,
+        signed: saved.signed,
+        stopped: saved.stopped,
+    })
 }
 
 #[tauri::command]
@@ -68,16 +110,21 @@ pub fn pdf_merge(app: AppHandle, ids: Vec<String>) -> Result<PdfMade, String> {
         return Err(format!("한 번에 {MAX_FILES}개까지 합칠 수 있습니다."));
     }
     let sources = ids.iter().map(|id| granted_pdf(&app, id)).collect::<Result<Vec<_>, _>>()?;
-    merge_sources(sources)
+    let dir = sources
+        .first()
+        .and_then(|path| path.parent())
+        .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
+    path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
+    publish(&app, merge_sources(sources)?)
 }
 
-fn merge_sources(sources: Vec<PathBuf>) -> Result<PdfMade, String> {
+fn merge_sources(sources: Vec<PathBuf>) -> Result<SavedPdf, String> {
     let mut shell = empty_shell()?;
     let mut signed = false;
     let mut total: u32 = 0;
     for source in &sources {
         if STOP.load(Ordering::Relaxed) {
-            return Ok(PdfMade {
+            return Ok(SavedPdf {
                 paths: Vec::new(),
                 pages: 0,
                 bytes: 0,
@@ -102,8 +149,8 @@ fn merge_sources(sources: Vec<PathBuf>) -> Result<PdfMade, String> {
         .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
     let dest = fresh_pdf(dir, "합친문서.pdf", &sources)?;
     let bytes = save_new(&mut shell, &dest, &sources)?;
-    Ok(PdfMade {
-        paths: vec![path_text(&dest)?],
+    Ok(SavedPdf {
+        paths: vec![dest],
         pages: total,
         bytes,
         signed,
@@ -115,6 +162,14 @@ fn merge_sources(sources: Vec<PathBuf>) -> Result<PdfMade, String> {
 pub fn pdf_extract(app: AppHandle, id: String, pages: Vec<u32>, each: bool) -> Result<PdfMade, String> {
     STOP.store(false, Ordering::Relaxed);
     let source = granted_pdf(&app, &id)?;
+    let dir = source
+        .parent()
+        .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
+    path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
+    publish(&app, extract_saved(source, pages, each)?)
+}
+
+fn extract_saved(source: PathBuf, pages: Vec<u32>, each: bool) -> Result<SavedPdf, String> {
     let doc = open_pdf(&source)?;
     let signed = has_signature(&doc);
     let chosen = checked_pages(&doc, &pages)?;
@@ -127,7 +182,7 @@ pub fn pdf_extract(app: AppHandle, id: String, pages: Vec<u32>, each: bool) -> R
         let mut bytes = 0u64;
         for (index, page) in chosen.iter().enumerate() {
             if STOP.load(Ordering::Relaxed) {
-                return Ok(PdfMade {
+                return Ok(SavedPdf {
                     paths: made,
                     pages: index as u32,
                     bytes,
@@ -141,9 +196,9 @@ pub fn pdf_extract(app: AppHandle, id: String, pages: Vec<u32>, each: bool) -> R
             let name = format!("{stem}_{:03}.pdf", index + 1);
             let dest = fresh_pdf(dir, &name, &[source.clone()])?;
             bytes = bytes.saturating_add(save_new(&mut shell, &dest, &[source.clone()])?);
-            made.push(path_text(&dest)?);
+            made.push(dest);
         }
-        return Ok(PdfMade {
+        return Ok(SavedPdf {
             paths: made,
             pages: chosen.len() as u32,
             bytes,
@@ -160,8 +215,8 @@ pub fn pdf_extract(app: AppHandle, id: String, pages: Vec<u32>, each: bool) -> R
     let label = page_label(&chosen);
     let dest = fresh_pdf(dir, &format!("{stem}_{label}.pdf"), &[source.clone()])?;
     let bytes = save_new(&mut shell, &dest, &[source])?;
-    Ok(PdfMade {
-        paths: vec![path_text(&dest)?],
+    Ok(SavedPdf {
+        paths: vec![dest],
         pages: chosen.len() as u32,
         bytes,
         signed,
@@ -172,10 +227,14 @@ pub fn pdf_extract(app: AppHandle, id: String, pages: Vec<u32>, each: bool) -> R
 #[tauri::command]
 pub fn pdf_arrange(app: AppHandle, id: String, slots: Vec<PdfSlot>) -> Result<PdfMade, String> {
     let source = granted_pdf(&app, &id)?;
-    arrange_source(source, slots)
+    let dir = source
+        .parent()
+        .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
+    path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
+    publish(&app, arrange_source(source, slots)?)
 }
 
-fn arrange_source(source: PathBuf, slots: Vec<PdfSlot>) -> Result<PdfMade, String> {
+fn arrange_source(source: PathBuf, slots: Vec<PdfSlot>) -> Result<SavedPdf, String> {
     STOP.store(false, Ordering::Relaxed);
     let doc = open_pdf(&source)?;
     let signed = has_signature(&doc);
@@ -206,8 +265,8 @@ fn arrange_source(source: PathBuf, slots: Vec<PdfSlot>) -> Result<PdfMade, Strin
         .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
     let dest = fresh_pdf(dir, &format!("{}_정리.pdf", file_stem(&source)), &[source.clone()])?;
     let bytes = save_new(&mut shell, &dest, &[source])?;
-    Ok(PdfMade {
-        paths: vec![path_text(&dest)?],
+    Ok(SavedPdf {
+        paths: vec![dest],
         pages: picked.len() as u32,
         bytes,
         signed,
@@ -650,12 +709,6 @@ fn paths_same(left: &Path, right: &Path) -> bool {
     }
 }
 
-fn path_text(path: &Path) -> Result<String, String> {
-    path.to_str()
-        .map(|text| text.to_string())
-        .ok_or_else(|| "저장 경로를 만들지 못했습니다.".to_string())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -693,6 +746,25 @@ mod tests {
         let path = dir.join(name);
         doc.save(&path).unwrap();
         path
+    }
+
+    #[test]
+    fn made_result_json_has_no_path() {
+        let made = PdfMade {
+            files: vec![MadeFile {
+                name: "합친문서.pdf".into(),
+                reveal_id: "0000000000000001".into(),
+            }],
+            pages: 1,
+            bytes: 2,
+            signed: false,
+            stopped: false,
+        };
+        let json = serde_json::to_string(&made).unwrap();
+        assert!(json.contains("합친문서.pdf"));
+        assert!(json.contains("revealId"));
+        assert!(!json.contains("paths"));
+        assert!(!json.contains('\\'));
     }
 
     #[test]

@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.168-20261003",
+    note: "PDF와 사진 용량 줄이기 결과는 원본 옆에 새 파일로 저장합니다. 화면에는 파일 이름만 보입니다.",
+  },
+  {
     version: "0.1.167-20261003",
     note: "파일 열기와 끌어다 놓기는 고른 파일만 읽습니다. 화면에는 파일 이름이 보입니다.",
   },

@@ -6,6 +6,29 @@
 ---
 
 날짜: 2026-10-03
+대상: PDF·사진 결과 파일 쓰기
+작성자: 요청자
+
+요청: PDF 합치기·추출·정렬과 사진 용량 줄이기는 원본 폴더에 새 이름으로 저장한다. 화면에는 전체 경로 대신 파일 이름과 열기 번호만 돌려준다. 사진의 저장 폴더 고르기는 Rust 폴더 창으로 옮긴다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+다시 쓴 파일:
+- src-tauri/src/path_grant.rs
+- src-tauri/src/pdf_pages.rs
+- src-tauri/src/doc_shrink.rs
+- src-tauri/src/lib.rs
+- src/services/savePick.ts
+- src/services/pdfToolService.ts
+- src/services/docShrinkService.ts
+- src/pages/PdfToolPage.tsx
+- src/pages/DocShrinkPage.tsx
+
+그대로 둔 파일: 사진 모자이크 저장, QR 저장, 개인정보 검사의 파일 위치 열기, 도구 편집과 문서 검색의 폴더 고르기.
+
+---
+
+날짜: 2026-10-03
 대상: 읽기 경로 등록소
 작성자: 요청자
 

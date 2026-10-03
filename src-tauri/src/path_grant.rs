@@ -9,6 +9,7 @@ use std::time::Instant;
 use serde::Serialize;
 use tauri::{AppHandle, Manager, WebviewWindow};
 use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_opener::OpenerExt;
 
 use crate::privacy_folder;
 
@@ -16,12 +17,15 @@ use crate::privacy_folder;
 const READ_CAP: usize = 128;
 const WRITE_CAP: usize = 32;
 const PRIVACY_CAP: usize = 200;
+/// 쪽마다 뽑기는 최대 800개라, 결과 열기 등록은 800개까지 두고 넘치면 가장 오래된 것을 잊는다.
+const REVEAL_CAP: usize = 800;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GrantUse {
     Read,
     Write,
     PrivacyScan,
+    Reveal,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -29,6 +33,7 @@ pub enum GrantOrigin {
     Dialog,
     Drop,
     Startup,
+    Derived,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -70,6 +75,7 @@ impl GrantBook {
             GrantUse::Read => READ_CAP,
             GrantUse::Write => WRITE_CAP,
             GrantUse::PrivacyScan => PRIVACY_CAP,
+            GrantUse::Reveal => REVEAL_CAP,
         };
         let mode = match use_for {
             GrantUse::PrivacyScan => CapMode::Refuse,
@@ -104,6 +110,23 @@ impl GrantBook {
             return;
         };
         items.retain(|item| !ids.contains(&item.id));
+    }
+
+    pub fn forget_use(&self, use_for: GrantUse) {
+        let Ok(mut items) = self.items.lock() else {
+            return;
+        };
+        items.retain(|item| item.use_for != use_for);
+    }
+
+    pub fn forget_folder(&self, id: &str) {
+        let Some(number) = parse_id(id) else {
+            return;
+        };
+        let Ok(mut items) = self.items.lock() else {
+            return;
+        };
+        items.retain(|item| !(item.id == number && item.use_for == GrantUse::Write && item.ext == "dir"));
     }
 
     fn clone_of(&self, id: u64) -> Option<Grant> {
@@ -222,6 +245,159 @@ pub fn spend(book: &GrantBook, id: &str) {
     if let Some(parsed) = parse_id(id) {
         book.forget(&[parsed]);
     }
+}
+
+pub fn drop_grant(book: &GrantBook, id: u64) {
+    book.forget(&[id]);
+}
+
+pub fn output_dir_allowed(dir: &Path) -> Result<(), &'static str> {
+    output_dir_allowed_in(dir, &privacy_folder::save_deny_roots(), live_exe_dir().as_deref())
+}
+
+fn output_dir_allowed_in(dir: &Path, roots: &[String], exe_dir: Option<&Path>) -> Result<(), &'static str> {
+    if dir.as_os_str().is_empty() {
+        return Err("저장 폴더를 찾지 못했습니다.");
+    }
+    let probe = dir.join("a.pdf");
+    if write_blocked(&probe, roots, exe_dir) {
+        Err("시스템 폴더에는 저장하지 않습니다.")
+    } else {
+        Ok(())
+    }
+}
+
+pub fn begin_derived_write(book: &GrantBook, path: &Path) -> Result<u64, &'static str> {
+    let parent = path
+        .parent()
+        .filter(|dir| !dir.as_os_str().is_empty())
+        .ok_or("저장 폴더를 찾지 못했습니다.")?;
+    output_dir_allowed(parent)?;
+    let name = display_name(path);
+    let ext = extension_of(path);
+    book.issue(GrantUse::Write, path, &name, &ext, GrantOrigin::Derived)
+}
+
+pub struct MadeCard {
+    pub name: String,
+    pub reveal_id: String,
+}
+
+pub fn finish_made(book: &GrantBook, write_id: u64) -> Result<MadeCard, &'static str> {
+    let item = book.clone_of(write_id).ok_or("저장하지 못했습니다.")?;
+    if item.use_for != GrantUse::Write || item.origin != GrantOrigin::Derived {
+        return Err("저장하지 못했습니다.");
+    }
+    if !item.path.is_file() {
+        book.forget(&[write_id]);
+        return Err("저장하지 못했습니다.");
+    }
+    let name = item.name.clone();
+    let ext = item.ext.clone();
+    let path = item.path.clone();
+    book.forget(&[write_id]);
+    let reveal = book.issue(GrantUse::Reveal, &path, &name, &ext, GrantOrigin::Derived)?;
+    Ok(MadeCard {
+        name,
+        reveal_id: id_text(reveal),
+    })
+}
+
+pub fn view_reveal(book: &GrantBook, id: &str) -> Result<PathBuf, &'static str> {
+    let parsed = parse_id(id).ok_or("결과 파일을 열 수 없습니다.")?;
+    let item = book.clone_of(parsed).ok_or("결과 파일을 열 수 없습니다.")?;
+    if item.use_for != GrantUse::Reveal {
+        return Err("결과 파일을 열 수 없습니다.");
+    }
+    if !item.path.is_file() {
+        return Err("결과 파일을 열 수 없습니다.");
+    }
+    Ok(item.path)
+}
+
+pub fn view_folder(book: &GrantBook, id: &str) -> Result<PathBuf, &'static str> {
+    view_folder_in(book, id, &privacy_folder::save_deny_roots(), live_exe_dir().as_deref())
+}
+
+fn view_folder_in(
+    book: &GrantBook,
+    id: &str,
+    roots: &[String],
+    exe_dir: Option<&Path>,
+) -> Result<PathBuf, &'static str> {
+    let parsed = parse_id(id).ok_or("저장 폴더를 찾지 못했습니다.")?;
+    let item = book.clone_of(parsed).ok_or("저장 폴더를 찾지 못했습니다.")?;
+    if item.use_for != GrantUse::Write || item.origin != GrantOrigin::Dialog || item.ext != "dir" {
+        return Err("저장 폴더를 찾지 못했습니다.");
+    }
+    if write_blocked(&item.path, roots, exe_dir) {
+        return Err("시스템 폴더에는 저장하지 않습니다.");
+    }
+    if !item.path.is_dir() {
+        return Err("저장 폴더가 없습니다.");
+    }
+    Ok(item.path)
+}
+
+#[tauri::command]
+pub fn reveal_made_file(app: AppHandle, window: WebviewWindow, id: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 열 수 없습니다.".into());
+    }
+    let book = app.state::<GrantBook>();
+    let path = view_reveal(&book, &id).map_err(|text| text.to_string())?;
+    app.opener()
+        .reveal_item_in_dir(path)
+        .map_err(|_| "파일 위치를 열지 못했습니다.".to_string())
+}
+
+#[tauri::command]
+pub fn clear_made_reveals(app: AppHandle, window: WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 열 수 없습니다.".into());
+    }
+    app.state::<GrantBook>().forget_use(GrantUse::Reveal);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn forget_save_folder(app: AppHandle, window: WebviewWindow, id: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 열 수 없습니다.".into());
+    }
+    app.state::<GrantBook>().forget_folder(&id);
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn pick_save_folder(app: AppHandle, window: WebviewWindow) -> Result<SaveCard, String> {
+    main_only(&window).map_err(|_| "이 창에서는 저장할 수 없습니다.".to_string())?;
+    let (tx, rx) = std::sync::mpsc::sync_channel(1);
+    app.dialog()
+        .file()
+        .set_parent(&window)
+        .set_title("저장 폴더")
+        .pick_folder(move |picked| {
+            let _ = tx.send(picked);
+        });
+    let picked = tauri::async_runtime::spawn_blocking(move || rx.recv())
+        .await
+        .map_err(|_| "저장 폴더를 고르지 못했습니다.".to_string())?
+        .map_err(|_| "저장 폴더를 고르지 못했습니다.".to_string())?;
+    let Some(file) = picked else {
+        return Err("cancelled".into());
+    };
+    let path = file.into_path().map_err(|_| "저장 폴더를 고르지 못했습니다.".to_string())?;
+    if !path.is_dir() {
+        return Err("저장 폴더가 없습니다.".into());
+    }
+    output_dir_allowed(&path).map_err(|text| text.to_string())?;
+    let book = app.state::<GrantBook>();
+    let name = display_name(&path);
+    let id = book
+        .issue(GrantUse::Write, &path, &name, "dir", GrantOrigin::Dialog)
+        .map_err(|_| "저장 폴더를 고르지 못했습니다.".to_string())?;
+    Ok(SaveCard { id: id_text(id), name })
 }
 
 fn main_only(window: &WebviewWindow) -> Result<(), &'static str> {
@@ -510,6 +686,15 @@ mod tests {
             assert!(!sig.contains("path"), "{sig}");
             assert!(!sig.contains("target"), "{sig}");
         }
+        let shrink = include_str!("doc_shrink.rs");
+        let write_at = shrink.find("fn write_new_picture").expect("write_new_picture");
+        let write_end = shrink[write_at..].find('{').unwrap() + write_at;
+        let write_sig = &shrink[write_at..write_end];
+        let write_params = write_sig.split_once('(').map(|(_, rest)| rest).unwrap_or(write_sig);
+        assert!(!write_params.contains("path"), "{write_sig}");
+        assert!(write_params.contains("source_id"), "{write_sig}");
+        assert!(!shrink.contains("fn plan_doc_save"), "plan_doc_save must stay inside write_new_picture");
+
         for (file, name) in [
             ("url_mark.rs", "fn read_picture_file"),
             ("privacy_mask.rs", "fn read_privacy_picture"),
@@ -525,5 +710,61 @@ mod tests {
             assert!(!sig.contains("path"), "{sig}");
             assert!(sig.contains("id"), "{sig}");
         }
+    }
+
+    #[test]
+    fn derived_write_is_not_a_dialog_save() {
+        let (book, id) = book_with(GrantUse::Write, r"C:\Users\가짜\합친문서.pdf", "pdf", GrantOrigin::Derived);
+        let err = view_write_in(&book, &id, &["pdf"], &[], None).unwrap_err();
+        assert_eq!(err, "이 용도로는 저장할 수 없습니다.");
+        assert!(!err.contains('\\'));
+    }
+
+    #[test]
+    fn reveal_grant_is_not_a_save() {
+        let (book, id) = book_with(GrantUse::Reveal, r"C:\Users\가짜\합친문서.pdf", "pdf", GrantOrigin::Derived);
+        let err = view_reveal(&book, &id).unwrap_err();
+        assert_eq!(err, "결과 파일을 열 수 없습니다.");
+        assert!(!err.contains('\\'));
+        assert!(!err.contains("합친"));
+        let (book, write_id) = book_with(GrantUse::Write, r"C:\Users\가짜\메모.json", "json", GrantOrigin::Dialog);
+        assert_eq!(view_reveal(&book, &write_id).unwrap_err(), "결과 파일을 열 수 없습니다.");
+    }
+
+    #[test]
+    fn folder_grant_is_not_a_picture_save() {
+        let (book, id) = book_with(GrantUse::Write, r"C:\Users\가짜\사진", "dir", GrantOrigin::Dialog);
+        assert_eq!(
+            view_write_in(&book, &id, &["png", "jpg"], &[], None).unwrap_err(),
+            "저장 형식이 올바르지 않습니다."
+        );
+        let err = view_folder_in(&book, &id, &[], None).unwrap_err();
+        assert_eq!(err, "저장 폴더가 없습니다.");
+        assert!(!err.contains('\\'));
+    }
+
+    #[test]
+    fn system_output_dir_is_refused() {
+        let roots = vec![r"C:\Windows".to_string()];
+        let exe = PathBuf::from(r"D:\EduLauncher");
+        let err = output_dir_allowed_in(Path::new(r"C:\Windows"), &roots, Some(&exe)).unwrap_err();
+        assert_eq!(err, "시스템 폴더에는 저장하지 않습니다.");
+        assert!(!err.contains('\\'));
+        assert!(output_dir_allowed_in(Path::new(r"D:\EduLauncher"), &roots, Some(&exe)).is_err());
+        assert!(output_dir_allowed_in(Path::new(r"C:\Users\가짜"), &roots, Some(&exe)).is_ok());
+    }
+
+    #[test]
+    fn clearing_reveals_keeps_other_grants() {
+        let book = GrantBook::new();
+        let reveal = book
+            .issue(GrantUse::Reveal, Path::new(r"C:\Users\가짜\합친문서.pdf"), "합친문서.pdf", "pdf", GrantOrigin::Derived)
+            .unwrap();
+        let read = book
+            .issue(GrantUse::Read, Path::new(r"C:\Users\가짜\가.pdf"), "가.pdf", "pdf", GrantOrigin::Dialog)
+            .unwrap();
+        book.forget_use(GrantUse::Reveal);
+        assert!(book.clone_of(reveal).is_none());
+        assert!(book.clone_of(read).is_some());
     }
 }

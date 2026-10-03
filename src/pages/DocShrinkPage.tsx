@@ -1,10 +1,8 @@
-import { open } from "@tauri-apps/plugin-dialog";
-import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { holdDocDrop } from "../services/docDropGate";
 import type { GrantedFile } from "../services/dropSiteService";
-import { pickOpenFiles } from "../services/savePick";
+import { clearMadeReveals, forgetSaveFolder, pickOpenFiles, pickSaveFolder, revealMadeFile } from "../services/savePick";
 import {
   DOC_PRESETS,
   estimateSavedBytes,
@@ -28,7 +26,6 @@ interface DocRow {
   state: "wait" | "work" | "done" | "skip" | "fail";
   note: string;
   outBytes: number;
-  outPath: string;
   detail: string;
 }
 
@@ -41,11 +38,13 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
   const [rows, setRows] = useState<DocRow[]>([]);
   const [presetId, setPresetId] = useState<DocPresetId>("standard");
   const [saveMode, setSaveMode] = useState<DocSaveMode>("beside");
-  const [chosen, setChosen] = useState("");
+  const [folderId, setFolderId] = useState("");
+  const [folderName, setFolderName] = useState("");
+  const folderIdRef = useRef("");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState("");
   const [message, setMessage] = useState("");
-  const [folderPath, setFolderPath] = useState("");
+  const [revealId, setRevealId] = useState("");
 
   useEffect(() => holdDocDrop((files) => addRef.current(files)), []);
 
@@ -54,6 +53,15 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
       addRef.current(startFiles);
     }
   }, [startFiles]);
+
+  useEffect(() => {
+    return () => {
+      void clearMadeReveals();
+      if (folderIdRef.current) {
+        void forgetSaveFolder(folderIdRef.current);
+      }
+    };
+  }, []);
 
   const addPaths = async (files: GrantedFile[]) => {
     if (busy) {
@@ -70,7 +78,7 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
       const name = file.name || "그림";
       try {
         const bytes = await readDocByteSize(file.id);
-        next.push({ id: file.id, name, bytes, state: "wait", note: "", outBytes: 0, outPath: "", detail: "" });
+        next.push({ id: file.id, name, bytes, state: "wait", note: "", outBytes: 0, detail: "" });
       } catch (error) {
         next.push({
           id: file.id,
@@ -79,7 +87,6 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
           state: "fail",
           note: asMessage(error, "파일을 읽을 수 없습니다."),
           outBytes: 0,
-          outPath: "",
           detail: "",
         });
       }
@@ -87,7 +94,8 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
     if (next.length) {
       setRows((current) => [...current, ...next]);
       setMessage("");
-      setFolderPath("");
+      setRevealId("");
+      void clearMadeReveals();
     }
   };
   addRef.current = (paths) => {
@@ -108,11 +116,17 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
 
   const pickFolder = async () => {
     try {
-      const selected = await open({ directory: true, multiple: false });
-      if (typeof selected === "string") {
-        setChosen(selected);
-        setSaveMode("chosen");
+      const selected = await pickSaveFolder();
+      if (!selected) {
+        return;
       }
+      if (folderIdRef.current && folderIdRef.current !== selected.id) {
+        await forgetSaveFolder(folderIdRef.current);
+      }
+      folderIdRef.current = selected.id;
+      setFolderId(selected.id);
+      setFolderName(selected.name);
+      setSaveMode("chosen");
     } catch (error) {
       setMessage(asMessage(error, "폴더를 열지 못했습니다."));
     }
@@ -120,7 +134,7 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
 
   const run = async () => {
     const preset = presetById(presetId);
-    if (saveMode === "chosen" && !chosen) {
+    if (saveMode === "chosen" && !folderId) {
       setMessage("저장 폴더를 고르세요.");
       return;
     }
@@ -132,8 +146,9 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
     stopRef.current = false;
     setBusy(true);
     setMessage("");
-    setFolderPath("");
-    let lastSaved = "";
+    setRevealId("");
+    await clearMadeReveals();
+    let lastReveal = "";
     let index = 0;
     for (const row of rows) {
       if (row.state !== "wait") {
@@ -146,9 +161,9 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
       setProgress(`사진을 줄이고 있습니다. ${index} / ${pending.length}`);
       setRows((current) => current.map((item) => (item.id === row.id ? { ...item, state: "work" } : item)));
       try {
-        const result = await shrinkOnePicture(row.id, preset, saveMode, chosen);
+        const result = await shrinkOnePicture(row.id, preset, saveMode, folderId);
         if (result.saved) {
-          lastSaved = result.outPath;
+          lastReveal = result.revealId;
           setRows((current) =>
             current.map((item) =>
               item.id === row.id
@@ -156,9 +171,8 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
                     ...item,
                     state: "done",
                     outBytes: result.outBytes,
-                    outPath: result.outPath,
                     detail: `${result.beforeWidth}×${result.beforeHeight} → ${result.afterWidth}×${result.afterHeight}`,
-                    note: "",
+                    note: result.name,
                   }
                 : item,
             ),
@@ -182,7 +196,7 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
     }
     setBusy(false);
     setProgress("");
-    setFolderPath(lastSaved);
+    setRevealId(lastReveal);
     setMessage(stopRef.current ? "멈췄습니다. 이미 저장된 파일은 그대로입니다." : "");
   };
 
@@ -193,7 +207,8 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
     setRows([]);
     seenRef.current = [];
     setMessage("");
-    setFolderPath("");
+    setRevealId("");
+    void clearMadeReveals();
     setProgress("");
   };
 
@@ -274,7 +289,7 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
           </label>
           {saveMode === "chosen" ? (
             <button type="button" className="btn-secondary" onClick={() => void pickFolder()} disabled={busy}>
-              {chosen ? "폴더 다시 고르기" : "폴더 고르기"}
+              {folderId ? "폴더 다시 고르기" : "폴더 고르기"}
             </button>
           ) : null}
           {saveMode === "beside" ? (
@@ -283,7 +298,7 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
           {saveMode === "bundle" ? (
             <p className="text-xs text-quiet">사진마다 그 폴더 안의 문서용_사진에 모읍니다.</p>
           ) : null}
-          {saveMode === "chosen" && chosen ? <p className="truncate text-xs text-quiet">{chosen}</p> : null}
+          {saveMode === "chosen" && folderName ? <p className="truncate text-xs text-quiet">{folderName}</p> : null}
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button type="button" className="btn-primary" onClick={() => void run()} disabled={busy || rows.length === 0}>
@@ -308,8 +323,14 @@ export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
             {failCount > 0 ? ` ${failCount}장은 실패했습니다.` : ""}
           </p>
         ) : null}
-        {folderPath ? (
-          <button type="button" className="btn-secondary" onClick={() => void revealItemInDir(folderPath)}>
+        {revealId ? (
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => {
+              void revealMadeFile(revealId).catch((error) => setMessage(asMessage(error, "파일 위치를 열지 못했습니다.")));
+            }}
+          >
             저장 폴더 열기
           </button>
         ) : null}
