@@ -36,5 +36,4 @@ export function toolTargetHint(tool: Pick<ToolItem, "type" | "target">): string 
 export interface LaunchResult {
   ok: boolean;
   error?: string | null;
-  path?: string | null;
 }

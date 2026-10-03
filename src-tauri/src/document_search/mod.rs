@@ -11,8 +11,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use rusqlite::{params, Connection};
 use serde::Serialize;
-use tauri::Manager;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager, WebviewWindow};
 
 use crate::index_key::{self, IndexKey, OpenedKey};
 use crate::org_policy;
@@ -87,9 +86,23 @@ pub struct DocHit {
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct DocCard {
+    pub name: String,
+    pub ext: String,
+    pub snippet: String,
+    pub note: String,
+    pub score: i32,
+    pub place: String,
+    pub launch_id: String,
+    pub folder_id: String,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DocQuery {
-    pub hits: Vec<DocHit>,
+    pub hits: Vec<DocCard>,
     pub hint: String,
+    pub batch: String,
 }
 
 fn db_path(app: &AppHandle) -> Result<PathBuf, String> {
@@ -753,14 +766,67 @@ fn cloud_file(path: &Path) -> bool {
     }
 }
 
+fn publish_doc_hits(app: &AppHandle, hits: Vec<DocHit>, hint: String) -> DocQuery {
+    let book = app.state::<crate::path_grant::GrantBook>();
+    let batch = book.begin_batch(crate::path_grant::GrantOrigin::SearchDoc);
+    let mut cards = Vec::new();
+    let mut folders: Vec<(std::path::PathBuf, String)> = Vec::new();
+    for hit in hits {
+        let path = std::path::PathBuf::from(&hit.path);
+        let launch_id = crate::path_grant::remember_launch(
+            &book,
+            crate::path_grant::GrantOrigin::SearchDoc,
+            batch,
+            &path,
+            "file",
+        )
+        .unwrap_or_default();
+        let parent = path.parent().map(std::path::Path::to_path_buf).unwrap_or_default();
+        let folder_id = if parent.as_os_str().is_empty() {
+            String::new()
+        } else if let Some((_, id)) = folders.iter().find(|(dir, _)| dir == &parent) {
+            id.clone()
+        } else {
+            let id = crate::path_grant::remember_launch(
+                &book,
+                crate::path_grant::GrantOrigin::SearchDoc,
+                batch,
+                &parent,
+                "place",
+            )
+            .unwrap_or_default();
+            folders.push((parent, id.clone()));
+            id
+        };
+        cards.push(DocCard {
+            name: hit.name,
+            ext: hit.ext,
+            snippet: hit.snippet,
+            note: hit.note,
+            score: hit.score,
+            place: crate::path_grant::place_label(&path),
+            launch_id,
+            folder_id,
+        });
+    }
+    DocQuery {
+        hits: cards,
+        hint,
+        batch: batch.to_string(),
+    }
+}
+
 #[tauri::command]
-pub fn doc_search_query(app: AppHandle, query: String, limit: u32) -> Result<DocQuery, String> {
+pub fn doc_search_query(app: AppHandle, window: WebviewWindow, query: String, limit: u32) -> Result<DocQuery, String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 실행할 수 없습니다.".into());
+    }
     let needle = query.trim();
     if needle.is_empty() {
-        return Ok(DocQuery { hits: Vec::new(), hint: String::new() });
+        return Ok(publish_doc_hits(&app, Vec::new(), String::new()));
     }
     if org_policy::document_index_blocked() {
-        return Ok(DocQuery { hits: Vec::new(), hint: String::new() });
+        return Ok(publish_doc_hits(&app, Vec::new(), String::new()));
     }
     let cap = limit.clamp(1, 40) as usize;
     let db = db_path(&app)?;
@@ -793,7 +859,7 @@ pub fn doc_search_query(app: AppHandle, query: String, limit: u32) -> Result<Doc
     }
     hits.sort_by(|left, right| right.score.cmp(&left.score).then_with(|| left.name.cmp(&right.name)));
     hits.truncate(cap);
-    Ok(DocQuery { hits, hint })
+    Ok(publish_doc_hits(&app, hits, hint))
 }
 
 fn name_hits(conn: &Connection, needle: &str, cap: usize) -> Vec<DocHit> {

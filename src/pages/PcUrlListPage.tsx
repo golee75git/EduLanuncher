@@ -5,7 +5,8 @@ import { asLocalPngIcon } from "../data/toolIcons";
 import { readBookmarkHtmlFile } from "../services/bookmarkHtmlService";
 import { addDroppedSite } from "../services/dropSiteService";
 import { pickOpenFiles } from "../services/savePick";
-import { launchQuickUrl } from "../services/launcherService";
+import { launchQuickUrl, openListed } from "../services/launcherService";
+import { clearSearchGrants } from "../services/windowService";
 import { browserFaviconsFor, listPcUrlShortcuts, type PcUrlItem } from "../services/pcUrlListService";
 
 interface PcUrlListPageProps {
@@ -20,27 +21,31 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
   const [icons, setIcons] = useState<Record<string, string>>({});
   const requested = useRef(new Set<string>());
   const mounted = useRef(true);
+  const batch = useRef("");
 
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
+      if (batch.current) {
+        void clearSearchGrants("url", batch.current);
+      }
     };
   }, []);
 
   // 목록 앞 그림: 내보낸 파일의 그림 → .url 파일 자체 그림 → 브라우저가 이 PC에 저장해 둔 그림
   useEffect(() => {
     const fresh = items.filter(
-      (item) => !item.iconImage && !requested.current.has(`${item.path ?? ""}|${item.url}`),
+      (item) => !item.iconImage && !requested.current.has(`${item.folderId ?? ""}|${item.url}`),
     );
     if (fresh.length === 0) {
       return;
     }
     for (const item of fresh) {
-      requested.current.add(`${item.path ?? ""}|${item.url}`);
+      requested.current.add(`${item.folderId ?? ""}|${item.url}`);
     }
-    const byBrowser = [...new Set(fresh.filter((item) => !item.path).map((item) => item.url))];
-    const byFile = fresh.filter((item) => item.path);
+    const byBrowser = [...new Set(fresh.filter((item) => !item.folderId).map((item) => item.url))];
+    const byFile = fresh.filter((item) => item.folderId);
     const keep = (found: Record<string, string>) => {
       if (mounted.current && Object.keys(found).length > 0) {
         setIcons((current) => ({ ...current, ...found }));
@@ -81,7 +86,8 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
       try {
         const found = await listPcUrlShortcuts();
         if (!cancelled) {
-          setItems(found);
+          batch.current = found.batch;
+          setItems(found.items);
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -188,7 +194,15 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
                   <button
                     type="button"
                     className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left transition-colors duration-150 hover:bg-paper"
-                    onClick={() => void launchQuickUrl(item.url)}
+                    onClick={() => {
+                      if (item.launchId) {
+                        void openListed(item.launchId).catch((openError) => {
+                          setNotice(openError instanceof Error ? openError.message : "실행할 수 없습니다.");
+                        });
+                        return;
+                      }
+                      void launchQuickUrl(item.url);
+                    }}
                   >
                     <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-ink-soft p-1 text-ink">
                       <ToolGlyph

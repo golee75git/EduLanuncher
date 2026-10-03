@@ -19,6 +19,8 @@ const WRITE_CAP: usize = 32;
 const PRIVACY_CAP: usize = 200;
 /// 쪽마다 뽑기는 최대 800개라, 결과 열기 등록은 800개까지 두고 넘치면 가장 오래된 것을 잊는다.
 const REVEAL_CAP: usize = 800;
+/// 즐겨찾기 목록이 400개까지라, 실행 등록은 800개까지 두고 넘치면 가장 오래된 것을 잊는다.
+const LAUNCH_CAP: usize = 800;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GrantUse {
@@ -26,14 +28,18 @@ pub enum GrantUse {
     Write,
     PrivacyScan,
     Reveal,
+    Launch,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GrantOrigin {
     Dialog,
     Drop,
     Startup,
     Derived,
+    SearchDoc,
+    SearchUser,
+    SearchUrl,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -50,17 +56,22 @@ struct Grant {
     ext: String,
     use_for: GrantUse,
     origin: GrantOrigin,
+    batch: u64,
     #[allow(dead_code)]
     at: Instant,
 }
 
 pub struct GrantBook {
     items: Mutex<Vec<Grant>>,
+    batch: Mutex<u64>,
 }
 
 impl GrantBook {
     pub fn new() -> Self {
-        Self { items: Mutex::new(Vec::new()) }
+        Self {
+            items: Mutex::new(Vec::new()),
+            batch: Mutex::new(0),
+        }
     }
 
     pub fn issue(
@@ -76,6 +87,7 @@ impl GrantBook {
             GrantUse::Write => WRITE_CAP,
             GrantUse::PrivacyScan => PRIVACY_CAP,
             GrantUse::Reveal => REVEAL_CAP,
+            GrantUse::Launch => LAUNCH_CAP,
         };
         let mode = match use_for {
             GrantUse::PrivacyScan => CapMode::Refuse,
@@ -100,6 +112,7 @@ impl GrantBook {
             ext: ext.to_string(),
             use_for,
             origin,
+            batch: 0,
             at: Instant::now(),
         });
         Ok(id)
@@ -117,6 +130,51 @@ impl GrantBook {
             return;
         };
         items.retain(|item| item.use_for != use_for);
+    }
+
+    pub fn issue_marked(
+        &self,
+        use_for: GrantUse,
+        path: &Path,
+        name: &str,
+        ext: &str,
+        origin: GrantOrigin,
+        batch: u64,
+    ) -> Result<u64, &'static str> {
+        let id = self.issue(use_for, path, name, ext, origin)?;
+        if let Ok(mut items) = self.items.lock() {
+            if let Some(item) = items.iter_mut().find(|item| item.id == id) {
+                item.batch = batch;
+            }
+        }
+        Ok(id)
+    }
+
+    pub fn begin_batch(&self, origin: GrantOrigin) -> u64 {
+        let stamp = {
+            let Ok(mut batch) = self.batch.lock() else {
+                return 0;
+            };
+            *batch = batch.wrapping_add(1);
+            if *batch == 0 {
+                *batch = 1;
+            }
+            *batch
+        };
+        if let Ok(mut items) = self.items.lock() {
+            items.retain(|item| item.origin != origin);
+        }
+        stamp
+    }
+
+    pub fn forget_batch(&self, origin: GrantOrigin, batch: u64) {
+        if batch == 0 {
+            return;
+        }
+        let Ok(mut items) = self.items.lock() else {
+            return;
+        };
+        items.retain(|item| !(item.origin == origin && item.batch == batch));
     }
 
     pub fn forget_folder(&self, id: &str) {
@@ -140,6 +198,7 @@ impl GrantBook {
             ext: item.ext.clone(),
             use_for: item.use_for,
             origin: item.origin,
+            batch: item.batch,
             at: item.at,
         })
     }
@@ -303,6 +362,110 @@ pub fn finish_made(book: &GrantBook, write_id: u64) -> Result<MadeCard, &'static
     })
 }
 
+#[derive(Debug)]
+pub struct HeldLaunch {
+    pub path: PathBuf,
+    pub kind: String,
+    pub once: bool,
+}
+
+pub fn view_launch(book: &GrantBook, id: &str) -> Result<HeldLaunch, &'static str> {
+    let parsed = parse_id(id).ok_or("missing")?;
+    let item = book.clone_of(parsed).ok_or("missing")?;
+    if item.use_for != GrantUse::Launch {
+        return Err("denied");
+    }
+    let once = matches!(item.origin, GrantOrigin::Dialog | GrantOrigin::Drop);
+    Ok(HeldLaunch {
+        path: item.path,
+        kind: item.ext,
+        once,
+    })
+}
+
+pub fn remember_launch(
+    book: &GrantBook,
+    origin: GrantOrigin,
+    batch: u64,
+    path: &Path,
+    kind: &str,
+) -> Result<String, &'static str> {
+    let name = display_name(path);
+    let id = book.issue_marked(GrantUse::Launch, path, &name, kind, origin, batch)?;
+    Ok(id_text(id))
+}
+
+pub fn search_origin(kind: &str) -> Option<GrantOrigin> {
+    match kind {
+        "doc" => Some(GrantOrigin::SearchDoc),
+        "user" => Some(GrantOrigin::SearchUser),
+        "url" => Some(GrantOrigin::SearchUrl),
+        _ => None,
+    }
+}
+
+pub fn place_label(path: &Path) -> String {
+    let Some(parent) = path.parent() else {
+        return String::new();
+    };
+    let mut parts = Vec::new();
+    for part in parent.components() {
+        match part {
+            std::path::Component::Normal(text) => {
+                if let Some(name) = text.to_str() {
+                    parts.push(name.to_string());
+                }
+            }
+            std::path::Component::Prefix(prefix) => {
+                if let Some(name) = prefix.as_os_str().to_str() {
+                    let short = name.trim_end_matches(['\\', '/']);
+                    if !short.is_empty() {
+                        parts.push(short.to_string());
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    let start = parts.len().saturating_sub(2);
+    parts[start..].join("\\")
+}
+
+pub fn web_target(raw: &str) -> Result<String, &'static str> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Err("missing");
+    }
+    if trimmed.len() > 2048 || trimmed.chars().any(|ch| ch.is_control() || ch.is_whitespace()) {
+        return Err("denied");
+    }
+    let url = if trimmed.contains(':') {
+        trimmed.to_string()
+    } else {
+        format!("https://{trimmed}")
+    };
+    let lower = url.to_ascii_lowercase();
+    if url.len() < 10 || !(lower.starts_with("https://") || lower.starts_with("http://")) {
+        return Err("denied");
+    }
+    Ok(url)
+}
+
+pub fn file_target(raw: &str) -> Result<PathBuf, &'static str> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Err("missing");
+    }
+    if trimmed.len() > 1024 || trimmed.chars().any(|ch| ch.is_control()) || trimmed.contains("://") {
+        return Err("denied");
+    }
+    let path = PathBuf::from(trimmed);
+    if !path.is_absolute() {
+        return Err("denied");
+    }
+    Ok(path)
+}
+
 pub fn view_reveal(book: &GrantBook, id: &str) -> Result<PathBuf, &'static str> {
     let parsed = parse_id(id).ok_or("결과 파일을 열 수 없습니다.")?;
     let item = book.clone_of(parsed).ok_or("결과 파일을 열 수 없습니다.")?;
@@ -349,6 +512,21 @@ pub fn reveal_made_file(app: AppHandle, window: WebviewWindow, id: String) -> Re
     app.opener()
         .reveal_item_in_dir(path)
         .map_err(|_| "파일 위치를 열지 못했습니다.".to_string())
+}
+
+#[tauri::command]
+pub fn clear_search_grants(app: AppHandle, window: WebviewWindow, kind: String, batch: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 실행할 수 없습니다.".into());
+    }
+    let Some(origin) = search_origin(kind.trim()) else {
+        return Ok(());
+    };
+    let Ok(stamp) = batch.trim().parse::<u64>() else {
+        return Ok(());
+    };
+    app.state::<GrantBook>().forget_batch(origin, stamp);
+    Ok(())
 }
 
 #[tauri::command]
@@ -752,6 +930,70 @@ mod tests {
         assert!(!err.contains('\\'));
         assert!(output_dir_allowed_in(Path::new(r"D:\EduLauncher"), &roots, Some(&exe)).is_err());
         assert!(output_dir_allowed_in(Path::new(r"C:\Users\가짜"), &roots, Some(&exe)).is_ok());
+    }
+
+    #[test]
+    fn search_launch_can_be_used_again_and_a_fresh_pick_is_once() {
+        let book = GrantBook::new();
+        let batch = book.begin_batch(GrantOrigin::SearchDoc);
+        let id = remember_launch(
+            &book,
+            GrantOrigin::SearchDoc,
+            batch,
+            Path::new(r"C:\Users\가짜\문서\가.txt"),
+            "file",
+        )
+        .unwrap();
+        let held = view_launch(&book, &id).unwrap();
+        assert!(!held.once);
+        assert_eq!(held.kind, "file");
+        assert!(view_launch(&book, &id).is_ok());
+        let (read_book, read_id) = book_with(GrantUse::Read, r"C:\Users\가짜\가.txt", "txt", GrantOrigin::Drop);
+        assert_eq!(view_launch(&read_book, &read_id).unwrap_err(), "denied");
+        let once = book
+            .issue_marked(
+                GrantUse::Launch,
+                Path::new(r"C:\Users\가짜\메모.txt"),
+                "메모.txt",
+                "file",
+                GrantOrigin::Drop,
+                0,
+            )
+            .unwrap();
+        let held = view_launch(&book, &id_text(once)).unwrap();
+        assert!(held.once);
+        book.forget(&[once]);
+        assert_eq!(view_launch(&book, &id_text(once)).unwrap_err(), "missing");
+    }
+
+    #[test]
+    fn a_newer_search_keeps_its_ids_when_the_old_list_is_cleared() {
+        let book = GrantBook::new();
+        let first = book.begin_batch(GrantOrigin::SearchUser);
+        let old = remember_launch(&book, GrantOrigin::SearchUser, first, Path::new(r"C:\Users\가짜\가.txt"), "file").unwrap();
+        let second = book.begin_batch(GrantOrigin::SearchUser);
+        let fresh = remember_launch(&book, GrantOrigin::SearchUser, second, Path::new(r"C:\Users\가짜\나.txt"), "file").unwrap();
+        book.forget_batch(GrantOrigin::SearchUser, first);
+        assert!(view_launch(&book, &old).is_err());
+        assert!(view_launch(&book, &fresh).is_ok());
+    }
+
+    #[test]
+    fn web_and_file_targets_follow_the_type_rule() {
+        assert!(web_target("https://school.example").unwrap().starts_with("https://"));
+        assert!(web_target("school.example").unwrap().starts_with("https://"));
+        assert_eq!(web_target("javascript:alert(1)").unwrap_err(), "denied");
+        assert_eq!(web_target("file:///C:/Windows/notepad.exe").unwrap_err(), "denied");
+        assert_eq!(web_target("").unwrap_err(), "missing");
+        assert!(file_target(r"C:\Users\가짜\메모.txt").is_ok());
+        assert!(file_target(r"\\school\share\메모.txt").is_ok());
+        assert_eq!(file_target("https://school.example").unwrap_err(), "denied");
+        assert_eq!(file_target("메모.txt").unwrap_err(), "denied");
+        assert_eq!(file_target("").unwrap_err(), "missing");
+        let card = serde_json::json!({"ok": false, "error": "missing"});
+        let text = card.to_string();
+        assert!(!text.contains("path"));
+        assert!(!text.contains('\\'));
     }
 
     #[test]

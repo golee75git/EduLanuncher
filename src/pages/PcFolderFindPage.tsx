@@ -1,16 +1,13 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SearchBar } from "../components/SearchBar";
 import { HighlightText } from "../components/HighlightText";
 import { ToolGlyph } from "../components/ToolGlyph";
-import { launchTool } from "../services/launcherService";
+import { openListed, openListedFolder } from "../services/launcherService";
+import { clearSearchGrants } from "../services/windowService";
 import {
-  containingFolder,
-  containingFolderLabel,
-  containingFolderTool,
   findUserFolderNames,
   haltUserFolderFind,
-  userFolderAsTool,
   type UserFolderHit,
 } from "../services/userFolderSearch";
 
@@ -25,12 +22,26 @@ export function PcFolderFindPage({ initialQuery = "", onBack }: PcFolderFindPage
   const [hits, setHits] = useState<UserFolderHit[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [openNote, setOpenNote] = useState("");
+  const batch = useRef("");
+
+  useEffect(() => {
+    return () => {
+      if (batch.current) {
+        void clearSearchGrants("user", batch.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const needle = query.trim();
     if (needle.length < 2) {
       setHits([]);
       setError("");
+      if (batch.current) {
+        void clearSearchGrants("user", batch.current);
+        batch.current = "";
+      }
       return;
     }
     let cancelled = false;
@@ -40,7 +51,8 @@ export function PcFolderFindPage({ initialQuery = "", onBack }: PcFolderFindPage
         try {
           const found = await findUserFolderNames(needle, includeMedia, 40);
           if (!cancelled) {
-            setHits(found);
+            batch.current = found.batch;
+            setHits(found.hits);
             setError("");
           }
         } catch (findError) {
@@ -94,12 +106,13 @@ export function PcFolderFindPage({ initialQuery = "", onBack }: PcFolderFindPage
           </button>
         ) : null}
         {error ? <p className="text-sm text-desk">{error}</p> : null}
+        {openNote ? <p className="text-sm text-quiet">{openNote}</p> : null}
         {!busy && query.trim().length >= 2 && hits.length === 0 && !error ? (
           <p className="text-sm text-quiet">이름이 일치하는 항목이 없습니다.</p>
         ) : null}
         <ul className="card-surface divide-y divide-line/70">
           {hits.map((hit) => (
-            <li key={hit.path} className="flex items-center gap-2 px-3 py-2">
+            <li key={hit.launchId || hit.name} className="flex items-center gap-2 px-3 py-2">
               <ToolGlyph
                 icon={hit.kind === "folder" ? "folder" : "file"}
                 className={`h-4 w-4 shrink-0 ${hit.kind === "folder" ? "text-ink" : "text-quiet"}`}
@@ -107,19 +120,27 @@ export function PcFolderFindPage({ initialQuery = "", onBack }: PcFolderFindPage
               <button
                 type="button"
                 className="min-w-0 flex-1 truncate text-left text-sm text-desk"
-                title={hit.path}
-                onClick={() => void launchTool(userFolderAsTool(hit))}
+                title={hit.place}
+                onClick={() =>
+                  void openListed(hit.launchId).catch((openError) => {
+                    setOpenNote(openError instanceof Error ? openError.message : "실행할 수 없습니다.");
+                  })
+                }
               >
                 <HighlightText text={hit.name} query={query} />
               </button>
               <button
                 type="button"
                 className="max-w-[46%] shrink-0 truncate text-left text-[11px] text-quiet"
-                title={containingFolder(hit.path)}
+                title={hit.place}
                 aria-label="폴더 열기"
-                onClick={() => void launchTool(containingFolderTool(hit))}
+                onClick={() =>
+                  void openListedFolder(hit.folderId).catch((openError) => {
+                    setOpenNote(openError instanceof Error ? openError.message : "실행할 수 없습니다.");
+                  })
+                }
               >
-                {containingFolderLabel(hit.path)}
+                {hit.place}
               </button>
             </li>
           ))}

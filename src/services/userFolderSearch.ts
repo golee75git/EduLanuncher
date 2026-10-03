@@ -2,9 +2,16 @@ import { invoke } from "@tauri-apps/api/core";
 
 export interface UserFolderHit {
   name: string;
-  path: string;
   kind: "file" | "folder" | string;
   zone: string;
+  place: string;
+  launchId: string;
+  folderId: string;
+}
+
+export interface UserFolderQuery {
+  hits: UserFolderHit[];
+  batch: string;
 }
 
 export const USER_FOLDER_HOME_LIMIT = 5;
@@ -13,12 +20,12 @@ export async function findUserFolderNames(
   query: string,
   includeMedia: boolean,
   limit: number,
-): Promise<UserFolderHit[]> {
+): Promise<UserFolderQuery> {
   const needle = query.trim();
   if (needle.length < 2) {
-    return [];
+    return { hits: [], batch: "" };
   }
-  return invoke<UserFolderHit[]>("find_user_folder_names", {
+  return invoke<UserFolderQuery>("find_user_folder_names", {
     query: needle,
     includeMedia,
     limit,
@@ -27,55 +34,4 @@ export async function findUserFolderNames(
 
 export async function haltUserFolderFind(): Promise<void> {
   await invoke("halt_user_folder_find");
-}
-
-export function containingFolder(path: string): string {
-  const trimmed = path.trim().replace(/[\\/]+$/, "");
-  const cut = Math.max(trimmed.lastIndexOf("\\"), trimmed.lastIndexOf("/"));
-  if (cut <= 2) {
-    return trimmed;
-  }
-  return trimmed.slice(0, cut);
-}
-
-export function containingFolderLabel(path: string): string {
-  const place = containingFolder(path);
-  const parts = place.split(/[\\/]/).filter(Boolean);
-  const tail = parts.slice(-2).join("\\");
-  return tail || place;
-}
-
-export function containingFolderTool(hit: UserFolderHit) {
-  const place = containingFolder(hit.path);
-  return {
-    id: `pc-place:${place}`,
-    name: containingFolderLabel(hit.path),
-    description: place,
-    type: "folder" as const,
-    target: place,
-    icon: "folder",
-    category: hit.zone,
-    favorite: false,
-    keywords: [hit.zone],
-    usageCount: 0,
-    enabled: true,
-    origin: "local" as const,
-  };
-}
-
-export function userFolderAsTool(hit: UserFolderHit) {
-  return {
-    id: `pc-folder:${hit.path}`,
-    name: hit.name,
-    description: hit.zone,
-    type: hit.kind === "folder" ? ("folder" as const) : ("file" as const),
-    target: hit.path,
-    icon: hit.kind === "folder" ? "folder" : "file",
-    category: hit.zone,
-    favorite: false,
-    keywords: [hit.name, hit.zone],
-    usageCount: 0,
-    enabled: true,
-    origin: "local" as const,
-  };
 }

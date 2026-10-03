@@ -1,16 +1,10 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HighlightText } from "../components/HighlightText";
 import { SearchBar } from "../components/SearchBar";
-import { launchTool } from "../services/launcherService";
-import {
-  documentAsTool,
-  documentFolderLabel,
-  documentFolderPath,
-  documentFolderTool,
-  queryDocuments,
-  type DocHit,
-} from "../services/documentSearchService";
+import { openListed, openListedFolder } from "../services/launcherService";
+import { clearSearchGrants } from "../services/windowService";
+import { queryDocuments, type DocHit } from "../services/documentSearchService";
 
 interface DocSearchPageProps {
   initialQuery?: string;
@@ -23,6 +17,16 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
   const [hint, setHint] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [openNote, setOpenNote] = useState("");
+  const batch = useRef("");
+
+  useEffect(() => {
+    return () => {
+      if (batch.current) {
+        void clearSearchGrants("doc", batch.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const needle = query.trim();
@@ -30,6 +34,10 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
       setHits([]);
       setHint("");
       setError("");
+      if (batch.current) {
+        void clearSearchGrants("doc", batch.current);
+        batch.current = "";
+      }
       return;
     }
     let cancelled = false;
@@ -39,6 +47,7 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
         try {
           const found = await queryDocuments(needle, 40);
           if (!cancelled) {
+            batch.current = found.batch;
             setHits(found.hits);
             setHint(found.hint);
             setError("");
@@ -75,6 +84,7 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
         <p className="text-xs leading-5 text-quiet">
           설정에서 색인한 폴더의 내용만 찾습니다. 문서 내용은 이 PC에만 있습니다.
         </p>
+        {openNote ? <p className="text-sm text-quiet">{openNote}</p> : null}
         {hint ? <p className="text-xs leading-5 text-quiet">{hint}</p> : null}
         {!query.trim() ? (
           <p className="text-sm text-quiet">본문은 세 글자 이상으로 검색할 수 있습니다.</p>
@@ -86,24 +96,32 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
           <p className="text-sm text-quiet">내용이 일치하는 문서가 없습니다.</p>
         ) : (
           hits.map((hit) => (
-            <div key={hit.path} className="desk-row flex-col items-stretch gap-1">
+            <div key={hit.launchId || hit.name} className="desk-row flex-col items-stretch gap-1">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  title={hit.path}
+                  title={hit.place}
                   className="min-w-0 flex-1 truncate text-left"
-                  onClick={() => void launchTool(documentAsTool(hit))}
+                  onClick={() =>
+                    void openListed(hit.launchId).catch((openError) => {
+                      setOpenNote(openError instanceof Error ? openError.message : "실행할 수 없습니다.");
+                    })
+                  }
                 >
                   <HighlightText text={hit.name} query={query} />
                 </button>
                 <button
                   type="button"
-                  title={documentFolderPath(hit.path)}
+                  title={hit.place}
                   aria-label="폴더 열기"
                   className="max-w-[46%] shrink-0 truncate text-xs text-quiet"
-                  onClick={() => void launchTool(documentFolderTool(hit))}
+                  onClick={() =>
+                    void openListedFolder(hit.folderId).catch((openError) => {
+                      setOpenNote(openError instanceof Error ? openError.message : "실행할 수 없습니다.");
+                    })
+                  }
                 >
-                  {documentFolderLabel(hit.path)}
+                  {hit.place}
                 </button>
               </div>
               {hit.note ? (

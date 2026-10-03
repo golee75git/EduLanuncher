@@ -365,7 +365,6 @@ fn safe_map_id(raw: &str) -> Option<String> {
 struct LaunchResult {
     ok: bool,
     error: Option<String>,
-    path: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -1380,79 +1379,170 @@ fn register_shortcut(app: AppHandle, shortcut: String) -> Result<(), String> {
         .map_err(|err| err.to_string())
 }
 
-#[tauri::command]
-fn launch_tool(app: AppHandle, tool_type: String, target: String) -> LaunchResult {
-    match tool_type.as_str() {
-        "file" => {
-            if !PathBuf::from(&target).exists() {
-                return LaunchResult {
-                    ok: false,
-                    error: Some("not_found".into()),
-                    path: Some(target),
-                };
-            }
-            match app.opener().open_path(&target, None::<&str>) {
-                Ok(_) => LaunchResult {
-                    ok: true,
-                    error: None,
-                    path: None,
-                },
-                Err(err) => LaunchResult {
-                    ok: false,
-                    error: Some(err.to_string()),
-                    path: Some(target),
-                },
-            }
-        }
-        "folder" => open_folder_with_explorer(&target),
-        "app" => {
-            if !PathBuf::from(&target).exists() {
-                return LaunchResult {
-                    ok: false,
-                    error: Some("not_found".into()),
-                    path: Some(target),
-                };
-            }
-            let opened: Result<(), String> = if shortcut::is_shortcut(Path::new(&target)) {
-                app.opener()
-                    .open_path(&target, None::<&str>)
-                    .map(|_| ())
-                    .map_err(|err| err.to_string())
-            } else {
-                match std::process::Command::new(&target).spawn() {
-                    Ok(_) => Ok(()),
-                    Err(err) => {
-                        let text = err.to_string();
-                        if text.contains("740") {
-                            app.opener()
-                                .open_path(&target, None::<&str>)
-                                .map(|_| ())
-                                .map_err(|open_err| open_err.to_string())
-                        } else {
-                            Err(text)
-                        }
-                    }
-                }
-            };
-            match opened {
-                Ok(_) => LaunchResult {
-                    ok: true,
-                    error: None,
-                    path: None,
-                },
-                Err(err) => LaunchResult {
-                    ok: false,
-                    error: Some(err),
-                    path: Some(target),
-                },
-            }
-        }
-        _ => LaunchResult {
-            ok: false,
-            error: Some("unsupported".into()),
-            path: Some(target),
-        },
+fn launch_ok() -> LaunchResult {
+    LaunchResult { ok: true, error: None }
+}
+
+fn launch_err(code: &str) -> LaunchResult {
+    LaunchResult {
+        ok: false,
+        error: Some(code.to_string()),
     }
+}
+
+fn main_window(window: &tauri::WebviewWindow) -> bool {
+    window.label() == "main"
+}
+
+struct StoredTool {
+    kind: String,
+    target: String,
+    enabled: bool,
+}
+
+fn stored_tool(app: &AppHandle, id: &str) -> Result<StoredTool, &'static str> {
+    use tauri_plugin_store::StoreExt;
+
+    let id = id.trim();
+    if id.is_empty() || id.len() > 80 {
+        return Err("missing");
+    }
+    let store = app.store("tools.json").map_err(|_| "missing")?;
+    let _ = store.reload();
+    let items = store.get("items").ok_or("missing")?;
+    let list = items.as_array().ok_or("missing")?;
+    for item in list {
+        if item.get("id").and_then(|value| value.as_str()) != Some(id) {
+            continue;
+        }
+        let kind = item.get("type").and_then(|value| value.as_str()).unwrap_or("").to_string();
+        let target = item.get("target").and_then(|value| value.as_str()).unwrap_or("").to_string();
+        let enabled = item.get("enabled").and_then(|value| value.as_bool()).unwrap_or(true);
+        return Ok(StoredTool { kind, target, enabled });
+    }
+    Err("missing")
+}
+
+fn open_dir(target: &str) -> LaunchResult {
+    let path = match path_grant::file_target(target) {
+        Ok(path) => path,
+        Err(code) => return launch_err(code),
+    };
+    if !path.is_dir() {
+        return launch_err("missing");
+    }
+    #[cfg(windows)]
+    {
+        let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
+        if !explorer.is_file() {
+            return launch_err("failed");
+        }
+        return match std::process::Command::new(explorer).arg(&path).spawn() {
+            Ok(_) => launch_ok(),
+            Err(_) => launch_err("failed"),
+        };
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = path;
+        launch_err("unsupported")
+    }
+}
+
+fn open_file(app: &AppHandle, target: &str) -> LaunchResult {
+    let path = match path_grant::file_target(target) {
+        Ok(path) => path,
+        Err(code) => return launch_err(code),
+    };
+    if !path.is_file() {
+        return launch_err("missing");
+    }
+    match app.opener().open_path(path.as_os_str().to_string_lossy().as_ref(), None::<&str>) {
+        Ok(_) => launch_ok(),
+        Err(_) => launch_err("failed"),
+    }
+}
+
+fn open_web(app: &AppHandle, target: &str) -> LaunchResult {
+    let url = match path_grant::web_target(target) {
+        Ok(url) => url,
+        Err(code) => return launch_err(code),
+    };
+    match app.opener().open_url(url, None::<&str>) {
+        Ok(_) => launch_ok(),
+        Err(_) => launch_err("failed"),
+    }
+}
+
+fn run_app(app: &AppHandle, target: &str) -> LaunchResult {
+    let path = match path_grant::file_target(target) {
+        Ok(path) => path,
+        Err(code) => return launch_err(code),
+    };
+    if !path.is_file() {
+        return launch_err("missing");
+    }
+    if shortcut::is_shortcut(&path) {
+        return open_file(app, target);
+    }
+    match std::process::Command::new(&path).spawn() {
+        Ok(_) => launch_ok(),
+        Err(err) => {
+            if err.raw_os_error() == Some(740) {
+                open_file(app, target)
+            } else {
+                launch_err("failed")
+            }
+        }
+    }
+}
+
+fn run_saved(app: &AppHandle, kind: &str, target: &str) -> LaunchResult {
+    match kind {
+        "url" => open_web(app, target),
+        "file" => open_file(app, target),
+        "folder" => open_dir(target),
+        "app" => run_app(app, target),
+        _ => launch_err("unsupported"),
+    }
+}
+
+#[tauri::command]
+fn launch_tool(app: AppHandle, window: tauri::WebviewWindow, id: String) -> LaunchResult {
+    if !main_window(&window) {
+        return launch_err("denied");
+    }
+    let tool = match stored_tool(&app, &id) {
+        Ok(tool) => tool,
+        Err(code) => return launch_err(code),
+    };
+    if !tool.enabled {
+        return launch_err("disabled");
+    }
+    run_saved(&app, &tool.kind, &tool.target)
+}
+
+#[tauri::command]
+fn launch_result(app: AppHandle, window: tauri::WebviewWindow, id: String) -> LaunchResult {
+    if !main_window(&window) {
+        return launch_err("denied");
+    }
+    let book = app.state::<path_grant::GrantBook>();
+    let held = match path_grant::view_launch(&book, &id) {
+        Ok(held) => held,
+        Err(code) => return launch_err(code),
+    };
+    let target = held.path.to_string_lossy().into_owned();
+    let result = match held.kind.as_str() {
+        "url" => open_web(&app, &target),
+        "file" => open_file(&app, &target),
+        "folder" => open_dir(&target),
+        _ => launch_err("denied"),
+    };
+    if result.ok && held.once {
+        path_grant::spend(&book, &id);
+    }
+    result
 }
 
 #[cfg(windows)]
@@ -1461,45 +1551,30 @@ extern "system" {
     fn LockWorkStation() -> i32;
 }
 
-fn open_folder_with_explorer(target: &str) -> LaunchResult {
-    let path = PathBuf::from(target);
-    if !path.is_dir() {
-        return LaunchResult {
-            ok: false,
-            error: Some("not_found".into()),
-            path: Some(target.to_string()),
-        };
+#[tauri::command]
+fn open_folder_with_explorer(app: AppHandle, window: tauri::WebviewWindow, id: String) -> LaunchResult {
+    if !main_window(&window) {
+        return launch_err("denied");
     }
-    #[cfg(windows)]
-    {
-        let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
-        if !explorer.is_file() {
-            return LaunchResult {
-                ok: false,
-                error: Some("폴더를 열 수 없습니다.".into()),
-                path: Some(target.to_string()),
-            };
+    let book = app.state::<path_grant::GrantBook>();
+    match path_grant::view_launch(&book, &id) {
+        Ok(held) => {
+            if held.kind != "place" && held.kind != "folder" {
+                return launch_err("denied");
+            }
+            let result = open_dir(&held.path.to_string_lossy());
+            if result.ok && held.once {
+                path_grant::spend(&book, &id);
+            }
+            result
         }
-        match std::process::Command::new(&explorer).arg(&path).spawn() {
-            Ok(_) => LaunchResult {
-                ok: true,
-                error: None,
-                path: None,
-            },
-            Err(err) => LaunchResult {
-                ok: false,
-                error: Some(err.to_string()),
-                path: Some(target.to_string()),
-            },
-        }
-    }
-    #[cfg(not(windows))]
-    {
-        LaunchResult {
-            ok: false,
-            error: Some("unsupported".into()),
-            path: Some(target.to_string()),
-        }
+        Err("denied") => launch_err("denied"),
+        Err(_) => match stored_tool(&app, &id) {
+            Ok(tool) if !tool.enabled => launch_err("disabled"),
+            Ok(tool) if tool.kind == "folder" => open_dir(&tool.target),
+            Ok(_) => launch_err("denied"),
+            Err(code) => launch_err(code),
+        },
     }
 }
 
@@ -2128,14 +2203,74 @@ fn halt_range_check(window: tauri::WebviewWindow, halt: tauri::State<RangeHalt>)
     Ok(())
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UserFolderCard {
+    name: String,
+    kind: String,
+    zone: String,
+    place: String,
+    launch_id: String,
+    folder_id: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UserFolderQuery {
+    hits: Vec<UserFolderCard>,
+    batch: String,
+}
+
+fn publish_user_hits(app: &AppHandle, found: Vec<user_folder::UserFolderHit>) -> UserFolderQuery {
+    let book = app.state::<path_grant::GrantBook>();
+    let batch = book.begin_batch(path_grant::GrantOrigin::SearchUser);
+    let mut folders: Vec<(PathBuf, String)> = Vec::new();
+    let mut hits = Vec::new();
+    for item in found {
+        let path = PathBuf::from(&item.path);
+        let kind = if item.kind == "folder" { "folder" } else { "file" };
+        let launch_id = path_grant::remember_launch(&book, path_grant::GrantOrigin::SearchUser, batch, &path, kind)
+            .unwrap_or_default();
+        let parent = path.parent().map(Path::to_path_buf).unwrap_or_default();
+        let folder_id = if parent.as_os_str().is_empty() {
+            String::new()
+        } else if let Some((_, id)) = folders.iter().find(|(dir, _)| dir == &parent) {
+            id.clone()
+        } else {
+            let id = path_grant::remember_launch(&book, path_grant::GrantOrigin::SearchUser, batch, &parent, "place")
+                .unwrap_or_default();
+            folders.push((parent, id.clone()));
+            id
+        };
+        hits.push(UserFolderCard {
+            name: item.name,
+            kind: item.kind,
+            zone: item.zone,
+            place: path_grant::place_label(&path),
+            launch_id,
+            folder_id,
+        });
+    }
+    UserFolderQuery {
+        hits,
+        batch: batch.to_string(),
+    }
+}
+
 #[tauri::command]
 fn find_user_folder_names(
+    app: AppHandle,
+    window: tauri::WebviewWindow,
     halt: tauri::State<FolderWalkHalt>,
     query: String,
     include_media: bool,
     limit: u32,
-) -> Result<Vec<user_folder::UserFolderHit>, String> {
-    user_folder::find_names(&query, include_media, limit as usize, &halt.0)
+) -> Result<UserFolderQuery, String> {
+    if !main_window(&window) {
+        return Err("이 창에서는 실행할 수 없습니다.".into());
+    }
+    let found = user_folder::find_names(&query, include_media, limit as usize, &halt.0)?;
+    Ok(publish_user_hits(&app, found))
 }
 
 #[tauri::command]
@@ -2152,10 +2287,12 @@ struct PcUrlItem {
     name: String,
     url: String,
     folder: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    path: Option<String>,
+    launch_id: String,
+    folder_id: String,
     #[serde(rename = "iconImage", skip_serializing_if = "Option::is_none")]
     icon_image: Option<String>,
+    #[serde(skip)]
+    parent: Option<PathBuf>,
 }
 
 fn favorites_dir() -> Result<PathBuf, String> {
@@ -2242,8 +2379,10 @@ fn collect_pc_urls(root: &Path, dir: &Path, depth: u32, out: &mut Vec<PcUrlItem>
             name: shortcut_display_name(&path, &url),
             url,
             folder,
-            path: None,
+            launch_id: String::new(),
+            folder_id: String::new(),
             icon_image,
+            parent: path.parent().map(Path::to_path_buf),
         });
     }
 }
@@ -2304,8 +2443,10 @@ fn collect_json_urls(value: &serde_json::Value, folder: &str, out: &mut Vec<PcUr
                         } else {
                             folder.to_string()
                         },
-                        path: None,
+                        launch_id: String::new(),
+                        folder_id: String::new(),
                         icon_image: None,
+                        parent: None,
                     });
                 }
                 return;
@@ -2389,8 +2530,43 @@ fn collect_user_data_bookmarks(label: &str, user_data: &Path, out: &mut Vec<PcUr
     }
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PcUrlList {
+    items: Vec<PcUrlItem>,
+    batch: String,
+}
+
+fn publish_pc_urls(app: &AppHandle, mut items: Vec<PcUrlItem>) -> PcUrlList {
+    let book = app.state::<path_grant::GrantBook>();
+    let batch = book.begin_batch(path_grant::GrantOrigin::SearchUrl);
+    let mut folders: Vec<(PathBuf, String)> = Vec::new();
+    for item in &mut items {
+        let url_path = PathBuf::from(&item.url);
+        item.launch_id = path_grant::remember_launch(&book, path_grant::GrantOrigin::SearchUrl, batch, &url_path, "url")
+            .unwrap_or_default();
+        if let Some(parent) = item.parent.clone() {
+            item.folder_id = if let Some((_, id)) = folders.iter().find(|(dir, _)| dir == &parent) {
+                id.clone()
+            } else {
+                let id = path_grant::remember_launch(&book, path_grant::GrantOrigin::SearchUrl, batch, &parent, "place")
+                    .unwrap_or_default();
+                folders.push((parent, id.clone()));
+                id
+            };
+        }
+    }
+    PcUrlList {
+        items,
+        batch: batch.to_string(),
+    }
+}
+
 #[tauri::command]
-fn list_pc_url_shortcuts() -> Result<Vec<PcUrlItem>, String> {
+fn list_pc_url_shortcuts(app: AppHandle, window: tauri::WebviewWindow) -> Result<PcUrlList, String> {
+    if !main_window(&window) {
+        return Err("이 창에서는 실행할 수 없습니다.".into());
+    }
     let mut items = Vec::new();
     let root = favorites_dir()?;
     if root.is_dir() {
@@ -2410,7 +2586,7 @@ fn list_pc_url_shortcuts() -> Result<Vec<PcUrlItem>, String> {
             .cmp(&right.folder)
             .then_with(|| left.name.cmp(&right.name))
     });
-    Ok(items)
+    Ok(publish_pc_urls(&app, items))
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -2498,6 +2674,9 @@ pub fn run() {
             set_memo_window_size,
             reveal_topic,
             launch_tool,
+            launch_result,
+            open_folder_with_explorer,
+            path_grant::clear_search_grants,
             run_shortcut_action,
             open_ie_reset,
             read_open_source_notices,

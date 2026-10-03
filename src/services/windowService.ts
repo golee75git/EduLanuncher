@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useMemoStore } from "../stores/memoStore";
 import { memoWindowTitle, type MemoNote } from "../types/memo";
-import type { LaunchResult, ToolItem, ToolType } from "../types/tool";
+import type { LaunchResult } from "../types/tool";
 
 export async function hidePanel(): Promise<void> {
   await invoke("hide_panel");
@@ -23,11 +23,27 @@ export async function registerShortcut(shortcut: string): Promise<void> {
   await invoke("register_shortcut", { shortcut });
 }
 
-export async function launchNative(
-  toolType: ToolType,
-  target: string,
-): Promise<LaunchResult> {
-  return invoke<LaunchResult>("launch_tool", { toolType, target });
+export async function launchNative(id: string): Promise<LaunchResult> {
+  return invoke<LaunchResult>("launch_tool", { id });
+}
+
+export async function launchResult(id: string): Promise<LaunchResult> {
+  return invoke<LaunchResult>("launch_result", { id });
+}
+
+export async function openFolder(id: string): Promise<LaunchResult> {
+  return invoke<LaunchResult>("open_folder_with_explorer", { id });
+}
+
+export async function clearSearchGrants(kind: "doc" | "user" | "url", batch: string): Promise<void> {
+  if (!batch) {
+    return;
+  }
+  try {
+    await invoke("clear_search_grants", { kind, batch });
+  } catch {
+    // 화면을 떠날 때 정리하지 못해도 다음 검색이 같은 종류를 비운다.
+  }
 }
 
 export async function openIeReset(): Promise<void> {
@@ -88,8 +104,4 @@ export async function readWorkMapRootId(): Promise<string> {
 
 export async function revealTopicFromMap(topicId: string): Promise<void> {
   await invoke("reveal_topic", { topicId });
-}
-
-export function isPathTool(tool: Pick<ToolItem, "type">): boolean {
-  return tool.type === "file" || tool.type === "folder" || tool.type === "app";
 }

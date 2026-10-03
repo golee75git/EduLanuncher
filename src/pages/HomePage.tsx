@@ -17,7 +17,8 @@ import { APP_CONFIG } from "../config/app";
 import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget, listComputerTools } from "../data/computerTools";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
-import { launchQuickUrl } from "../services/launcherService";
+import { launchQuickUrl, openListed, openListedFolder } from "../services/launcherService";
+import { clearSearchGrants } from "../services/windowService";
 import { manualIndexUnavailable, manualTopicUrl, searchManualIndex, type ManualIndexTopic } from "../services/manualIndexService";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
 import {
@@ -33,18 +34,10 @@ import {
   findUserFolderNames,
   haltUserFolderFind,
   USER_FOLDER_HOME_LIMIT,
-  containingFolder,
-  containingFolderLabel,
-  containingFolderTool,
-  userFolderAsTool,
   type UserFolderHit,
 } from "../services/userFolderSearch";
 import {
   DOC_SEARCH_HOME_LIMIT,
-  documentAsTool,
-  documentFolderLabel,
-  documentFolderPath,
-  documentFolderTool,
   queryDocuments,
   type DocHit,
 } from "../services/documentSearchService";
@@ -160,12 +153,12 @@ function flattenResults(
     );
   const folders: ResultItem[] = folderHits.map((hit) => ({
     kind: "pc-file" as const,
-    id: `pc-file:${hit.path}`,
+    id: `pc-file:${hit.launchId}`,
     hit,
   }));
   const docs: ResultItem[] = docHits.map((hit) => ({
     kind: "doc" as const,
-    id: `doc:${hit.path}`,
+    id: `doc:${hit.launchId}`,
     hit,
   }));
   const troubles: ResultItem[] = troubleHits.slice(0, HOME_TROUBLE_LIMIT).map((hit) => ({
@@ -200,9 +193,12 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const [docHits, setDocHits] = useState<DocHit[]>([]);
   const [docHint, setDocHint] = useState("");
   const [docBusy, setDocBusy] = useState(false);
+  const [openNote, setOpenNote] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeSchool, setActiveSchool] = useState<SchoolItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const folderBatch = useRef("");
+  const docBatch = useRef("");
 
   const schools = useMemo(() => getSchools(), []);
   const topicList = useMemo(() => getTopics(), []);
@@ -374,6 +370,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     if (needle.length < 2) {
       setFolderHits([]);
       setFolderBusy(false);
+      if (folderBatch.current) {
+        void clearSearchGrants("user", folderBatch.current);
+        folderBatch.current = "";
+      }
       void haltUserFolderFind();
       return;
     }
@@ -384,7 +384,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
         try {
           const found = await findUserFolderNames(needle, false, USER_FOLDER_HOME_LIMIT);
           if (!cancelled) {
-            setFolderHits(found);
+            folderBatch.current = found.batch;
+            setFolderHits(found.hits);
           }
         } catch {
           if (!cancelled) {
@@ -410,6 +411,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       setDocHits([]);
       setDocHint("");
       setDocBusy(false);
+      if (docBatch.current) {
+        void clearSearchGrants("doc", docBatch.current);
+        docBatch.current = "";
+      }
       return;
     }
     let cancelled = false;
@@ -419,6 +424,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
         try {
           const found = await queryDocuments(needle, DOC_SEARCH_HOME_LIMIT);
           if (!cancelled) {
+            docBatch.current = found.batch;
             setDocHits(found.hits);
             setDocHint(found.hint);
           }
@@ -440,6 +446,17 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     };
   }, [query]);
 
+  useEffect(() => {
+    return () => {
+      if (folderBatch.current) {
+        void clearSearchGrants("user", folderBatch.current);
+      }
+      if (docBatch.current) {
+        void clearSearchGrants("doc", docBatch.current);
+      }
+    };
+  }, []);
+
   const activate = (item: ResultItem | undefined) => {
     if (!item) {
       return;
@@ -453,11 +470,15 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       return;
     }
     if (item.kind === "pc-file") {
-      onAction({ type: "launch", tool: userFolderAsTool(item.hit) });
+      void openListed(item.hit.launchId).catch((error) => {
+        setOpenNote(error instanceof Error ? error.message : "실행할 수 없습니다.");
+      });
       return;
     }
     if (item.kind === "doc") {
-      onAction({ type: "launch", tool: documentAsTool(item.hit) });
+      void openListed(item.hit.launchId).catch((error) => {
+        setOpenNote(error instanceof Error ? error.message : "실행할 수 없습니다.");
+      });
       return;
     }
     if (item.kind === "trouble") {
@@ -861,6 +882,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
               />
             </section>
             ) : null}
+            {openNote ? <p className="text-sm text-quiet">{openNote}</p> : null}
             {showFolders ? (
             <section>
               <div className="mb-1.5 flex items-center gap-1">
@@ -885,9 +907,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 <div className="space-y-1">
                   {folderHits.map((hit) => (
                     <div
-                      key={hit.path}
+                      key={hit.launchId || hit.name}
                       className={`desk-row gap-2 ${
-                        selectedId === `pc-file:${hit.path}` ? "desk-row-active" : ""
+                        selectedId === `pc-file:${hit.launchId}` ? "desk-row-active" : ""
                       }`}
                     >
                       <ToolGlyph
@@ -896,20 +918,28 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                       />
                       <button
                         type="button"
-                        title={hit.path}
-                        onClick={() => onAction({ type: "launch", tool: userFolderAsTool(hit) })}
+                        title={hit.place}
+                        onClick={() =>
+                          void openListed(hit.launchId).catch((error) => {
+                            setOpenNote(error instanceof Error ? error.message : "실행할 수 없습니다.");
+                          })
+                        }
                         className="min-w-0 flex-1 truncate text-left"
                       >
                         <HighlightText text={hit.name} query={query} />
                       </button>
                       <button
                         type="button"
-                        title={containingFolder(hit.path)}
+                        title={hit.place}
                         aria-label="폴더 열기"
-                        onClick={() => onAction({ type: "launch", tool: containingFolderTool(hit) })}
+                        onClick={() =>
+                          void openListedFolder(hit.folderId).catch((error) => {
+                            setOpenNote(error instanceof Error ? error.message : "실행할 수 없습니다.");
+                          })
+                        }
                         className="max-w-[46%] shrink-0 truncate text-xs text-quiet"
                       >
-                        {containingFolderLabel(hit.path)}
+                        {hit.place}
                       </button>
                     </div>
                   ))}
@@ -944,28 +974,36 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                   {docHint ? <p className="text-sm text-quiet">{docHint}</p> : null}
                   {docHits.map((hit) => (
                     <div
-                      key={hit.path}
+                      key={hit.launchId || hit.name}
                       className={`rounded-lg px-2 py-2 ${
-                        selectedId === `doc:${hit.path}` ? "desk-row-active" : ""
+                        selectedId === `doc:${hit.launchId}` ? "desk-row-active" : ""
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          title={hit.path}
-                          onClick={() => onAction({ type: "launch", tool: documentAsTool(hit) })}
+                          title={hit.place}
+                          onClick={() =>
+                            void openListed(hit.launchId).catch((error) => {
+                              setOpenNote(error instanceof Error ? error.message : "실행할 수 없습니다.");
+                            })
+                          }
                           className="min-w-0 flex-1 truncate text-left text-sm"
                         >
                           <HighlightText text={hit.name} query={query} />
                         </button>
                         <button
                           type="button"
-                          title={documentFolderPath(hit.path)}
+                          title={hit.place}
                           aria-label="폴더 열기"
-                          onClick={() => onAction({ type: "launch", tool: documentFolderTool(hit) })}
+                          onClick={() =>
+                            void openListedFolder(hit.folderId).catch((error) => {
+                              setOpenNote(error instanceof Error ? error.message : "실행할 수 없습니다.");
+                            })
+                          }
                           className="max-w-[46%] shrink-0 truncate text-xs text-quiet"
                         >
-                          {documentFolderLabel(hit.path)}
+                          {hit.place}
                         </button>
                       </div>
                       {hit.note ? (

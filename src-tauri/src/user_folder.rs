@@ -12,10 +12,10 @@ const MIN_QUERY: usize = 2;
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserFolderHit {
-    name: String,
-    path: String,
-    kind: String,
-    zone: String,
+    pub(crate) name: String,
+    pub(crate) path: String,
+    pub(crate) kind: String,
+    pub(crate) zone: String,
 }
 
 struct Root {
