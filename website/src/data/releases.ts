@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.161-20261003",
+    note: "업무자료 서명에 쓰는 공개키를 앱에 넣었습니다. 서명이 맞을 때만 받은 자료를 씁니다.",
+  },
+  {
     version: "0.1.160-20261003",
     note: "업무자료는 서명된 것만 받고, 허용된 https 주소만 엽니다. 시작할 때 버전 확인과 업무자료 받기는 설정에서 끌 수 있습니다.",
   },

@@ -34,7 +34,10 @@ const LINK_HOSTS: &[&str] = &[
 ];
 
 /// 앱에 넣는 공개키. 65바이트 비압축 점(0x04||X||Y)의 표준 base64. 최대 2개.
-const PUBLIC_KEYS_B64: &[&str] = &[];
+const PUBLIC_KEYS_B64: &[&str] = &[
+    "BDgVgs/+8gtjxPhN5k9mGwDzEmgkKO4d94UKWIOEL+BZMzptJI6z940DFhzEtpvaWPM27CJZfwE6Calr6oEePMY=",
+    "BC1GNmXVQuRNXi9fmmEe8br5V4d05cBhHoq95GKc0lqjBE/nY9I+JyDRKigGtPVxt9DIoN0lEH82XDgvSYgvM10=",
+];
 
 #[derive(Debug, Deserialize)]
 struct ManifestDoc {
@@ -693,5 +696,15 @@ mod tests {
     #[test]
     fn keeps_at_most_two_public_keys() {
         assert!(PUBLIC_KEYS_B64.len() <= 2);
+    }
+
+    #[test]
+    fn embedded_public_keys_are_uncompressed_points() {
+        assert_eq!(PUBLIC_KEYS_B64.len(), 2);
+        for text in PUBLIC_KEYS_B64 {
+            let point = decode_point(text).expect("공개점");
+            assert_eq!(point.len(), 65);
+            assert_eq!(point[0], 0x04);
+        }
     }
 }

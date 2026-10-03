@@ -6,6 +6,28 @@
 ---
 
 날짜: 2026-10-03
+대상: 업무자료 서명 공개키 반영
+작성자: 요청자
+
+요청: 공개키 두 개(current, next)를 앱에 넣고 형식만 확인한다. 개인키 파일은 읽지 않는다.
+
+확인: 붙여 넣은 PKCS#8에서 공개점 65바이트(0x04||X||Y)만 표준 base64로 넣음. 개인키 스칼라와 키 경로는 저장소·문서·기록에 없음. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 특허 검토가 필요한 새 구성은 없음(기존 서명 검증에 공개점만 채움). THIRD_PARTY_NOTICES 재생성은 필요 없음.
+
+새로 만든 파일: 없음
+
+다시 쓴 파일:
+- src-tauri/src/knowledge_sign.rs
+- docs/knowledge-signing.md
+- src-tauri/tauri.conf.json
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- 수정기록.txt
+
+---
+
+날짜: 2026-10-03
 대상: 업무자료 서명 검증과 링크 허용 목록
 작성자: 요청자
 
