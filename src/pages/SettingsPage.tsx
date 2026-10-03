@@ -37,6 +37,7 @@ export function SettingsPage({
   onNoticePack,
 }: SettingsPageProps) {
   const settings = useSettingsStore((state) => state.settings);
+  const shortcutNote = useSettingsStore((state) => state.shortcutNote);
   const update = useSettingsStore((state) => state.update);
   const tools = useToolStore((state) => state.tools);
   const [packMessage, setPackMessage] = useState("");
@@ -122,6 +123,7 @@ export function SettingsPage({
           </label>
           <ShortcutField
             value={settings.globalShortcut}
+            note={shortcutNote}
             onSave={(globalShortcut) => void update({ globalShortcut })}
           />
           <NumberField
@@ -594,9 +596,11 @@ function Toggle({
 
 function ShortcutField({
   value,
+  note,
   onSave,
 }: {
   value: string;
+  note: string;
   onSave: (value: string) => void;
 }) {
   const [draft, setDraft] = useState(value);
@@ -618,6 +622,7 @@ function ShortcutField({
           }
         }}
       />
+      {note ? <span className="mt-1 block text-xs leading-5 text-quiet">{note}</span> : null}
     </label>
   );
 }

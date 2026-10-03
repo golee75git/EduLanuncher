@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 
 export interface DocFolder {
   path: string;
+  id: string;
 }
 
 export interface DocStatus {
@@ -37,12 +38,12 @@ export function listDocFolders(): Promise<DocFolder[]> {
   return invoke("doc_search_folders");
 }
 
-export function addDocFolder(path: string): Promise<void> {
-  return invoke("doc_search_add_folder", { path });
+export function addDocFolder(): Promise<void> {
+  return invoke("doc_search_add_folder");
 }
 
-export function removeDocFolder(path: string): Promise<void> {
-  return invoke("doc_search_remove_folder", { path });
+export function removeDocFolder(id: string): Promise<void> {
+  return invoke("doc_search_remove_folder", { id });
 }
 
 export function clearDocIndex(): Promise<void> {

@@ -1,4 +1,4 @@
-import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { TOOL_CATEGORIES } from "../data/categories";
@@ -51,16 +51,17 @@ export function ToolEditPage({ tool, createType, onBack }: ToolEditPageProps) {
   const [error, setError] = useState("");
 
   const pickPath = async () => {
-    const selected = await open({
-      directory: type === "folder",
-      multiple: false,
-      filters:
-        type === "app"
-          ? [{ name: "프로그램", extensions: ["exe"] }]
-          : undefined,
-    });
-    if (typeof selected === "string") {
-      setTarget(selected);
+    try {
+      const selected = await invoke<{ path: string }>("pick_tool_target", { kind: type });
+      if (selected.path) {
+        setTarget(selected.path);
+      }
+    } catch (pickError) {
+      const message = typeof pickError === "string" ? pickError : pickError instanceof Error ? pickError.message : "";
+      if (message === "cancelled") {
+        return;
+      }
+      setError(message || "대상을 고르지 못했습니다.");
     }
   };
 

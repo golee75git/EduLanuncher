@@ -18,6 +18,7 @@ import { registerShortcut, setLauncherPosition } from "../services/windowService
 interface SettingsState {
   settings: AppSettings;
   loaded: boolean;
+  shortcutNote: string;
   hydrate: (settings: AppSettings) => void;
   update: (patch: Partial<AppSettings>) => Promise<void>;
   completeOnboarding: () => Promise<void>;
@@ -31,6 +32,7 @@ function paintSkin(skin: PanelSkin): void {
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   loaded: false,
+  shortcutNote: "",
   hydrate: (settings) => {
     const next = {
       ...settings,
@@ -69,7 +71,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       await setLauncherPosition(settings.launcherPosition);
     }
     if (patch.globalShortcut) {
-      await registerShortcut(settings.globalShortcut);
+      try {
+        await registerShortcut(settings.globalShortcut);
+        set({ shortcutNote: "" });
+      } catch (error) {
+        set({
+          shortcutNote:
+            error instanceof Error
+              ? error.message
+              : "이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.",
+        });
+      }
     }
     if (patch.autoStart !== undefined) {
       try {
@@ -98,8 +110,14 @@ export async function hydrateSettings(): Promise<AppSettings> {
   await setLauncherPosition(settings.launcherPosition);
   try {
     await registerShortcut(settings.globalShortcut);
-  } catch {
-    // Shortcut may already be registered by Rust defaults.
+    useSettingsStore.setState({ shortcutNote: "" });
+  } catch (error) {
+    useSettingsStore.setState({
+      shortcutNote:
+        error instanceof Error
+          ? error.message
+          : "이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.",
+    });
   }
   try {
     if (settings.autoStart) {

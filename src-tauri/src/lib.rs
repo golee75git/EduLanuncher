@@ -1359,24 +1359,134 @@ fn toggle_panel(app: AppHandle) {
     toggle_window(&app);
 }
 
-#[tauri::command]
-fn set_launcher_position(app: AppHandle, state: tauri::State<PanelState>, position: String) {
-    if let Ok(mut current) = state.position.lock() {
-        *current = position.clone();
-    }
-    if let Some(window) = app.get_webview_window("main") {
-        position_panel(&window, &position);
-        place_map_next_to_panel(&app, &window, false);
+const LAUNCHER_PLACES: &[&str] = &["bottom-right", "center"];
+
+const SHORTCUT_DENY: &[&str] = &[
+    "ALT+F4",
+    "ALT+TAB",
+    "ALT+ESC",
+    "CTRL+ESC",
+    "CTRL+SHIFT+ESC",
+    "CTRL+ALT+DEL",
+    "CTRL+ALT+DELETE",
+    "WIN+L",
+    "WIN+D",
+    "WIN+E",
+    "WIN+R",
+    "WIN+TAB",
+    "CTRL+A",
+    "CTRL+C",
+    "CTRL+S",
+    "CTRL+V",
+    "CTRL+X",
+    "CTRL+Z",
+];
+
+fn shortcut_piece(raw: &str) -> Option<&'static str> {
+    let key = raw.trim().to_ascii_lowercase();
+    match key.as_str() {
+        "ctrl" | "control" => Some("Ctrl"),
+        "alt" => Some("Alt"),
+        "shift" => Some("Shift"),
+        "win" | "super" | "meta" | "windows" => Some("Super"),
+        _ => None,
     }
 }
 
+fn shortcut_key(raw: &str) -> Option<String> {
+    let key = raw.trim();
+    if key.len() == 1 {
+        let ch = key.chars().next()?;
+        if ch.is_ascii_alphanumeric() {
+            return Some(ch.to_ascii_uppercase().to_string());
+        }
+        return None;
+    }
+    let upper = key.to_ascii_uppercase();
+    let number = upper.strip_prefix('F')?.parse::<u8>().ok()?;
+    if (1..=12).contains(&number) {
+        Some(upper)
+    } else {
+        None
+    }
+}
+
+pub(crate) fn shortcut_chord(raw: &str) -> Result<String, &'static str> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() || trimmed.len() > 40 || trimmed.chars().any(|ch| ch.is_control()) {
+        return Err("이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.");
+    }
+    let bits: Vec<&str> = trimmed.split('+').map(str::trim).filter(|part| !part.is_empty()).collect();
+    if bits.len() < 2 {
+        return Err("이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.");
+    }
+    let key = shortcut_key(bits[bits.len() - 1]).ok_or("이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.")?;
+    let mut mods = Vec::new();
+    for part in &bits[..bits.len() - 1] {
+        let name = shortcut_piece(part).ok_or("이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.")?;
+        if mods.contains(&name) {
+            return Err("이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.");
+        }
+        mods.push(name);
+    }
+    let mut ordered = Vec::new();
+    for name in ["Ctrl", "Alt", "Shift", "Super"] {
+        if mods.contains(&name) {
+            ordered.push(name);
+        }
+    }
+    let mut code_parts = Vec::new();
+    for name in &ordered {
+        code_parts.push(if *name == "Super" {
+            "WIN".to_string()
+        } else {
+            name.to_ascii_uppercase()
+        });
+    }
+    code_parts.push(key.clone());
+    let code = code_parts.join("+");
+    if SHORTCUT_DENY.iter().any(|item| *item == code) {
+        return Err("이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.");
+    }
+    ordered.push(key.as_str());
+    Ok(ordered.join("+"))
+}
+
 #[tauri::command]
-fn register_shortcut(app: AppHandle, shortcut: String) -> Result<(), String> {
+fn set_launcher_position(
+    app: AppHandle,
+    window: tauri::WebviewWindow,
+    state: tauri::State<PanelState>,
+    position: String,
+) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 바꿀 수 없습니다.".into());
+    }
+    let place = position.trim();
+    if !LAUNCHER_PLACES.contains(&place) {
+        return Err("이 위치는 쓸 수 없습니다.".into());
+    }
+    if let Ok(mut current) = state.position.lock() {
+        *current = place.to_string();
+    }
+    if let Some(panel) = app.get_webview_window("main") {
+        position_panel(&panel, place);
+        place_map_next_to_panel(&app, &panel, false);
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn register_shortcut(app: AppHandle, window: tauri::WebviewWindow, shortcut: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 바꿀 수 없습니다.".into());
+    }
+    let chord = shortcut_chord(&shortcut)?;
     let manager = app.global_shortcut();
-    manager.unregister_all().map_err(|err| err.to_string())?;
+    manager.unregister_all().map_err(|_| "단축키를 등록하지 못했습니다.".to_string())?;
     manager
-        .register(shortcut.as_str())
-        .map_err(|err| err.to_string())
+        .register(chord.as_str())
+        .map_err(|_| "단축키를 등록하지 못했습니다.".to_string())
 }
 
 fn launch_ok() -> LaunchResult {
@@ -2686,6 +2796,7 @@ pub fn run() {
             bind_dropped_shortcut,
             path_grant::pick_save_file,
             path_grant::pick_open_files,
+            path_grant::pick_tool_target,
             path_grant::pick_save_folder,
             path_grant::reveal_made_file,
             path_grant::clear_made_reveals,
@@ -2750,9 +2861,28 @@ pub fn run() {
             setup_edupack_association();
             setup_send_to_link();
             document_search::boot(app.handle());
-            let _ = app.global_shortcut().register("Ctrl+Alt+E");
+            if let Ok(chord) = shortcut_chord("Ctrl+Alt+E") {
+                let _ = app.global_shortcut().register(chord.as_str());
+            }
             Ok(())
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod shortcut_rules {
+    use super::shortcut_chord;
+
+    #[test]
+    fn default_chord_stays_and_system_chords_are_refused() {
+        assert_eq!(shortcut_chord("Ctrl+Alt+E").unwrap(), "Ctrl+Alt+E");
+        assert_eq!(shortcut_chord("shift+ctrl+f5").unwrap(), "Ctrl+Shift+F5");
+        assert!(shortcut_chord("Ctrl+C").is_err());
+        assert!(shortcut_chord("Alt+F4").is_err());
+        assert!(shortcut_chord("Win+L").is_err());
+        assert!(shortcut_chord("Ctrl+Alt+Del").is_err());
+        assert!(shortcut_chord("E").is_err());
+        assert!(shortcut_chord("Ctrl+Alt").is_err());
+    }
 }

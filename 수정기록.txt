@@ -6,6 +6,29 @@
 ---
 
 날짜: 2026-10-03
+대상: 문서 검색 폴더, 단축키, 도구 대상 고르기
+작성자: 요청자
+
+요청: 문서 검색 폴더는 Rust 폴더 창으로만 넣고 뺄 때는 폴더 번호만 받는다. 단축키는 허용된 조합만 등록하고, 패널 위치는 오른쪽 아래와 가운데만 받는다. 도구 추가 화면의 파일 고르기는 Rust 열기 창으로 옮기고, 고른 경로는 편집용으로만 보여 준다. 웹뷰의 대화상자 권한은 뺀다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+다시 쓴 파일:
+- src-tauri/src/path_grant.rs
+- src-tauri/src/lib.rs
+- src-tauri/src/document_search/mod.rs
+- src-tauri/capabilities/default.json
+- src/services/documentSearchService.ts
+- src/components/DocumentSearchSettings.tsx
+- src/pages/ToolEditPage.tsx
+- src/pages/SettingsPage.tsx
+- src/stores/settingsStore.ts
+
+그대로 둔 파일: 개인정보 검사, 업무자료 서명, 관리 정책, 시작 시 Pack·주소 번호, PDF·사진 결과 위치 열기.
+
+---
+
+날짜: 2026-10-03
 대상: 저장된 도구 실행과 검색 결과 열기
 작성자: 요청자
 

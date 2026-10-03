@@ -1,4 +1,3 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import { loadOrgPolicy } from "../services/orgPolicy";
 import {
@@ -60,7 +59,7 @@ export function DocumentSearchSettings() {
       ) : (
         <ul className="space-y-1">
           {folders.map((folder) => (
-            <li key={folder.path} className="desk-row gap-2">
+            <li key={folder.id} className="desk-row gap-2">
               <span className="min-w-0 flex-1 truncate text-sm" title={folder.path}>
                 {folder.path}
               </span>
@@ -68,7 +67,7 @@ export function DocumentSearchSettings() {
                 type="button"
                 className="btn-secondary"
                 onClick={() => {
-                  void removeDocFolder(folder.path)
+                  void removeDocFolder(folder.id)
                     .then(() => refresh())
                     .then(() => setMessage("폴더를 뺐습니다. 그 폴더의 색인만 지웠습니다."))
                     .catch((error: unknown) => {
@@ -89,15 +88,15 @@ export function DocumentSearchSettings() {
           onClick={() => {
             void (async () => {
               try {
-                const selected = await open({ directory: true, multiple: false });
-                if (typeof selected !== "string") {
-                  return;
-                }
-                await addDocFolder(selected);
+                await addDocFolder();
                 await refresh();
                 setMessage("폴더를 넣었습니다. 지금 색인을 누르면 내용을 읽습니다.");
               } catch (error) {
-                setMessage(error instanceof Error ? error.message : "폴더를 넣지 못했습니다.");
+                const message = typeof error === "string" ? error : error instanceof Error ? error.message : "";
+                if (message === "cancelled") {
+                  return;
+                }
+                setMessage(message || "폴더를 넣지 못했습니다.");
               }
             })();
           }}

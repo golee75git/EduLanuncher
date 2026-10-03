@@ -12,6 +12,7 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use rusqlite::{params, Connection};
 use serde::Serialize;
 use tauri::{AppHandle, Manager, WebviewWindow};
+use tauri_plugin_dialog::DialogExt;
 
 use crate::index_key::{self, IndexKey, OpenedKey};
 use crate::org_policy;
@@ -71,6 +72,7 @@ impl DocStatus {
 #[serde(rename_all = "camelCase")]
 pub struct DocFolder {
     pub path: String,
+    pub id: String,
 }
 
 #[derive(Clone, Serialize)]
@@ -184,8 +186,35 @@ fn patch_status(change: impl FnOnce(&mut DocStatus)) {
     }
 }
 
+fn main_search(window: &WebviewWindow) -> Result<(), String> {
+    if window.label() == "main" {
+        Ok(())
+    } else {
+        Err("이 창에서는 바꿀 수 없습니다.".into())
+    }
+}
+
+fn remember_index_folder(app: &AppHandle, path: &str) -> Result<String, String> {
+    let book = app.state::<crate::path_grant::GrantBook>();
+    let name = Path::new(path)
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("폴더");
+    let id = book
+        .issue(
+            crate::path_grant::GrantUse::Index,
+            Path::new(path),
+            name,
+            "dir",
+            crate::path_grant::GrantOrigin::Index,
+        )
+        .map_err(|_| "폴더 목록을 읽지 못했습니다.".to_string())?;
+    Ok(crate::path_grant::id_text(id))
+}
+
 #[tauri::command]
-pub fn doc_search_folders(app: AppHandle) -> Result<Vec<DocFolder>, String> {
+pub fn doc_search_folders(app: AppHandle, window: WebviewWindow) -> Result<Vec<DocFolder>, String> {
+    main_search(&window)?;
     let conn = open_db(&db_path(&app)?)?;
     let mut stmt = conn
         .prepare("SELECT path FROM folders ORDER BY added_at")
@@ -193,29 +222,31 @@ pub fn doc_search_folders(app: AppHandle) -> Result<Vec<DocFolder>, String> {
     let rows = stmt
         .query_map([], |row| row.get::<_, String>(0))
         .map_err(|_| "폴더 목록을 읽지 못했습니다.".to_string())?;
+    let book = app.state::<crate::path_grant::GrantBook>();
+    book.forget_use(crate::path_grant::GrantUse::Index);
     let mut folders = Vec::new();
     for row in rows {
-        if let Ok(path) = row {
-            folders.push(DocFolder { path });
-        }
+        let Ok(path) = row else {
+            continue;
+        };
+        let id = remember_index_folder(&app, &path)?;
+        folders.push(DocFolder { path, id });
     }
     Ok(folders)
 }
 
-#[tauri::command]
-pub fn doc_search_add_folder(app: AppHandle, path: String) -> Result<(), String> {
-    let folder = PathBuf::from(path.trim());
+fn store_index_folder(app: &AppHandle, folder: &Path) -> Result<(), String> {
     if !folder.is_dir() {
         return Err("폴더만 넣을 수 있습니다.".to_string());
     }
-    if drive_root(&folder) {
+    if drive_root(folder) {
         return Err("드라이브 전체는 고르지 않습니다. 그 안의 폴더를 고르세요.".to_string());
     }
-    if blocked_place(&folder) {
+    if blocked_place(folder) {
         return Err("Windows와 Program Files 폴더는 색인하지 않습니다.".to_string());
     }
     let stored = folder.to_string_lossy().trim_end_matches(['\\', '/']).to_string();
-    let conn = open_db(&db_path(&app)?)?;
+    let conn = open_db(&db_path(app)?)?;
     conn.execute(
         "INSERT OR IGNORE INTO folders(path, added_at) VALUES (?1, ?2)",
         params![stored, now_secs()],
@@ -225,12 +256,38 @@ pub fn doc_search_add_folder(app: AppHandle, path: String) -> Result<(), String>
 }
 
 #[tauri::command]
-pub fn doc_search_remove_folder(app: AppHandle, path: String) -> Result<(), String> {
+pub async fn doc_search_add_folder(app: AppHandle, window: WebviewWindow) -> Result<(), String> {
+    main_search(&window)?;
+    let (tx, rx) = std::sync::mpsc::sync_channel(1);
+    app.dialog()
+        .file()
+        .set_parent(&window)
+        .set_title("색인 폴더")
+        .pick_folder(move |picked| {
+            let _ = tx.send(picked);
+        });
+    let picked = tauri::async_runtime::spawn_blocking(move || rx.recv())
+        .await
+        .map_err(|_| "폴더를 넣지 못했습니다.".to_string())?
+        .map_err(|_| "폴더를 넣지 못했습니다.".to_string())?;
+    let Some(file) = picked else {
+        return Err("cancelled".into());
+    };
+    let path = file.into_path().map_err(|_| "폴더를 넣지 못했습니다.".to_string())?;
+    store_index_folder(&app, &path)
+}
+
+#[tauri::command]
+pub fn doc_search_remove_folder(app: AppHandle, window: WebviewWindow, id: String) -> Result<(), String> {
+    main_search(&window)?;
+    let book = app.state::<crate::path_grant::GrantBook>();
+    let path = crate::path_grant::view_index(&book, &id).map_err(|_| "폴더를 빼지 못했습니다.".to_string())?;
+    let stored = path.to_string_lossy().trim_end_matches(['\\', '/']).to_string();
     let conn = open_db(&db_path(&app)?)?;
-    let stored = path.trim().trim_end_matches(['\\', '/']).to_string();
     conn.execute("DELETE FROM folders WHERE path = ?1 COLLATE NOCASE", params![stored])
         .map_err(|_| "폴더를 빼지 못했습니다.".to_string())?;
     purge_under(&conn, &stored)?;
+    crate::path_grant::spend(&book, &id);
     Ok(())
 }
 

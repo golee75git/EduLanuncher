@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.170-20261003",
+    note: "문서 검색 폴더와 도구 대상은 고르기 창으로만 넣습니다. 단축키는 허용된 조합만 등록합니다.",
+  },
+  {
     version: "0.1.169-20261003",
     note: "저장된 바로가기는 도구 번호로만 실행합니다. 검색 결과에는 파일 이름과 열기 번호만 보입니다.",
   },

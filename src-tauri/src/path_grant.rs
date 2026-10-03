@@ -1,4 +1,4 @@
-//! 메모리 전용 경로 등록소. 경로는 이 모듈 밖으로 나가지 않고, 화면에는 표시 이름만 나간다.
+//! 메모리 전용 경로 등록소. 실행에는 번호만 쓰고, 화면에는 표시 이름만 나간다. 도구 추가 화면의 대상과 문서 검색 폴더 목록만 경로 문자열을 보여 준다.
 
 use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, Hasher};
@@ -21,6 +21,7 @@ const PRIVACY_CAP: usize = 200;
 const REVEAL_CAP: usize = 800;
 /// 즐겨찾기 목록이 400개까지라, 실행 등록은 800개까지 두고 넘치면 가장 오래된 것을 잊는다.
 const LAUNCH_CAP: usize = 800;
+const INDEX_CAP: usize = 64;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GrantUse {
@@ -29,6 +30,7 @@ pub enum GrantUse {
     PrivacyScan,
     Reveal,
     Launch,
+    Index,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -40,6 +42,7 @@ pub enum GrantOrigin {
     SearchDoc,
     SearchUser,
     SearchUrl,
+    Index,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -88,6 +91,7 @@ impl GrantBook {
             GrantUse::PrivacyScan => PRIVACY_CAP,
             GrantUse::Reveal => REVEAL_CAP,
             GrantUse::Launch => LAUNCH_CAP,
+            GrantUse::Index => INDEX_CAP,
         };
         let mode = match use_for {
             GrantUse::PrivacyScan => CapMode::Refuse,
@@ -367,6 +371,15 @@ pub struct HeldLaunch {
     pub path: PathBuf,
     pub kind: String,
     pub once: bool,
+}
+
+pub fn view_index(book: &GrantBook, id: &str) -> Result<PathBuf, &'static str> {
+    let parsed = parse_id(id).ok_or("missing")?;
+    let item = book.clone_of(parsed).ok_or("missing")?;
+    if item.use_for != GrantUse::Index {
+        return Err("denied");
+    }
+    Ok(item.path)
 }
 
 pub fn view_launch(book: &GrantBook, id: &str) -> Result<HeldLaunch, &'static str> {
@@ -757,6 +770,64 @@ pub async fn pick_open_files(app: AppHandle, window: WebviewWindow, kind: String
         return Err("cancelled".into());
     }
     Ok(cards)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolTarget {
+    pub path: String,
+}
+
+#[tauri::command]
+pub async fn pick_tool_target(app: AppHandle, window: WebviewWindow, kind: String) -> Result<ToolTarget, String> {
+    main_only(&window).map_err(|_| "이 창에서는 고를 수 없습니다.".to_string())?;
+    let kind = kind.trim();
+    if kind != "file" && kind != "folder" && kind != "app" {
+        return Err("이 대상은 고를 수 없습니다.".into());
+    }
+    let (tx, rx) = std::sync::mpsc::sync_channel(1);
+    let dialog = app.dialog().file().set_parent(&window).set_title("도구 대상");
+    if kind == "folder" {
+        dialog.pick_folder(move |picked| {
+            let _ = tx.send(picked.map(|file| vec![file]));
+        });
+    } else if kind == "app" {
+        dialog.add_filter("프로그램", &["exe"]).pick_file(move |picked| {
+            let _ = tx.send(picked.map(|file| vec![file]));
+        });
+    } else {
+        dialog.pick_file(move |picked| {
+            let _ = tx.send(picked.map(|file| vec![file]));
+        });
+    }
+    let picked = tauri::async_runtime::spawn_blocking(move || rx.recv())
+        .await
+        .map_err(|_| "대상을 고르지 못했습니다.".to_string())?
+        .map_err(|_| "대상을 고르지 못했습니다.".to_string())?;
+    let Some(files) = picked else {
+        return Err("cancelled".into());
+    };
+    let Some(file) = files.into_iter().next() else {
+        return Err("cancelled".into());
+    };
+    let path = file.into_path().map_err(|_| "대상을 고르지 못했습니다.".to_string())?;
+    if kind == "folder" && !path.is_dir() {
+        return Err("폴더만 고를 수 있습니다.".into());
+    }
+    if kind != "folder" && !path.is_file() {
+        return Err("파일만 고를 수 있습니다.".into());
+    }
+    if kind == "app" {
+        let exe = path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
+        if !exe.eq_ignore_ascii_case("exe") {
+            return Err("프로그램 파일만 고를 수 있습니다.".into());
+        }
+    }
+    let text = path.to_string_lossy().into_owned();
+    if text.len() > 1024 || text.contains('\0') {
+        return Err("이 대상은 고를 수 없습니다.".into());
+    }
+    Ok(ToolTarget { path: text })
 }
 
 pub fn write_text(book: &GrantBook, id: &str, exts: &[&str], contents: &str, limit: usize) -> Result<(), &'static str> {
