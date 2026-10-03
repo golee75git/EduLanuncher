@@ -33,11 +33,8 @@ export async function applyPackFromPath(path: string): Promise<PackOpenResult> {
   return openPackFromPath(path);
 }
 
-export async function openPackFromPath(path: string): Promise<PackOpenResult> {
-  if (!isPackPath(path)) {
-    throw new Error("Pack 파일(.edupack)만 적용할 수 있습니다.");
-  }
-  return openPackFromText(await readJsonFile(path));
+export async function openPackFromPath(id: string): Promise<PackOpenResult> {
+  return openPackFromText(await readJsonFile(id));
 }
 
 export async function openPackFromText(contents: string): Promise<PackOpenResult> {

@@ -97,12 +97,12 @@ export function sortNotices(notices: NoticeItem[]): NoticeItem[] {
   );
 }
 
-export async function readJsonFile(path: string): Promise<string> {
-  return invoke<string>("read_json_file", { path });
+export async function readJsonFile(id: string): Promise<string> {
+  return invoke<string>("read_json_file", { id });
 }
 
-export async function writeJsonFile(path: string, contents: string): Promise<void> {
-  await invoke("write_json_file", { path, contents });
+export async function writeJsonFile(id: string, contents: string): Promise<void> {
+  await invoke("write_json_file", { id, contents });
 }
 
 export function localDateKey(date = new Date()): string {

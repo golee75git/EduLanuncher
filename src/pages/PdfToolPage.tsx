@@ -1,9 +1,9 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { ArrowDown, ArrowLeft, ArrowUp, RotateCw, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { holdPdfDrop } from "../services/pdfDropGate";
-import { sameLocalPath } from "../services/dropSiteService";
+import { pickOpenFiles } from "../services/savePick";
+import type { GrantedFile } from "../services/dropSiteService";
 import {
   arrangePdf,
   extractPdf,
@@ -18,11 +18,11 @@ import {
 
 interface PdfToolPageProps {
   onBack: () => void;
-  startPaths?: string[];
+  startFiles?: GrantedFile[];
 }
 
 interface PdfFile {
-  path: string;
+  id: string;
   name: string;
   pages: number;
   signed: boolean;
@@ -34,8 +34,8 @@ type Mode = "menu" | "merge" | "split" | "arrange" | "turn" | "done";
 const SIGNED_NOTE =
   "전자서명이 포함된 PDF일 수 있습니다. 페이지를 합치거나 삭제·회전하면 기존 전자서명의 유효성에 영향을 줄 수 있습니다.";
 
-export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
-  const addRef = useRef<(paths: string[]) => void>(() => {});
+export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
+  const addRef = useRef<(files: GrantedFile[]) => void>(() => {});
   const [mode, setMode] = useState<Mode>("menu");
   const [files, setFiles] = useState<PdfFile[]>([]);
   const [slots, setSlots] = useState<PdfSlot[]>([]);
@@ -50,38 +50,36 @@ export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
   const [made, setMade] = useState<PdfMade | null>(null);
   const dragIndex = useRef<number | null>(null);
 
-  useEffect(() => holdPdfDrop((paths) => addRef.current(paths)), []);
+  useEffect(() => holdPdfDrop((files) => addRef.current(files)), []);
 
   useEffect(() => {
-    if (startPaths && startPaths.length > 0) {
-      addRef.current(startPaths);
+    if (startFiles && startFiles.length > 0) {
+      addRef.current(startFiles);
     }
-  }, [startPaths]);
+  }, [startFiles]);
 
-  const fileName = (path: string) => path.split(/[/\\]/).pop() || path;
-
-  const readFile = async (path: string): Promise<PdfFile> => {
-    const glance = await glancePdf(path);
-    return { path, name: fileName(path), pages: glance.pages, signed: glance.signed, note: "" };
+  const readFile = async (file: GrantedFile): Promise<PdfFile> => {
+    const glance = await glancePdf(file.id);
+    return { id: file.id, name: file.name || "PDF", pages: glance.pages, signed: glance.signed, note: "" };
   };
 
-  const addPaths = async (paths: string[], into?: Mode) => {
+  const addPaths = async (picked: GrantedFile[], into?: Mode) => {
     if (busy) {
       return;
     }
     const target = into ?? mode;
     setMessage("");
     const base = target === "merge" && mode === "menu" ? [] : files;
-    const incoming = paths.filter((path) => !base.some((file) => sameLocalPath(file.path, path)));
+    const incoming = picked.filter((file) => !base.some((item) => item.id === file.id));
     if (target === "split" || target === "arrange" || target === "turn") {
-      const path = incoming[0] ?? paths[0];
-      if (!path) {
+      const file = incoming[0] ?? picked[0];
+      if (!file) {
         return;
       }
       try {
-        const file = await readFile(path);
-        setFiles([file]);
-        const next = Array.from({ length: file.pages }, (_, index) => ({ page: index + 1, turn: 0 }));
+        const loaded = await readFile(file);
+        setFiles([loaded]);
+        const next = Array.from({ length: loaded.pages }, (_, index) => ({ page: index + 1, turn: 0 }));
         setSlots(next);
         setPast([]);
         setPicked(null);
@@ -101,11 +99,11 @@ export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
       setMessage("한 번에 20개까지 합칠 수 있습니다.");
     }
     const loaded: PdfFile[] = [];
-    for (const path of room) {
+    for (const file of room) {
       try {
-        loaded.push(await readFile(path));
+        loaded.push(await readFile(file));
       } catch (error) {
-        loaded.push({ path, name: fileName(path), pages: 0, signed: false, note: asMessage(error) });
+        loaded.push({ id: file.id, name: file.name || "PDF", pages: 0, signed: false, note: asMessage(error) });
       }
     }
     if (loaded.length) {
@@ -117,18 +115,11 @@ export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
   };
 
   const pickFiles = async (multiple: boolean, into?: Mode) => {
-    const selected = await open({
-      multiple,
-      filters: [{ name: "PDF", extensions: ["pdf"] }],
-    });
-    if (!selected) {
+    const selected = await pickOpenFiles(multiple ? "pdfs" : "pdf");
+    if (selected.length === 0) {
       return;
     }
-    const paths = Array.isArray(selected) ? selected : [selected];
-    await addPaths(
-      paths.filter((path): path is string => typeof path === "string"),
-      into,
-    );
+    await addPaths(selected, into);
   };
 
   const openSingle = async (next: "split" | "arrange" | "turn") => {
@@ -199,7 +190,7 @@ export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
     setProgress(`PDF를 처리하고 있습니다. 1 / ${ready.length} 파일`);
     setMessage("");
     try {
-      finish(await mergePdf(ready.map((file) => file.path)));
+      finish(await mergePdf(ready.map((file) => file.id)));
     } catch (error) {
       setMessage(asMessage(error));
     } finally {
@@ -226,7 +217,7 @@ export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
     setProgress(eachPage ? `PDF를 처리하고 있습니다. 0 / ${pages.length} 페이지` : "PDF를 처리하고 있습니다.");
     setMessage("");
     try {
-      finish(await extractPdf(file.path, pages, eachPage));
+      finish(await extractPdf(file.id, pages, eachPage));
     } catch (error) {
       setMessage(asMessage(error));
     } finally {
@@ -245,7 +236,7 @@ export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
     setProgress(`PDF를 처리하고 있습니다. ${slots.length} / ${file.pages} 페이지`);
     setMessage("");
     try {
-      finish(await arrangePdf(file.path, slots));
+      finish(await arrangePdf(file.id, slots));
     } catch (error) {
       setMessage(asMessage(error));
     } finally {
@@ -355,7 +346,7 @@ export function PdfToolPage({ onBack, startPaths }: PdfToolPageProps) {
             <ul className="card-surface divide-y divide-line/70">
               {files.map((file, index) => (
                 <li
-                  key={file.path}
+                  key={file.id}
                   className="flex items-center gap-1 px-2 py-1.5"
                   draggable
                   onDragStart={() => {

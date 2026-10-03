@@ -62,7 +62,7 @@ export function parseBookmarkHtml(html: string): PcUrlItem[] {
   return items;
 }
 
-export async function readBookmarkHtmlFile(path: string): Promise<PcUrlItem[]> {
-  const html = await invoke<string>("read_bookmark_html", { path });
+export async function readBookmarkHtmlFile(id: string): Promise<PcUrlItem[]> {
+  const html = await invoke<string>("read_bookmark_html", { id });
   return parseBookmarkHtml(html);
 }

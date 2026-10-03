@@ -1,7 +1,5 @@
-import { open, save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { sameLocalPath } from "../services/dropSiteService";
 import { holdPrivacyDrop } from "../services/privacyDropGate";
 import {
   exportCover,
@@ -15,11 +13,13 @@ import {
   type JpegGrade,
   type PrivacyShot,
 } from "../services/privacyMaskService";
+import { pickOpenFiles, pickSaveFile } from "../services/savePick";
+import type { GrantedFile } from "../services/dropSiteService";
 
 interface PrivacyMaskPageProps {
   title: string;
   onBack: () => void;
-  startPath?: string;
+  startFile?: GrantedFile;
 }
 
 interface DragState {
@@ -33,13 +33,13 @@ interface DragState {
 
 let boxSerial = 0;
 
-export function PrivacyMaskPage({ title, onBack, startPath }: PrivacyMaskPageProps) {
+export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPageProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const shotRef = useRef<PrivacyShot | null>(null);
   const boxesRef = useRef<CoverBox[]>([]);
   const dragRef = useRef<DragState | null>(null);
-  const openPictureRef = useRef<(path: string) => void>(() => {});
+  const openPictureRef = useRef<(file: GrantedFile) => void>(() => {});
   const recentOpen = useRef({ path: "", at: 0 });
   const [sourcePath, setSourcePath] = useState("");
   const [shot, setShot] = useState<PrivacyShot | null>(null);
@@ -66,13 +66,13 @@ export function PrivacyMaskPage({ title, onBack, startPath }: PrivacyMaskPagePro
     };
   }, []);
 
-  useEffect(() => holdPrivacyDrop((path) => openPictureRef.current(path)), []);
+  useEffect(() => holdPrivacyDrop((file) => openPictureRef.current(file)), []);
 
   useEffect(() => {
-    if (startPath) {
-      openPictureRef.current(startPath);
+    if (startFile) {
+      openPictureRef.current(startFile);
     }
-  }, [startPath]);
+  }, [startFile]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -152,18 +152,18 @@ export function PrivacyMaskPage({ title, onBack, startPath }: PrivacyMaskPagePro
     setZoom(1);
   };
 
-  const readPath = async (path: string) => {
+  const readPath = async (file: GrantedFile) => {
     const now = Date.now();
-    if (recentOpen.current.path === path && now - recentOpen.current.at < 1200) {
+    if (recentOpen.current.path === file.id && now - recentOpen.current.at < 1200) {
       return;
     }
-    recentOpen.current = { path, at: now };
+    recentOpen.current = { path: file.id, at: now };
     setBusy(true);
     setMessage("");
     try {
-      const next = await loadPrivacyShot(path);
+      const next = await loadPrivacyShot(file.id);
       replaceShot(next);
-      setSourcePath(path);
+      setSourcePath(file.name);
     } catch (error) {
       setMessage(asMessage(error, "그림을 열지 못했습니다. 직접 영역을 지정하려면 다른 그림을 고르세요."));
     } finally {
@@ -171,21 +171,19 @@ export function PrivacyMaskPage({ title, onBack, startPath }: PrivacyMaskPagePro
     }
   };
 
-  openPictureRef.current = (path: string) => {
-    void readPath(path);
+  openPictureRef.current = (file: GrantedFile) => {
+    void readPath(file);
   };
 
   const pickPicture = async () => {
     setMessage("");
     try {
-      const selected = await open({
-        multiple: false,
-        filters: [{ name: "그림", extensions: ["png", "jpg", "jpeg"] }],
-      });
-      if (typeof selected !== "string") {
+      const selected = await pickOpenFiles("picture");
+      const file = selected[0];
+      if (!file) {
         return;
       }
-      await readPath(selected);
+      await readPath(file);
     } catch (error) {
       setMessage(asMessage(error, "그림을 열지 못했습니다."));
     }
@@ -336,23 +334,16 @@ export function PrivacyMaskPage({ title, onBack, startPath }: PrivacyMaskPagePro
     setBusy(true);
     setMessage("");
     try {
-      const selected = await save({
-        defaultPath: privacySaveName(sourcePath, current.mime),
-        filters:
-          current.mime === "image/png"
-            ? [{ name: "PNG", extensions: ["png"] }]
-            : [{ name: "JPEG", extensions: ["jpg", "jpeg"] }],
-      });
-      if (typeof selected !== "string") {
-        return;
-      }
-      const path = withExtension(selected, current.mime);
-      if (sameLocalPath(path, sourcePath)) {
-        setMessage("원본 파일은 바꾸지 않습니다. 다른 이름으로 저장하세요.");
+      const picked = await pickSaveFile(
+        "picture",
+        privacySaveName(sourcePath, current.mime),
+        current.mime === "image/png" ? "png" : "jpeg",
+      );
+      if (!picked) {
         return;
       }
       const blob = await exportCover(current, boxesRef.current, kind, level, grade);
-      await writePrivacyFile(path, sourcePath, blob);
+      await writePrivacyFile(current.readId, picked.id, blob);
       setMessage("새 파일로 저장했습니다. 원본 그림은 그대로입니다. 저장 전에 가린 자리를 직접 확인하세요.");
     } catch (error) {
       setMessage(asMessage(error, "저장하지 못했습니다."));
@@ -599,17 +590,6 @@ function clamp01(value: number): number {
 
 function clampRange(origin: number, size: number): number {
   return Math.min(Math.max(0, origin), Math.max(0, 1 - size));
-}
-
-function withExtension(path: string, mime: string): string {
-  const ext = mime === "image/png" ? ".png" : ".jpg";
-  if (mime === "image/png" && /\.png$/i.test(path)) {
-    return path;
-  }
-  if (mime !== "image/png" && /\.jpe?g$/i.test(path)) {
-    return path;
-  }
-  return `${path}${ext}`;
 }
 
 function asMessage(error: unknown, fallback: string): string {

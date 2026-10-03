@@ -3,7 +3,8 @@ import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { holdDocDrop } from "../services/docDropGate";
-import { sameLocalPath } from "../services/dropSiteService";
+import type { GrantedFile } from "../services/dropSiteService";
+import { pickOpenFiles } from "../services/savePick";
 import {
   DOC_PRESETS,
   estimateSavedBytes,
@@ -17,11 +18,11 @@ import {
 
 interface DocShrinkPageProps {
   onBack: () => void;
-  startPaths?: string[];
+  startFiles?: GrantedFile[];
 }
 
 interface DocRow {
-  path: string;
+  id: string;
   name: string;
   bytes: number;
   state: "wait" | "work" | "done" | "skip" | "fail";
@@ -33,8 +34,8 @@ interface DocRow {
 
 const MAX_ROWS = 100;
 
-export function DocShrinkPage({ onBack, startPaths }: DocShrinkPageProps) {
-  const addRef = useRef<(paths: string[]) => void>(() => {});
+export function DocShrinkPage({ onBack, startFiles }: DocShrinkPageProps) {
+  const addRef = useRef<(files: GrantedFile[]) => void>(() => {});
   const stopRef = useRef(false);
   const seenRef = useRef<string[]>([]);
   const [rows, setRows] = useState<DocRow[]>([]);
@@ -46,33 +47,33 @@ export function DocShrinkPage({ onBack, startPaths }: DocShrinkPageProps) {
   const [message, setMessage] = useState("");
   const [folderPath, setFolderPath] = useState("");
 
-  useEffect(() => holdDocDrop((paths) => addRef.current(paths)), []);
+  useEffect(() => holdDocDrop((files) => addRef.current(files)), []);
 
   useEffect(() => {
-    if (startPaths && startPaths.length > 0) {
-      addRef.current(startPaths);
+    if (startFiles && startFiles.length > 0) {
+      addRef.current(startFiles);
     }
-  }, [startPaths]);
+  }, [startFiles]);
 
-  const addPaths = async (paths: string[]) => {
+  const addPaths = async (files: GrantedFile[]) => {
     if (busy) {
       return;
     }
-    const incoming = paths.filter((path) => !seenRef.current.some((item) => sameLocalPath(item, path)));
+    const incoming = files.filter((file) => file.id && !seenRef.current.includes(file.id));
     if (seenRef.current.length + incoming.length > MAX_ROWS) {
       setMessage(`한 번에 ${MAX_ROWS}장까지 넣을 수 있습니다.`);
     }
     const room = incoming.slice(0, Math.max(0, MAX_ROWS - seenRef.current.length));
     const next: DocRow[] = [];
-    for (const path of room) {
-      seenRef.current.push(path);
-      const name = path.split(/[/\\]/).pop() || path;
+    for (const file of room) {
+      seenRef.current.push(file.id);
+      const name = file.name || "그림";
       try {
-        const bytes = await readDocByteSize(path);
-        next.push({ path, name, bytes, state: "wait", note: "", outBytes: 0, outPath: "", detail: "" });
+        const bytes = await readDocByteSize(file.id);
+        next.push({ id: file.id, name, bytes, state: "wait", note: "", outBytes: 0, outPath: "", detail: "" });
       } catch (error) {
         next.push({
-          path,
+          id: file.id,
           name,
           bytes: 0,
           state: "fail",
@@ -96,13 +97,9 @@ export function DocShrinkPage({ onBack, startPaths }: DocShrinkPageProps) {
   const pickFiles = async () => {
     setMessage("");
     try {
-      const selected = await open({
-        multiple: true,
-        filters: [{ name: "그림", extensions: ["png", "jpg", "jpeg"] }],
-      });
-      const paths = Array.isArray(selected) ? selected : typeof selected === "string" ? [selected] : [];
-      if (paths.length) {
-        await addPaths(paths);
+      const selected = await pickOpenFiles("pictures");
+      if (selected.length) {
+        await addPaths(selected);
       }
     } catch (error) {
       setMessage(asMessage(error, "그림을 열지 못했습니다."));
@@ -147,14 +144,14 @@ export function DocShrinkPage({ onBack, startPaths }: DocShrinkPageProps) {
       }
       index += 1;
       setProgress(`사진을 줄이고 있습니다. ${index} / ${pending.length}`);
-      setRows((current) => current.map((item) => (item.path === row.path ? { ...item, state: "work" } : item)));
+      setRows((current) => current.map((item) => (item.id === row.id ? { ...item, state: "work" } : item)));
       try {
-        const result = await shrinkOnePicture(row.path, preset, saveMode, chosen);
+        const result = await shrinkOnePicture(row.id, preset, saveMode, chosen);
         if (result.saved) {
           lastSaved = result.outPath;
           setRows((current) =>
             current.map((item) =>
-              item.path === row.path
+              item.id === row.id
                 ? {
                     ...item,
                     state: "done",
@@ -169,14 +166,14 @@ export function DocShrinkPage({ onBack, startPaths }: DocShrinkPageProps) {
         } else {
           setRows((current) =>
             current.map((item) =>
-              item.path === row.path ? { ...item, state: "skip", note: result.note, detail: "" } : item,
+              item.id === row.id ? { ...item, state: "skip", note: result.note, detail: "" } : item,
             ),
           );
         }
       } catch (error) {
         setRows((current) =>
           current.map((item) =>
-            item.path === row.path
+            item.id === row.id
               ? { ...item, state: "fail", note: asMessage(error, "파일을 읽을 수 없습니다.") }
               : item,
           ),
@@ -324,7 +321,7 @@ export function DocShrinkPage({ onBack, startPaths }: DocShrinkPageProps) {
         {rows.length > 0 ? (
           <ul className="card-surface divide-y divide-line/70">
             {rows.map((row) => (
-              <li key={row.path} className="px-3 py-2 text-xs leading-5 text-desk">
+              <li key={row.id} className="px-3 py-2 text-xs leading-5 text-desk">
                 <p className="truncate font-medium">{row.name}</p>
                 <p className="text-quiet">
                   {row.state === "done"

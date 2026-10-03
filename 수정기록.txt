@@ -6,6 +6,88 @@
 ---
 
 날짜: 2026-10-03
+대상: 읽기 경로 등록소
+작성자: 요청자
+
+요청: 즐겨찾기, Pack, 바로가기, 그림, 끌어다 놓은 파일은 열기 창이나 드롭으로 고른 것만 읽는다. 명령에는 경로 대신 등록 번호만 넘긴다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+다시 쓴 파일:
+- src-tauri/src/path_grant.rs
+- src-tauri/src/lib.rs
+- src-tauri/src/drop_target.rs
+- src-tauri/src/privacy_mask.rs
+- src-tauri/src/url_mark.rs
+- src-tauri/src/doc_shrink.rs
+- src-tauri/src/pdf_pages.rs
+- src-tauri/src/org_policy.rs
+- src-tauri/src/document_search/mod.rs
+- src/services/savePick.ts
+- src/services/dropSiteService.ts
+- src/services/applyNoticePack.ts
+- src/components/DropZone.tsx
+- src/App.tsx
+
+---
+
+날짜: 2026-10-03
+대상: 저장 경로 등록소
+작성자: 요청자
+
+요청: 저장 대화상자로 고른 위치에만 Pack, CSV, PNG, 사진 모자이크를 쓴다. 프론트는 경로 대신 등록 번호만 넘긴다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 만든 파일:
+- src-tauri/src/path_grant.rs
+- src/services/savePick.ts
+
+다시 쓴 파일:
+- src-tauri/src/lib.rs
+- src-tauri/src/file_desk.rs
+- src-tauri/src/privacy_mask.rs
+- src-tauri/src/privacy_folder.rs
+- src-tauri/src/url_mark.rs
+- src/pages/SettingsPage.tsx
+- src/pages/NoticePackPage.tsx
+- src/pages/SharePackSavePage.tsx
+- src/pages/NetworkToolPage.tsx
+- src/pages/UrlMarkPage.tsx
+- src/pages/PrivacyMaskPage.tsx
+- src/services/noticePackService.ts
+- src/services/networkService.ts
+- src/services/urlMarkService.ts
+- src/services/privacyMaskService.ts
+- docs/HANDOFF.md
+
+---
+
+날짜: 2026-10-03
+대상: 홈 인사 세 줄
+작성자: 요청자
+
+요청: 모든 스킨에서 시간 인사, “오늘 필요한 업무를 빠르게 시작하세요.”, “파일을 끌어 놓으면 다음에 할 일을 보여 줍니다.”를 뺀다. 검색창은 제목 바로 아래에 둔다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+지운 파일:
+- src/components/home/WelcomeMessage.tsx
+
+다시 쓴 파일:
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/index.css
+- CLAUDE.md
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+
+---
+
+날짜: 2026-10-03
 대상: 보안 상태 점검
 작성자: 요청자
 

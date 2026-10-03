@@ -1,10 +1,10 @@
-import { open } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { asLocalPngIcon } from "../data/toolIcons";
 import { readBookmarkHtmlFile } from "../services/bookmarkHtmlService";
-import { addDroppedSite, readUrlShortcut } from "../services/dropSiteService";
+import { addDroppedSite } from "../services/dropSiteService";
+import { pickOpenFiles } from "../services/savePick";
 import { launchQuickUrl } from "../services/launcherService";
 import { browserFaviconsFor, listPcUrlShortcuts, type PcUrlItem } from "../services/pcUrlListService";
 
@@ -62,18 +62,15 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
           // 그림을 못 찾으면 기본 그림으로 둔다.
         }
       }
+      const picked: Record<string, string> = {};
       for (const item of byFile.slice(0, 200)) {
-        if (!mounted.current || !item.path) {
-          return;
+        const picture = asLocalPngIcon(item.iconImage);
+        if (picture) {
+          picked[item.url] = picture;
         }
-        try {
-          const picture = asLocalPngIcon((await readUrlShortcut(item.path)).iconImage);
-          if (picture) {
-            keep({ [item.url]: picture });
-          }
-        } catch {
-          // 읽지 못한 파일은 기본 그림으로 둔다.
-        }
+      }
+      if (Object.keys(picked).length > 0) {
+        keep(picked);
       }
     })();
   }, [items]);
@@ -115,14 +112,12 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
 
   const loadExportedFile = async () => {
     try {
-      const picked = await open({
-        multiple: false,
-        filters: [{ name: "내보낸 즐겨찾기(HTML)", extensions: ["html", "htm"] }],
-      });
-      if (typeof picked !== "string") {
+      const picked = await pickOpenFiles("bookmark");
+      const file = picked[0];
+      if (!file) {
         return;
       }
-      const loaded = await readBookmarkHtmlFile(picked);
+      const loaded = await readBookmarkHtmlFile(file.id);
       if (loaded.length === 0) {
         setNotice("주소를 찾지 못했습니다. Edge에서 내보낸 즐겨찾기 파일인지 확인하세요.");
         return;
@@ -138,11 +133,10 @@ export function PcUrlListPage({ onBack }: PcUrlListPageProps) {
 
   const addToLauncher = async (item: PcUrlItem) => {
     try {
-      const fromFile = item.path ? await readUrlShortcut(item.path) : null;
       const result = await addDroppedSite(
-        fromFile?.url ?? item.url,
-        fromFile?.name ?? item.name,
-        fromFile?.iconImage ?? item.iconImage ?? icons[item.url],
+        item.url,
+        item.name,
+        item.iconImage ?? icons[item.url],
       );
       setNotice(
         result === "added" ? "런처에 넣었습니다." : result === "updated" ? "이름을 갱신했습니다." : "이미 있는 주소입니다.",

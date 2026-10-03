@@ -1,27 +1,27 @@
 import { isDocPicturePath } from "./docDropGate";
+import type { GrantedFile } from "./dropSiteService";
 import { isPdfPath } from "./pdfDropGate";
 
 export interface DropActionFiles {
-  pictures: string[];
-  pdfs: string[];
-  rest: string[];
+  pictures: GrantedFile[];
+  pdfs: GrantedFile[];
+  rest: GrantedFile[];
 }
 
-export function splitDropActions(paths: string[]): DropActionFiles {
-  const pictures: string[] = [];
-  const pdfs: string[] = [];
-  const rest: string[] = [];
-  for (const path of paths) {
-    const trimmed = path.trim();
-    if (!trimmed) {
+export function splitDropActions(files: GrantedFile[]): DropActionFiles {
+  const pictures: GrantedFile[] = [];
+  const pdfs: GrantedFile[] = [];
+  const rest: GrantedFile[] = [];
+  for (const file of files) {
+    if (!file.id) {
       continue;
     }
-    if (isDocPicturePath(trimmed)) {
-      pictures.push(trimmed);
-    } else if (isPdfPath(trimmed)) {
-      pdfs.push(trimmed);
+    if (isDocPicturePath(file.name)) {
+      pictures.push(file);
+    } else if (isPdfPath(file.name)) {
+      pdfs.push(file);
     } else {
-      rest.push(trimmed);
+      rest.push(file);
     }
   }
   return { pictures, pdfs, rest };

@@ -1,8 +1,11 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use qrcode::{Color, EcLevel, QrCode};
 use serde::Serialize;
+use tauri::{AppHandle, Manager, WebviewWindow};
+
+use crate::path_grant;
 
 const MAX_PICTURE_BYTES: u64 = 8 * 1024 * 1024;
 const MAX_PNG_BYTES: usize = 16 * 1024 * 1024;
@@ -40,20 +43,21 @@ pub fn build_url_mark(url: String) -> Result<UrlMarkGrid, String> {
 }
 
 #[tauri::command]
-pub fn read_picture_file(path: String) -> Result<PictureFile, String> {
-    let path = PathBuf::from(path.trim());
+pub fn read_picture_file(app: AppHandle, id: String) -> Result<PictureFile, String> {
+    let book = app.state::<path_grant::GrantBook>();
+    let path = path_grant::view_read(&book, &id).map_err(|text| text.to_string())?;
     if !is_picture_path(&path) {
-        return Err("PNG 또는 JPEG 그림만 고를 수 있습니다.".into());
+        return Err("그림 파일을 읽지 못했습니다.".into());
     }
-    let meta = fs::metadata(&path).map_err(|err| err.to_string())?;
+    let meta = fs::metadata(&path).map_err(|_| "그림 파일을 읽지 못했습니다.".to_string())?;
     if !meta.is_file() {
-        return Err("파일이 아닙니다.".into());
+        return Err("그림 파일을 읽지 못했습니다.".into());
     }
     if meta.len() > MAX_PICTURE_BYTES {
         return Err("그림이 너무 큽니다.".into());
     }
-    let bytes = fs::read(&path).map_err(|err| err.to_string())?;
-    let mime = picture_mime(&bytes).ok_or_else(|| "그림 형식이 올바르지 않습니다.".to_string())?;
+    let bytes = fs::read(&path).map_err(|_| "그림 파일을 읽지 못했습니다.".to_string())?;
+    let mime = picture_mime(&bytes).ok_or_else(|| "그림 파일을 읽지 못했습니다.".to_string())?;
     Ok(PictureFile {
         mime: mime.into(),
         data: to_base64(&bytes),
@@ -61,10 +65,9 @@ pub fn read_picture_file(path: String) -> Result<PictureFile, String> {
 }
 
 #[tauri::command]
-pub fn write_png_file(path: String, data: String) -> Result<(), String> {
-    let path = PathBuf::from(path.trim());
-    if !is_png_path(&path) {
-        return Err("PNG 파일만 저장할 수 있습니다.".into());
+pub fn write_png_file(app: AppHandle, window: WebviewWindow, id: String, data: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 저장할 수 없습니다.".into());
     }
     let bytes = from_base64(&data)?;
     if bytes.len() > MAX_PNG_BYTES {
@@ -73,7 +76,8 @@ pub fn write_png_file(path: String, data: String) -> Result<(), String> {
     if picture_mime(&bytes) != Some("image/png") {
         return Err("PNG 형식이 아닙니다.".into());
     }
-    fs::write(&path, bytes).map_err(|err| err.to_string())
+    let book = app.state::<path_grant::GrantBook>();
+    path_grant::write_bytes(&book, &id, &["png"], &bytes, MAX_PNG_BYTES).map_err(|text| text.to_string())
 }
 
 fn as_web_url(raw: &str) -> Result<String, String> {
@@ -102,12 +106,6 @@ fn is_picture_path(path: &Path) -> bool {
                 || ext.eq_ignore_ascii_case("jpg")
                 || ext.eq_ignore_ascii_case("jpeg")
         })
-}
-
-fn is_png_path(path: &Path) -> bool {
-    path.extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("png"))
 }
 
 pub(crate) fn picture_mime(bytes: &[u8]) -> Option<&'static str> {

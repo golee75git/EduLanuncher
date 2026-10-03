@@ -1,14 +1,15 @@
 import { dropFileLabel } from "../services/dropActionPick";
+import type { GrantedFile } from "../services/dropSiteService";
 
 export interface DropPlaceLine {
-  path: string;
+  id: string;
   name: string;
   place: string;
 }
 
 interface DropActionPickProps {
-  pictures: string[];
-  pdfs: string[];
+  pictures: GrantedFile[];
+  pdfs: GrantedFile[];
   places: DropPlaceLine[];
   siteLabel: string;
   packLabel: string;
@@ -23,9 +24,9 @@ interface DropActionPickProps {
   onClose: () => void;
 }
 
-function names(paths: string[]): string {
-  const shown = paths.slice(0, 3).map(dropFileLabel);
-  const extra = paths.length - shown.length;
+function names(files: GrantedFile[]): string {
+  const shown = files.slice(0, 3).map((file) => dropFileLabel(file.name));
+  const extra = files.length - shown.length;
   return extra > 0 ? `${shown.join(", ")} 외 ${extra}개` : shown.join(", ");
 }
 
@@ -54,7 +55,7 @@ export function DropActionPick({
         {pictures.length > 0 ? <p className="truncate text-xs text-quiet">사진 {names(pictures)}</p> : null}
         {pdfs.length > 0 ? <p className="truncate text-xs text-quiet">PDF {names(pdfs)}</p> : null}
         {places.map((line) => (
-          <p key={line.path} className="truncate text-xs text-desk">
+          <p key={line.id} className="truncate text-xs text-desk">
             {line.name} · {line.place}
           </p>
         ))}

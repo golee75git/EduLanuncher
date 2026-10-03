@@ -1,7 +1,9 @@
-let held = false;
-let onPicture: ((path: string) => void) | null = null;
+import type { GrantedFile } from "./dropSiteService";
 
-export function holdPrivacyDrop(handler: (path: string) => void): () => void {
+let held = false;
+let onPicture: ((file: GrantedFile) => void) | null = null;
+
+export function holdPrivacyDrop(handler: (file: GrantedFile) => void): () => void {
   held = true;
   onPicture = handler;
   return () => {
@@ -18,10 +20,10 @@ export function isPrivacyPicturePath(path: string): boolean {
   return /\.(png|jpe?g)$/i.test(path.trim());
 }
 
-export function takePrivacyPicture(path: string): boolean {
-  if (!held || !onPicture || !isPrivacyPicturePath(path)) {
+export function takePrivacyPicture(file: GrantedFile): boolean {
+  if (!held || !onPicture || !isPrivacyPicturePath(file.name)) {
     return false;
   }
-  onPicture(path.trim());
+  onPicture(file);
   return true;
 }

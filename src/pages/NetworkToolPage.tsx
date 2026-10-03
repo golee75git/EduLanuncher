@@ -1,8 +1,8 @@
-import { save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RangeCheckBar } from "../components/RangeCheckBar";
 import { calculateIpv4Range } from "../services/ipv4Math";
+import { pickSaveFile } from "../services/savePick";
 import { useAdminToolStore } from "../stores/adminToolStore";
 import {
   haltRangeCheck,
@@ -101,15 +101,11 @@ export function NetworkToolPage({ title, onBack }: NetworkToolPageProps) {
       return;
     }
     try {
-      const selected = await save({
-        defaultPath: "구간검색.csv",
-        filters: [{ name: "Excel CSV", extensions: ["csv"] }],
-      });
-      if (typeof selected !== "string") {
+      const picked = await pickSaveFile("csv", "구간검색.csv");
+      if (!picked) {
         return;
       }
-      const path = selected.toLowerCase().endsWith(".csv") ? selected : `${selected}.csv`;
-      await writeCsvFile(path, hostsToCsv(hits, result.firstHost, result.lastHost));
+      await writeCsvFile(picked.id, hostsToCsv(hits, result.firstHost, result.lastHost));
       setExportMessage("엑셀에서 열 수 있는 CSV로 저장했습니다. 미연결 주소도 포함됩니다.");
     } catch (error) {
       setExportMessage(nativeMessage(error, "저장하지 못했습니다."));

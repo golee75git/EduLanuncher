@@ -13,6 +13,7 @@ export interface CoverBox {
 }
 
 export interface PrivacyShot {
+  readId: string;
   mime: string;
   url: string;
   image: HTMLImageElement;
@@ -50,8 +51,8 @@ export function privacySaveName(sourcePath: string, mime: string): string {
   return `${stem}_privacy${ext}`;
 }
 
-export async function loadPrivacyShot(path: string): Promise<PrivacyShot> {
-  const file = await invoke<{ mime: string; data: string }>("read_privacy_picture", { path });
+export async function loadPrivacyShot(id: string): Promise<PrivacyShot> {
+  const file = await invoke<{ id: string; mime: string; data: string }>("read_privacy_picture", { id });
   if (file.mime !== "image/png" && file.mime !== "image/jpeg") {
     throw new Error("PNG 또는 JPEG 그림만 고를 수 있습니다.");
   }
@@ -70,20 +71,16 @@ export async function loadPrivacyShot(path: string): Promise<PrivacyShot> {
     if (width * height > MAX_PIXELS) {
       throw new Error("그림이 너무 큽니다. 더 작은 그림을 고르세요.");
     }
-    return { mime: file.mime, url, image, width, height };
+    return { readId: file.id, mime: file.mime, url, image, width, height };
   } catch (error) {
     URL.revokeObjectURL(url);
     throw error;
   }
 }
 
-export async function writePrivacyFile(
-  path: string,
-  sourcePath: string,
-  blob: Blob,
-): Promise<void> {
+export async function writePrivacyFile(readId: string, writeId: string, blob: Blob): Promise<void> {
   const data = await blobToBase64(blob);
-  await invoke("write_privacy_picture", { path, sourcePath, data });
+  await invoke("write_privacy_picture", { readId, writeId, data });
 }
 
 export function paintCover(

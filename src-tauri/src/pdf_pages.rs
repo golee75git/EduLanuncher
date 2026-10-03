@@ -4,6 +4,9 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use lopdf::{Dictionary, Document, Object, ObjectId};
+use tauri::{AppHandle, Manager};
+
+use crate::path_grant;
 
 const MAX_FILES: usize = 20;
 const MAX_PAGES: usize = 800;
@@ -37,9 +40,16 @@ pub fn pdf_halt() {
     STOP.store(true, Ordering::Relaxed);
 }
 
+fn granted_pdf(app: &AppHandle, id: &str) -> Result<PathBuf, String> {
+    let book = app.state::<path_grant::GrantBook>();
+    let path = path_grant::view_read(&book, id).map_err(|text| text.to_string())?;
+    let text = path.to_string_lossy().into_owned();
+    pdf_file(&text)
+}
+
 #[tauri::command]
-pub fn pdf_glance(path: String) -> Result<PdfGlance, String> {
-    let path = pdf_file(&path)?;
+pub fn pdf_glance(app: AppHandle, id: String) -> Result<PdfGlance, String> {
+    let path = granted_pdf(&app, &id)?;
     let doc = open_pdf(&path)?;
     let pages = page_count(&doc)?;
     Ok(PdfGlance {
@@ -49,15 +59,19 @@ pub fn pdf_glance(path: String) -> Result<PdfGlance, String> {
 }
 
 #[tauri::command]
-pub fn pdf_merge(paths: Vec<String>) -> Result<PdfMade, String> {
+pub fn pdf_merge(app: AppHandle, ids: Vec<String>) -> Result<PdfMade, String> {
     STOP.store(false, Ordering::Relaxed);
-    if paths.is_empty() {
+    if ids.is_empty() {
         return Err("PDF 파일을 넣어 주세요.".into());
     }
-    if paths.len() > MAX_FILES {
+    if ids.len() > MAX_FILES {
         return Err(format!("한 번에 {MAX_FILES}개까지 합칠 수 있습니다."));
     }
-    let sources = paths.iter().map(|path| pdf_file(path)).collect::<Result<Vec<_>, _>>()?;
+    let sources = ids.iter().map(|id| granted_pdf(&app, id)).collect::<Result<Vec<_>, _>>()?;
+    merge_sources(sources)
+}
+
+fn merge_sources(sources: Vec<PathBuf>) -> Result<PdfMade, String> {
     let mut shell = empty_shell()?;
     let mut signed = false;
     let mut total: u32 = 0;
@@ -98,9 +112,9 @@ pub fn pdf_merge(paths: Vec<String>) -> Result<PdfMade, String> {
 }
 
 #[tauri::command]
-pub fn pdf_extract(path: String, pages: Vec<u32>, each: bool) -> Result<PdfMade, String> {
+pub fn pdf_extract(app: AppHandle, id: String, pages: Vec<u32>, each: bool) -> Result<PdfMade, String> {
     STOP.store(false, Ordering::Relaxed);
-    let source = pdf_file(&path)?;
+    let source = granted_pdf(&app, &id)?;
     let doc = open_pdf(&source)?;
     let signed = has_signature(&doc);
     let chosen = checked_pages(&doc, &pages)?;
@@ -156,9 +170,13 @@ pub fn pdf_extract(path: String, pages: Vec<u32>, each: bool) -> Result<PdfMade,
 }
 
 #[tauri::command]
-pub fn pdf_arrange(path: String, slots: Vec<PdfSlot>) -> Result<PdfMade, String> {
+pub fn pdf_arrange(app: AppHandle, id: String, slots: Vec<PdfSlot>) -> Result<PdfMade, String> {
+    let source = granted_pdf(&app, &id)?;
+    arrange_source(source, slots)
+}
+
+fn arrange_source(source: PathBuf, slots: Vec<PdfSlot>) -> Result<PdfMade, String> {
     STOP.store(false, Ordering::Relaxed);
-    let source = pdf_file(&path)?;
     let doc = open_pdf(&source)?;
     let signed = has_signature(&doc);
     if slots.is_empty() {
@@ -685,11 +703,7 @@ mod tests {
         let first = blank_file(&dir, "가.pdf", 2);
         let second = blank_file(&dir, "나.pdf", 1);
         let before = fs::read(&first).unwrap();
-        let made = pdf_merge(vec![
-            first.to_string_lossy().into_owned(),
-            second.to_string_lossy().into_owned(),
-        ])
-        .unwrap();
+        let made = merge_sources(vec![first.clone(), second]).unwrap();
         assert_eq!(made.pages, 3);
         assert_eq!(made.paths.len(), 1);
         assert!(!made.stopped);
@@ -707,8 +721,8 @@ mod tests {
         fs::create_dir_all(&dir).unwrap();
         let source = blank_file(&dir, "정리.pdf", 3);
         let before = fs::read(&source).unwrap();
-        let made = pdf_arrange(
-            source.to_string_lossy().into_owned(),
+        let made = arrange_source(
+            source.clone(),
             vec![PdfSlot { page: 3, turn: 90 }, PdfSlot { page: 1, turn: 180 }],
         )
         .unwrap();

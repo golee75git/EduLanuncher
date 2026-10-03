@@ -1,4 +1,3 @@
-import { open, save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -10,14 +9,16 @@ import {
   writePngFile,
   type PictureFile,
 } from "../services/urlMarkService";
+import { pickOpenFiles, pickSaveFile } from "../services/savePick";
+import type { GrantedFile } from "../services/dropSiteService";
 
 interface UrlMarkPageProps {
   title: string;
   onBack: () => void;
-  startPath?: string;
+  startFile?: GrantedFile;
 }
 
-export function UrlMarkPage({ title, onBack, startPath }: UrlMarkPageProps) {
+export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [url, setUrl] = useState("");
   const [picture, setPicture] = useState<PictureFile | null>(null);
@@ -26,8 +27,8 @@ export function UrlMarkPage({ title, onBack, startPath }: UrlMarkPageProps) {
   const [busy, setBusy] = useState(false);
   const [hasMark, setHasMark] = useState(false);
 
-  const openPicture = async (path: string) => {
-    const file = await readPictureFile(path);
+  const openPicture = async (id: string) => {
+    const file = await readPictureFile(id);
     setPicture(file);
     setHasMark(false);
     setPreview(pictureSrc(file));
@@ -38,14 +39,14 @@ export function UrlMarkPage({ title, onBack, startPath }: UrlMarkPageProps) {
   };
 
   useEffect(() => {
-    if (!startPath) {
+    if (!startFile) {
       return;
     }
     let cancelled = false;
     void (async () => {
       setMessage("");
       try {
-        await openPicture(startPath);
+        await openPicture(startFile.id);
       } catch (error) {
         if (!cancelled) {
           setPicture(null);
@@ -57,19 +58,17 @@ export function UrlMarkPage({ title, onBack, startPath }: UrlMarkPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [startPath]);
+  }, [startFile]);
 
   const pickPicture = async () => {
     setMessage("");
     try {
-      const selected = await open({
-        multiple: false,
-        filters: [{ name: "그림", extensions: ["png", "jpg", "jpeg"] }],
-      });
-      if (typeof selected !== "string") {
+      const selected = await pickOpenFiles("picture");
+      const file = selected[0];
+      if (!file) {
         return;
       }
-      await openPicture(selected);
+      await openPicture(file.id);
     } catch (error) {
       setPicture(null);
       setPreview("");
@@ -107,15 +106,11 @@ export function UrlMarkPage({ title, onBack, startPath }: UrlMarkPageProps) {
     setBusy(true);
     setMessage("");
     try {
-      const selected = await save({
-        defaultPath: "QR코드넣기.png",
-        filters: [{ name: "PNG", extensions: ["png"] }],
-      });
-      if (typeof selected !== "string") {
+      const picked = await pickSaveFile("png", "QR코드넣기.png");
+      if (!picked) {
         return;
       }
-      const path = selected.toLowerCase().endsWith(".png") ? selected : `${selected}.png`;
-      await writePngFile(path, canvasPngBase64(canvas));
+      await writePngFile(picked.id, canvasPngBase64(canvas));
       setMessage("이 PC에 PNG로 저장했습니다. 원본 그림은 그대로입니다.");
     } catch (error) {
       setMessage(asMessage(error, "저장하지 못했습니다."));

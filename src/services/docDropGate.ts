@@ -1,7 +1,9 @@
-let held = false;
-let onPictures: ((paths: string[]) => void) | null = null;
+import type { GrantedFile } from "./dropSiteService";
 
-export function holdDocDrop(handler: (paths: string[]) => void): () => void {
+let held = false;
+let onPictures: ((files: GrantedFile[]) => void) | null = null;
+
+export function holdDocDrop(handler: (files: GrantedFile[]) => void): () => void {
   held = true;
   onPictures = handler;
   return () => {
@@ -18,11 +20,11 @@ export function isDocPicturePath(path: string): boolean {
   return /\.(png|jpe?g)$/i.test(path.trim());
 }
 
-export function takeDocPictures(paths: string[]): boolean {
+export function takeDocPictures(files: GrantedFile[]): boolean {
   if (!held || !onPictures) {
     return false;
   }
-  const pictures = paths.map((path) => path.trim()).filter((path) => isDocPicturePath(path));
+  const pictures = files.filter((file) => isDocPicturePath(file.name));
   if (pictures.length === 0) {
     return false;
   }

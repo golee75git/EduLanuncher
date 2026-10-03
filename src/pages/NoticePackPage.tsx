@@ -1,7 +1,7 @@
-import { save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useMemo, useState } from "react";
 import { buildNoticePack, localDateKey, noticeKindOf, writeJsonFile } from "../services/noticePackService";
+import { pickSaveFile } from "../services/savePick";
 import { useNoticeStore } from "../stores/noticeStore";
 import {
   NOTICE_KIND_FILE,
@@ -74,18 +74,11 @@ export function NoticePackPage({ onBack }: NoticePackPageProps) {
   const savePack = async (alsoApply: boolean) => {
     try {
       const pack = buildNoticePack(packName, visible, kind);
-      const selected = await save({
-        defaultPath: NOTICE_KIND_FILE[kind],
-        filters: [
-          { name: "공지 Pack", extensions: ["edupack"] },
-          { name: "JSON", extensions: ["json"] },
-        ],
-      });
-      if (typeof selected !== "string") {
+      const picked = await pickSaveFile("pack", NOTICE_KIND_FILE[kind]);
+      if (!picked) {
         return;
       }
-      const path = /\.(edupack|json)$/i.test(selected) ? selected : `${selected}.edupack`;
-      await writeJsonFile(path, `${JSON.stringify(pack, null, 2)}\n`);
+      await writeJsonFile(picked.id, `${JSON.stringify(pack, null, 2)}\n`);
       if (alsoApply) {
         await addFromPack(
           pack,

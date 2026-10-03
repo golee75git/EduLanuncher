@@ -6,7 +6,6 @@ import { AppHeader } from "../components/home/AppHeader";
 import { HomeJumpRow } from "../components/home/HomeJumpRow";
 import { GlobalSearch } from "../components/home/GlobalSearch";
 import { SectionHeader } from "../components/home/SectionHeader";
-import { WelcomeMessage } from "../components/home/WelcomeMessage";
 import { NoticeList } from "../components/NoticeList";
 import { RecentTools } from "../components/RecentTools";
 import { SchoolSearchResult } from "../components/SchoolSearchResult";
@@ -555,7 +554,6 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       ) : (
         <div className="home-band">
           <AppHeader dateLabel={todayLabel()} extra={homeJump} onSettings={() => onAction({ type: "settings" })} onAdd={() => onAction({ type: "edit" })} />
-          {searching || activeSchool ? null : <WelcomeMessage />}
           <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
         </div>
       )}

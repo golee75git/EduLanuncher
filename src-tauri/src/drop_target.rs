@@ -26,10 +26,20 @@ use windows::Win32::UI::Shell::{
 use windows::Win32::UI::WindowsAndMessaging::EnumChildWindows;
 
 #[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DropFile {
+    pub id: String,
+    pub name: String,
+    pub kind: String,
+}
+
+#[derive(Serialize, Clone)]
 #[serde(tag = "type")]
 pub enum LauncherDrop {
     #[serde(rename = "paths")]
     Paths { paths: Vec<String> },
+    #[serde(rename = "files")]
+    Files { files: Vec<DropFile> },
     #[serde(rename = "unreadable")]
     Unreadable { formats: Vec<String> },
     #[serde(rename = "url")]
@@ -108,9 +118,11 @@ impl IDropTarget_Impl for LauncherDropTarget_Impl {
             return Ok(());
         }
         if let Some(data) = pDataObj.as_ref() {
-            let payload = read_drop(data).unwrap_or_else(|| LauncherDrop::Unreadable {
-                formats: format_names(data),
-            });
+            let payload = match read_drop(data) {
+                Some(LauncherDrop::Paths { paths }) => register_drop_files(&self.app, paths),
+                Some(other) => other,
+                None => LauncherDrop::Unreadable { formats: format_names(data) },
+            };
             let _ = self.app.emit("launcher-drop", payload);
         }
         Ok(())
@@ -126,6 +138,28 @@ fn accepted_effect(allowed: DROPEFFECT) -> DROPEFFECT {
         DROPEFFECT_LINK
     } else {
         DROPEFFECT_NONE
+    }
+}
+
+fn register_drop_files(app: &AppHandle, paths: Vec<String>) -> LauncherDrop {
+    let book = app.state::<crate::path_grant::GrantBook>();
+    let mut files = Vec::new();
+    for raw in paths {
+        let path = std::path::PathBuf::from(&raw);
+        let Ok(id) = crate::path_grant::issue_read(&book, &path, crate::path_grant::GrantOrigin::Drop) else {
+            continue;
+        };
+        let name = path.file_name().and_then(|name| name.to_str()).unwrap_or("파일").to_string();
+        files.push(DropFile {
+            id,
+            name,
+            kind: crate::dropped_kind(&path),
+        });
+    }
+    if files.is_empty() {
+        LauncherDrop::Unreadable { formats: Vec::new() }
+    } else {
+        LauncherDrop::Files { files }
     }
 }
 

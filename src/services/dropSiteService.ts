@@ -184,8 +184,14 @@ export function httpUrlFromDataTransfer(
   return { url, name, ...(picture ? { iconImage: picture } : {}) };
 }
 
-export async function readUrlShortcut(path: string): Promise<UrlShortcut> {
-  return invoke<UrlShortcut>("read_url_shortcut", { path });
+export interface GrantedFile {
+  id: string;
+  name: string;
+  kind?: string;
+}
+
+export async function readUrlShortcut(id: string): Promise<UrlShortcut> {
+  return invoke<UrlShortcut>("read_url_shortcut", { id });
 }
 
 /** 이 PC 브라우저(Edge·Chrome)가 이미 저장해 둔 그 주소의 그림. 없거나 실패하면 undefined. */
@@ -354,10 +360,17 @@ export interface DroppedPathSummary {
 }
 
 interface DroppedPathInfo {
-  path: string;
+  id: string;
   exists: boolean;
   kind: "file" | "folder" | "app";
   name: string;
+}
+
+interface BoundShortcut {
+  name: string;
+  kind: "file" | "folder" | "app";
+  target: string;
+  exists: boolean;
   iconImage?: string;
 }
 
@@ -374,27 +387,26 @@ function iconForLocalType(type: "file" | "folder" | "app"): string {
 let addDroppedPathQueue: Promise<void> = Promise.resolve();
 
 export async function previewDroppedPaths(
-  paths: string[],
-): Promise<{ path: string; name: string; place: "프로그램" | "폴더" | "파일" }[]> {
-  const unique: string[] = [];
-  for (const path of paths) {
-    const trimmed = path.trim();
-    if (!trimmed || unique.some((item) => sameLocalPath(item, trimmed))) {
+  files: GrantedFile[],
+): Promise<{ id: string; name: string; place: "프로그램" | "폴더" | "파일" }[]> {
+  const unique: GrantedFile[] = [];
+  for (const file of files) {
+    if (!file.id || unique.some((item) => item.id === file.id)) {
       continue;
     }
-    unique.push(trimmed);
+    unique.push(file);
   }
-  const listed: { path: string; name: string; place: "프로그램" | "폴더" | "파일" }[] = [];
-  for (const path of unique.slice(0, DROP_PATH_LIMIT)) {
-    const info = await invoke<DroppedPathInfo>("dropped_path_info", { path });
+  const listed: { id: string; name: string; place: "프로그램" | "폴더" | "파일" }[] = [];
+  for (const file of unique.slice(0, DROP_PATH_LIMIT)) {
+    const info = await invoke<DroppedPathInfo>("dropped_path_info", { id: file.id });
     const place = info.kind === "app" ? "프로그램" : info.kind === "folder" ? "폴더" : "파일";
-    const name = info.name.trim() || path.split(/[/\\]/).pop() || path;
-    listed.push({ path: info.path || path, name, place });
+    const name = info.name.trim() || file.name || "바로가기";
+    listed.push({ id: file.id, name, place });
   }
   return listed;
 }
 
-export async function addDroppedPaths(paths: string[]): Promise<DroppedPathSummary> {
+export async function addDroppedPaths(files: GrantedFile[]): Promise<DroppedPathSummary> {
   let finish: () => void = () => undefined;
   const gate = new Promise<void>((resolve) => {
     finish = resolve;
@@ -403,34 +415,33 @@ export async function addDroppedPaths(paths: string[]): Promise<DroppedPathSumma
   addDroppedPathQueue = gate;
   await previous;
   try {
-    return await addDroppedPathsNow(paths);
+    return await addDroppedPathsNow(files);
   } finally {
     finish();
   }
 }
 
-async function addDroppedPathsNow(paths: string[]): Promise<DroppedPathSummary> {
-  const unique: string[] = [];
-  for (const path of paths) {
-    const trimmed = path.trim();
-    if (!trimmed || unique.some((item) => sameLocalPath(item, trimmed))) {
+async function addDroppedPathsNow(files: GrantedFile[]): Promise<DroppedPathSummary> {
+  const unique: GrantedFile[] = [];
+  for (const file of files) {
+    if (!file.id || unique.some((item) => item.id === file.id)) {
       continue;
     }
-    unique.push(trimmed);
+    unique.push(file);
   }
   const skipped = Math.max(0, unique.length - DROP_PATH_LIMIT);
   const limited = unique.slice(0, DROP_PATH_LIMIT);
   const summary: DroppedPathSummary = { added: 0, exists: 0, missing: 0, skipped };
-  for (const path of limited) {
-    const result = await addDroppedPathNow(path);
+  for (const file of limited) {
+    const result = await addDroppedPathNow(file.id);
     summary[result] += 1;
   }
   return summary;
 }
 
-async function addDroppedPathNow(path: string): Promise<"added" | "exists" | "missing"> {
-  const info = await invoke<DroppedPathInfo>("dropped_path_info", { path });
-  if (!info.exists) {
+async function addDroppedPathNow(id: string): Promise<"added" | "exists" | "missing"> {
+  const info = await invoke<BoundShortcut>("bind_dropped_shortcut", { id });
+  if (!info.exists || !info.target) {
     return "missing";
   }
   const type = info.kind === "folder" || info.kind === "app" ? info.kind : "file";
@@ -439,7 +450,7 @@ async function addDroppedPathNow(path: string): Promise<"added" | "exists" | "mi
     .tools.find(
       (tool) =>
         (tool.type === "file" || tool.type === "folder" || tool.type === "app") &&
-        sameLocalPath(tool.target, info.path),
+        sameLocalPath(tool.target, info.target),
     );
   if (existing) {
     return "exists";
@@ -450,7 +461,7 @@ async function addDroppedPathNow(path: string): Promise<"added" | "exists" | "mi
     id: crypto.randomUUID(),
     name,
     type,
-    target: info.path,
+    target: info.target,
     icon: iconForLocalType(type),
     ...(picture ? { iconImage: picture } : {}),
     category: "기타",

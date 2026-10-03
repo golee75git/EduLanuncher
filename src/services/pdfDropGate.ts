@@ -1,7 +1,9 @@
-let held = false;
-let onFiles: ((paths: string[]) => void) | null = null;
+import type { GrantedFile } from "./dropSiteService";
 
-export function holdPdfDrop(handler: (paths: string[]) => void): () => void {
+let held = false;
+let onFiles: ((files: GrantedFile[]) => void) | null = null;
+
+export function holdPdfDrop(handler: (files: GrantedFile[]) => void): () => void {
   held = true;
   onFiles = handler;
   return () => {
@@ -18,14 +20,14 @@ export function isPdfPath(path: string): boolean {
   return /\.pdf$/i.test(path.trim());
 }
 
-export function takePdfFiles(paths: string[]): boolean {
+export function takePdfFiles(files: GrantedFile[]): boolean {
   if (!held || !onFiles) {
     return false;
   }
-  const files = paths.map((path) => path.trim()).filter((path) => isPdfPath(path));
-  if (files.length === 0) {
+  const picked = files.filter((file) => isPdfPath(file.name));
+  if (picked.length === 0) {
     return false;
   }
-  onFiles(files);
+  onFiles(picked);
   return true;
 }

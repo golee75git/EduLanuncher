@@ -18,24 +18,24 @@ export interface PdfMade {
   stopped: boolean;
 }
 
-export function glancePdf(path: string): Promise<PdfGlance> {
-  return invoke<PdfGlance>("pdf_glance", { path });
+export function glancePdf(id: string): Promise<PdfGlance> {
+  return invoke<PdfGlance>("pdf_glance", { id });
 }
 
 export function haltPdf(): Promise<void> {
   return invoke("pdf_halt");
 }
 
-export function mergePdf(paths: string[]): Promise<PdfMade> {
-  return invoke<PdfMade>("pdf_merge", { paths });
+export function mergePdf(ids: string[]): Promise<PdfMade> {
+  return invoke<PdfMade>("pdf_merge", { ids });
 }
 
-export function extractPdf(path: string, pages: number[], each: boolean): Promise<PdfMade> {
-  return invoke<PdfMade>("pdf_extract", { path, pages, each });
+export function extractPdf(id: string, pages: number[], each: boolean): Promise<PdfMade> {
+  return invoke<PdfMade>("pdf_extract", { id, pages, each });
 }
 
-export function arrangePdf(path: string, slots: PdfSlot[]): Promise<PdfMade> {
-  return invoke<PdfMade>("pdf_arrange", { path, slots });
+export function arrangePdf(id: string, slots: PdfSlot[]): Promise<PdfMade> {
+  return invoke<PdfMade>("pdf_arrange", { id, slots });
 }
 
 export function parsePageSpec(text: string, pageCount: number): number[] {

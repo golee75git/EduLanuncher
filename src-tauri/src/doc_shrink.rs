@@ -1,20 +1,30 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use tauri::{AppHandle, Manager};
+
+use crate::path_grant;
 use crate::url_mark::{from_base64, picture_mime};
 
 const MAX_READ_BYTES: u64 = 40 * 1024 * 1024;
 const MAX_WRITE_BYTES: usize = 64 * 1024 * 1024;
 
 #[tauri::command]
-pub fn doc_picture_bytes(path: String) -> Result<u64, String> {
-    let path = PathBuf::from(path.trim());
+fn granted_picture(app: &AppHandle, id: &str) -> Result<PathBuf, String> {
+    let book = app.state::<path_grant::GrantBook>();
+    let path = path_grant::view_read(&book, id).map_err(|text| text.to_string())?;
     if !is_picture_path(&path) {
-        return Err("PNG 또는 JPEG 그림만 넣을 수 있습니다.".into());
+        return Err("그림 파일을 읽지 못했습니다.".into());
     }
-    let meta = fs::metadata(&path).map_err(|_| "그림을 읽지 못했습니다.".to_string())?;
+    Ok(path)
+}
+
+#[tauri::command]
+pub fn doc_picture_bytes(app: AppHandle, id: String) -> Result<u64, String> {
+    let path = granted_picture(&app, &id)?;
+    let meta = fs::metadata(&path).map_err(|_| "그림 파일을 읽지 못했습니다.".to_string())?;
     if !meta.is_file() {
-        return Err("파일이 아닙니다.".into());
+        return Err("그림 파일을 읽지 못했습니다.".into());
     }
     if meta.len() > MAX_READ_BYTES {
         return Err("그림이 너무 큽니다.".into());
@@ -23,13 +33,10 @@ pub fn doc_picture_bytes(path: String) -> Result<u64, String> {
 }
 
 #[tauri::command]
-pub fn plan_doc_save(source: String, mode: String, chosen: String) -> Result<String, String> {
-    let source = PathBuf::from(source.trim());
-    if !is_picture_path(&source) {
-        return Err("PNG 또는 JPEG 그림만 넣을 수 있습니다.".into());
-    }
+pub fn plan_doc_save(app: AppHandle, id: String, mode: String, chosen: String) -> Result<String, String> {
+    let source = granted_picture(&app, &id)?;
     if !source.is_file() {
-        return Err("그림을 읽지 못했습니다.".into());
+        return Err("그림 파일을 읽지 못했습니다.".into());
     }
     let dir = save_dir(&source, mode.trim(), chosen.trim())?;
     let mime = mime_from_path(&source);
@@ -49,9 +56,9 @@ pub fn plan_doc_save(source: String, mode: String, chosen: String) -> Result<Str
 }
 
 #[tauri::command]
-pub fn write_new_picture(path: String, source_path: String, data: String) -> Result<u64, String> {
+pub fn write_new_picture(app: AppHandle, path: String, source_id: String, data: String) -> Result<u64, String> {
     let path = PathBuf::from(path.trim());
-    let source = PathBuf::from(source_path.trim());
+    let source = granted_picture(&app, &source_id)?;
     if paths_same(&source, &path) {
         return Err("원본 파일은 바꾸지 않습니다.".into());
     }

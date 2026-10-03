@@ -6,6 +6,18 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.167-20261003",
+    note: "파일 열기와 끌어다 놓기는 고른 파일만 읽습니다. 화면에는 파일 이름이 보입니다.",
+  },
+  {
+    version: "0.1.166-20261003",
+    note: "Pack, CSV, PNG, 사진 모자이크는 저장 창에서 고른 위치에만 저장합니다.",
+  },
+  {
+    version: "0.1.165-20261003",
+    note: "홈의 인사 세 줄을 빼서 검색창이 제목 바로 아래에 있습니다.",
+  },
+  {
     version: "0.1.164-20261003",
     note: "보안 상태 점검으로 업데이트, 백신, 방화벽, 화면 잠금, 공유 폴더를 확인합니다. 설정은 바꾸지 않습니다.",
   },

@@ -54,7 +54,7 @@ import { findNewerRelease } from "./services/releaseCheckService";
 import { APP_CONFIG } from "./config/app";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { splitDropActions } from "./services/dropActionPick";
-import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut } from "./services/dropSiteService";
+import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut, type GrantedFile } from "./services/dropSiteService";
 import { focusSearchInput } from "./services/focusBus";
 import { dismissMemoNote, hidePanel, openMemoNote, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
@@ -102,9 +102,9 @@ type View =
   | { name: "privacy-scan"; backTo?: View }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
-  | { name: "doc-shrink"; backTo?: View; startPaths?: string[] }
+  | { name: "doc-shrink"; backTo?: View; startFiles?: GrantedFile[] }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
-  | { name: "internal"; id: string; title: string; startPaths?: string[] };
+  | { name: "internal"; id: string; title: string; startFiles?: GrantedFile[] };
 
 function currentWindowLabel(): string {
   try {
@@ -128,12 +128,12 @@ interface MissingState {
 }
 
 interface DropHold {
-  pictures: string[];
-  pdfs: string[];
-  places: { path: string; name: string; place: string }[];
+  pictures: GrantedFile[];
+  pdfs: GrantedFile[];
+  places: { id: string; name: string; place: string }[];
   site: { url: string; name?: string; iconImage?: string } | null;
-  urlFile: string | null;
-  packPath: string | null;
+  urlFile: GrantedFile | null;
+  packFile: GrantedFile | null;
   packText: string | null;
 }
 
@@ -144,7 +144,7 @@ function blankDropHold(): DropHold {
     places: [],
     site: null,
     urlFile: null,
-    packPath: null,
+    packFile: null,
     packText: null,
   };
 }
@@ -156,7 +156,7 @@ function dropHoldOpen(hold: DropHold): boolean {
     hold.places.length > 0 ||
     hold.site !== null ||
     hold.urlFile !== null ||
-    hold.packPath !== null ||
+    hold.packFile !== null ||
     hold.packText !== null
   );
 }
@@ -254,9 +254,9 @@ export default function App() {
   );
 
   const addUrlShortcut = useCallback(
-    async (path: string) => {
+    async (id: string) => {
       try {
-        const shortcut = await readUrlShortcut(path);
+        const shortcut = await readUrlShortcut(id);
         await addSiteUrl(shortcut.url, shortcut.name, shortcut.iconImage);
       } catch (error) {
         toast(error instanceof Error ? error.message : "바로가기를 읽지 못했습니다.");
@@ -267,9 +267,9 @@ export default function App() {
   );
 
   const saveDroppedShortcuts = useCallback(
-    async (paths: string[]) => {
+    async (files: GrantedFile[]) => {
       try {
-        const result = await addDroppedPaths(paths);
+        const result = await addDroppedPaths(files);
         const parts: string[] = [];
         if (result.added === 1) {
           parts.push("바로가기를 넣었습니다.");
@@ -304,8 +304,8 @@ export default function App() {
   }, []);
 
   const addLocalPaths = useCallback(
-    async (paths: string[]) => {
-      const split = splitDropActions(paths);
+    async (files: GrantedFile[]) => {
+      const split = splitDropActions(files);
       let places: DropHold["places"] = [];
       if (split.rest.length > 0) {
         try {
@@ -331,8 +331,8 @@ export default function App() {
   );
 
   const queuePackPath = useCallback(
-    (path: string) => {
-      setDropPick((current) => ({ ...(current ?? blankDropHold()), packPath: path }));
+    (file: GrantedFile) => {
+      setDropPick((current) => ({ ...(current ?? blankDropHold()), packFile: file }));
       void revealDropHold();
     },
     [revealDropHold],
@@ -355,8 +355,8 @@ export default function App() {
   );
 
   const queueUrlFile = useCallback(
-    (path: string) => {
-      setDropPick((current) => ({ ...(current ?? blankDropHold()), urlFile: path }));
+    (file: GrantedFile) => {
+      setDropPick((current) => ({ ...(current ?? blankDropHold()), urlFile: file }));
       void revealDropHold();
     },
     [revealDropHold],
@@ -1059,7 +1059,7 @@ export default function App() {
           ) : null}
           {view.name === "doc-shrink" ? (
             <DocShrinkPage
-              startPaths={view.startPaths}
+              startFiles={view.startFiles}
               onBack={() => setView(view.backTo ?? { name: "computer-tools" })}
             />
           ) : null}
@@ -1082,22 +1082,22 @@ export default function App() {
           {view.name === "internal" && (view.id === "url-mark" || view.id === "tool-url-mark") ? (
             <UrlMarkPage
               title={view.title}
-              startPath={view.startPaths?.[0]}
+              startFile={view.startFiles?.[0]}
               onBack={() => setView({ name: "home" })}
             />
           ) : null}
           {view.name === "internal" && (view.id === "privacy-mask" || view.id === "tool-privacy-mask") ? (
             <PrivacyMaskPage
               title={view.title}
-              startPath={view.startPaths?.[0]}
+              startFile={view.startFiles?.[0]}
               onBack={() => setView({ name: "home" })}
             />
           ) : null}
           {view.name === "internal" && isDocShrinkTarget(view.id) ? (
-            <DocShrinkPage startPaths={view.startPaths} onBack={() => setView({ name: "home" })} />
+            <DocShrinkPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && isPdfPagesTarget(view.id) ? (
-            <PdfToolPage startPaths={view.startPaths} onBack={() => setView({ name: "home" })} />
+            <PdfToolPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && isFolderFindTarget(view.id) ? (
             <PcFolderFindPage onBack={() => setView({ name: "home" })} />
@@ -1262,45 +1262,45 @@ export default function App() {
             places={dropPick.places}
             siteLabel={[
               dropPick.site ? dropPick.site.name || dropPick.site.url : "",
-              dropPick.urlFile ? dropPick.urlFile.split(/[/\\]/).pop() || "사이트" : "",
+              dropPick.urlFile ? dropPick.urlFile.name || "사이트" : "",
             ]
               .filter(Boolean)
               .join(", ")}
             packLabel={
-              dropPick.packPath
-                ? dropPick.packPath.split(/[/\\]/).pop() || "Pack"
+              dropPick.packFile
+                ? dropPick.packFile.name || "Pack"
                 : dropPick.packText
                   ? "Pack"
                   : ""
             }
             onMosaic={() => {
-              const path = dropPick.pictures[0];
-              if (!path) {
+              const file = dropPick.pictures[0];
+              if (!file) {
                 return;
               }
               setDropPick(null);
-              setView({ name: "internal", id: "privacy-mask", title: "사진 모자이크", startPaths: [path] });
+              setView({ name: "internal", id: "privacy-mask", title: "사진 모자이크", startFiles: [file] });
             }}
             onShrink={() => {
-              const paths = dropPick.pictures;
+              const files = dropPick.pictures;
               setDropPick(null);
-              setView({ name: "doc-shrink", backTo: { name: "home" }, startPaths: paths });
+              setView({ name: "doc-shrink", backTo: { name: "home" }, startFiles: files });
             }}
             onQr={() => {
-              const path = dropPick.pictures[0];
-              if (!path) {
+              const file = dropPick.pictures[0];
+              if (!file) {
                 return;
               }
               setDropPick(null);
-              setView({ name: "internal", id: "url-mark", title: "QR코드 넣기", startPaths: [path] });
+              setView({ name: "internal", id: "url-mark", title: "QR코드 넣기", startFiles: [file] });
             }}
             onPdf={() => {
-              const paths = dropPick.pdfs;
+              const files = dropPick.pdfs;
               setDropPick(null);
-              setView({ name: "internal", id: "pdf-pages", title: "PDF 도구", startPaths: paths });
+              setView({ name: "internal", id: "pdf-pages", title: "PDF 도구", startFiles: files });
             }}
             onShortcut={() => {
-              const paths = [...dropPick.pictures, ...dropPick.pdfs];
+              const files = [...dropPick.pictures, ...dropPick.pdfs];
               setDropPick((current) => {
                 if (!current) {
                   return null;
@@ -1308,10 +1308,10 @@ export default function App() {
                 const next = { ...current, pictures: [], pdfs: [] };
                 return dropHoldOpen(next) ? next : null;
               });
-              void saveDroppedShortcuts(paths);
+              void saveDroppedShortcuts(files);
             }}
             onPlaces={() => {
-              const paths = dropPick.places.map((line) => line.path);
+              const files = dropPick.places.map((line) => ({ id: line.id, name: line.name }));
               setDropPick((current) => {
                 if (!current) {
                   return null;
@@ -1319,7 +1319,7 @@ export default function App() {
                 const next = { ...current, places: [] };
                 return dropHoldOpen(next) ? next : null;
               });
-              void saveDroppedShortcuts(paths);
+              void saveDroppedShortcuts(files);
             }}
             onSite={() => {
               const site = dropPick.site;
@@ -1336,23 +1336,23 @@ export default function App() {
                   await addSiteUrl(site.url, site.name, site.iconImage);
                 }
                 if (urlFile) {
-                  await addUrlShortcut(urlFile);
+                  await addUrlShortcut(urlFile.id);
                 }
               })();
             }}
             onPack={() => {
-              const path = dropPick.packPath;
+              const file = dropPick.packFile;
               const text = dropPick.packText;
               setDropPick((current) => {
                 if (!current) {
                   return null;
                 }
-                const next = { ...current, packPath: null, packText: null };
+                const next = { ...current, packFile: null, packText: null };
                 return dropHoldOpen(next) ? next : null;
               });
               void (async () => {
-                if (path) {
-                  await applyPackPath(path);
+                if (file) {
+                  await applyPackPath(file.id);
                 }
                 if (text) {
                   await applyPackText(text);

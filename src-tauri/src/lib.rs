@@ -37,6 +37,7 @@ mod privacy_mask;
 mod privacy_scan;
 mod privacy_folder;
 mod file_desk;
+mod path_grant;
 mod url_mark;
 mod user_folder;
 use doc_shrink::{doc_picture_bytes, plan_doc_save, write_new_picture};
@@ -370,10 +371,19 @@ struct LaunchResult {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct DroppedPathInfo {
-    path: String,
+    id: String,
     exists: bool,
     kind: String,
     name: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct BoundShortcut {
+    name: String,
+    kind: String,
+    target: String,
+    exists: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     icon_image: Option<String>,
 }
@@ -1728,8 +1738,11 @@ fn pack_paths_from(args: impl IntoIterator<Item = String>) -> Vec<String> {
 }
 
 fn emit_pack_paths(app: &AppHandle, paths: &[String]) {
+    let book = app.state::<path_grant::GrantBook>();
     for path in paths {
-        let _ = app.emit("apply-notice-pack", path);
+        if let Ok(id) = path_grant::issue_read(&book, Path::new(path), path_grant::GrantOrigin::Startup) {
+            let _ = app.emit("apply-notice-pack", id);
+        }
     }
 }
 
@@ -1746,27 +1759,40 @@ fn url_paths_from(args: impl IntoIterator<Item = String>) -> Vec<String> {
 }
 
 fn emit_url_paths(app: &AppHandle, paths: &[String]) {
+    let book = app.state::<path_grant::GrantBook>();
     for path in paths {
-        let _ = app.emit("apply-url-shortcut", path);
+        if let Ok(id) = path_grant::issue_read(&book, Path::new(path), path_grant::GrantOrigin::Startup) {
+            let _ = app.emit("apply-url-shortcut", id);
+        }
     }
 }
 
-#[tauri::command]
-fn take_startup_pack_paths(state: tauri::State<StartupPacks>) -> Vec<String> {
-    state
-        .0
-        .lock()
-        .map(|mut pending| std::mem::take(&mut *pending))
-        .unwrap_or_default()
+fn startup_ids(app: &AppHandle, paths: Vec<String>) -> Vec<String> {
+    let book = app.state::<path_grant::GrantBook>();
+    paths
+        .into_iter()
+        .filter_map(|path| path_grant::issue_read(&book, Path::new(&path), path_grant::GrantOrigin::Startup).ok())
+        .collect()
 }
 
 #[tauri::command]
-fn take_startup_url_paths(state: tauri::State<StartupUrls>) -> Vec<String> {
-    state
+fn take_startup_pack_paths(app: AppHandle, state: tauri::State<StartupPacks>) -> Vec<String> {
+    let paths = state
         .0
         .lock()
         .map(|mut pending| std::mem::take(&mut *pending))
-        .unwrap_or_default()
+        .unwrap_or_default();
+    startup_ids(&app, paths)
+}
+
+#[tauri::command]
+fn take_startup_url_paths(app: AppHandle, state: tauri::State<StartupUrls>) -> Vec<String> {
+    let paths = state
+        .0
+        .lock()
+        .map(|mut pending| std::mem::take(&mut *pending))
+        .unwrap_or_default();
+    startup_ids(&app, paths)
 }
 
 #[tauri::command(async)]
@@ -1801,23 +1827,28 @@ fn favicon_for_urls(urls: Vec<String>) -> Vec<Option<String>> {
     }
 }
 
+fn granted_path(app: &AppHandle, id: &str) -> Result<PathBuf, String> {
+    let book = app.state::<path_grant::GrantBook>();
+    path_grant::view_read(&book, id).map_err(|text| text.to_string())
+}
+
 #[tauri::command]
-fn read_bookmark_html(path: String) -> Result<String, String> {
-    let path = PathBuf::from(path);
+fn read_bookmark_html(app: AppHandle, id: String) -> Result<String, String> {
+    let path = granted_path(&app, &id)?;
     let is_html = path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| {
         ext.eq_ignore_ascii_case("html") || ext.eq_ignore_ascii_case("htm")
     });
     if !is_html {
-        return Err("내보낸 즐겨찾기 파일(.html)만 불러올 수 있습니다.".into());
+        return Err("즐겨찾기 파일을 읽지 못했습니다.".into());
     }
-    let meta = fs::metadata(&path).map_err(|err| err.to_string())?;
+    let meta = fs::metadata(&path).map_err(|_| "즐겨찾기 파일을 읽지 못했습니다.".to_string())?;
     if !meta.is_file() {
-        return Err("파일이 아닙니다.".into());
+        return Err("즐겨찾기 파일을 읽지 못했습니다.".into());
     }
     if meta.len() > 8 * 1024 * 1024 {
         return Err("파일이 너무 큽니다.".into());
     }
-    let bytes = fs::read(&path).map_err(|err| err.to_string())?;
+    let bytes = fs::read(&path).map_err(|_| "즐겨찾기 파일을 읽지 못했습니다.".to_string())?;
     let bytes = bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(&bytes);
     Ok(String::from_utf8_lossy(bytes).into_owned())
 }
@@ -1853,35 +1884,34 @@ fn read_open_source_notices(window: tauri::WebviewWindow, app: AppHandle) -> Res
 }
 
 #[tauri::command]
-fn read_json_file(path: String) -> Result<String, String> {
-    let path = PathBuf::from(path);
+fn read_json_file(app: AppHandle, id: String) -> Result<String, String> {
+    let path = granted_path(&app, &id)?;
     if !is_pack_file(&path) {
-        return Err("Pack 파일(.edupack)만 가져올 수 있습니다.".into());
+        return Err("Pack 파일을 읽지 못했습니다.".into());
     }
-    let meta = fs::metadata(&path).map_err(|err| err.to_string())?;
+    let meta = fs::metadata(&path).map_err(|_| "Pack 파일을 읽지 못했습니다.".to_string())?;
     if meta.len() > 256 * 1024 {
         return Err("파일이 너무 큽니다.".into());
     }
-    fs::read_to_string(&path).map_err(|err| err.to_string())
+    fs::read_to_string(&path).map_err(|_| "Pack 파일을 읽지 못했습니다.".to_string())
 }
 
 #[tauri::command]
-fn read_url_shortcut(path: String) -> Result<UrlShortcut, String> {
-    let path = PathBuf::from(path);
+fn read_url_shortcut(app: AppHandle, id: String) -> Result<UrlShortcut, String> {
+    let path = granted_path(&app, &id)?;
     if !is_url_shortcut_file(&path) {
-        return Err("인터넷 바로가기(.url)만 넣을 수 있습니다.".into());
+        return Err("바로가기 파일을 읽지 못했습니다.".into());
     }
-    let meta = fs::metadata(&path).map_err(|err| err.to_string())?;
+    let meta = fs::metadata(&path).map_err(|_| "바로가기 파일을 읽지 못했습니다.".to_string())?;
     if !meta.is_file() {
-        return Err("파일이 아닙니다.".into());
+        return Err("바로가기 파일을 읽지 못했습니다.".into());
     }
     if meta.len() > 16 * 1024 {
         return Err("파일이 너무 큽니다.".into());
     }
-    let bytes = fs::read(&path).map_err(|err| err.to_string())?;
+    let bytes = fs::read(&path).map_err(|_| "바로가기 파일을 읽지 못했습니다.".to_string())?;
     let contents = decode_shortcut_bytes(&bytes);
-    let url = parse_url_from_shortcut(&contents)
-        .ok_or_else(|| "주소가 없거나 http(s)가 아닙니다.".to_string())?;
+    let url = parse_url_from_shortcut(&contents).ok_or_else(|| "바로가기 파일을 읽지 못했습니다.".to_string())?;
     let icon_image = shortcut_body_icon(&contents)
         .or_else(|| favicon_for_url(url.clone()))
         .or_else(|| local_file_icon(&path));
@@ -1893,34 +1923,57 @@ fn read_url_shortcut(path: String) -> Result<UrlShortcut, String> {
 }
 
 #[tauri::command]
-fn dropped_path_info(path: String) -> Result<DroppedPathInfo, String> {
-    let trimmed = path.trim();
-    if trimmed.is_empty() || trimmed.len() > 4096 || trimmed.contains('\0') {
-        return Err("경로가 올바르지 않습니다.".into());
+fn dropped_path_info(app: AppHandle, id: String) -> Result<DroppedPathInfo, String> {
+    let dropped = granted_path(&app, &id)?;
+    let name = shortcut::display_stem(&dropped);
+    match fs::metadata(&dropped) {
+        Ok(meta) => {
+            let (kind, _target) = classify_dropped_path(&dropped, meta.is_dir());
+            Ok(DroppedPathInfo {
+                id,
+                exists: true,
+                kind,
+                name,
+            })
+        }
+        Err(_) => Ok(DroppedPathInfo {
+            id,
+            exists: false,
+            kind: "file".into(),
+            name,
+        }),
     }
-    if is_http_url(trimmed) {
-        return Err("주소는 사이트 바로가기로 넣습니다.".into());
-    }
-    let dropped = PathBuf::from(trimmed);
+}
+
+#[tauri::command]
+fn bind_dropped_shortcut(app: AppHandle, id: String) -> Result<BoundShortcut, String> {
+    let dropped = granted_path(&app, &id)?;
     let name = shortcut::display_stem(&dropped);
     match fs::metadata(&dropped) {
         Ok(meta) => {
             let (kind, target) = classify_dropped_path(&dropped, meta.is_dir());
-            Ok(DroppedPathInfo {
-                path: target,
-                exists: true,
-                kind,
+            Ok(BoundShortcut {
                 name,
+                kind,
+                target,
+                exists: true,
                 icon_image: local_file_icon(&dropped),
             })
         }
-        Err(_) => Ok(DroppedPathInfo {
-            path: trimmed.to_string(),
-            exists: false,
-            kind: "file".into(),
+        Err(_) => Ok(BoundShortcut {
             name,
+            kind: "file".into(),
+            target: String::new(),
+            exists: false,
             icon_image: None,
         }),
+    }
+}
+
+pub(crate) fn dropped_kind(path: &Path) -> String {
+    match fs::metadata(path) {
+        Ok(meta) => classify_dropped_path(path, meta.is_dir()).0,
+        Err(_) => "file".into(),
     }
 }
 
@@ -1949,35 +2002,26 @@ fn classify_dropped_path(dropped: &Path, is_dir: bool) -> (String, String) {
 }
 
 #[tauri::command]
-fn write_json_file(path: String, contents: String) -> Result<(), String> {
-    let path = PathBuf::from(path);
-    if !is_pack_file(&path) {
-        return Err("Pack 파일(.edupack)만 저장할 수 있습니다.".into());
+fn write_json_file(app: AppHandle, window: tauri::WebviewWindow, id: String, contents: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 저장할 수 없습니다.".into());
     }
-    if contents.len() > 256 * 1024 {
-        return Err("내용이 너무 큽니다.".into());
-    }
-    fs::write(&path, contents).map_err(|err| err.to_string())
-}
-
-fn is_csv_path(path: &Path) -> bool {
-    path.extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("csv"))
+    let book = app.state::<path_grant::GrantBook>();
+    path_grant::write_text(&book, &id, &["json", "edupack"], &contents, 256 * 1024).map_err(|text| text.to_string())
 }
 
 #[tauri::command]
-fn write_csv_file(path: String, contents: String) -> Result<(), String> {
-    let path = PathBuf::from(path);
-    if !is_csv_path(&path) {
-        return Err("CSV 파일만 저장할 수 있습니다.".into());
+fn write_csv_file(app: AppHandle, window: tauri::WebviewWindow, id: String, contents: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 저장할 수 없습니다.".into());
     }
     if contents.len() > 512 * 1024 {
         return Err("내용이 너무 큽니다.".into());
     }
     let mut bytes = vec![0xEF, 0xBB, 0xBF];
     bytes.extend_from_slice(contents.as_bytes());
-    fs::write(&path, bytes).map_err(|err| err.to_string())
+    let book = app.state::<path_grant::GrantBook>();
+    path_grant::write_bytes(&book, &id, &["csv"], &bytes, 512 * 1024 + 3).map_err(|text| text.to_string())
 }
 
 #[tauri::command]
@@ -2110,6 +2154,8 @@ struct PcUrlItem {
     folder: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     path: Option<String>,
+    #[serde(rename = "iconImage", skip_serializing_if = "Option::is_none")]
+    icon_image: Option<String>,
 }
 
 fn favorites_dir() -> Result<PathBuf, String> {
@@ -2191,11 +2237,13 @@ fn collect_pc_urls(root: &Path, dir: &Path, depth: u32, out: &mut Vec<PcUrlItem>
             continue;
         };
         let folder = join_folder("Windows", &relative_folder(root, &path));
+        let icon_image = shortcut_body_icon(&contents).or_else(|| local_file_icon(&path));
         out.push(PcUrlItem {
             name: shortcut_display_name(&path, &url),
             url,
             folder,
-            path: Some(path.to_string_lossy().into_owned()),
+            path: None,
+            icon_image,
         });
     }
 }
@@ -2257,6 +2305,7 @@ fn collect_json_urls(value: &serde_json::Value, folder: &str, out: &mut Vec<PcUr
                             folder.to_string()
                         },
                         path: None,
+                        icon_image: None,
                     });
                 }
                 return;
@@ -2414,6 +2463,7 @@ pub fn run() {
         })))
         .manage(NoteDrafts(Mutex::new(HashMap::new())))
         .manage(file_desk::FileDesk::new())
+        .manage(path_grant::GrantBook::new())
         .invoke_handler(tauri::generate_handler![
             file_desk::privacy_enter,
             file_desk::privacy_leave,
@@ -2454,6 +2504,9 @@ pub fn run() {
             read_json_file,
             read_url_shortcut,
             dropped_path_info,
+            bind_dropped_shortcut,
+            path_grant::pick_save_file,
+            path_grant::pick_open_files,
             write_json_file,
             write_csv_file,
             build_url_mark,

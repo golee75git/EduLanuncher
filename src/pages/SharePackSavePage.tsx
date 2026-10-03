@@ -1,7 +1,7 @@
-import { save } from "@tauri-apps/plugin-dialog";
 import { ArrowLeft } from "lucide-react";
 import { useMemo, useState } from "react";
 import { noticeKindOf, writeJsonFile } from "../services/noticePackService";
+import { pickSaveFile } from "../services/savePick";
 import { buildSharePack } from "../services/sharePackService";
 import { useNoticeStore } from "../stores/noticeStore";
 import { useToolStore } from "../stores/toolStore";
@@ -174,18 +174,11 @@ export function SharePackSavePage({ onBack }: SharePackSavePageProps) {
               setMessage("");
               try {
                 const pack = buildSharePack(packName, chosenNotices, chosenSites);
-                const selected = await save({
-                  defaultPath: "notice-site-pack.edupack",
-                  filters: [
-                    { name: "Pack", extensions: ["edupack"] },
-                    { name: "JSON", extensions: ["json"] },
-                  ],
-                });
-                if (typeof selected !== "string") {
+                const picked = await pickSaveFile("pack", "notice-site-pack.edupack");
+                if (!picked) {
                   return;
                 }
-                const path = /\.(edupack|json)$/i.test(selected) ? selected : `${selected}.edupack`;
-                await writeJsonFile(path, `${JSON.stringify(pack, null, 2)}\n`);
+                await writeJsonFile(picked.id, `${JSON.stringify(pack, null, 2)}\n`);
                 setMessage(
                   `공지 ${pack.notices.length}건, 사이트 ${pack.tools.length}개를 저장했습니다.`,
                 );

@@ -38,8 +38,8 @@ export async function haltRangeCheck(): Promise<void> {
   await invoke("halt_range_check");
 }
 
-export async function writeCsvFile(path: string, contents: string): Promise<void> {
-  await invoke("write_csv_file", { path, contents });
+export async function writeCsvFile(id: string, contents: string): Promise<void> {
+  await invoke("write_csv_file", { id, contents });
 }
 
 export function hostsToCsv(hits: HostHit[], firstHost?: string, lastHost?: string): string {

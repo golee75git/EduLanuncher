@@ -1,8 +1,10 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use serde::Serialize;
+use tauri::{AppHandle, Manager, WebviewWindow};
 
+use crate::path_grant;
 use crate::url_mark::{from_base64, picture_mime, to_base64};
 
 const MAX_READ_BYTES: u64 = 40 * 1024 * 1024;
@@ -10,36 +12,49 @@ const MAX_WRITE_BYTES: usize = 64 * 1024 * 1024;
 
 #[derive(Serialize)]
 pub struct PrivacyPicture {
+    pub id: String,
     pub mime: String,
     pub data: String,
 }
 
 #[tauri::command]
-pub fn read_privacy_picture(path: String) -> Result<PrivacyPicture, String> {
-    let path = PathBuf::from(path.trim());
+pub fn read_privacy_picture(app: AppHandle, id: String) -> Result<PrivacyPicture, String> {
+    let book = app.state::<path_grant::GrantBook>();
+    let path = path_grant::view_read(&book, &id).map_err(|text| text.to_string())?;
     if !is_picture_path(&path) {
-        return Err("PNG 또는 JPEG 그림만 고를 수 있습니다.".into());
+        return Err("그림 파일을 읽지 못했습니다.".into());
     }
-    let meta = fs::metadata(&path).map_err(|_| "그림을 읽지 못했습니다.".to_string())?;
+    let meta = fs::metadata(&path).map_err(|_| "그림 파일을 읽지 못했습니다.".to_string())?;
     if !meta.is_file() {
-        return Err("파일이 아닙니다.".into());
+        return Err("그림 파일을 읽지 못했습니다.".into());
     }
     if meta.len() > MAX_READ_BYTES {
         return Err("그림이 너무 큽니다.".into());
     }
-    let bytes = fs::read(&path).map_err(|_| "그림을 읽지 못했습니다.".to_string())?;
-    let mime = picture_mime(&bytes).ok_or_else(|| "그림 형식이 올바르지 않습니다.".to_string())?;
+    let bytes = fs::read(&path).map_err(|_| "그림 파일을 읽지 못했습니다.".to_string())?;
+    let mime = picture_mime(&bytes).ok_or_else(|| "그림 파일을 읽지 못했습니다.".to_string())?;
     Ok(PrivacyPicture {
+        id,
         mime: mime.into(),
         data: to_base64(&bytes),
     })
 }
 
 #[tauri::command]
-pub fn write_privacy_picture(path: String, source_path: String, data: String) -> Result<(), String> {
-    let path = PathBuf::from(path.trim());
-    let source = PathBuf::from(source_path.trim());
-    if paths_same(&source, &path) {
+pub fn write_privacy_picture(
+    app: AppHandle,
+    window: WebviewWindow,
+    read_id: String,
+    write_id: String,
+    data: String,
+) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 저장할 수 없습니다.".into());
+    }
+    let book = app.state::<path_grant::GrantBook>();
+    let source = path_grant::view_read(&book, &read_id).map_err(|text| text.to_string())?;
+    let path = path_grant::view_write(&book, &write_id, &["png", "jpg", "jpeg"]).map_err(|text| text.to_string())?;
+    if path_grant::same_place(&source, &path) {
         return Err("원본 파일은 바꾸지 않습니다. 다른 이름으로 저장하세요.".into());
     }
     let bytes = from_base64(&data)?;
@@ -55,7 +70,9 @@ pub fn write_privacy_picture(path: String, source_path: String, data: String) ->
             return Err("저장할 폴더가 없습니다.".into());
         }
     }
-    fs::write(&path, bytes).map_err(|_| "저장하지 못했습니다.".to_string())
+    fs::write(&path, &bytes).map_err(|_| "저장하지 못했습니다.".to_string())?;
+    path_grant::spend(&book, &write_id);
+    Ok(())
 }
 
 fn is_picture_path(path: &Path) -> bool {
@@ -90,24 +107,3 @@ fn extension(path: &Path) -> Option<&str> {
         .filter(|ext| !ext.is_empty())
 }
 
-fn paths_same(source: &Path, dest: &Path) -> bool {
-    if path_key(source) == path_key(dest) {
-        return true;
-    }
-    let Ok(source_canon) = fs::canonicalize(source) else {
-        return false;
-    };
-    if path_key(&source_canon) == path_key(dest) {
-        return true;
-    }
-    fs::canonicalize(dest)
-        .map(|dest_canon| dest_canon == source_canon)
-        .unwrap_or(false)
-}
-
-fn path_key(path: &Path) -> String {
-    path.to_string_lossy()
-        .replace('/', "\\")
-        .trim_end_matches('\\')
-        .to_lowercase()
-}

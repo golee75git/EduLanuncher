@@ -71,16 +71,16 @@ export function formatByteSize(bytes: number): string {
   return `${bytes} B`;
 }
 
-export async function readDocByteSize(path: string): Promise<number> {
-  return invoke<number>("doc_picture_bytes", { path });
+export async function readDocByteSize(id: string): Promise<number> {
+  return invoke<number>("doc_picture_bytes", { id });
 }
 
-export async function planDocSave(source: string, mode: DocSaveMode, chosen: string): Promise<string> {
-  return invoke<string>("plan_doc_save", { source, mode, chosen });
+export async function planDocSave(id: string, mode: DocSaveMode, chosen: string): Promise<string> {
+  return invoke<string>("plan_doc_save", { id, mode, chosen });
 }
 
 export async function shrinkOnePicture(
-  sourcePath: string,
+  sourceId: string,
   preset: DocPreset,
   mode: DocSaveMode,
   chosen: string,
@@ -94,8 +94,8 @@ export async function shrinkOnePicture(
   afterHeight: number;
   note: string;
 }> {
-  const file = await invoke<{ mime: string; data: string }>("read_privacy_picture", { path: sourcePath });
-  const sourceBytes = await readDocByteSize(sourcePath);
+  const file = await invoke<{ mime: string; data: string }>("read_privacy_picture", { id: sourceId });
+  const sourceBytes = await readDocByteSize(sourceId);
   const bytes = bytesFromBase64(file.data);
   const blob = new Blob([copyBuffer(bytes)], { type: file.mime });
   const url = URL.createObjectURL(blob);
@@ -124,10 +124,10 @@ export async function shrinkOnePicture(
         note: "용량이 줄지 않아 새 파일을 만들지 않았습니다.",
       };
     }
-    const outPath = await planDocSave(sourcePath, mode, chosen);
+    const outPath = await planDocSave(sourceId, mode, chosen);
     const written = await invoke<number>("write_new_picture", {
       path: outPath,
-      sourcePath,
+      sourceId,
       data: await blobToBase64(output),
     });
     return {

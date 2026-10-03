@@ -61,6 +61,7 @@ pub struct FileDesk {
     folder_summary: Mutex<FolderSummary>,
     choice: Mutex<Option<FolderChoice>>,
     flags: Mutex<Vec<Arc<AtomicBool>>>,
+    grants: crate::path_grant::GrantBook,
 }
 
 impl FileDesk {
@@ -75,6 +76,7 @@ impl FileDesk {
             folder_summary: Mutex::new(FolderSummary::default()),
             choice: Mutex::new(None),
             flags: Mutex::new(Vec::new()),
+            grants: crate::path_grant::GrantBook::new(),
         }
     }
 }
@@ -301,9 +303,19 @@ impl FileDesk {
         if !meta.is_file() {
             return Insert::Skip;
         }
-        let id = fresh_id(&items);
         let name = display_name(path);
         let ext = extension_of(path);
+        let id = match self.grants.issue(
+            crate::path_grant::GrantUse::PrivacyScan,
+            path,
+            &name,
+            &ext,
+            crate::path_grant::GrantOrigin::Dialog,
+        ) {
+            Ok(id) => id,
+            Err("full") => return Insert::Full,
+            Err(_) => return Insert::Skip,
+        };
         items.push(Held {
             id,
             path: path.to_path_buf(),
@@ -322,7 +334,9 @@ impl FileDesk {
 
     fn clear_items(&self) {
         if let Ok(mut items) = self.items.lock() {
+            let ids: Vec<u64> = items.iter().map(|item| item.id).collect();
             items.clear();
+            self.grants.forget(&ids);
         }
     }
 

@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use serde::Serialize;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -22,15 +20,19 @@ impl OrgFlags {
     }
 }
 
-static TEST_FLAGS: Mutex<Option<OrgFlags>> = Mutex::new(None);
+#[cfg(test)]
+thread_local! {
+    static TEST_FLAGS: std::cell::Cell<Option<OrgFlags>> = const { std::cell::Cell::new(None) };
+}
 
 pub fn dword_blocks(value: Option<u32>) -> bool {
     value == Some(1)
 }
 
 pub fn current() -> OrgFlags {
-    if let Ok(guard) = TEST_FLAGS.lock() {
-        if let Some(flags) = *guard {
+    #[cfg(test)]
+    {
+        if let Some(flags) = TEST_FLAGS.with(|slot| slot.get()) {
             return flags;
         }
     }
@@ -55,9 +57,7 @@ pub fn startup_knowledge_blocked() -> bool {
 
 #[cfg(test)]
 pub fn set_test_flags(flags: Option<OrgFlags>) {
-    if let Ok(mut guard) = TEST_FLAGS.lock() {
-        *guard = flags;
-    }
+    TEST_FLAGS.with(|slot| slot.set(flags));
 }
 
 fn read_machine() -> OrgFlags {

@@ -69,8 +69,6 @@ html[data-skin="dusk"] {
   --home-card-radius: 12px;
   --home-star: var(--color-ink);
   --home-dot-display: none;
-  --home-greet-sun: var(--color-quiet);
-  --home-sun-display: none;
   --home-date-bg: transparent;
   --home-date-fg: var(--color-quiet);
   --home-date-pad: 0px;
@@ -109,8 +107,6 @@ html[data-skin="teal"] {
   --home-card-radius: 14px;
   --home-star: #e2a21a;
   --home-dot-display: inline-block;
-  --home-greet-sun: #d98a0b;
-  --home-sun-display: inline-flex;
   --home-date-bg: var(--color-card);
   --home-date-fg: var(--home-link);
   --home-date-pad: 10px;
@@ -165,8 +161,6 @@ html[data-skin="teal-dark"] {
   --home-card-radius: 14px;
   --home-star: #e2a21a;
   --home-dot-display: inline-block;
-  --home-greet-sun: #e3a33a;
-  --home-sun-display: inline-flex;
   --home-date-bg: var(--color-card);
   --home-date-fg: var(--home-link);
   --home-date-pad: 10px;
@@ -217,11 +211,6 @@ html[data-skin="teal-dark"] {
   border-radius: var(--home-date-radius);
   padding-left: var(--home-date-pad);
   padding-right: var(--home-date-pad);
-}
-
-.home-sun {
-  display: var(--home-sun-display);
-  color: var(--home-greet-sun);
 }
 
 .home-dot {

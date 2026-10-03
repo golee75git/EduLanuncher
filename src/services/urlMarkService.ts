@@ -14,12 +14,12 @@ export async function buildUrlMark(url: string): Promise<UrlMarkGrid> {
   return invoke<UrlMarkGrid>("build_url_mark", { url });
 }
 
-export async function readPictureFile(path: string): Promise<PictureFile> {
-  return invoke<PictureFile>("read_picture_file", { path });
+export async function readPictureFile(id: string): Promise<PictureFile> {
+  return invoke<PictureFile>("read_picture_file", { id });
 }
 
-export async function writePngFile(path: string, data: string): Promise<void> {
-  await invoke("write_png_file", { path, data });
+export async function writePngFile(id: string, data: string): Promise<void> {
+  await invoke("write_png_file", { id, data });
 }
 
 export function pictureSrc(file: PictureFile): string {

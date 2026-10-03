@@ -252,6 +252,26 @@ pub fn known_roots() -> Vec<String> {
 }
 
 #[cfg(windows)]
+pub fn save_deny_roots() -> Vec<String> {
+    use windows::Win32::System::Com::CoTaskMemFree;
+    use windows::Win32::UI::Shell::{
+        FOLDERID_ProgramData, FOLDERID_ProgramFiles, FOLDERID_ProgramFilesX86, FOLDERID_Windows, KNOWN_FOLDER_FLAG,
+    };
+    let ids = [
+        &FOLDERID_Windows,
+        &FOLDERID_ProgramFiles,
+        &FOLDERID_ProgramFilesX86,
+        &FOLDERID_ProgramData,
+    ];
+    ids.iter().filter_map(|id| unsafe { known_string(id, KNOWN_FOLDER_FLAG(0), CoTaskMemFree) }).collect()
+}
+
+#[cfg(not(windows))]
+pub fn save_deny_roots() -> Vec<String> {
+    Vec::new()
+}
+
+#[cfg(windows)]
 unsafe fn known_string(
     id: &windows_core::GUID,
     flag: windows::Win32::UI::Shell::KNOWN_FOLDER_FLAG,

@@ -5,14 +5,12 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { isPackPath } from "../services/applyNoticePack";
 import {
-  droppedFilePath,
-  extractDroppedLocalPaths,
   httpUrlFromDataTransfer,
   isDroppableDrag,
   isUrlShortcutPath,
-  normalizeLocalPathKey,
   parseInternetShortcut,
   pickDroppedSiteName,
+  type GrantedFile,
 } from "../services/dropSiteService";
 import { privacyDropHeld, takePrivacyPicture } from "../services/privacyDropGate";
 import { docDropHeld, isDocPicturePath, takeDocPictures } from "../services/docDropGate";
@@ -20,11 +18,11 @@ import { isPdfPath, pdfDropHeld, takePdfFiles } from "../services/pdfDropGate";
 
 interface DropZoneProps {
   children: ReactNode;
-  onPackFile: (path: string) => void;
+  onPackFile: (file: GrantedFile) => void;
   onPackText: (contents: string) => void;
   onSiteUrl: (url: string, name?: string, iconImage?: string) => void;
-  onUrlShortcut: (path: string) => void;
-  onLocalPaths: (paths: string[]) => void;
+  onUrlShortcut: (file: GrantedFile) => void;
+  onLocalPaths: (files: GrantedFile[]) => void;
   onDropUnreadable?: (formats: string[]) => void;
   holdDrops?: boolean;
 }
@@ -41,21 +39,13 @@ function acceptOnce(key: string): boolean {
   return true;
 }
 
-function takeLocalPaths(paths: string[]): string[] {
-  const unique: string[] = [];
-  for (const path of paths) {
-    const trimmed = path.trim();
-    if (!trimmed) {
+function takeLocalFiles(files: GrantedFile[]): GrantedFile[] {
+  const unique: GrantedFile[] = [];
+  for (const file of files) {
+    if (!file.id || unique.some((item) => item.id === file.id) || !acceptOnce(`local:${file.id}`)) {
       continue;
     }
-    const key = `local:${normalizeLocalPathKey(trimmed)}`;
-    if (!acceptOnce(key)) {
-      continue;
-    }
-    if (unique.some((item) => normalizeLocalPathKey(item) === normalizeLocalPathKey(trimmed))) {
-      continue;
-    }
-    unique.push(trimmed);
+    unique.push(file);
   }
   return unique;
 }
@@ -91,89 +81,71 @@ export function DropZone({
   };
 
   useEffect(() => {
-    const applySpecialPath = (path: string): boolean => {
-      if (/^https?:\/\//i.test(path)) {
-        window.setTimeout(() => {
-          callbacks.current.onSiteUrl(path);
-        }, 250);
-        return true;
-      }
-      if (isPackPath(path)) {
-        if (acceptOnce(`pack:${path}`)) {
-          callbacks.current.onPackFile(path);
+    const applyGranted = (file: GrantedFile): boolean => {
+      if (isPackPath(file.name)) {
+        if (acceptOnce(`pack:${file.id}`)) {
+          callbacks.current.onPackFile(file);
         }
         return true;
       }
-      if (isUrlShortcutPath(path)) {
+      if (isUrlShortcutPath(file.name)) {
         window.setTimeout(() => {
-          callbacks.current.onUrlShortcut(path);
+          callbacks.current.onUrlShortcut(file);
         }, 250);
         return true;
       }
       return false;
     };
 
-    const emitLocalPaths = (paths: string[]) => {
-      const unique = takeLocalPaths(paths);
+    const emitLocalFiles = (files: GrantedFile[]) => {
+      const unique = takeLocalFiles(files);
       if (unique.length) {
         callbacks.current.onLocalPaths(unique);
       }
     };
 
-    const applyNativePaths = (paths: string[]) => {
-      if (takePdfFiles(paths)) {
-        const rest = paths.filter((path) => !isPdfPath(path));
+    const applyNativeFiles = (files: GrantedFile[]) => {
+      let rest = files;
+      if (takePdfFiles(rest)) {
+        rest = rest.filter((file) => !isPdfPath(file.name));
         if (rest.length === 0) {
           return;
         }
-        paths = rest;
       }
-      if (takeDocPictures(paths)) {
-        const rest = paths.filter((path) => !isDocPicturePath(path));
+      if (takeDocPictures(rest)) {
+        rest = rest.filter((file) => !isDocPicturePath(file.name));
         if (rest.length === 0) {
           return;
         }
-        paths = rest;
       }
-      const local: string[] = [];
-      for (const path of paths) {
-        if (takePrivacyPicture(path)) {
+      const local: GrantedFile[] = [];
+      for (const file of rest) {
+        if (takePrivacyPicture(file)) {
           continue;
         }
-        if (!applySpecialPath(path)) {
-          local.push(path);
+        if (!applyGranted(file)) {
+          local.push(file);
         }
       }
       if (local.length) {
-        emitLocalPaths(local);
+        emitLocalFiles(local);
       }
     };
 
     const applyHtmlDrop = async (transfer: DataTransfer) => {
       const meta = httpUrlFromDataTransfer(transfer);
       const files = Array.from(transfer.files);
-      const localPaths: string[] = [];
-      const docPaths: string[] = [];
-      const pdfPaths: string[] = [];
-      let handled = false;
+      let handledFile = false;
       for (const file of files) {
-        const path = droppedFilePath(file);
-        const label = path || file.name;
+        const label = file.name;
         if (isPackPath(label)) {
-          if (path && isPackPath(path)) {
-            applySpecialPath(path);
-          } else if (acceptOnce(`pack-text:${file.name}:${file.size}`)) {
+          if (acceptOnce(`pack-text:${file.name}:${file.size}`)) {
             callbacks.current.onPackText(await file.text());
           }
-          handled = true;
+          handledFile = true;
           continue;
         }
         if (isUrlShortcutPath(label)) {
-          if (path && isUrlShortcutPath(path)) {
-            callbacks.current.onUrlShortcut(path);
-            handled = true;
-            continue;
-          }
           let url: string | undefined;
           let fileTitle: string | undefined;
           try {
@@ -192,75 +164,15 @@ export function DropZone({
               meta?.iconImage,
             );
           }
-          handled = true;
-          continue;
-        }
-        if (path && pdfDropHeld() && isPdfPath(path)) {
-          handled = true;
-          pdfPaths.push(path);
-          continue;
-        }
-        if (path && docDropHeld() && isDocPicturePath(path)) {
-          handled = true;
-          docPaths.push(path);
-          continue;
-        }
-        if (path && takePrivacyPicture(path)) {
-          handled = true;
-          continue;
-        }
-        if (path) {
-          localPaths.push(path);
-          handled = true;
+          handledFile = true;
         }
       }
-      const listed = extractDroppedLocalPaths(
-        [
-          transfer.getData("text/uri-list"),
-          transfer.getData("text/plain"),
-          transfer.getData("text/x-moz-url"),
-        ].join("\n"),
-      );
-      for (const listedPath of listed) {
-        if (pdfDropHeld() && isPdfPath(listedPath)) {
-          handled = true;
-          pdfPaths.push(listedPath);
-          continue;
-        }
-        if (docDropHeld() && isDocPicturePath(listedPath)) {
-          handled = true;
-          docPaths.push(listedPath);
-          continue;
-        }
-        if (takePrivacyPicture(listedPath)) {
-          handled = true;
-          continue;
-        }
-        if (!localPaths.some((item) => normalizeLocalPathKey(item) === normalizeLocalPathKey(listedPath))) {
-          localPaths.push(listedPath);
-          handled = true;
-        }
-      }
-      if (pdfPaths.length) {
-        takePdfFiles(pdfPaths);
-      }
-      if (docPaths.length) {
-        takeDocPictures(docPaths);
-      }
-      if (localPaths.length) {
-        emitLocalPaths(localPaths);
-        return;
-      }
-      if (!handled && meta) {
+      if (meta && !handledFile) {
         callbacks.current.onSiteUrl(
           meta.url,
           pickDroppedSiteName(meta.url, meta.name),
           meta.iconImage,
         );
-        return;
-      }
-      if (handled && meta?.url && meta.name) {
-        callbacks.current.onSiteUrl(meta.url, meta.name, meta.iconImage);
       }
     };
 
@@ -311,9 +223,6 @@ export function DropZone({
           return;
         }
         setActive(false);
-        if (event.payload.type === "drop") {
-          applyNativePaths(event.payload.paths);
-        }
       };
       try {
         unlistens.push(await getCurrentWindow().onDragDropEvent(handle));
@@ -345,7 +254,7 @@ export function DropZone({
         unlistens.push(
           await listen<{
             type: string;
-            paths?: string[];
+            files?: GrantedFile[];
             url?: string;
             name?: string;
             iconImage?: string;
@@ -368,8 +277,8 @@ export function DropZone({
                 );
                 return;
               }
-              if (event.payload.paths?.length) {
-                applyNativePaths(event.payload.paths);
+              if (event.payload.type === "files" && event.payload.files?.length) {
+                applyNativeFiles(event.payload.files);
               }
             },
           ),
