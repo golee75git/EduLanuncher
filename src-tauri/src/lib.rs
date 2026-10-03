@@ -25,6 +25,8 @@ mod knowledge_sign;
 mod printcheck;
 mod pdf_pages;
 mod admin_tools;
+mod org_policy;
+mod index_key;
 mod netutil;
 mod shortcut;
 mod privacy_mask;
@@ -1987,7 +1989,15 @@ fn lookup_public_ipv4() -> Result<String, String> {
 
 #[tauri::command]
 fn latest_release_tag() -> Result<String, String> {
+    if org_policy::startup_update_blocked() {
+        return Err("관리자가 설정함".to_string());
+    }
     netutil::latest_release_tag()
+}
+
+#[tauri::command]
+fn org_policy_flags() -> org_policy::OrgFlags {
+    org_policy::current()
 }
 
 fn admin_dir(app: &AppHandle) -> Result<PathBuf, String> {
@@ -2008,6 +2018,9 @@ fn admin_tools_query(app: AppHandle, window: tauri::WebviewWindow) -> Result<boo
 fn admin_tools_enable(app: AppHandle, window: tauri::WebviewWindow) -> Result<(), String> {
     if window.label() != "main" {
         return Err("denied".into());
+    }
+    if org_policy::admin_tools_blocked() {
+        return Err("관리자가 설정함".into());
     }
     admin_tools::write_enabled(&admin_dir(&app)?, true)
 }
@@ -2479,6 +2492,7 @@ pub fn run() {
             printcheck::halt_pc_print,
             printcheck::open_print_view,
             latest_release_tag,
+            org_policy_flags,
             knowledge_sign::verified_knowledge,
             knowledge_sign::refresh_verified_knowledge,
             scan_ipv4_range,
@@ -2494,6 +2508,7 @@ pub fn run() {
             setup_autostart(app);
             setup_edupack_association();
             setup_send_to_link();
+            document_search::boot(app.handle());
             let _ = app.global_shortcut().register("Ctrl+Alt+E");
             Ok(())
         })

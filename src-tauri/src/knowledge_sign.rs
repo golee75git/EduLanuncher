@@ -93,6 +93,9 @@ pub fn verified_knowledge(app: AppHandle) -> KnowledgeView {
 #[tauri::command]
 pub fn refresh_verified_knowledge(app: AppHandle) -> KnowledgeView {
     let dir = cache_dir(&app);
+    if crate::org_policy::startup_knowledge_blocked() {
+        return cache_view(&dir).map(|hit| hit.view).unwrap_or_else(empty_view);
+    }
     let cached = cache_view(&dir);
     let _ = pull_remote(&dir, cached.as_ref().map(|hit| hit.serial), &public_points(), https_get);
     cache_view(&dir).map(|hit| hit.view).unwrap_or_else(empty_view)

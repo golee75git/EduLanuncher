@@ -198,6 +198,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const [folderHits, setFolderHits] = useState<UserFolderHit[]>([]);
   const [folderBusy, setFolderBusy] = useState(false);
   const [docHits, setDocHits] = useState<DocHit[]>([]);
+  const [docHint, setDocHint] = useState("");
   const [docBusy, setDocBusy] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeSchool, setActiveSchool] = useState<SchoolItem | null>(null);
@@ -397,8 +398,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
 
   useEffect(() => {
     const needle = query.trim();
-    if (needle.length < 2) {
+    if (!needle) {
       setDocHits([]);
+      setDocHint("");
       setDocBusy(false);
       return;
     }
@@ -409,11 +411,13 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
         try {
           const found = await queryDocuments(needle, DOC_SEARCH_HOME_LIMIT);
           if (!cancelled) {
-            setDocHits(found);
+            setDocHits(found.hits);
+            setDocHint(found.hint);
           }
         } catch {
           if (!cancelled) {
             setDocHits([]);
+            setDocHint("");
           }
         } finally {
           if (!cancelled) {
@@ -881,7 +885,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
             <section>
               <div className="mb-1.5 flex items-center gap-1">
                 <h2 className="min-w-0 flex-1 desk-label">내 문서</h2>
-                {query.trim().length >= 2 ? (
+                {query.trim().length >= 1 ? (
                   <button
                     type="button"
                     className="inline-flex h-8 items-center rounded-lg px-2 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
@@ -891,14 +895,17 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                   </button>
                 ) : null}
               </div>
-              {query.trim().length < 2 ? (
-                <p className="text-sm text-quiet">두 글자 이상이면 색인한 문서 내용을 찾습니다.</p>
+              {!query.trim() ? (
+                <p className="text-sm text-quiet">본문은 세 글자 이상으로 검색할 수 있습니다.</p>
               ) : docBusy && docHits.length === 0 ? (
                 <p className="text-sm text-quiet">찾는 중...</p>
               ) : docHits.length === 0 ? (
-                <p className="text-sm text-quiet">내용이 일치하는 문서가 없습니다. 설정에서 폴더를 색인하세요.</p>
+                <p className="text-sm text-quiet">
+                  {docHint || "내용이 일치하는 문서가 없습니다. 설정에서 폴더를 색인하세요."}
+                </p>
               ) : (
                 <div className="space-y-1">
+                  {docHint ? <p className="text-sm text-quiet">{docHint}</p> : null}
                   {docHits.map((hit) => (
                     <div
                       key={hit.path}
@@ -925,7 +932,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                           {documentFolderLabel(hit.path)}
                         </button>
                       </div>
-                      {hit.snippet ? (
+                      {hit.note ? (
+                        <p className="mt-0.5 text-xs leading-5 text-quiet">{hit.note}</p>
+                      ) : hit.snippet ? (
                         <p className="mt-0.5 text-xs leading-5 text-quiet">
                           <HighlightText text={hit.snippet} query={query} />
                         </p>

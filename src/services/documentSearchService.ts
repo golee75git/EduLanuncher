@@ -11,6 +11,7 @@ export interface DocStatus {
   indexed: number;
   skipped: number;
   failed: number;
+  cloudSkipped: number;
   current: string;
   message: string;
 }
@@ -21,6 +22,12 @@ export interface DocHit {
   ext: string;
   snippet: string;
   score: number;
+  note: string;
+}
+
+export interface DocQuery {
+  hits: DocHit[];
+  hint: string;
 }
 
 export const DOC_SEARCH_HOME_LIMIT = 5;
@@ -53,7 +60,7 @@ export function haltDocIndex(): Promise<void> {
   return invoke("doc_search_halt");
 }
 
-export function queryDocuments(query: string, limit: number): Promise<DocHit[]> {
+export function queryDocuments(query: string, limit: number): Promise<DocQuery> {
   return invoke("doc_search_query", { query, limit });
 }
 
@@ -61,7 +68,7 @@ export function documentAsTool(hit: DocHit): ToolItem {
   return {
     id: `doc-search:${hit.path}`,
     name: hit.name,
-    description: hit.snippet,
+    description: hit.note || hit.snippet,
     type: "file",
     target: hit.path,
     icon: "file",

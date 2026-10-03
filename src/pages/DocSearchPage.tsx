@@ -20,13 +20,15 @@ interface DocSearchPageProps {
 export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps) {
   const [query, setQuery] = useState(initialQuery);
   const [hits, setHits] = useState<DocHit[]>([]);
+  const [hint, setHint] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const needle = query.trim();
-    if (needle.length < 2) {
+    if (!needle) {
       setHits([]);
+      setHint("");
       setError("");
       return;
     }
@@ -37,12 +39,14 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
         try {
           const found = await queryDocuments(needle, 40);
           if (!cancelled) {
-            setHits(found);
+            setHits(found.hits);
+            setHint(found.hint);
             setError("");
           }
         } catch (findError) {
           if (!cancelled) {
             setHits([]);
+            setHint("");
             setError(findError instanceof Error ? findError.message : "찾지 못했습니다.");
           }
         } finally {
@@ -71,8 +75,9 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
         <p className="text-xs leading-5 text-quiet">
           설정에서 색인한 폴더의 내용만 찾습니다. 문서 내용은 이 PC에만 있습니다.
         </p>
-        {query.trim().length < 2 ? (
-          <p className="text-sm text-quiet">두 글자 이상 입력하세요.</p>
+        {hint ? <p className="text-xs leading-5 text-quiet">{hint}</p> : null}
+        {!query.trim() ? (
+          <p className="text-sm text-quiet">본문은 세 글자 이상으로 검색할 수 있습니다.</p>
         ) : busy && hits.length === 0 ? (
           <p className="text-sm text-quiet">찾는 중...</p>
         ) : error ? (
@@ -101,7 +106,9 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
                   {documentFolderLabel(hit.path)}
                 </button>
               </div>
-              {hit.snippet ? (
+              {hit.note ? (
+                <p className="text-xs leading-5 text-quiet">{hit.note}</p>
+              ) : hit.snippet ? (
                 <p className="text-xs leading-5 text-quiet">
                   <HighlightText text={hit.snippet} query={query} />
                 </p>

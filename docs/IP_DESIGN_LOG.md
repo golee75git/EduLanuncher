@@ -2933,3 +2933,28 @@ Difference:
 
 PATENT_REVIEW:
 특허 비침해를 보장하지 않으며 법적 검토가 아님
+
+---
+
+Feature: Hashed document index
+
+Purpose:
+한글 부분 검색은 유지하고, 색인 파일만으로는 문서의 단어·이름·문장을 알 수 없게 한다
+
+Design source:
+내부 요구사항. SQLite FTS5 트라이그램의 겹치는 세 글자 규칙만 확인했고 그 C 코드는 복사하지 않음
+
+Implementation:
+32바이트 키를 현재 사용자 DPAPI로 밀봉해 앱 데이터에 둔다. 본문에서 주민등록번호 형식·휴대전화·계좌 후보·이메일 구간을 뺀 뒤 세 글자 조각을 HMAC-SHA256으로 바꾸고 앞 12바이트만 색인한다. 검색은 같은 키로 후보를 찾은 뒤 원본을 다시 읽어 확인한다. 기관 정책은 HKLM Policies를 읽기만 한다
+
+External code:
+없음. 새 패키지 없음. windows 크레이트의 이미 있는 Cryptography 기능과 추가한 Win32_System_Registry 기능만 사용. GPL 구성 요소 없음
+
+Potential similar products:
+문서 색인을 암호화하거나 검색 가능 암호로 두는 제품
+
+Difference:
+문서 문장을 색인에 두지 않는다. 파일 이름과 경로는 평문이다. 같은 사용자 권한의 프로그램은 키를 풀 수 있다
+
+PATENT_REVIEW:
+해시된 문서 색인은 특허 검토가 필요할 수 있다. 검증된 청구항 원문은 보지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음

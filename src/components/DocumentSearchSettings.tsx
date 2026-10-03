@@ -1,5 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
+import { loadOrgPolicy } from "../services/orgPolicy";
 import {
   addDocFolder,
   clearDocIndex,
@@ -16,6 +17,7 @@ export function DocumentSearchSettings() {
   const [folders, setFolders] = useState<DocFolder[]>([]);
   const [status, setStatus] = useState<DocStatus | null>(null);
   const [message, setMessage] = useState("");
+  const [indexLocked, setIndexLocked] = useState(false);
 
   async function refresh() {
     const [nextFolders, nextStatus] = await Promise.all([listDocFolders(), docSearchStatus()]);
@@ -27,6 +29,7 @@ export function DocumentSearchSettings() {
     void refresh().catch((error: unknown) => {
       setMessage(error instanceof Error ? error.message : "문서 검색을 열지 못했습니다.");
     });
+    void loadOrgPolicy().then((policy) => setIndexLocked(policy.disableDocumentIndex));
   }, []);
 
   useEffect(() => {
@@ -50,7 +53,7 @@ export function DocumentSearchSettings() {
     <section className="card-surface space-y-3 p-3.5">
       <h2 className="text-sm font-semibold text-desk">내 문서 검색</h2>
       <p className="text-xs leading-5 text-quiet">
-        고른 폴더의 HWPX, XLSX, DOCX, PDF, TXT, MD, CSV 내용만 이 PC에 색인합니다. 문서 내용은 올리지 않습니다. HWP와 스캔 PDF는 아직 읽지 않습니다.
+        고른 폴더의 HWPX, XLSX, DOCX, PDF, TXT, MD, CSV에서 단어 조각만 이 PC 앱 데이터 폴더에 색인합니다. 문서 문장은 색인에 넣지 않습니다. 주민등록번호 형식, 휴대전화, 계좌 후보, 이메일은 색인 전에 뺍니다. 파일 이름과 경로는 그대로 남습니다. 같은 사용자 권한의 프로그램은 색인 키를 풀 수 있고, 이 장치는 색인 파일만 복사된 경우를 막습니다. 문서 내용은 올리지 않습니다. HWP와 스캔 PDF는 아직 읽지 않습니다. 색인 지우기를 눌러도 원래 파일은 그대로입니다.
       </p>
       {folders.length === 0 ? (
         <p className="text-sm text-quiet">색인할 폴더가 없습니다.</p>
@@ -104,7 +107,7 @@ export function DocumentSearchSettings() {
         <button
           type="button"
           className="btn-primary"
-          disabled={status?.running}
+          disabled={status?.running || indexLocked}
           onClick={() => {
             void startDocIndex()
               .then(() => refresh())
@@ -115,6 +118,7 @@ export function DocumentSearchSettings() {
         >
           지금 색인
         </button>
+        {indexLocked ? <p className="text-xs text-quiet">관리자가 설정함</p> : null}
         <button
           type="button"
           className="btn-secondary"

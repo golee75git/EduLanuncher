@@ -11,7 +11,7 @@ struct SavedFlag {
 }
 
 pub fn policy_blocks(_dir: &Path) -> bool {
-    false
+    crate::org_policy::admin_tools_blocked()
 }
 
 pub fn allowed(dir: &Path) -> bool {
@@ -77,6 +77,25 @@ mod tests {
         assert_eq!(caller_result("main", &dir), Ok(()));
         write_enabled(&dir, false).unwrap();
         assert_eq!(caller_result("main", &dir), Err("disabled"));
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn policy_one_disables_scan_without_deleting_the_flag_file() {
+        let dir = std::env::temp_dir().join(format!("edulauncher-admin-policy-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        write_enabled(&dir, true).unwrap();
+        crate::org_policy::set_test_flags(Some(crate::org_policy::OrgFlags {
+            disable_admin_tools: true,
+            disable_document_index: false,
+            disable_startup_update: false,
+            disable_startup_knowledge: false,
+        }));
+        let result = caller_result("main", &dir);
+        crate::org_policy::set_test_flags(None);
+        assert_eq!(result, Err("disabled"));
+        assert!(saved_enabled(&dir));
         let _ = fs::remove_dir_all(&dir);
     }
 }

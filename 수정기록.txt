@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-10-03
+대상: 문서 검색 색인과 기관 정책
+작성자: 요청자
+
+요청: 문서 색인에 문장을 남기지 않고, 한글 부분 검색은 유지한다. 기관 정책이 켜져 있으면 색인·검색·시작 시 버전 확인·업무자료 받기·관리자 도구를 끈다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. windows 크레이트 기능 Win32_System_Registry만 추가. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 해시된 문서 색인은 특허 검토가 필요할 수 있음. 검증된 청구항 원문은 보지 않음. THIRD_PARTY_NOTICES 재생성은 필요 없음.
+
+새로 만든 파일:
+- src-tauri/src/org_policy.rs
+- src-tauri/src/index_key.rs
+- src-tauri/src/document_search/tokens.rs
+- src/services/orgPolicy.ts
+- docs/admin-policy.md
+
+다시 쓴 파일:
+- src-tauri/src/document_search/mod.rs
+- src-tauri/src/privacy_scan/mod.rs
+- src-tauri/src/admin_tools.rs
+- src-tauri/src/knowledge_sign.rs
+- src-tauri/src/lib.rs
+- src-tauri/Cargo.toml
+- src/services/documentSearchService.ts
+- src/pages/HomePage.tsx
+- src/pages/DocSearchPage.tsx
+- src/pages/SettingsPage.tsx
+- src/components/DocumentSearchSettings.tsx
+- src/App.tsx
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+
+---
+
+날짜: 2026-10-03
 대상: 관리자 도구(IP 검색, CCTV 검색) 설정 스위치
 작성자: 요청자
 

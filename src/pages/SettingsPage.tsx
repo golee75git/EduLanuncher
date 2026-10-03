@@ -16,6 +16,7 @@ import { useSettingsStore } from "../stores/settingsStore";
 import { useAdminToolStore } from "../stores/adminToolStore";
 import { useToolStore } from "../stores/toolStore";
 import { DocumentSearchSettings } from "../components/DocumentSearchSettings";
+import { loadOrgPolicy, type OrgPolicy } from "../services/orgPolicy";
 import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
 
 interface SettingsPageProps {
@@ -46,7 +47,12 @@ export function SettingsPage({
   const [backupMessage, setBackupMessage] = useState("");
   const [newerRelease, setNewerRelease] = useState<string | null>(null);
   const [adminAsk, setAdminAsk] = useState(false);
+  const [policy, setPolicy] = useState<OrgPolicy | null>(null);
   const adminOn = useAdminToolStore((state) => state.enabled);
+
+  useEffect(() => {
+    void loadOrgPolicy().then(setPolicy);
+  }, []);
 
   return (
     <div className="flex h-full flex-col bg-paper">
@@ -71,6 +77,7 @@ export function SettingsPage({
           <Toggle
             label="시작할 때 새 버전 확인"
             checked={settings.checkUpdatesOnLaunch}
+            locked={policy?.disableStartupUpdate}
             onChange={(checkUpdatesOnLaunch) => void update({ checkUpdatesOnLaunch })}
           />
           <button
@@ -86,6 +93,7 @@ export function SettingsPage({
           <Toggle
             label="시작할 때 업무자료 받기"
             checked={settings.fetchKnowledgeOnLaunch}
+            locked={policy?.disableStartupKnowledge}
             onChange={(fetchKnowledgeOnLaunch) => void update({ fetchKnowledgeOnLaunch })}
           />
           <button
@@ -188,6 +196,7 @@ export function SettingsPage({
             <input
               type="checkbox"
               checked={adminOn || adminAsk}
+              disabled={policy?.disableAdminTools}
               onChange={(event) => {
                 if (event.target.checked) {
                   setAdminAsk(true);
@@ -199,6 +208,7 @@ export function SettingsPage({
               className="h-4 w-4"
             />
           </label>
+          {policy?.disableAdminTools ? <p className="text-xs text-quiet">관리자가 설정함</p> : null}
           {adminAsk && !adminOn ? (
             <div className="space-y-2 rounded-lg border border-line p-3 text-sm leading-6 text-desk">
               <p>관리자 도구를 켭니다.</p>
@@ -536,7 +546,7 @@ export function SettingsPage({
             <li>업무도구의 QR코드 넣기는 이 PC 그림 오른쪽 아래에 주소 QR코드를 넣고 PNG로 저장합니다. http 또는 https만 됩니다. QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 특허 비침해를 보장하지 않습니다.</li>
             <li>업무도구의 사진 모자이크는 이 PC의 PNG·JPEG에서 영역을 직접 지정해 가리고, 원본 크기의 새 파일로 저장합니다. 원본 파일은 바꾸지 않습니다. 새 파일에는 위치·카메라 정보가 들어가지 않습니다. 자동으로 얼굴이나 글자를 찾지는 않습니다. 특허 비침해를 보장하지 않습니다.</li>
             <li>업무도구의 PDF 도구는 이 PC에서 PDF를 합치거나 나누고, 페이지를 빼거나 순서를 바꾸거나 회전해 새 파일로 저장합니다. 원본은 바꾸지 않습니다. 암호가 있는 PDF는 열지 않습니다. 전자서명이 보이면 알립니다. 특허 비침해를 보장하지 않습니다.</li>
-            <li>내 문서 검색은 설정에서 고른 폴더의 HWPX, XLSX, DOCX, PDF, TXT, MD, CSV 내용만 이 PC에 색인합니다. 검색창의 내 문서에서 짧은 구절을 보고 파일이나 폴더를 엽니다. 문서 내용은 올리지 않습니다. 색인을 지워도 원래 파일은 그대로입니다. HWP와 글자 없는 PDF는 읽지 않습니다. 특허 비침해를 보장하지 않습니다.</li>
+            <li>내 문서 검색은 설정에서 고른 폴더의 HWPX, XLSX, DOCX, PDF, TXT, MD, CSV에서 단어 조각만 이 PC 앱 데이터 폴더의 색인에 남깁니다. 문서 문장 자체는 색인에 넣지 않고, 주민등록번호 형식·휴대전화·계좌 후보·이메일은 색인 전에 뺍니다. 파일 이름과 경로는 그대로 남습니다. 같은 사용자 권한으로 실행되는 프로그램은 색인 키를 풀 수 있습니다. 이 장치는 색인 파일만 복사된 경우를 막습니다. 검색창의 내 문서에서 세 글자 이상은 원본을 다시 읽어 짧은 구절을 보고, 한두 글자는 파일 이름만 찾습니다. 문서 내용은 올리지 않습니다. 색인 지우기를 눌러도 원래 파일은 그대로입니다. HWP와 글자 없는 PDF는 읽지 않습니다. 특허 비침해를 보장하지 않으며 법적 검토가 아닙니다. 라이선스 준수를 보장하지 않습니다.</li>
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다. 폴더는 Windows 탐색기(explorer.exe)로 엽니다. 파일·프로그램·사이트는 이전과 같습니다. 탐색기에서 인터넷 바로가기(.url)를 오른쪽 클릭한 뒤 보내기 → 교육업무 런처를 고르면 주소와 그 파일 아이콘을 넣습니다. .url을 기본 프로그램으로 바꾸지는 않습니다. 즐겨찾기 표시줄에서 끌어 올 때 브라우저가 넘긴 PNG만 바로가기 그림으로 남깁니다. 사이트에 다시 접속하지 않습니다. JPEG·ICO는 넣지 않습니다. 이미 있는 주소는 그림이 비어 있을 때만 채웁니다.</li>
             <li>홈 공지는 한 칸입니다. 줄마다 기관(담당자) 또는 부서를 표시합니다. 넣기·모두에서 수정·빼기가 됩니다. Pack은 고른 항목만 더하고 이미 있는 항목은 건너뜁니다. 원문 주소가 있으면 브라우저만 엽니다.</li>
@@ -579,18 +589,24 @@ function SettingsCard({ title, children }: { title: string; children: React.Reac
 function Toggle({
   label,
   checked,
+  locked = false,
   onChange,
 }: {
   label: string;
   checked: boolean;
+  locked?: boolean;
   onChange: (value: boolean) => void;
 }) {
   return (
     <label className="flex items-center justify-between gap-3 text-sm text-desk">
-      {label}
+      <span>
+        {label}
+        {locked ? <span className="ml-2 text-xs text-quiet">관리자가 설정함</span> : null}
+      </span>
       <input
         type="checkbox"
         checked={checked}
+        disabled={locked}
         onChange={(event) => onChange(event.target.checked)}
         className="h-4 w-4"
       />

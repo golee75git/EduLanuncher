@@ -19,10 +19,11 @@ use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 pub use budget::ReadBudget;
+pub use detect::find_patterns;
 pub use model::{ExtractStatus, FindingKind, Grade, Location, PreviewTarget, ReasonCode, ScanResult, TypeCount};
+pub use profile::Profile;
 
 use model::ExtractedDocument;
-use profile::Profile;
 
 pub fn scan_path(path: &Path) -> ScanResult {
     scan_path_with(path, &ReadBudget::standard())

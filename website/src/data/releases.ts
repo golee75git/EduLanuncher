@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.163-20261003",
+    note: "내 문서 검색 색인에는 문서 문장을 넣지 않습니다. 세 글자 이상이면 원본을 다시 읽어 확인합니다.",
+  },
+  {
     version: "0.1.162-20261003",
     note: "IP 검색과 CCTV 검색은 설정의 관리자 도구 사용을 켠 뒤에만 나옵니다. 기본은 꺼짐입니다.",
   },

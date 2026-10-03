@@ -59,6 +59,7 @@ import { dismissMemoNote, hidePanel, openMemoNote, showPanel } from "./services/
 import { initStorage } from "./services/storageService";
 import { startupKnowledge } from "./services/knowledgeSync";
 import { wantsLaunchUpdates } from "./services/startupNetwork";
+import { loadOrgPolicy } from "./services/orgPolicy";
 import { hydrateSettings, useSettingsStore } from "./stores/settingsStore";
 import { isPriorSkin } from "./types/settings";
 import { asPanelHeight, asPanelWidth } from "./types/settings";
@@ -367,7 +368,10 @@ export default function App() {
       if (mapWindow || memoWindow) {
         if (mapWindow) {
           const settings = await hydrateSettings();
-          await startupKnowledge(settings.fetchKnowledgeOnLaunch);
+          const policy = await loadOrgPolicy();
+          await startupKnowledge(
+            policy.disableStartupKnowledge ? false : settings.fetchKnowledgeOnLaunch,
+          );
         }
         if (!cancelled) {
           setReady(true);
@@ -377,7 +381,10 @@ export default function App() {
       try {
         await initStorage();
         const settings = await hydrateSettings();
-        await startupKnowledge(settings.fetchKnowledgeOnLaunch);
+        const policy = await loadOrgPolicy();
+        await startupKnowledge(
+          policy.disableStartupKnowledge ? false : settings.fetchKnowledgeOnLaunch,
+        );
         await hydrateTools();
         await useAdminToolStore.getState().refresh();
         await hydrateTodos();
@@ -394,7 +401,7 @@ export default function App() {
         if (cancelled) {
           return;
         }
-        if (wantsLaunchUpdates(settings.checkUpdatesOnLaunch)) {
+        if (wantsLaunchUpdates(settings.checkUpdatesOnLaunch) && !policy.disableStartupUpdate) {
           void findNewerRelease().then((tag) => {
             if (!cancelled && tag) {
               setReleaseNotice(tag);
