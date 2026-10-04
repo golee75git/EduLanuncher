@@ -1,7 +1,10 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  assistWorkCards,
+  checkLocalModel,
   haltWorkCards,
+  listLocalModels,
   loadWorkCards,
   mergeWorkCards,
   openWorkFile,
@@ -32,11 +35,27 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
   const [step, setStep] = useState("");
   const [note, setNote] = useState("");
   const [mergeOn, setMergeOn] = useState<number[]>([]);
+  const [aiOn, setAiOn] = useState(false);
+  const [portText, setPortText] = useState("11434");
+  const [model, setModel] = useState("");
+  const [modelChoices, setModelChoices] = useState<string[] | null>(null);
+  const [aiReady, setAiReady] = useState(false);
+  const [aiNote, setAiNote] = useState("");
+  const stopped = useRef(false);
+
+  function portNumber(): number | null {
+    const port = Number(portText);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      return null;
+    }
+    return port;
+  }
 
   useEffect(() => {
     let stop = () => {};
     void watchHandover((item) => {
-      setStep(`파일을 읽는 중 ${item.read} / ${item.total}`);
+      const line = item.phase === "assist" ? `AI가 정리하는 중 ${item.read} / ${item.total} 카드` : `파일을 읽는 중 ${item.read} / ${item.total}`;
+      setStep(line);
     }).then((unlisten) => {
       stop = unlisten;
     });
@@ -80,9 +99,18 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
       }
       setFolderId(id);
       setBusy(true);
+      stopped.current = false;
       setStep("파일을 읽는 중 0 / 0");
-      const next = await runWorkCards(id);
+      let next = await runWorkCards(id);
       replaceBatch(next, true);
+      if (!stopped.current && aiOn && aiReady && model.trim()) {
+        const port = portNumber();
+        if (port) {
+          setStep("AI가 정리하는 중 0 / 0 카드");
+          next = await assistWorkCards(id, next, port, model.trim());
+          replaceBatch(next, true);
+        }
+      }
       setStep("");
     } catch (error) {
       setNote(error instanceof Error ? error.message : "파일을 읽지 못했습니다.");
@@ -179,6 +207,120 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
         <p className="text-xs leading-5 text-quiet">
           업무 폴더의 문서를 이 PC 안에서 읽어 업무별 시기와 기한을 정리합니다. 원본 파일은 바꾸지 않습니다.
         </p>
+        <div className="space-y-2 rounded-lg border border-line p-2">
+          <label className="flex items-center gap-2 text-xs text-desk">
+            <input
+              type="checkbox"
+              checked={aiOn}
+              onChange={(event) => {
+                setAiOn(event.target.checked);
+                setAiReady(false);
+              }}
+            />
+            AI 보조
+          </label>
+          <p className="text-[11px] leading-4 text-quiet">기본은 꺼져 있습니다. 켜면 이 PC의 127.0.0.1에만 연결합니다.</p>
+          {aiOn ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-xs text-desk">
+                포트
+                <input
+                  className="ml-1 w-20 rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
+                  value={portText}
+                  onChange={(event) => {
+                    setPortText(event.target.value);
+                    setAiReady(false);
+                  }}
+                  aria-label="포트"
+                />
+              </label>
+              {modelChoices && modelChoices.length > 0 ? (
+                <select
+                  className="rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
+                  value={model}
+                  onChange={(event) => {
+                    setModel(event.target.value);
+                    setAiReady(false);
+                  }}
+                  aria-label="모델"
+                >
+                  <option value="">모델 선택</option>
+                  {modelChoices.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  className="w-40 rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
+                  value={model}
+                  onChange={(event) => {
+                    setModel(event.target.value);
+                    setAiReady(false);
+                  }}
+                  placeholder="모델 이름"
+                  aria-label="모델 이름"
+                />
+              )}
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={busy}
+                onClick={() => {
+                  const port = portNumber();
+                  if (!port) {
+                    setAiNote("이 주소는 연결하지 않습니다.");
+                    return;
+                  }
+                  setAiNote("");
+                  void listLocalModels(port)
+                    .then((names) => {
+                      setModelChoices(names);
+                      if (!model && names[0]) {
+                        setModel(names[0]);
+                      }
+                    })
+                    .catch((error: unknown) => {
+                      setModelChoices([]);
+                      setAiNote(error instanceof Error ? error.message : "목록을 가져오지 못했습니다. 모델 이름을 입력하세요.");
+                    });
+                }}
+              >
+                모델 목록
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={busy || !model.trim()}
+                onClick={() => {
+                  const port = portNumber();
+                  if (!port) {
+                    setAiNote("이 주소는 연결하지 않습니다.");
+                    setAiReady(false);
+                    return;
+                  }
+                  const started = performance.now();
+                  void checkLocalModel(port, model.trim())
+                    .then((ms) => {
+                      const seconds = (ms / 1000).toFixed(1);
+                      setAiReady(true);
+                      setAiNote(`응답함 · ${seconds}초`);
+                    })
+                    .catch((error: unknown) => {
+                      setAiReady(false);
+                      const elapsed = ((performance.now() - started) / 1000).toFixed(1);
+                      const message = error instanceof Error ? error.message : "연결하지 못했습니다.";
+                      setAiNote(`${message} · ${elapsed}초`);
+                    });
+                }}
+              >
+                연결 확인
+              </button>
+            </div>
+          ) : null}
+          {aiNote ? <p className="text-xs text-desk">{aiNote}</p> : null}
+        </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" className="btn-secondary" onClick={() => void chooseFolder()} disabled={busy}>
             업무 폴더 고르기
@@ -190,8 +332,43 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
             불러오기
           </button>
           {busy ? (
-            <button type="button" className="btn-secondary" onClick={() => void haltWorkCards()}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                stopped.current = true;
+                void haltWorkCards();
+              }}
+            >
               중지
+            </button>
+          ) : null}
+          {batch && aiOn ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              disabled={busy || !aiReady || !folderId}
+              onClick={() => {
+                const port = portNumber();
+                if (!folderId || !port || !model.trim()) {
+                  setNote("모델 이름을 입력하세요.");
+                  return;
+                }
+                setBusy(true);
+                stopped.current = false;
+                setStep("AI가 정리하는 중 0 / 0 카드");
+                void assistWorkCards(folderId, batch, port, model.trim())
+                  .then((next) => {
+                    replaceBatch(next, true);
+                    setStep("");
+                  })
+                  .catch((error: unknown) => {
+                    setNote(error instanceof Error ? error.message : "연결하지 못했습니다.");
+                  })
+                  .finally(() => setBusy(false));
+              }}
+            >
+              다른 모델로 다시 정리
             </button>
           ) : null}
         </div>
@@ -244,13 +421,30 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
                   <input
                     className="w-full rounded-lg border border-line bg-transparent px-2 py-1 text-sm text-desk"
                     value={task.name}
-                    onChange={(event) => updateTask(index, { name: event.target.value })}
+                    onChange={(event) => updateTask(index, { name: event.target.value, ai_open: false })}
                     aria-label="업무 이름"
                   />
+                  {task.ai_open && task.ai_name ? (
+                    <p className="text-xs text-desk">
+                      AI 제안 이름: {task.ai_name}{" "}
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => updateTask(index, { name: task.ai_name ?? task.name, ai_open: false })}
+                      >
+                        적용
+                      </button>
+                    </p>
+                  ) : null}
                   <input
                     className="w-full rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
                     value={task.period}
-                    onChange={(event) => updateTask(index, { period: event.target.value })}
+                    onChange={(event) =>
+                      updateTask(index, {
+                        period: event.target.value,
+                        deadlines: task.deadlines.map((item) => ({ ...item, from_model: false })),
+                      })
+                    }
                     aria-label="시기"
                   />
                   <p className="text-xs text-desk">확신 {task.confidence}</p>
@@ -259,6 +453,25 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
                       {task.deadlines.map((item) => (
                         <li key={`${item.file}-${item.month}-${item.day}`}>
                           {item.month}월 {item.day}일 · {fileName(item.file)}
+                          {item.from_model ? (
+                            <>
+                              {" "}
+                              AI 제안
+                              <button
+                                type="button"
+                                className="ml-1 underline"
+                                onClick={() =>
+                                  updateTask(index, {
+                                    deadlines: task.deadlines.map((row) =>
+                                      row.month === item.month && row.day === item.day && row.file === item.file ? { ...row, from_model: false } : row,
+                                    ),
+                                  })
+                                }
+                              >
+                                확인
+                              </button>
+                            </>
+                          ) : null}
                         </li>
                       ))}
                     </ul>
@@ -279,10 +492,37 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
                   <textarea
                     className="min-h-16 w-full rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
                     value={task.todos.join("\n")}
-                    onChange={(event) => updateTask(index, { todos: event.target.value.split("\n").slice(0, 8) })}
+                    onChange={(event) => updateTask(index, { todos: event.target.value.split("\n").slice(0, 8), todo_open: [] })}
                     aria-label="할 일"
                     placeholder="할 일"
                   />
+                  {task.todo_open?.some(Boolean) ? <p className="text-[11px] text-quiet">할 일 AI 제안</p> : null}
+                  {task.orgs.length > 0 ? (
+                    <ul className="space-y-0.5 text-[11px] text-quiet">
+                      {task.orgs.map((org, orgIndex) => (
+                        <li key={`${org}-${orgIndex}`}>
+                          {org}
+                          {task.org_open?.[orgIndex] ? (
+                            <>
+                              {" "}
+                              AI 제안
+                              <button
+                                type="button"
+                                className="ml-1 underline"
+                                onClick={() =>
+                                  updateTask(index, {
+                                    org_open: (task.org_open ?? []).map((open, item) => (item === orgIndex ? false : open)),
+                                  })
+                                }
+                              >
+                                확인
+                              </button>
+                            </>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </article>
               ))}
             </div>

@@ -1,6 +1,7 @@
 //! 업무 폴더를 읽어 업무 카드를 만든다. 모델 연결은 다음 단계이다.
 //! 원본 폴더는 읽기만 하고, 결과 위치는 원본 안이면 거부한다.
 
+pub(crate) mod assist;
 mod marks;
 mod ratio;
 
@@ -45,14 +46,21 @@ pub struct CardBatch {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct WorkCard {
     pub name: String,
+    #[serde(default)]
     pub ai_name: Option<String>,
+    #[serde(default)]
+    pub ai_open: bool,
     pub months: Vec<u32>,
     pub period: String,
     pub confidence: String,
     pub years: Vec<u32>,
     pub deadlines: Vec<Deadline>,
     pub todos: Vec<String>,
+    #[serde(default)]
+    pub todo_open: Vec<bool>,
     pub orgs: Vec<String>,
+    #[serde(default)]
+    pub org_open: Vec<bool>,
     pub files: Vec<WorkFile>,
     pub include: bool,
 }
@@ -64,6 +72,8 @@ pub struct Deadline {
     pub year: Option<u32>,
     pub file: String,
     pub snippet: String,
+    #[serde(default)]
+    pub from_model: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -217,6 +227,7 @@ pub fn work_cards(app: AppHandle, window: WebviewWindow, id: String) -> Result<C
 struct HandoverStep {
     read: u32,
     total: u32,
+    phase: String,
 }
 
 #[tauri::command]
@@ -238,7 +249,7 @@ pub async fn run_work_cards(app: AppHandle, window: WebviewWindow, id: String) -
         let book = app_for_scan.state::<GrantBook>();
         let root = path_grant::view_work_folder(&book, &id).map_err(|_| "폴더를 찾지 못했습니다.".to_string())?;
         scan_folder(&root, &default_limit(), &HALT, &|read, total| {
-            let _ = app_for_scan.emit("handover-step", HandoverStep { read, total });
+            let _ = app_for_scan.emit("handover-step", HandoverStep { read, total, phase: "read".to_string() });
         })
     })
     .await;
@@ -400,6 +411,7 @@ fn read_one(root: &Path, item: &ListedFile) -> WorkFile {
         source: MarkSource::Modified,
         weight: WEIGHT_MODIFIED,
         snippet: "파일 수정일".to_string(),
+        held: false,
     });
     let _ = root;
     WorkFile {
@@ -569,13 +581,16 @@ fn build_card(name: String, files: Vec<WorkFile>) -> WorkCard {
     WorkCard {
         name,
         ai_name: None,
+        ai_open: false,
         months,
         period,
         confidence,
         years,
         deadlines,
         todos: Vec::new(),
+        todo_open: Vec::new(),
         orgs: Vec::new(),
+        org_open: Vec::new(),
         files,
         include: true,
     }
@@ -613,6 +628,7 @@ fn month_list(files: &[WorkFile], drop_modified: bool) -> (Vec<u32>, BTreeMap<u3
                             year: clue.year,
                             file: file.rel.clone(),
                             snippet: clue.snippet.clone(),
+                            from_model: clue.source == MarkSource::Model && !clue.held,
                         });
                     }
                 }
@@ -654,17 +670,36 @@ pub fn merge_cards(left: WorkCard, right: WorkCard) -> WorkCard {
         }
     }
     let mut todos = left.todos;
-    for item in right.todos {
+    let mut todo_open = left.todo_open;
+    for (index, item) in right.todos.into_iter().enumerate() {
         let text = item.trim();
         if text.is_empty() || todos.len() >= 8 {
             continue;
         }
         if !todos.iter().any(|have| have == text) {
             todos.push(text.to_string());
+            todo_open.push(right.todo_open.get(index).copied().unwrap_or(false));
+        }
+    }
+    let mut orgs = left.orgs;
+    let mut org_open = left.org_open;
+    for (index, item) in right.orgs.into_iter().enumerate() {
+        let text = item.trim();
+        if text.is_empty() || orgs.len() >= 8 {
+            continue;
+        }
+        if !orgs.iter().any(|have| have == text) {
+            orgs.push(text.to_string());
+            org_open.push(right.org_open.get(index).copied().unwrap_or(false));
         }
     }
     let mut card = build_card(left.name, files);
     card.todos = todos;
+    card.todo_open = todo_open;
+    card.orgs = orgs;
+    card.org_open = org_open;
+    card.ai_name = left.ai_name.or(right.ai_name);
+    card.ai_open = left.ai_open || right.ai_open;
     card.include = left.include || right.include;
     card
 }

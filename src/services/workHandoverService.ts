@@ -9,6 +9,7 @@ export interface WorkDeadline {
   year?: number | null;
   file: string;
   snippet: string;
+  from_model?: boolean;
 }
 
 export interface WorkFileNote {
@@ -21,13 +22,16 @@ export interface WorkFileNote {
 export interface WorkCard {
   name: string;
   ai_name?: string | null;
+  ai_open?: boolean;
   months: number[];
   period: string;
   confidence: string;
   years: number[];
   deadlines: WorkDeadline[];
   todos: string[];
+  todo_open?: boolean[];
   orgs: string[];
+  org_open?: boolean[];
   files: WorkFileNote[];
   include: boolean;
 }
@@ -43,6 +47,7 @@ export interface CardBatch {
 export interface HandoverStep {
   read: number;
   total: number;
+  phase?: string;
 }
 
 function asError(error: unknown): Error {
@@ -111,6 +116,30 @@ export async function loadWorkCards(): Promise<CardBatch | null> {
 export async function mergeWorkCards(left: WorkCard, right: WorkCard): Promise<WorkCard> {
   try {
     return await invoke<WorkCard>("merge_work_cards", { left, right });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function listLocalModels(port: number): Promise<string[]> {
+  try {
+    return await invoke<string[]>("list_local_models", { port });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function checkLocalModel(port: number, model: string): Promise<number> {
+  try {
+    return await invoke<number>("check_local_model", { port, model });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function assistWorkCards(folderId: string, batch: CardBatch, port: number, model: string): Promise<CardBatch> {
+  try {
+    return await invoke<CardBatch>("assist_work_cards", { folderId, batch, port, model });
   } catch (error) {
     throw asError(error);
   }

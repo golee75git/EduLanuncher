@@ -5,7 +5,6 @@ pub const WEIGHT_FOLDER: f64 = 2.0;
 pub const WEIGHT_DEADLINE: f64 = 3.0;
 pub const WEIGHT_EVENT: f64 = 2.0;
 pub const WEIGHT_MENTION: f64 = 1.0;
-#[allow(dead_code)]
 pub const WEIGHT_MODEL: f64 = 2.5;
 pub const WEIGHT_MODIFIED: f64 = 0.7;
 
@@ -21,6 +20,8 @@ pub struct DateMark {
     pub source: MarkSource,
     pub weight: f64,
     pub snippet: String,
+    #[serde(default)]
+    pub held: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -37,7 +38,6 @@ pub enum MarkSource {
     Folder,
     FileName,
     Text,
-    #[allow(dead_code)]
     Model,
     Modified,
 }
@@ -80,6 +80,7 @@ pub fn marks_from_name(name: &str, source: MarkSource) -> NameMarks {
             source,
             weight,
             snippet: name.to_string(),
+            held: false,
         });
         taken.push((hit.start, hit.end));
     }
@@ -98,6 +99,7 @@ pub fn marks_from_name(name: &str, source: MarkSource) -> NameMarks {
                 source,
                 weight,
                 snippet: name.to_string(),
+                held: false,
             });
         }
     }
@@ -138,6 +140,7 @@ pub fn marks_from_text(text: &str, default_year: Option<u32>) -> Vec<DateMark> {
             source: MarkSource::Text,
             weight,
             snippet,
+            held: false,
         });
     }
     keep_strongest(found)
@@ -178,6 +181,7 @@ fn push_text_mark(
         source: MarkSource::Text,
         weight: weight_of(kind),
         snippet,
+        held: false,
     });
     taken.push((start, end));
 }

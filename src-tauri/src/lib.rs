@@ -20,6 +20,7 @@ use tauri_plugin_opener::OpenerExt;
 mod doc_shrink;
 mod document_search;
 mod handover;
+mod loopback;
 mod netcheck;
 mod fixed_https;
 mod knowledge_sign;
@@ -2831,6 +2832,9 @@ pub fn run() {
             handover::load_work_cards,
             handover::merge_work_cards,
             handover::open_work_file,
+            handover::assist::list_local_models,
+            handover::assist::check_local_model,
+            handover::assist::assist_work_cards,
             doc_search_remove_folder,
             doc_search_clear,
             doc_search_status,
