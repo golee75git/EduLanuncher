@@ -1,4 +1,4 @@
-mod extract;
+pub(crate) mod extract;
 mod tokens;
 
 use std::collections::HashSet;

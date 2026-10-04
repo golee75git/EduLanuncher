@@ -31,6 +31,7 @@ import { InternetCheckPage } from "./pages/InternetCheckPage";
 import { PrinterCheckPage } from "./pages/PrinterCheckPage";
 import { SecurityCheckPage } from "./pages/SecurityCheckPage";
 import { PrivacyScanPage } from "./pages/PrivacyScanPage";
+import { WorkHandoverPage } from "./pages/WorkHandoverPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
@@ -100,6 +101,7 @@ type View =
   | { name: "pc-print"; backTo?: View }
   | { name: "pc-security"; backTo?: View }
   | { name: "privacy-scan"; backTo?: View }
+  | { name: "work-handover"; backTo?: View }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
   | { name: "doc-shrink"; backTo?: View; startFiles?: GrantedFile[] }
@@ -734,6 +736,10 @@ export default function App() {
       setView({ name: "pc-security", backTo: { name: "home", search: clipSearch(action.search) } });
       return;
     }
+    if (action.type === "work-handover") {
+      setView({ name: "work-handover", backTo: { name: "home", search: clipSearch(action.search) } });
+      return;
+    }
     if (action.type === "privacy-scan") {
       void invoke("privacy_enter").then(() => {
         setView({ name: "privacy-scan", backTo: { name: "home", search: clipSearch(action.search) } });
@@ -1000,6 +1006,9 @@ export default function App() {
           ) : null}
           {view.name === "pc-address" ? (
             <ThisPcAddressPage onBack={() => setView({ name: "computer-tools" })} />
+          ) : null}
+          {view.name === "work-handover" ? (
+            <WorkHandoverPage onBack={() => setView(view.backTo ?? { name: "home" })} />
           ) : null}
           {view.name === "privacy-scan" ? (
             <PrivacyScanPage

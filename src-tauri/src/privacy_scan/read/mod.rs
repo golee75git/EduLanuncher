@@ -28,7 +28,7 @@ pub fn halted() -> bool {
     })
 }
 
-mod decode;
+pub(crate) mod decode;
 mod docx;
 mod flow;
 mod hwpx;

@@ -6,6 +6,61 @@
 ---
 
 날짜: 2026-10-04
+대상: 업무바통 2단계 전임자 화면
+작성자: 요청자
+
+요청: 홈에서 업무 폴더를 골라 월별 시기와 기한 카드를 보고, 고치고, 원본 폴더 밖에 저장한다. AI는 붙이지 않는다. 날짜 서식 엑셀 칸은 카드 읽기에서만 달력 날짜로 바꾼다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 가상 자료만 테스트에 넣음.
+
+새로 쓴 파일:
+- src/pages/WorkHandoverPage.tsx
+- src/services/workHandoverService.ts
+
+다시 쓴 파일:
+- src-tauri/src/handover/mod.rs
+- src-tauri/src/handover/marks.rs
+- src-tauri/src/document_search/extract.rs
+- src-tauri/src/lib.rs
+- src/App.tsx
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+
+---
+
+날짜: 2026-10-04
+대상: 업무바통 1단계 규칙 엔진
+작성자: 요청자
+
+요청: 시제품의 시기 단서·묶기·주기 규칙을 런처 Rust로 옮긴다. 화면과 AI 연결은 붙이지 않는다. 구형 HWP는 읽지 않는다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 가상 자료만 테스트에 넣음.
+
+새로 쓴 파일:
+- src-tauri/src/handover/mod.rs
+- src-tauri/src/handover/marks.rs
+- src-tauri/src/handover/ratio.rs
+- src-tauri/fixtures/work-handover/
+
+다시 쓴 파일:
+- src-tauri/src/lib.rs
+- src-tauri/src/document_search/extract.rs
+- src-tauri/src/document_search/mod.rs
+- src-tauri/src/path_grant.rs
+- src-tauri/src/privacy_scan/mod.rs
+- src-tauri/src/privacy_scan/read/mod.rs
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+
+---
+
+날짜: 2026-10-04
 대상: 사진 모자이크 영역 위치, 아이콘
 작성자: 요청자
 

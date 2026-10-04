@@ -22,6 +22,7 @@ const REVEAL_CAP: usize = 800;
 /// 즐겨찾기 목록이 400개까지라, 실행 등록은 800개까지 두고 넘치면 가장 오래된 것을 잊는다.
 const LAUNCH_CAP: usize = 800;
 const INDEX_CAP: usize = 64;
+const WORK_FOLDER_CAP: usize = 8;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GrantUse {
@@ -31,6 +32,7 @@ pub enum GrantUse {
     Reveal,
     Launch,
     Index,
+    WorkFolder,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -92,6 +94,7 @@ impl GrantBook {
             GrantUse::Reveal => REVEAL_CAP,
             GrantUse::Launch => LAUNCH_CAP,
             GrantUse::Index => INDEX_CAP,
+            GrantUse::WorkFolder => WORK_FOLDER_CAP,
         };
         let mode = match use_for {
             GrantUse::PrivacyScan => CapMode::Refuse,
@@ -371,6 +374,15 @@ pub struct HeldLaunch {
     pub path: PathBuf,
     pub kind: String,
     pub once: bool,
+}
+
+pub fn view_work_folder(book: &GrantBook, id: &str) -> Result<PathBuf, &'static str> {
+    let parsed = parse_id(id).ok_or("missing")?;
+    let item = book.clone_of(parsed).ok_or("missing")?;
+    if item.use_for != GrantUse::WorkFolder || item.origin != GrantOrigin::Dialog {
+        return Err("denied");
+    }
+    Ok(item.path)
 }
 
 pub fn view_index(book: &GrantBook, id: &str) -> Result<PathBuf, &'static str> {

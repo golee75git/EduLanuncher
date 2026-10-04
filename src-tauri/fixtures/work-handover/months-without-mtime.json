@@ -1,0 +1,38 @@
+[
+  {
+    "name": "운영위원회",
+    "months_without_mtime": [
+      2,
+      3,
+      9
+    ]
+  },
+  {
+    "name": "민원서식",
+    "months_without_mtime": []
+  },
+  {
+    "name": "업무메모",
+    "months_without_mtime": [
+      12
+    ]
+  },
+  {
+    "name": "예산",
+    "months_without_mtime": [
+      9
+    ]
+  },
+  {
+    "name": "정보공개",
+    "months_without_mtime": [
+      7
+    ]
+  },
+  {
+    "name": "직원연수",
+    "months_without_mtime": [
+      11
+    ]
+  }
+]

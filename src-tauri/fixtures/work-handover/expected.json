@@ -1,0 +1,222 @@
+[
+  {
+    "name": "운영위원회",
+    "ai_name": null,
+    "months": [
+      3,
+      9
+    ],
+    "period": "매년 3월, 9월",
+    "confidence": "높음",
+    "years": [
+      2024,
+      2025,
+      2026,
+      2027
+    ],
+    "deadlines": [
+      {
+        "month": 3,
+        "day": 15,
+        "year": 2024,
+        "file": "2024_운영위원회/2024 운영위원 위촉 계획.hwpx",
+        "snippet": "2. 28. 2. 추천서 제출기한: 2024. 3. 15.(금)까지 총무팀"
+      },
+      {
+        "month": 9,
+        "day": 30,
+        "year": 2024,
+        "file": "2024_운영위원회/2024_제2차 운영위원회 회의록.hwpx",
+        "snippet": "안건: 하반기 사업계획 심의 결과 보고: 2024. 9. 30.까지 기관장 보고"
+      }
+    ],
+    "todos": [],
+    "orgs": [],
+    "files": [
+      {
+        "rel": "2024_운영위원회/2024 운영위원 위촉 계획.hwpx",
+        "modified": "2024-03-08",
+        "error": null
+      },
+      {
+        "rel": "2024_운영위원회/2024_제2차 운영위원회 회의록.hwpx",
+        "modified": "2024-09-13",
+        "error": null
+      },
+      {
+        "rel": "2025_운영위원회/2025 운영위원 위촉 계획.hwpx",
+        "modified": "2025-03-08",
+        "error": null
+      },
+      {
+        "rel": "2025_운영위원회/2025_제2차 운영위원회 회의록.hwpx",
+        "modified": "2025-09-13",
+        "error": null
+      }
+    ],
+    "include": true
+  },
+  {
+    "name": "민원서식",
+    "ai_name": null,
+    "months": [
+      5
+    ],
+    "period": "5월 (수정일 기준)",
+    "confidence": "추정",
+    "years": [],
+    "deadlines": [],
+    "todos": [],
+    "orgs": [],
+    "files": [
+      {
+        "rel": "민원서식/정보공개청구서_서식.docx",
+        "modified": "2023-05-02",
+        "error": null
+      }
+    ],
+    "include": true
+  },
+  {
+    "name": "정보공개",
+    "ai_name": null,
+    "months": [
+      7
+    ],
+    "period": "매년 7월",
+    "confidence": "높음",
+    "years": [
+      2024,
+      2025
+    ],
+    "deadlines": [
+      {
+        "month": 7,
+        "day": 10,
+        "year": 2024,
+        "file": "정보공개/2024 상반기 정보공개 처리현황 보고.hwpx",
+        "snippet": "상반기 정보공개 처리현황 보고기한: 2024. 7. 10.까지 상급기관 회"
+      }
+    ],
+    "todos": [],
+    "orgs": [],
+    "files": [
+      {
+        "rel": "정보공개/2024 상반기 정보공개 처리현황 보고.hwpx",
+        "modified": "2024-07-05",
+        "error": null
+      },
+      {
+        "rel": "정보공개/2025 상반기 정보공개 처리현황 보고.hwpx",
+        "modified": "2025-07-05",
+        "error": null
+      }
+    ],
+    "include": true
+  },
+  {
+    "name": "예산",
+    "ai_name": null,
+    "months": [
+      9
+    ],
+    "period": "매년 9월",
+    "confidence": "높음",
+    "years": [
+      2024,
+      2025
+    ],
+    "deadlines": [
+      {
+        "month": 9,
+        "day": 20,
+        "year": 2024,
+        "file": "예산/2024_본예산 요구서 작성 안내(공문).hwpx",
+        "snippet": "안내 수신: 각 부서장 부서별 예산요구서를 2024. 9. 20.까지 예산팀으로"
+      }
+    ],
+    "todos": [],
+    "orgs": [],
+    "files": [
+      {
+        "rel": "예산/2024_본예산 요구서 작성 안내(공문).hwpx",
+        "modified": "2024-08-28",
+        "error": null
+      },
+      {
+        "rel": "예산/2025_본예산 요구서 작성 안내(공문).hwpx",
+        "modified": "2025-08-28",
+        "error": null
+      }
+    ],
+    "include": true
+  },
+  {
+    "name": "직원연수",
+    "ai_name": null,
+    "months": [
+      11
+    ],
+    "period": "매년 11월",
+    "confidence": "높음",
+    "years": [
+      2024,
+      2025
+    ],
+    "deadlines": [
+      {
+        "month": 11,
+        "day": 29,
+        "year": 2024,
+        "file": "직원연수/2024_법정의무교육_이수현황_최종.xlsx",
+        "snippet": "이수기한 전 직원 | 개인정보보호 교육 | 2024-11-29"
+      }
+    ],
+    "todos": [],
+    "orgs": [],
+    "files": [
+      {
+        "rel": "직원연수/2024_법정의무교육_이수현황_최종.xlsx",
+        "modified": "2024-11-05",
+        "error": null
+      },
+      {
+        "rel": "직원연수/2025 법정의무교육 이수 현황.xlsx",
+        "modified": "2025-11-03",
+        "error": null
+      }
+    ],
+    "include": true
+  },
+  {
+    "name": "업무메모",
+    "ai_name": null,
+    "months": [
+      12
+    ],
+    "period": "12월 (2025년 자료 기준)",
+    "confidence": "보통",
+    "years": [
+      2025
+    ],
+    "deadlines": [
+      {
+        "month": 12,
+        "day": 15,
+        "year": 2025,
+        "file": "업무메모.txt",
+        "snippet": "6월 중순 정리 - 연말 성과평가 실적은 12월 15일까지 제출 - 운"
+      }
+    ],
+    "todos": [],
+    "orgs": [],
+    "files": [
+      {
+        "rel": "업무메모.txt",
+        "modified": "2025-12-20",
+        "error": null
+      }
+    ],
+    "include": true
+  }
+]

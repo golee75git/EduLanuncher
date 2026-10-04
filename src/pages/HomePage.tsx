@@ -1,4 +1,4 @@
-import { Compass, Globe, Keyboard, Plus, Printer, Settings, ShieldCheck, Wrench, type LucideIcon } from "lucide-react";
+import { CalendarRange, Compass, Globe, Keyboard, Plus, Printer, Settings, ShieldCheck, Wrench, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FavoriteGrid } from "../components/FavoriteGrid";
 import { HighlightText } from "../components/HighlightText";
@@ -68,6 +68,7 @@ export type HomeAction =
   | { type: "pc-print"; search?: string }
   | { type: "pc-security"; search?: string }
   | { type: "privacy-scan"; search?: string }
+  | { type: "work-handover"; search?: string }
   | { type: "troubleshoot"; search?: string }
   | { type: "troubleshoot-card"; cardId: string; search?: string }
   | { type: "topic"; topicId: string; search?: string }
@@ -273,6 +274,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     const entry = listComputerTools().find((item) => item.id === "privacy-scan");
     return entry ? computerToolAsItem(entry) : null;
   }, []);
+  const handoverWords = ["업무 인수인계", "인수인계", "인계", "업무 넘기기", "업무 카드", "연간 업무", "업무 달력"];
+  const showHandover = handoverWords.some((word) => query.includes(word));
   const showPrivacy = Boolean(
     privacyTool &&
       scoreText(query, privacyTool.name, privacyTool.description, privacyTool.category, ...(privacyTool.keywords ?? [])) > 0,
@@ -655,6 +658,14 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                             <WorkToolMark icon={Wrench} />
                             컴퓨터도구
                           </button>
+                          <button
+                            type="button"
+                            className={linkClass}
+                            onClick={() => onAction({ type: "work-handover" })}
+                          >
+                            <WorkToolMark icon={CalendarRange} />
+                            업무 인수인계
+                          </button>
                         </>
                       ) : null}
                       <button
@@ -816,6 +827,20 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                     </button>
                   </span>
                 </div>
+              ) : null,
+              showHandover ? (
+                <button
+                  key="work-handover"
+                  type="button"
+                  onClick={() => onAction({ type: "work-handover", search: query })}
+                  className="desk-row gap-2"
+                >
+                  <CalendarRange className="h-4 w-4 shrink-0 text-quiet" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm text-desk">업무 인수인계</span>
+                    <span className="block text-[11px] leading-4 text-quiet">업무 폴더의 시기와 기한을 이 PC 안에서 정리합니다.</span>
+                  </span>
+                </button>
               ) : null,
               showPrivacy && privacyTool ? (
                 <button

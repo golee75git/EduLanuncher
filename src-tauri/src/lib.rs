@@ -19,6 +19,7 @@ use tauri_plugin_opener::OpenerExt;
 
 mod doc_shrink;
 mod document_search;
+mod handover;
 mod netcheck;
 mod fixed_https;
 mod knowledge_sign;
@@ -2822,6 +2823,14 @@ pub fn run() {
             pdf_arrange,
             doc_search_folders,
             doc_search_add_folder,
+            handover::pick_work_folder,
+            handover::work_cards,
+            handover::run_work_cards,
+            handover::halt_work_cards,
+            handover::save_work_cards,
+            handover::load_work_cards,
+            handover::merge_work_cards,
+            handover::open_work_file,
             doc_search_remove_folder,
             doc_search_clear,
             doc_search_status,

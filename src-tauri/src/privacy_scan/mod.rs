@@ -9,7 +9,7 @@ mod detect;
 mod mask;
 mod model;
 mod profile;
-mod read;
+pub(crate) mod read;
 mod risk;
 
 use std::fs::OpenOptions;

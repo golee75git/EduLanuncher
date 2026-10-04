@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.173-20261004",
+    note: "업무 인수인계에서 고른 폴더의 문서만 이 PC 안에서 읽어 월별 시기와 기한을 정리합니다. 원본은 바꾸지 않습니다.",
+  },
+  {
     version: "0.1.172-20261004",
     note: "사진 모자이크가 찾은 영역을 사진 위 그 자리에 맞춥니다. 창 아이콘과 상단 표시를 바꿨습니다.",
   },
