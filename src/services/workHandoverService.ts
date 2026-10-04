@@ -268,6 +268,57 @@ export async function checkHandoverFile(folderId: string, rel: string, hash: str
   }
 }
 
+export interface PathCarry {
+  note: string;
+  paths: string[];
+}
+
+export interface AskPiece {
+  title: string;
+  excerpt: string;
+  rel: string;
+  changed: boolean;
+}
+
+export interface AskReply {
+  kind: string;
+  text: string;
+  pieces: AskPiece[];
+  warning: string;
+}
+
+export async function expandHandoverPath(path: string): Promise<string> {
+  try {
+    return await invoke<string>("expand_handover_path", { path });
+  } catch {
+    return path;
+  }
+}
+
+export async function handoverOutsidePaths(draft: ExportDraft): Promise<PathCarry> {
+  try {
+    return await invoke<PathCarry>("handover_outside_paths", { draft });
+  } catch {
+    return { note: "", paths: [] };
+  }
+}
+
+export async function askHandover(body: {
+  question: string;
+  folderId: string;
+  packed: HandoverBox;
+  notes: string[];
+  port: number;
+  model: string;
+  useModel: boolean;
+}): Promise<AskReply> {
+  try {
+    return await invoke<AskReply>("ask_handover", { draft: body });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
 export async function localTargetPresent(target: string): Promise<boolean> {
   try {
     return await invoke<boolean>("local_target_present", { target });

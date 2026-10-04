@@ -102,6 +102,12 @@ pub struct PrivacySpot {
     pub kind: String,
 }
 
+#[derive(Clone, Debug, Serialize)]
+pub struct PathCarry {
+    pub note: String,
+    pub paths: Vec<String>,
+}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct ExportDraft {
     pub folder_id: String,
@@ -166,7 +172,74 @@ pub fn privacy_spots(draft: &ExportDraft) -> Result<Vec<PrivacySpot>, &'static s
     Ok(spots)
 }
 
-pub fn build_box(root: Option<&Path>, draft: &ExportDraft, made_at: &str) -> Result<HandoverBox, &'static str> {
+pub const OUTSIDE_NOTE: &str = "이 경로가 그대로 전달됩니다";
+
+pub fn fold_profile(path: &str, profile: &str) -> (String, bool) {
+    let stored = path.trim().replace('/', "\\");
+    if stored.is_empty() {
+        return (String::new(), false);
+    }
+    let head: String = stored.chars().take(13).collect();
+    if head.eq_ignore_ascii_case("%USERPROFILE%") {
+        return (stored, false);
+    }
+    let profile = profile.trim().replace('/', "\\");
+    let profile = profile.trim_end_matches('\\').to_string();
+    if profile.is_empty() {
+        return (stored, true);
+    }
+    let path_key = stored.to_lowercase();
+    let profile_key = profile.to_lowercase();
+    if path_key == profile_key {
+        return ("%USERPROFILE%".to_string(), false);
+    }
+    let prefix = format!("{profile_key}\\");
+    if path_key.starts_with(&prefix) {
+        let rest: String = stored.chars().skip(profile.chars().count()).collect();
+        return (format!("%USERPROFILE%{rest}"), false);
+    }
+    (stored, true)
+}
+
+pub fn unfold_profile(path: &str, profile: &str) -> String {
+    const MARK: &str = "%USERPROFILE%";
+    let Some(rest) = path.strip_prefix(MARK) else {
+        return path.to_string();
+    };
+    let profile = profile.trim().trim_end_matches(['\\', '/']);
+    if profile.is_empty() {
+        return path.to_string();
+    }
+    if rest.is_empty() {
+        profile.to_string()
+    } else {
+        format!("{profile}{rest}")
+    }
+}
+
+pub fn outside_paths(root: Option<&Path>, draft: &ExportDraft, profile: &str) -> Vec<String> {
+    let mut rows = Vec::new();
+    if draft.include_folder {
+        if let Some(path) = root {
+            let (stored, outside) = fold_profile(&path.to_string_lossy(), profile);
+            if outside {
+                rows.push(stored);
+            }
+        }
+    }
+    for link in &draft.shortcuts {
+        if link.kind == "url" || link.target.contains("://") {
+            continue;
+        }
+        let (stored, outside) = fold_profile(&link.target, profile);
+        if outside {
+            rows.push(stored);
+        }
+    }
+    rows
+}
+
+pub fn build_box(root: Option<&Path>, draft: &ExportDraft, made_at: &str, profile: &str) -> Result<HandoverBox, &'static str> {
     let fields = export_fields(draft)?;
     let mut masked: Vec<(String, String)> = Vec::new();
     for field in fields {
@@ -225,10 +298,21 @@ pub fn build_box(root: Option<&Path>, draft: &ExportDraft, made_at: &str) -> Res
         return Err("인계 내용이 너무 많습니다.");
     }
     let memos = draft.memos.iter().enumerate().map(|(index, _)| clip(&take(&key_memo(index)), 2000)).filter(|text| !text.is_empty()).collect();
+    let shortcuts = draft
+        .shortcuts
+        .iter()
+        .cloned()
+        .map(|mut link| {
+            if link.kind != "url" && !link.target.contains("://") {
+                link.target = fold_profile(&link.target, profile).0;
+            }
+            link
+        })
+        .collect();
     let folder = if draft.include_folder {
         root.map(|path| BoxFolder {
             name: clip(path.file_name().and_then(|value| value.to_str()).unwrap_or("업무"), 80),
-            path: clip(&path.to_string_lossy(), 1024),
+            path: clip(&fold_profile(&path.to_string_lossy(), profile).0, 1024),
         })
     } else {
         None
@@ -240,7 +324,7 @@ pub fn build_box(root: Option<&Path>, draft: &ExportDraft, made_at: &str) -> Res
         model: draft.batch.model.clone().filter(|text| !text.trim().is_empty()),
         note: clip(&take("note"), NOTE_CAP),
         cards,
-        shortcuts: draft.shortcuts.clone(),
+        shortcuts,
         folder,
         memos,
         content_hash: String::new(),
@@ -541,7 +625,7 @@ pub fn write_handover_box(app: AppHandle, window: WebviewWindow, write_id: Strin
         reject_result_inside_source(&path, &dest).map_err(|message| message.to_string())?;
         Some(path)
     };
-    let packed = build_box(root.as_deref(), &draft, &local_stamp()).map_err(|text| text.to_string())?;
+    let packed = build_box(root.as_deref(), &draft, &local_stamp(), &profile_root()).map_err(|text| text.to_string())?;
     let text = seal_box(packed).map_err(|text| text.to_string())?;
     path_grant::write_text(&book, &write_id, &["edupack", "json"], &text, BOX_BYTES).map_err(|_| "저장하지 못했습니다.".to_string())
 }
@@ -581,8 +665,56 @@ pub fn local_target_present(window: WebviewWindow, target: String) -> Result<boo
     if target.len() > 1024 || target.contains('\0') {
         return Ok(false);
     }
-    let path = PathBuf::from(target.trim());
+    let path = PathBuf::from(unfold_profile(target.trim(), &profile_root()));
     Ok(path.is_file() || path.is_dir())
+}
+
+#[tauri::command]
+pub fn expand_handover_path(window: WebviewWindow, path: String) -> Result<String, String> {
+    main_only(&window)?;
+    if path.len() > 1024 || path.contains('\0') {
+        return Err("경로를 열지 못했습니다.".into());
+    }
+    Ok(unfold_profile(&path, &profile_root()))
+}
+
+#[tauri::command]
+pub fn handover_outside_paths(app: AppHandle, window: WebviewWindow, draft: ExportDraft) -> Result<PathCarry, String> {
+    main_only(&window)?;
+    let root = if draft.folder_id.is_empty() || !draft.include_folder {
+        None
+    } else {
+        let book = app.state::<GrantBook>();
+        Some(path_grant::view_work_folder(&book, &draft.folder_id).map_err(|_| "폴더를 찾지 못했습니다.".to_string())?)
+    };
+    let paths = outside_paths(root.as_deref(), &draft, &profile_root());
+    let note = if paths.is_empty() { String::new() } else { OUTSIDE_NOTE.to_string() };
+    Ok(PathCarry { note, paths })
+}
+
+#[cfg(windows)]
+fn profile_root() -> String {
+    use windows::Win32::System::Com::CoTaskMemFree;
+    use windows::Win32::UI::Shell::{FOLDERID_Profile, SHGetKnownFolderPath, KNOWN_FOLDER_FLAG};
+    unsafe {
+        if let Ok(pw) = SHGetKnownFolderPath(&FOLDERID_Profile, KNOWN_FOLDER_FLAG(0), None) {
+            let mut len = 0usize;
+            while !pw.0.is_null() && *pw.0.add(len) != 0 && len < 1024 {
+                len += 1;
+            }
+            let text = String::from_utf16_lossy(std::slice::from_raw_parts(pw.0, len));
+            CoTaskMemFree(Some(pw.0 as *const core::ffi::c_void));
+            if !text.is_empty() {
+                return text;
+            }
+        }
+    }
+    std::env::var("USERPROFILE").unwrap_or_default()
+}
+
+#[cfg(not(windows))]
+fn profile_root() -> String {
+    String::new()
 }
 
 pub fn looks_like_handover(text: &str) -> bool {
@@ -641,7 +773,7 @@ mod tests {
         fs::write(&file, "회의 자료").unwrap();
         let mut ask = draft(sample_batch(), vec!["회의 메모".to_string()]);
         ask.include_folder = true;
-        let packed = build_box(Some(&dir), &ask, "2026-10-04T21:00:00").unwrap();
+        let packed = build_box(Some(&dir), &ask, "2026-10-04T21:00:00", "").unwrap();
         let text = seal_box(packed).unwrap();
         let root = dir.to_string_lossy().to_string();
         let mut value: Value = serde_json::from_str(&text).unwrap();
@@ -665,12 +797,12 @@ mod tests {
         let ask = draft(sample_batch(), vec!["연락 010-1234-5678".to_string()]);
         let spots = privacy_spots(&ask).unwrap();
         assert!(spots.iter().any(|spot| spot.key == "memo-0" && spot.kind.contains("휴대전화")));
-        let masked = build_box(None, &ask, "2026-10-04T21:00:00").unwrap();
+        let masked = build_box(None, &ask, "2026-10-04T21:00:00", "").unwrap();
         assert!(masked.memos[0].contains("[가림]"));
         assert!(!masked.memos[0].contains("010-1234-5678"));
         let mut kept = ask;
         kept.keep = vec!["memo-0".to_string()];
-        let raw = build_box(None, &kept, "2026-10-04T21:00:00").unwrap();
+        let raw = build_box(None, &kept, "2026-10-04T21:00:00", "").unwrap();
         assert!(raw.memos[0].contains("010-1234-5678"));
     }
 
@@ -680,7 +812,7 @@ mod tests {
         assert_eq!(err, BAD_BOX);
         assert!(!looks_like_handover(r#"{"notices":[]}"#));
         assert!(looks_like_handover(r#"{"kind":"work-handover"}"#));
-        let packed = build_box(None, &draft(sample_batch(), vec!["메모".to_string()]), "2026-10-04T21:00:00").unwrap();
+        let packed = build_box(None, &draft(sample_batch(), vec!["메모".to_string()]), "2026-10-04T21:00:00", "").unwrap();
         let mut text = seal_box(packed).unwrap();
         text = text.replacen("운영위원회", "운영위윈회", 1);
         assert_eq!(open_box_text(&text).unwrap_err(), BROKEN_BOX);
@@ -695,12 +827,39 @@ mod tests {
         fs::create_dir_all(dir.join("회의")).unwrap();
         let file = dir.join("회의").join("메모.txt");
         fs::write(&file, "회의 자료").unwrap();
-        let packed = build_box(Some(&dir), &draft(sample_batch(), Vec::new()), "2026-10-04T21:00:00").unwrap();
+        let packed = build_box(Some(&dir), &draft(sample_batch(), Vec::new()), "2026-10-04T21:00:00", "").unwrap();
         let hash = packed.cards[0].files[0].hash.clone();
         assert_eq!(match_file(&dir, "회의/메모.txt", &hash), FileMatch::Same);
         fs::write(&file, "회의 자료 수정").unwrap();
         assert_eq!(match_file(&dir, "회의/메모.txt", &hash), FileMatch::Changed);
         assert_eq!(CHANGED_FILE, "전임자가 넘긴 뒤 바뀐 파일입니다");
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn profile_placeholder_hides_the_virtual_name() {
+        let profile = r"C:\Users\가상이름";
+        let dir = PathBuf::from(r"C:\Users\가상이름\Documents\업무");
+        let mut ask = draft(sample_batch(), Vec::new());
+        ask.include_folder = true;
+        ask.shortcuts = vec![
+            BoxLink { name: "문서".to_string(), kind: "file".to_string(), target: r"C:\Users\가상이름\Documents\업무\계획.hwpx".to_string() },
+            BoxLink { name: "나이스".to_string(), kind: "url".to_string(), target: "https://example.com".to_string() },
+        ];
+        let packed = build_box(Some(&dir), &ask, "2026-10-04T22:20:00", profile).unwrap();
+        assert_eq!(packed.folder.as_ref().unwrap().path, r"%USERPROFILE%\Documents\업무");
+        assert_eq!(packed.shortcuts[0].target, r"%USERPROFILE%\Documents\업무\계획.hwpx");
+        assert_eq!(packed.shortcuts[1].target, "https://example.com");
+        let text = serde_json::to_string(&packed).unwrap();
+        assert!(!text.contains("가상이름"), "{text}");
+        assert_eq!(unfold_profile(&packed.shortcuts[0].target, r"C:\Users\후임자"), r"C:\Users\후임자\Documents\업무\계획.hwpx");
+        let (kept, outside) = fold_profile(r"D:\업무\계획.hwpx", profile);
+        assert!(outside);
+        assert_eq!(kept, r"D:\업무\계획.hwpx");
+        let (unc, unc_out) = fold_profile(r"\\server\share\계획.hwpx", profile);
+        assert!(unc_out);
+        assert_eq!(unc, r"\\server\share\계획.hwpx");
+        let carried = outside_paths(Some(Path::new(r"D:\업무")), &ask, profile);
+        assert!(carried.iter().any(|path| path.starts_with("D:\\")));
     }
 }

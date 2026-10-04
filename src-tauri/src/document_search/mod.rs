@@ -1,5 +1,5 @@
 pub(crate) mod extract;
-mod tokens;
+pub(crate) mod tokens;
 
 use std::collections::HashSet;
 use std::fs;

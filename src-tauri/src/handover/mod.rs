@@ -1,6 +1,7 @@
 //! 업무 폴더를 읽어 업무 카드를 만든다. 모델 연결은 다음 단계이다.
 //! 원본 폴더는 읽기만 하고, 결과 위치는 원본 안이면 거부한다.
 
+pub(crate) mod ask;
 pub(crate) mod assist;
 pub(crate) mod handover_box;
 mod marks;
@@ -30,7 +31,7 @@ pub const TIME_CAP: Duration = Duration::from_secs(180);
 
 const CARD_EXTS: &[&str] = &["hwpx", "hwp", "pdf", "xlsx", "docx", "txt", "md", "csv"];
 static HALT: AtomicBool = AtomicBool::new(false);
-static BUSY: AtomicBool = AtomicBool::new(false);
+pub(crate) static BUSY: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CardBatch {
@@ -367,6 +368,26 @@ fn walk_tree(root: &Path, limit: &ScanLimit, halt: &AtomicBool) -> (Vec<ListedFi
 fn wide_to_string(raw: &[u16]) -> String {
     let end = raw.iter().position(|unit| *unit == 0).unwrap_or(raw.len());
     String::from_utf16_lossy(&raw[..end])
+}
+
+pub(crate) fn folder_passages(root: &Path) -> Vec<(String, String)> {
+    let halt = AtomicBool::new(false);
+    let listed = match list_work_files(root, &default_limit(), &halt) {
+        Ok((rows, _)) => rows,
+        Err(_) => return Vec::new(),
+    };
+    let mut out = Vec::new();
+    for item in listed {
+        if item.cloud || item.link || item.too_big {
+            continue;
+        }
+        let (text, _) = read_body(&item.path);
+        if text.trim().is_empty() {
+            continue;
+        }
+        out.push((item.rel, text));
+    }
+    out
 }
 
 fn keep_name(name: &str) -> bool {

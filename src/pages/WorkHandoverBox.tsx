@@ -1,17 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMemoStore } from "../stores/memoStore";
 import { useToolStore } from "../stores/toolStore";
 import type { ToolType } from "../types/tool";
 import { pickSaveFile } from "../services/savePick";
 import {
+  askHandover,
   checkHandoverFile,
+  expandHandoverPath,
   handoverBoxName,
+  handoverOutsidePaths,
   handoverPrivacySpots,
   localTargetPresent,
   openWorkFile,
   pickWorkFolder,
   saveWorkCards,
   writeHandoverBox,
+  type AskReply,
   type BoxLink,
   type CardBatch,
   type ExportDraft,
@@ -43,6 +47,7 @@ export function HandoverExport({ batch, folderId, onClose }: { batch: CardBatch;
   const [spots, setSpots] = useState<PrivacySpot[] | null>(null);
   const [keep, setKeep] = useState<string[]>([]);
   const [message, setMessage] = useState("");
+  const [outsideNote, setOutsideNote] = useState("");
 
   const memoChoices = useMemo(() => {
     const rows: { id: string; text: string }[] = [];
@@ -56,6 +61,18 @@ export function HandoverExport({ batch, folderId, onClose }: { batch: CardBatch;
     }
     return rows;
   }, [memoText, notes]);
+
+  useEffect(() => {
+    let live = true;
+    void handoverOutsidePaths(draft()).then((carry) => {
+      if (live) {
+        setOutsideNote(carry.paths.length > 0 ? "이 경로가 그대로 전달됩니다" : "");
+      }
+    });
+    return () => {
+      live = false;
+    };
+  }, [includeFolder, pickedTools, folderId, tools]);
 
   function draft(): ExportDraft {
     return {
@@ -129,6 +146,7 @@ export function HandoverExport({ batch, folderId, onClose }: { batch: CardBatch;
           </label>
         ))}
       </div>
+      {outsideNote ? <p className="text-xs text-desk">{outsideNote}</p> : null}
       <textarea
         className="min-h-16 w-full rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
         value={remark}
@@ -187,11 +205,43 @@ export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () 
   const [pickedMemos, setPickedMemos] = useState<number[]>([]);
   const [message, setMessage] = useState("");
   const [exporting, setExporting] = useState(false);
+  const [shownLinks, setShownLinks] = useState<BoxLink[]>(box.shortcuts ?? []);
+  const [folderPath, setFolderPath] = useState(box.folder?.path ?? "");
+  const [question, setQuestion] = useState("");
+  const [reply, setReply] = useState<AskReply | null>(null);
+  const [asking, setAsking] = useState(false);
+  const [useModel, setUseModel] = useState(false);
+  const [modelName, setModelName] = useState("");
+  const [port, setPort] = useState("11434");
   const month = thisMonth();
   const follow = nextMonth(month);
   const near = box.cards.filter((card) => card.months.includes(month) || card.months.includes(follow));
-  const shortcuts = box.shortcuts ?? [];
   const memos = box.memos ?? [];
+
+  useEffect(() => {
+    let live = true;
+    const links = box.shortcuts ?? [];
+    void Promise.all(
+      links.map(async (link) => ({
+        ...link,
+        target: link.type === "url" ? link.target : await expandHandoverPath(link.target),
+      })),
+    ).then((next) => {
+      if (live) {
+        setShownLinks(next);
+      }
+    });
+    if (box.folder?.path) {
+      void expandHandoverPath(box.folder.path).then((path) => {
+        if (live) {
+          setFolderPath(path);
+        }
+      });
+    }
+    return () => {
+      live = false;
+    };
+  }, [box]);
 
   function asBatch(): CardBatch {
     return {
@@ -239,16 +289,17 @@ export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () 
     let added = 0;
     let skipped = 0;
     for (const index of pickedLinks) {
-      const link = shortcuts[index];
+      const link = shownLinks[index];
       if (!link) {
         continue;
       }
-      if (store.tools.some((tool) => tool.type === link.type && tool.target === link.target)) {
+      const target = link.type === "url" ? link.target : await expandHandoverPath(link.target);
+      if (store.tools.some((tool) => tool.type === link.type && tool.target === target)) {
         skipped += 1;
         continue;
       }
       if (link.type !== "url") {
-        const present = await localTargetPresent(link.target);
+        const present = await localTargetPresent(target);
         if (!present && !window.confirm(`${link.name}은 이 PC에 없습니다. 그래도 넣을까요?`)) {
           continue;
         }
@@ -257,7 +308,7 @@ export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () 
         id: crypto.randomUUID(),
         name: link.name,
         type: link.type as ToolType,
-        target: link.target,
+        target,
         origin: "local",
       });
       added += 1;
@@ -287,6 +338,48 @@ export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () 
     setPickedMemos([]);
   }
 
+  async function openPiece(rel: string) {
+    const file = box.cards.flatMap((card) => card.files).find((item) => item.rel.replace(/\\/g, "/") === rel.replace(/\\/g, "/"));
+    if (file) {
+      await openEvidence(rel, file.hash);
+      return;
+    }
+    if (!folderId) {
+      setMessage("업무 폴더를 고르면 같은 위치의 파일을 엽니다.");
+      return;
+    }
+    try {
+      await openWorkFile(folderId, rel);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "파일을 열지 못했습니다.");
+    }
+  }
+
+  async function ask(text: string) {
+    const q = text.trim();
+    if (!q) {
+      return;
+    }
+    setQuestion(q.slice(0, 200));
+    setAsking(true);
+    try {
+      const result = await askHandover({
+        question: q.slice(0, 200),
+        folderId: folderId ?? "",
+        packed: box,
+        notes,
+        port: useModel ? Number(port) || 11434 : 0,
+        model: modelName.trim(),
+        useModel: useModel && modelName.trim().length > 0,
+      });
+      setReply(result);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "답하지 못했습니다.");
+    } finally {
+      setAsking(false);
+    }
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex items-center gap-2 border-b border-line px-3 py-2">
@@ -300,7 +393,7 @@ export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () 
         <p className="text-[11px] text-quiet">만든 날짜 {box.made_at} · 모델 {box.model?.trim() || "없음"}</p>
         {box.folder ? (
           <p className="text-xs text-desk">
-            업무 폴더 {box.folder.name} · 경로 확인 필요
+            업무 폴더 {box.folder.name} · {folderPath || "경로 확인 필요"}
           </p>
         ) : null}
         <div className="flex flex-wrap gap-2">
@@ -325,6 +418,67 @@ export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () 
             새 인계 박스
           </button>
         </div>
+        <section className="space-y-1">
+          <h2 className="text-xs font-medium text-desk">질문</h2>
+          <textarea
+            className="min-h-14 w-full rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
+            value={question}
+            onChange={(event) => setQuestion(event.target.value.slice(0, 200))}
+            placeholder="넘겨받은 자료에 대해 물어봅니다"
+            aria-label="질문"
+          />
+          <div className="flex flex-wrap gap-2">
+            {["이번 달에 할 일은?", "다음 달 기한은?", "업무는 어떻게 하나요?"].map((sample) => (
+              <button key={sample} type="button" className="btn-secondary" onClick={() => void ask(sample)}>
+                {sample === "업무는 어떻게 하나요?" ? "○○ 업무는 어떻게 하나요?" : sample}
+              </button>
+            ))}
+            <button type="button" className="btn-secondary" disabled={asking} onClick={() => void ask(question)}>
+              {asking ? "찾는 중" : "질문"}
+            </button>
+          </div>
+          <label className="flex items-center gap-2 text-xs text-desk">
+            <input type="checkbox" checked={useModel} onChange={(event) => setUseModel(event.target.checked)} />
+            이 PC 모델로 답하기
+          </label>
+          {useModel ? (
+            <div className="flex gap-2">
+              <input
+                className="w-24 rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
+                value={port}
+                onChange={(event) => setPort(event.target.value.replace(/\D/g, "").slice(0, 5))}
+                aria-label="포트"
+              />
+              <input
+                className="min-w-0 flex-1 rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
+                value={modelName}
+                onChange={(event) => setModelName(event.target.value.slice(0, 80))}
+                placeholder="모델 이름"
+                aria-label="모델 이름"
+              />
+            </div>
+          ) : null}
+          {reply ? (
+            <div className="space-y-1">
+              <p className="whitespace-pre-wrap text-xs text-desk">{reply.text}</p>
+              {reply.warning ? <p className="text-xs text-desk">{reply.warning}</p> : null}
+              {reply.pieces.map((piece, index) => (
+                <p key={`${piece.title}-${index}`} className="text-[11px] text-desk">
+                  [{index + 1}] {piece.title} · {piece.excerpt}
+                  {piece.changed ? " · 전임자가 넘긴 뒤 바뀐 파일" : ""}
+                  {piece.rel ? (
+                    <>
+                      {" "}
+                      <button type="button" className="underline" onClick={() => void openPiece(piece.rel)}>
+                        열기
+                      </button>
+                    </>
+                  ) : null}
+                </p>
+              ))}
+            </div>
+          ) : null}
+        </section>
         {exporting ? <HandoverExport batch={asBatch()} folderId={folderId} onClose={() => setExporting(false)} /> : null}
         <section className="space-y-1">
           <h2 className="text-xs font-medium text-desk">이번 달 업무</h2>
@@ -390,10 +544,10 @@ export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () 
             />
           </article>
         ))}
-        {shortcuts.length > 0 ? (
+        {shownLinks.length > 0 ? (
           <section className="space-y-1">
             <h2 className="text-xs font-medium text-desk">바로가기</h2>
-            {shortcuts.map((link, index) => (
+            {shownLinks.map((link, index) => (
               <LinkRow key={`${link.target}-${index}`} link={link} index={index} picked={pickedLinks} setPicked={setPickedLinks} />
             ))}
             <button type="button" className="btn-secondary" onClick={() => void addLinks()}>
