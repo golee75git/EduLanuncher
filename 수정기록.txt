@@ -6,6 +6,29 @@
 ---
 
 날짜: 2026-10-04
+대상: 사진 모자이크 영역 위치, 아이콘
+작성자: 요청자
+
+요청: 자동으로 찾은 영역이 사진의 얼굴·숫자 자리와 어긋나는 것을 고친다. 첨부한 그림을 창 아이콘, 상단 표시, 트레이 아이콘으로 바꾼다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. windows 기능은 추가하지 않음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+다시 쓴 파일:
+- src-tauri/src/privacy_find.rs
+- src/services/privacyMaskService.ts
+- src/pages/PrivacyMaskPage.tsx
+- src/assets/home-mark.png
+- src-tauri/icons
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+
+---
+
+날짜: 2026-10-04
 대상: 사진 모자이크 자동 찾기
 작성자: 요청자
 

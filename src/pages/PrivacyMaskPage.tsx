@@ -8,6 +8,7 @@ import {
   loadPrivacyShot,
   paintCover,
   paintMarks,
+  paintStages,
   privacyFindCaps,
   privacySaveName,
   stopPrivacyFind,
@@ -19,6 +20,7 @@ import {
   type FindCaps,
   type FindOutcome,
   type JpegGrade,
+  type StageMark,
   type PrivacyShot,
   type RegionKind,
 } from "../services/privacyMaskService";
@@ -53,6 +55,10 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
   const [sourcePath, setSourcePath] = useState("");
   const [shot, setShot] = useState<PrivacyShot | null>(null);
   const [boxes, setBoxes] = useState<CoverBox[]>([]);
+  const [stages, setStages] = useState<StageMark[]>([]);
+  const [fullOnly, setFullOnly] = useState(false);
+  const [diagSave, setDiagSave] = useState(false);
+  const stagesRef = useRef<StageMark[]>([]);
   const [past, setPast] = useState<CoverBox[][]>([]);
   const [future, setFuture] = useState<CoverBox[][]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -121,7 +127,7 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
 
   useEffect(() => {
     drawPreview();
-  }, [shot, boxes, kind, level, faceCover]);
+  }, [shot, boxes, stages, kind, level, faceCover]);
 
   useEffect(() => {
     void privacyFindCaps()
@@ -134,7 +140,7 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
           setWishText(false);
         }
       })
-      .catch(() => setCaps({ face: false, text: false }));
+      .catch(() => setCaps({ face: false, text: false, debug: false }));
   }, []);
 
   useEffect(() => {
@@ -186,6 +192,9 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
     }
     paintCover(ctx, current.image, canvas.width, canvas.height, boxesRef.current, kind, level, faceCover);
     paintMarks(ctx, canvas.width, canvas.height, boxesRef.current);
+    if (import.meta.env.DEV) {
+      paintStages(ctx, canvas.width, canvas.height, stagesRef.current);
+    }
   };
 
   const replaceShot = (next: PrivacyShot | null) => {
@@ -197,6 +206,8 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
     setShot(next);
     setBoxes([]);
     boxesRef.current = [];
+    setStages([]);
+    stagesRef.current = [];
     setPast([]);
     setFuture([]);
     setSelectedId("");
@@ -429,12 +440,19 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
     setElapsed(0);
     setMessage("");
     try {
-      const outcome = await findPrivacyRegions(current.readId, {
-        face: wishFace,
-        number: wishNumber,
-        plate: wishPlate,
-        text: wishText,
-      });
+      const outcome = await findPrivacyRegions(
+        current.readId,
+        {
+          face: wishFace,
+          number: wishNumber,
+          plate: wishPlate,
+          text: wishText,
+        },
+        import.meta.env.DEV ? { fullOnly, diag: diagSave } : undefined,
+      );
+      const nextStages = import.meta.env.DEV ? outcome.stages ?? [] : [];
+      stagesRef.current = nextStages;
+      setStages(nextStages);
       const manual = boxesRef.current.filter((box) => box.kind === "manual");
       const added = outcome.regions.map((region) => ({
         id: nextBoxId(),
@@ -547,6 +565,19 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
             </label>
           </div>
           {caps && !caps.face ? <p className="text-[11px] leading-5 text-quiet">이 PC에서는 얼굴 찾기를 사용할 수 없습니다.</p> : null}
+          {import.meta.env.DEV && caps?.debug ? (
+            <div className="space-y-1 text-[11px] text-quiet">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={fullOnly} disabled={finding} onChange={(event) => setFullOnly(event.target.checked)} />
+                전체만
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={diagSave} disabled={finding} onChange={(event) => setDiagSave(event.target.checked)} />
+                확인용 그림 저장
+              </label>
+              <p>파랑은 전체, 주황은 2×2, 초록은 3×3입니다. 저장한 그림은 다음 찾기 때 지웁니다.</p>
+            </div>
+          ) : null}
           {caps && !caps.text ? <p className="text-[11px] leading-5 text-quiet">이 PC에서는 글자 인식을 사용할 수 없습니다(Windows 언어 설정 확인).</p> : null}
           <div className="grid grid-cols-2 gap-2">
             <button type="button" className="btn-primary h-9 text-xs" onClick={() => void runFind()} disabled={!shot || finding || busy || !anyWish()}>

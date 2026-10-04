@@ -19,6 +19,16 @@ export interface CoverBox {
 export interface FindCaps {
   face: boolean;
   text: boolean;
+  debug: boolean;
+}
+
+export interface StageMark {
+  stage: "full" | "grid2" | "grid3";
+  kind: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 export interface FoundRegion {
@@ -31,6 +41,7 @@ export interface FoundRegion {
 
 export interface FindOutcome {
   regions: FoundRegion[];
+  stages: StageMark[];
   faceCount: number;
   numberCount: number;
   plateCount: number;
@@ -120,8 +131,14 @@ export async function privacyFindCaps(): Promise<FindCaps> {
 export async function findPrivacyRegions(
   readId: string,
   wish: { face: boolean; number: boolean; plate: boolean; text: boolean },
+  options?: { fullOnly?: boolean; diag?: boolean },
 ): Promise<FindOutcome> {
-  return invoke<FindOutcome>("find_privacy_regions", { readId, ...wish });
+  return invoke<FindOutcome>("find_privacy_regions", {
+    readId,
+    ...wish,
+    fullOnly: options?.fullOnly ?? false,
+    diag: options?.diag ?? false,
+  });
 }
 
 export async function stopPrivacyFind(): Promise<void> {
@@ -199,6 +216,23 @@ export function paintCover(
   }
   base.width = 0;
   base.height = 0;
+}
+
+const STAGE_COLOR: Record<StageMark["stage"], string> = {
+  full: "#1d4ed8",
+  grid2: "#b45309",
+  grid3: "#15803d",
+};
+
+export function paintStages(ctx: CanvasRenderingContext2D, width: number, height: number, stages: StageMark[]): void {
+  for (const mark of stages) {
+    ctx.save();
+    ctx.strokeStyle = STAGE_COLOR[mark.stage] ?? "#64748b";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 3]);
+    ctx.strokeRect(mark.x * width, mark.y * height, Math.max(1, mark.w * width), Math.max(1, mark.h * height));
+    ctx.restore();
+  }
 }
 
 export function paintMarks(ctx: CanvasRenderingContext2D, width: number, height: number, boxes: CoverBox[]): void {

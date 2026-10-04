@@ -74,10 +74,21 @@ pub struct FoundBox {
     pub h: f64,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+pub struct StageMark {
+    pub stage: &'static str,
+    pub kind: &'static str,
+    pub x: f64,
+    pub y: f64,
+    pub w: f64,
+    pub h: f64,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FindOutcome {
     pub regions: Vec<FoundBox>,
+    pub stages: Vec<StageMark>,
     pub face_count: u32,
     pub number_count: u32,
     pub plate_count: u32,
@@ -93,6 +104,15 @@ pub struct FindOutcome {
 pub struct FindCaps {
     pub face: bool,
     pub text: bool,
+    pub debug: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TilePass {
+    All,
+    Full,
+    Grid2,
+    Grid3,
 }
 
 struct RunSlot {
@@ -188,31 +208,105 @@ pub fn grid_tiles(n: u32, width: u32, height: u32, overlap: f64) -> Vec<PxRect> 
 }
 
 pub fn view_tiles(width: u32, height: u32) -> Vec<PxRect> {
-    let mut tiles = vec![PxRect { x: 0, y: 0, w: width, h: height }];
-    for tile in grid_tiles(2, width, height, TILE_OVERLAP) {
-        if tile.w >= MIN_TILE && tile.h >= MIN_TILE {
-            tiles.push(tile);
+    tiles_for(width, height, TilePass::All).into_iter().map(|(tile, _)| tile).collect()
+}
+
+pub fn tiles_for(width: u32, height: u32, pass: TilePass) -> Vec<(PxRect, &'static str)> {
+    let mut tiles = Vec::new();
+    if pass == TilePass::All || pass == TilePass::Full {
+        tiles.push((PxRect { x: 0, y: 0, w: width, h: height }, "full"));
+    }
+    if pass == TilePass::All || pass == TilePass::Grid2 {
+        for tile in grid_tiles(2, width, height, TILE_OVERLAP) {
+            if tile.w >= MIN_TILE && tile.h >= MIN_TILE {
+                tiles.push((tile, "grid2"));
+            }
         }
     }
-    if width.min(height) >= FINE_SHORT_SIDE {
+    let fine = pass == TilePass::Grid3 || (pass == TilePass::All && width.min(height) >= FINE_SHORT_SIDE);
+    if fine {
         for tile in grid_tiles(3, width, height, TILE_OVERLAP) {
             if tile.w >= MIN_TILE && tile.h >= MIN_TILE {
-                tiles.push(tile);
+                tiles.push((tile, "grid3"));
             }
         }
     }
     tiles
 }
 
-pub fn map_detector_box(tile: PxRect, det_x: f64, det_y: f64, det_w: f64, det_h: f64, scale: f64, image_w: f64, image_h: f64) -> NormBox {
-    let scale = if scale <= f64::EPSILON { 1.0 } else { scale };
+pub fn map_detector_box(
+    tile: PxRect,
+    det_x: f64,
+    det_y: f64,
+    det_w: f64,
+    det_h: f64,
+    scale_x: f64,
+    scale_y: f64,
+    image_w: f64,
+    image_h: f64,
+) -> NormBox {
+    let scale_x = if scale_x <= f64::EPSILON { 1.0 } else { scale_x };
+    let scale_y = if scale_y <= f64::EPSILON { 1.0 } else { scale_y };
     let image_w = image_w.max(1.0);
     let image_h = image_h.max(1.0);
     NormBox {
-        x: (tile.x as f64 + det_x / scale) / image_w,
-        y: (tile.y as f64 + det_y / scale) / image_h,
-        w: (det_w / scale) / image_w,
-        h: (det_h / scale) / image_h,
+        x: (tile.x as f64 + det_x / scale_x) / image_w,
+        y: (tile.y as f64 + det_y / scale_y) / image_h,
+        w: (det_w / scale_x) / image_w,
+        h: (det_h / scale_y) / image_h,
+    }
+}
+
+pub fn output_size(tile_w: u32, tile_h: u32, max_long: u32) -> (u32, u32) {
+    let long = tile_w.max(tile_h).max(1);
+    let limit = if max_long == 0 { long } else { max_long.max(1) };
+    let scale = if long > limit { limit as f64 / long as f64 } else { 1.0 };
+    let out_w = ((tile_w as f64) * scale).round().max(1.0) as u32;
+    let out_h = ((tile_h as f64) * scale).round().max(1.0) as u32;
+    (out_w, out_h)
+}
+
+/// 원본 BGRA에서 조각만 잘라 긴 변 기준으로 줄인다. 가로·세로는 같은 배율이다.
+pub fn crop_bgra(src: &[u8], src_w: u32, src_h: u32, stride: u32, tile: PxRect, max_long: u32) -> Option<(Vec<u8>, u32, u32, f64, f64)> {
+    if src_w == 0 || src_h == 0 || tile.w == 0 || tile.h == 0 {
+        return None;
+    }
+    if stride < src_w.saturating_mul(4) {
+        return None;
+    }
+    if tile.x.saturating_add(tile.w) > src_w || tile.y.saturating_add(tile.h) > src_h {
+        return None;
+    }
+    let need = stride as usize * src_h as usize;
+    if src.len() < need {
+        return None;
+    }
+    let (out_w, out_h) = output_size(tile.w, tile.h, max_long);
+    let scale_x = out_w as f64 / tile.w as f64;
+    let scale_y = out_h as f64 / tile.h as f64;
+    let mut out = vec![255u8; out_w as usize * out_h as usize * 4];
+    for oy in 0..out_h {
+        for ox in 0..out_w {
+            let sx = tile.x as f64 + (ox as f64 + 0.5) / scale_x - 0.5;
+            let sy = tile.y as f64 + (oy as f64 + 0.5) / scale_y - 0.5;
+            let sx = sx.round().clamp(tile.x as f64, (tile.x + tile.w - 1) as f64) as u32;
+            let sy = sy.round().clamp(tile.y as f64, (tile.y + tile.h - 1) as f64) as u32;
+            let src_i = sy as usize * stride as usize + sx as usize * 4;
+            let dst_i = (oy as usize * out_w as usize + ox as usize) * 4;
+            out[dst_i..dst_i + 4].copy_from_slice(&src[src_i..src_i + 4]);
+        }
+    }
+    Some((out, out_w, out_h, scale_x, scale_y))
+}
+
+fn remember_stage(stages: &mut Vec<StageMark>, capture: bool, stage: &'static str, kind: &'static str, area: NormBox) {
+    #[cfg(debug_assertions)]
+    if capture {
+        stages.push(StageMark { stage, kind, x: area.x, y: area.y, w: area.w, h: area.h });
+    }
+    #[cfg(not(debug_assertions))]
+    {
+        let _ = (stages, capture, stage, kind, area);
     }
 }
 
@@ -492,11 +586,66 @@ fn counts(regions: &[FoundBox]) -> (u32, u32, u32, u32) {
 #[cfg(windows)]
 mod media {
     use super::*;
+    #[cfg(debug_assertions)]
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use windows::core::Interface;
     use windows::Globalization::Language;
-    use windows::Graphics::Imaging::{BitmapAlphaMode, BitmapBounds, BitmapDecoder, BitmapPixelFormat, BitmapSize, BitmapTransform, ColorManagementMode, ExifOrientationMode, SoftwareBitmap};
+    use windows::Graphics::Imaging::{
+        BitmapAlphaMode, BitmapBuffer, BitmapBufferAccessMode, BitmapDecoder, BitmapPixelFormat, BitmapPlaneDescription, BitmapSize, BitmapTransform,
+        ColorManagementMode, ExifOrientationMode, SoftwareBitmap,
+    };
     use windows::Media::FaceAnalysis::FaceDetector;
     use windows::Media::Ocr::OcrEngine;
-    use windows::Storage::Streams::{DataWriter, InMemoryRandomAccessStream};
+    use windows::Storage::Streams::{Buffer, DataReader, DataWriter, InMemoryRandomAccessStream};
+
+    #[windows::core::interface("5b0d3235-4dba-4d44-865e-8f1d0e4fd04d")]
+    unsafe trait IMemoryBufferByteAccess: windows::core::IUnknown {
+        unsafe fn get_buffer(&self, value: *mut *mut u8, capacity: *mut u32) -> windows::core::HRESULT;
+    }
+
+    #[cfg(debug_assertions)]
+    static DIAG: AtomicBool = AtomicBool::new(false);
+
+    struct DiagGuard;
+
+    impl Drop for DiagGuard {
+        fn drop(&mut self) {
+            #[cfg(debug_assertions)]
+            set_diag(false);
+        }
+    }
+
+    #[cfg(debug_assertions)]
+    pub fn set_diag(on: bool) {
+        if on {
+            let dir = diag_dir();
+            let _ = std::fs::remove_dir_all(&dir);
+            let _ = std::fs::create_dir_all(&dir);
+        }
+        DIAG.store(on, Ordering::Relaxed);
+    }
+
+    #[cfg(not(debug_assertions))]
+    fn set_diag(_on: bool) {}
+
+    #[cfg(debug_assertions)]
+    fn diag_on() -> bool {
+        DIAG.load(Ordering::Relaxed)
+    }
+
+    #[cfg(debug_assertions)]
+    fn diag_capture() -> bool {
+        diag_on()
+    }
+
+    #[cfg(not(debug_assertions))]
+    fn diag_capture() -> bool {
+        false
+    }
+
+    fn diag_dir() -> std::path::PathBuf {
+        std::env::temp_dir().join("edulauncher-find-diag")
+    }
 
     pub struct MediaFacts {
         pub face: bool,
@@ -526,22 +675,44 @@ mod media {
         OcrEngine::IsLanguageSupported(&language)
     }
 
-    pub fn scan_file(app: &AppHandle, path: &Path, wish: Wish, run: u64, started: Instant) -> Result<FindOutcome, String> {
+    pub fn scan_file(app: &AppHandle, path: &Path, wish: Wish, run: u64, started: Instant, pass: TilePass) -> Result<FindOutcome, String> {
+        let _guard = DiagGuard;
+        scan_bytes_with(Some(app), &read_picture(path)?, wish, run, started, started + FIND_LIMIT, pass)
+    }
+
+    pub fn scan_bytes(bytes: &[u8], wish: Wish, pass: TilePass) -> Result<FindOutcome, String> {
+        #[cfg(debug_assertions)]
+        set_diag(false);
+        let started = Instant::now();
+        let run = begin_run();
+        scan_bytes_with(None, bytes, wish, run, started, started + Duration::from_secs(180), pass)
+    }
+
+    fn scan_bytes_with(
+        app: Option<&AppHandle>,
+        bytes: &[u8],
+        wish: Wish,
+        run: u64,
+        started: Instant,
+        deadline: Instant,
+        pass: TilePass,
+    ) -> Result<FindOutcome, String> {
         let avail = Availability { face: facts().face, text: facts().text };
         let active = active_wish(wish, avail);
-        let bytes = read_picture(path)?;
         let mut faces = Vec::new();
         let mut numbers = Vec::new();
         let mut plates = Vec::new();
         let mut texts = Vec::new();
+        let mut stages = Vec::new();
         let mut reason = String::new();
         if active.face || active.number || active.plate || active.text {
-            match decode_and_scan(app, &bytes, active, run, started) {
-                Ok((found_faces, found_numbers, found_plates, found_texts, stop)) => {
+            match decode_and_scan(app, bytes, active, run, deadline, pass) {
+                Ok((found_faces, found_numbers, found_plates, found_texts, found_stages, stop)) => {
                     faces = found_faces;
                     numbers = found_numbers;
                     plates = found_plates;
                     texts = found_texts;
+                    stages = found_stages;
                     reason = stop;
                 }
                 Err(()) => return Err("사진을 확인하지 못했습니다.".into()),
@@ -555,6 +726,7 @@ mod media {
         let partial = !reason.is_empty();
         Ok(FindOutcome {
             regions,
+            stages,
             face_count,
             number_count,
             plate_count,
@@ -579,36 +751,41 @@ mod media {
         Ok(bytes)
     }
 
+    fn emit_step(app: Option<&AppHandle>, step: &str) {
+        if let Some(app) = app {
+            let _ = app.emit("privacy-find-step", step);
+        }
+    }
+
+    fn still_going(run: u64, deadline: Instant) -> Keep {
+        if Instant::now() >= deadline {
+            return Keep::Timeout;
+        }
+        keep_going(run, Instant::now())
+    }
+
     fn decode_and_scan(
-        app: &AppHandle,
+        app: Option<&AppHandle>,
         bytes: &[u8],
         wish: Wish,
         run: u64,
-        started: Instant,
-    ) -> Result<(Vec<NormBox>, Vec<NormBox>, Vec<NormBox>, Vec<NormBox>, String), ()> {
-        let stream = InMemoryRandomAccessStream::new().map_err(|_| ())?;
-        let writer = DataWriter::CreateDataWriter(&stream).map_err(|_| ())?;
-        writer.WriteBytes(bytes).map_err(|_| ())?;
-        writer.StoreAsync().map_err(|_| ())?.get().map_err(|_| ())?;
-        let _detached = writer.DetachStream().map_err(|_| ())?;
-        stream.Seek(0).map_err(|_| ())?;
-        let decoder = BitmapDecoder::CreateAsync(&stream).map_err(|_| ())?.get().map_err(|_| ())?;
-        let width = decoder.OrientedPixelWidth().map_err(|_| ())?;
-        let height = decoder.OrientedPixelHeight().map_err(|_| ())?;
-        if width < 2 || height < 2 || u64::from(width) * u64::from(height) > MAX_PIXELS {
-            return Err(());
-        }
-        let tiles = view_tiles(width, height);
+        deadline: Instant,
+        pass: TilePass,
+    ) -> Result<(Vec<NormBox>, Vec<NormBox>, Vec<NormBox>, Vec<NormBox>, Vec<StageMark>, String), ()> {
+        let frame = load_frame(bytes)?;
+        let tiles = tiles_for(frame.width, frame.height, pass);
+        let capture = diag_capture();
         let mut faces = Vec::new();
         let mut numbers = Vec::new();
         let mut plates = Vec::new();
         let mut texts = Vec::new();
+        let mut stages = Vec::new();
         let mut reason = String::new();
         if wish.face {
-            let _ = app.emit("privacy-find-step", "face");
+            emit_step(app, "face");
             if let Ok(detector) = FaceDetector::CreateAsync().and_then(|op| op.get()) {
-                for (index, tile) in tiles.iter().enumerate() {
-                    match keep_going(run, started) {
+                for (index, (tile, stage)) in tiles.iter().enumerate() {
+                    match still_going(run, deadline) {
                         Keep::Yes => {}
                         Keep::Stopped => {
                             reason = "stopped".into();
@@ -619,20 +796,23 @@ mod media {
                             break;
                         }
                     }
-                    let max_long = if index == 0 { FACE_FULL_LONG } else { FACE_TILE_LONG };
-                    if let Some(found) = detect_tile(&decoder, &detector, *tile, width, height, max_long) {
-                        faces.extend(found);
+                    let max_long = if *stage == "full" { FACE_FULL_LONG } else { FACE_TILE_LONG };
+                    if let Some(found) = detect_on(&frame, &detector, *tile, max_long, &format!("face-{stage}-{index}")) {
+                        for area in found {
+                            remember_stage(&mut stages, capture, stage, "face", area);
+                            faces.push(area);
+                        }
                     }
                 }
             }
         }
         if reason.is_empty() && (wish.number || wish.plate || wish.text) {
-            let _ = app.emit("privacy-find-step", "text");
+            emit_step(app, "text");
             let max_long = OcrEngine::MaxImageDimension().unwrap_or(0);
             if max_long > 0 {
                 if let Some(engine) = korean_engine() {
-                    for tile in &tiles {
-                        match keep_going(run, started) {
+                    for (index, (tile, stage)) in tiles.iter().enumerate() {
+                        match still_going(run, deadline) {
                             Keep::Yes => {}
                             Keep::Stopped => {
                                 reason = "stopped".into();
@@ -643,10 +823,11 @@ mod media {
                                 break;
                             }
                         }
-                        if let Some(words) = read_tile(&decoder, &engine, *tile, width, height, max_long) {
+                        if let Some(words) = read_on(&frame, &engine, *tile, max_long, &format!("text-{stage}-{index}")) {
                             let found = regions_from_words(&words, wish);
                             for region in found {
                                 let area = NormBox { x: region.x, y: region.y, w: region.w, h: region.h };
+                                remember_stage(&mut stages, capture, stage, region.kind, area);
                                 match region.kind {
                                     "number" => numbers.push(area),
                                     "plate" => plates.push(area),
@@ -659,8 +840,7 @@ mod media {
                 }
             }
         }
-        let _ = stream.Close();
-        Ok((faces, numbers, plates, texts, reason))
+        Ok((faces, numbers, plates, texts, stages, reason))
     }
 
     fn korean_engine() -> Option<OcrEngine> {
@@ -672,13 +852,71 @@ mod media {
         OcrEngine::TryCreateFromLanguage(&language).ok()
     }
 
-    fn detect_tile(decoder: &BitmapDecoder, detector: &FaceDetector, tile: PxRect, image_w: u32, image_h: u32, max_long: u32) -> Option<Vec<NormBox>> {
-        let (bitmap, scale) = tile_bitmap(decoder, tile, BitmapPixelFormat::Gray8, max_long)?;
+    struct Frame {
+        width: u32,
+        height: u32,
+        stride: u32,
+        pixels: Vec<u8>,
+        format: &'static str,
+        plane_stride: i32,
+        #[allow(dead_code)]
+        oriented_w: u32,
+        #[allow(dead_code)]
+        oriented_h: u32,
+    }
+
+    fn load_frame(bytes: &[u8]) -> Result<Frame, ()> {
+        let stream = InMemoryRandomAccessStream::new().map_err(|_| ())?;
+        let writer = DataWriter::CreateDataWriter(&stream).map_err(|_| ())?;
+        writer.WriteBytes(bytes).map_err(|_| ())?;
+        writer.StoreAsync().map_err(|_| ())?.get().map_err(|_| ())?;
+        let _detached = writer.DetachStream().map_err(|_| ())?;
+        stream.Seek(0).map_err(|_| ())?;
+        let decoder = BitmapDecoder::CreateAsync(&stream).map_err(|_| ())?.get().map_err(|_| ())?;
+        let oriented_w = decoder.OrientedPixelWidth().unwrap_or(0);
+        let oriented_h = decoder.OrientedPixelHeight().unwrap_or(0);
+        let transform = BitmapTransform::new().map_err(|_| ())?;
+        let bitmap = decoder
+            .GetSoftwareBitmapTransformedAsync(
+                BitmapPixelFormat::Bgra8,
+                BitmapAlphaMode::Ignore,
+                &transform,
+                ExifOrientationMode::RespectExifOrientation,
+                ColorManagementMode::DoNotColorManage,
+            )
+            .map_err(|_| ())?
+            .get()
+            .map_err(|_| ())?;
+        let width = bitmap.PixelWidth().unwrap_or(0).max(0) as u32;
+        let height = bitmap.PixelHeight().unwrap_or(0).max(0) as u32;
+        if width < 2 || height < 2 || u64::from(width) * u64::from(height) > MAX_PIXELS {
+            let _ = bitmap.Close();
+            let _ = stream.Close();
+            return Err(());
+        }
+        let Some((pixels, stride, plane_stride, format)) = read_bgra(&bitmap) else {
+            let _ = bitmap.Close();
+            let _ = stream.Close();
+            return Err(());
+        };
+        let _ = bitmap.Close();
+        let _ = stream.Close();
+        Ok(Frame { width, height, stride, pixels, format, plane_stride, oriented_w, oriented_h })
+    }
+
+    fn detect_on(frame: &Frame, detector: &FaceDetector, tile: PxRect, max_long: u32, label: &str) -> Option<Vec<NormBox>> {
+        let (bitmap, scale_x, scale_y) = tile_bitmap(frame, tile, true, max_long, label)?;
         let short = (bitmap.PixelWidth().unwrap_or(0) as u32).min(bitmap.PixelHeight().unwrap_or(0) as u32);
         if short > MIN_FACE {
             let _ = detector.SetMinDetectableFaceSize(BitmapSize { Width: MIN_FACE, Height: MIN_FACE });
         }
-        let faces = detector.DetectFacesAsync(&bitmap).ok()?.get().ok()?;
+        let faces = match detector.DetectFacesAsync(&bitmap).and_then(|op| op.get()) {
+            Ok(faces) => faces,
+            Err(_) => {
+                let _ = bitmap.Close();
+                return None;
+            }
+        };
         let mut out = Vec::new();
         for face in faces {
             let bounds = face.FaceBox().ok()?;
@@ -691,9 +929,10 @@ mod media {
                 f64::from(bounds.Y),
                 f64::from(bounds.Width),
                 f64::from(bounds.Height),
-                scale,
-                f64::from(image_w),
-                f64::from(image_h),
+                scale_x,
+                scale_y,
+                f64::from(frame.width),
+                f64::from(frame.height),
             );
             if let Some(area) = clamp_box(area) {
                 out.push(area);
@@ -703,9 +942,15 @@ mod media {
         Some(out)
     }
 
-    fn read_tile(decoder: &BitmapDecoder, engine: &OcrEngine, tile: PxRect, image_w: u32, image_h: u32, max_long: u32) -> Option<Vec<WordBox>> {
-        let (bitmap, scale) = tile_bitmap(decoder, tile, BitmapPixelFormat::Bgra8, max_long)?;
-        let result = engine.RecognizeAsync(&bitmap).ok()?.get().ok()?;
+    fn read_on(frame: &Frame, engine: &OcrEngine, tile: PxRect, max_long: u32, label: &str) -> Option<Vec<WordBox>> {
+        let (bitmap, scale_x, scale_y) = tile_bitmap(frame, tile, false, max_long, label)?;
+        let result = match engine.RecognizeAsync(&bitmap).and_then(|op| op.get()) {
+            Ok(result) => result,
+            Err(_) => {
+                let _ = bitmap.Close();
+                return None;
+            }
+        };
         let lines = result.Lines().ok()?;
         let mut words = Vec::new();
         for line in lines {
@@ -722,9 +967,10 @@ mod media {
                     f64::from(rect.Y),
                     f64::from(rect.Width),
                     f64::from(rect.Height),
-                    scale,
-                    f64::from(image_w),
-                    f64::from(image_h),
+                    scale_x,
+                    scale_y,
+                    f64::from(frame.width),
+                    f64::from(frame.height),
                 );
                 let Some(area) = clamp_box(area) else { continue };
                 words.push(WordBox { text, x: area.x, y: area.y, w: area.w, h: area.h });
@@ -734,23 +980,269 @@ mod media {
         Some(words)
     }
 
-    fn tile_bitmap(decoder: &BitmapDecoder, tile: PxRect, format: BitmapPixelFormat, max_long: u32) -> Option<(SoftwareBitmap, f64)> {
-        let long = tile.w.max(tile.h).max(1);
-        let limit = if max_long == 0 { long } else { max_long.max(1) };
-        let scale = if long > limit { limit as f64 / long as f64 } else { 1.0 };
-        let scaled_w = ((tile.w as f64) * scale).round().max(1.0) as u32;
-        let scaled_h = ((tile.h as f64) * scale).round().max(1.0) as u32;
+    fn tile_bitmap(frame: &Frame, tile: PxRect, gray: bool, max_long: u32, label: &str) -> Option<(SoftwareBitmap, f64, f64)> {
+        let (pixels, out_w, out_h, scale_x, scale_y) = crop_bgra(&frame.pixels, frame.width, frame.height, frame.stride, tile, max_long)?;
+        let bgra = bitmap_from_bgra(&pixels, out_w, out_h)?;
+        let bitmap = if gray {
+            let converted = match SoftwareBitmap::Convert(&bgra, BitmapPixelFormat::Gray8) {
+                Ok(converted) => converted,
+                Err(_) => {
+                    let _ = bgra.Close();
+                    return None;
+                }
+            };
+            let _ = bgra.Close();
+            converted
+        } else {
+            bgra
+        };
+        #[cfg(debug_assertions)]
+        maybe_dump(label, &bitmap);
+        #[cfg(not(debug_assertions))]
+        let _ = label;
+        Some((bitmap, scale_x, scale_y))
+    }
+
+    fn bitmap_from_bgra(pixels: &[u8], width: u32, height: u32) -> Option<SoftwareBitmap> {
+        let writer = DataWriter::new().ok()?;
+        writer.WriteBytes(pixels).ok()?;
+        let buffer = writer.DetachBuffer().ok()?;
+        SoftwareBitmap::CreateCopyWithAlphaFromBuffer(&buffer, BitmapPixelFormat::Bgra8, width as i32, height as i32, BitmapAlphaMode::Ignore).ok()
+    }
+
+    fn read_bgra(bitmap: &SoftwareBitmap) -> Option<(Vec<u8>, u32, i32, &'static str)> {
+        let format = bitmap.BitmapPixelFormat().ok()?;
+        let name = format_name(format);
+        let locked = bitmap.LockBuffer(BitmapBufferAccessMode::Read).ok()?;
+        let plane = locked.GetPlaneDescription(0).ok()?;
+        let copied = copy_plane(&locked, &plane, 4);
+        let _ = locked.Close();
+        let (pixels, stride) = copied.or_else(|| copy_packed(bitmap))?;
+        Some((pixels, stride, plane.Stride, name))
+    }
+
+    fn copy_plane(locked: &BitmapBuffer, plane: &BitmapPlaneDescription, bpp: usize) -> Option<(Vec<u8>, u32)> {
+        let reference = locked.CreateReference().ok()?;
+        let access: IMemoryBufferByteAccess = Interface::cast(&reference).ok()?;
+        let mut data = std::ptr::null_mut();
+        let mut capacity = 0u32;
+        unsafe { access.get_buffer(&mut data, &mut capacity) }.ok().ok()?;
+        if data.is_null() || capacity == 0 {
+            return None;
+        }
+        let w = plane.Width.max(0) as usize;
+        let h = plane.Height.max(0) as usize;
+        let stride = plane.Stride.max(0) as usize;
+        let start = plane.StartIndex.max(0) as usize;
+        if w == 0 || h == 0 || stride < w * bpp {
+            return None;
+        }
+        let tail = start.checked_add(stride.checked_mul(h.saturating_sub(1))?)?.checked_add(w * bpp)?;
+        if tail > capacity as usize {
+            return None;
+        }
+        let mut out = vec![0u8; stride * h];
+        unsafe {
+            for row in 0..h {
+                let src = std::slice::from_raw_parts(data.add(start + row * stride), stride);
+                out[row * stride..row * stride + stride].copy_from_slice(src);
+            }
+        }
+        Some((out, stride as u32))
+    }
+
+    fn copy_packed(bitmap: &SoftwareBitmap) -> Option<(Vec<u8>, u32)> {
+        let w = bitmap.PixelWidth().ok()?.max(0) as u32;
+        let h = bitmap.PixelHeight().ok()?.max(0) as u32;
+        let bytes = w.checked_mul(h)?.checked_mul(4)?;
+        let buffer = Buffer::Create(bytes).ok()?;
+        bitmap.CopyToBuffer(&buffer).ok()?;
+        let reader = DataReader::FromBuffer(&buffer).ok()?;
+        let mut packed = vec![0u8; bytes as usize];
+        reader.ReadBytes(&mut packed).ok()?;
+        Some((packed, w * 4))
+    }
+
+    fn format_name(format: BitmapPixelFormat) -> &'static str {
+        if format == BitmapPixelFormat::Bgra8 {
+            "Bgra8"
+        } else if format == BitmapPixelFormat::Gray8 {
+            "Gray8"
+        } else if format == BitmapPixelFormat::Rgba8 {
+            "Rgba8"
+        } else {
+            "other"
+        }
+    }
+
+    #[cfg(debug_assertions)]
+    fn maybe_dump(label: &str, bitmap: &SoftwareBitmap) {
+        if !diag_on() {
+            return;
+        }
+        let format = bitmap.BitmapPixelFormat().unwrap_or(BitmapPixelFormat::Unknown);
+        let w = bitmap.PixelWidth().unwrap_or(0);
+        let h = bitmap.PixelHeight().unwrap_or(0);
+        let stride = bitmap.LockBuffer(BitmapBufferAccessMode::Read).ok().and_then(|locked| {
+            let stride = locked.GetPlaneDescription(0).ok().map(|plane| plane.Stride);
+            let _ = locked.Close();
+            stride
+        });
+        let dir = diag_dir();
+        let _ = std::fs::create_dir_all(&dir);
+        let line = format!("{label} {w}x{h} format={} stride={}\n", format_name(format), stride.unwrap_or(-1));
+        if let Ok(mut file) = std::fs::OpenOptions::new().create(true).append(true).open(dir.join("sizes.txt")) {
+            use std::io::Write;
+            let _ = file.write_all(line.as_bytes());
+        }
+        if let Some(png) = png_of_bitmap(bitmap) {
+            let _ = std::fs::write(dir.join(format!("{label}.png")), png);
+        }
+    }
+
+    #[cfg(debug_assertions)]
+    fn png_of_bitmap(bitmap: &SoftwareBitmap) -> Option<Vec<u8>> {
+        let format = bitmap.BitmapPixelFormat().ok()?;
+        let w = bitmap.PixelWidth().ok()?.max(1) as u32;
+        let h = bitmap.PixelHeight().ok()?.max(1) as u32;
+        let locked = bitmap.LockBuffer(BitmapBufferAccessMode::Read).ok()?;
+        let plane = locked.GetPlaneDescription(0).ok()?;
+        let bpp = if format == BitmapPixelFormat::Gray8 { 1 } else { 4 };
+        let copied = copy_plane(&locked, &plane, bpp);
+        let _ = locked.Close();
+        let (pixels, stride) = copied?;
+        let mut rgba = vec![255u8; w as usize * h as usize * 4];
+        for y in 0..h as usize {
+            for x in 0..w as usize {
+                let dst = (y * w as usize + x) * 4;
+                if bpp == 1 {
+                    let gray = pixels[y * stride as usize + x];
+                    rgba[dst] = gray;
+                    rgba[dst + 1] = gray;
+                    rgba[dst + 2] = gray;
+                } else {
+                    let src = y * stride as usize + x * 4;
+                    rgba[dst] = pixels[src + 2];
+                    rgba[dst + 1] = pixels[src + 1];
+                    rgba[dst + 2] = pixels[src];
+                    rgba[dst + 3] = pixels[src + 3];
+                }
+            }
+        }
+        encode_rgba(&rgba, w, h)
+    }
+
+    #[cfg(any(debug_assertions, test))]
+    fn encode_rgba(rgba: &[u8], width: u32, height: u32) -> Option<Vec<u8>> {
+        let mut png = Vec::new();
+        let mut encoder = png::Encoder::new(&mut png, width, height);
+        encoder.set_color(png::ColorType::Rgba);
+        encoder.set_depth(png::BitDepth::Eight);
+        let mut writer = encoder.write_header().ok()?;
+        writer.write_image_data(rgba).ok()?;
+        writer.finish().ok()?;
+        Some(png)
+    }
+
+    #[cfg(test)]
+    fn legacy_bounds_size(bytes: &[u8], tile: PxRect) -> Option<(i32, i32, Option<(u32, u32)>)> {
+        let stream = InMemoryRandomAccessStream::new().ok()?;
+        let writer = DataWriter::CreateDataWriter(&stream).ok()?;
+        writer.WriteBytes(bytes).ok()?;
+        writer.StoreAsync().ok()?.get().ok()?;
+        let _detached = writer.DetachStream().ok()?;
+        stream.Seek(0).ok()?;
+        let decoder = BitmapDecoder::CreateAsync(&stream).ok()?.get().ok()?;
+        let (scaled_w, scaled_h) = output_size(tile.w, tile.h, 10_000);
         let transform = BitmapTransform::new().ok()?;
-        transform.SetBounds(BitmapBounds { X: tile.x, Y: tile.y, Width: tile.w, Height: tile.h }).ok()?;
+        transform
+            .SetBounds(windows::Graphics::Imaging::BitmapBounds { X: tile.x, Y: tile.y, Width: tile.w, Height: tile.h })
+            .ok()?;
         transform.SetScaledWidth(scaled_w).ok()?;
         transform.SetScaledHeight(scaled_h).ok()?;
         let bitmap = decoder
-            .GetSoftwareBitmapTransformedAsync(format, BitmapAlphaMode::Ignore, &transform, ExifOrientationMode::RespectExifOrientation, ColorManagementMode::DoNotColorManage)
+            .GetSoftwareBitmapTransformedAsync(
+                BitmapPixelFormat::Bgra8,
+                BitmapAlphaMode::Ignore,
+                &transform,
+                ExifOrientationMode::RespectExifOrientation,
+                ColorManagementMode::DoNotColorManage,
+            )
             .ok()?
             .get()
             .ok()?;
-        let actual_w = bitmap.PixelWidth().unwrap_or(scaled_w as i32).max(1) as f64;
-        Some((bitmap, actual_w / tile.w.max(1) as f64))
+        let width = bitmap.PixelWidth().unwrap_or(0);
+        let height = bitmap.PixelHeight().unwrap_or(0);
+        let red = read_bgra(&bitmap).and_then(|(pixels, stride, _, _)| first_red(&pixels, width as u32, height as u32, stride));
+        let _ = bitmap.Close();
+        let _ = stream.Close();
+        Some((width, height, red))
+    }
+
+    #[cfg(test)]
+    pub fn probe_marker(bytes: &[u8], mark_x: u32, mark_y: u32) -> String {
+        let Ok(frame) = load_frame(bytes) else {
+            return "picture=broken decode".into();
+        };
+        let master_red = first_red(&frame.pixels, frame.width, frame.height, frame.stride);
+        let master_white = pixel_is_white(&frame.pixels, frame.stride, 8, 8);
+        let Some((tile, _)) = tiles_for(frame.width, frame.height, TilePass::Grid2).into_iter().find(|(tile, _)| tile.x > 0 && tile.y > 0) else {
+            return "picture=broken tile".into();
+        };
+        let expect_x = mark_x.saturating_sub(tile.x);
+        let expect_y = mark_y.saturating_sub(tile.y);
+        let cropped = crop_bgra(&frame.pixels, frame.width, frame.height, frame.stride, tile, 10_000);
+        let (crop_red, crop_white, crop_size) = match &cropped {
+            Some((pixels, w, h, _, _)) => (first_red(pixels, *w, *h, w * 4), pixel_is_white(pixels, w * 4, 4, 4), format!("{w}x{h}")),
+            None => (None, false, "none".into()),
+        };
+        let bounds = legacy_bounds_size(bytes, tile);
+        #[cfg(debug_assertions)]
+        let saved = {
+            set_diag(true);
+            if let Some((pixels, w, h, _, _)) = &cropped {
+                if let Some(bitmap) = bitmap_from_bgra(pixels, *w, *h) {
+                    maybe_dump("crop-marker", &bitmap);
+                    let _ = bitmap.Close();
+                }
+            }
+            let saved = diag_dir().join("crop-marker.png").exists();
+            let _ = std::fs::remove_dir_all(diag_dir());
+            saved
+        };
+        #[cfg(not(debug_assertions))]
+        let saved = false;
+        let crop_ok = crop_red == Some((expect_x, expect_y)) && crop_white && master_white && master_red == Some((mark_x, mark_y));
+        format!(
+            "picture={} master={}x{} oriented={}x{} format={} stride={} plane={} marker={master_red:?} white={master_white} crop={crop_size} crop_red={crop_red:?} expect={expect_x},{expect_y} crop_white={crop_white} bounds={bounds:?} saved_then_deleted={saved} crop_ok={crop_ok}",
+            if crop_ok { "ok" } else { "broken" },
+            frame.width,
+            frame.height,
+            frame.oriented_w,
+            frame.oriented_h,
+            frame.format,
+            frame.stride,
+            frame.plane_stride,
+        )
+    }
+
+    #[cfg(test)]
+    fn first_red(pixels: &[u8], width: u32, height: u32, stride: u32) -> Option<(u32, u32)> {
+        for y in 0..height {
+            for x in 0..width {
+                let i = y as usize * stride as usize + x as usize * 4;
+                if i + 3 < pixels.len() && pixels[i] < 30 && pixels[i + 1] < 30 && pixels[i + 2] > 200 {
+                    return Some((x, y));
+                }
+            }
+        }
+        None
+    }
+
+    #[cfg(test)]
+    fn pixel_is_white(pixels: &[u8], stride: u32, x: u32, y: u32) -> bool {
+        let i = y as usize * stride as usize + x as usize * 4;
+        i + 3 < pixels.len() && pixels[i] > 240 && pixels[i + 1] > 240 && pixels[i + 2] > 240
     }
 
     pub fn measure_blank() -> String {
@@ -810,7 +1302,7 @@ mod media {
         MediaFacts { face: false, text: false, max_dimension: 0, languages: Vec::new() }
     }
 
-    pub fn scan_file(_app: &AppHandle, _path: &Path, _wish: Wish, _run: u64, started: Instant) -> Result<FindOutcome, String> {
+    pub fn scan_file(_app: &AppHandle, _path: &Path, _wish: Wish, _run: u64, started: Instant, _pass: TilePass) -> Result<FindOutcome, String> {
         Ok(empty_outcome(false, false, started))
     }
 
@@ -821,8 +1313,9 @@ mod media {
 
 #[cfg(not(windows))]
 fn empty_outcome(face: bool, text: bool, started: Instant) -> FindOutcome {
-    FindOutcome {
+        FindOutcome {
         regions: Vec::new(),
+        stages: Vec::new(),
         face_count: 0,
         number_count: 0,
         plate_count: 0,
@@ -841,7 +1334,7 @@ pub fn privacy_find_caps(window: WebviewWindow) -> Result<FindCaps, String> {
         return Err("이 창에서는 확인할 수 없습니다.".into());
     }
     let facts = media::facts();
-    Ok(FindCaps { face: facts.face, text: facts.text })
+    Ok(FindCaps { face: facts.face, text: facts.text, debug: cfg!(debug_assertions) })
 }
 
 #[tauri::command]
@@ -853,6 +1346,8 @@ pub async fn find_privacy_regions(
     number: bool,
     plate: bool,
     text: bool,
+    full_only: Option<bool>,
+    diag: Option<bool>,
 ) -> Result<FindOutcome, String> {
     if window.label() != "main" {
         return Err("이 창에서는 찾을 수 없습니다.".into());
@@ -861,10 +1356,15 @@ pub async fn find_privacy_regions(
     let path = path_grant::view_read(&book, &read_id).map_err(|text| text.to_string())?;
     drop(book);
     let wish = Wish { face, number, plate, text };
+    let pass = if cfg!(debug_assertions) && full_only.unwrap_or(false) { TilePass::Full } else { TilePass::All };
+    #[cfg(debug_assertions)]
+    media::set_diag(diag.unwrap_or(false));
+    #[cfg(not(debug_assertions))]
+    let _ = diag;
     let run = begin_run();
     let started = Instant::now();
     let app_for_find = app.clone();
-    tauri::async_runtime::spawn_blocking(move || media::scan_file(&app_for_find, &path, wish, run, started))
+    tauri::async_runtime::spawn_blocking(move || media::scan_file(&app_for_find, &path, wish, run, started, pass))
         .await
         .map_err(|_| "사진을 확인하지 못했습니다.".to_string())?
 }
@@ -885,7 +1385,7 @@ mod tests {
     #[test]
     fn scale_restores_detector_box_to_original() {
         let tile = PxRect { x: 100, y: 50, w: 200, h: 100 };
-        let area = map_detector_box(tile, 10.0, 20.0, 30.0, 40.0, 0.5, 1000.0, 800.0);
+        let area = map_detector_box(tile, 10.0, 20.0, 30.0, 40.0, 0.5, 0.5, 1000.0, 800.0);
         assert!((area.x - 0.12).abs() < 0.0001);
         assert!((area.y - 0.1125).abs() < 0.0001);
         assert!((area.w - 0.06).abs() < 0.0001);
@@ -999,6 +1499,221 @@ mod tests {
         );
         assert!(!no_face.face);
         assert!(no_face.number);
+    }
+
+    #[test]
+    fn crop_respects_stride_and_keeps_aspect() {
+        let src_w = 12u32;
+        let src_h = 8u32;
+        let stride = src_w * 4 + 16;
+        let mut src = vec![255u8; stride as usize * src_h as usize];
+        let mark_x = 9u32;
+        let mark_y = 6u32;
+        let at = mark_y as usize * stride as usize + mark_x as usize * 4;
+        src[at] = 0;
+        src[at + 1] = 0;
+        src[at + 2] = 255;
+        src[at + 3] = 255;
+        let tile = PxRect { x: 8, y: 4, w: 4, h: 4 };
+        let (pixels, width, height, scale_x, scale_y) = crop_bgra(&src, src_w, src_h, stride, tile, 10_000).expect("crop");
+        assert_eq!((width, height), (4, 4));
+        assert!((scale_x - 1.0).abs() < 1e-9 && (scale_y - 1.0).abs() < 1e-9);
+        let local = ((2 * width + 1) * 4) as usize;
+        assert_eq!(&pixels[local..local + 4], &[0, 0, 255, 255]);
+        let (out_w, out_h) = output_size(3000, 1000, 1600);
+        assert_eq!(out_w, 1600);
+        assert!((3000.0 / 1000.0 - out_w as f64 / out_h as f64).abs() < 0.01, "{out_w}x{out_h}");
+    }
+
+    #[test]
+    fn fake_face_uses_the_same_map_as_text() {
+        let tile = PxRect { x: 1800, y: 200, w: 900, h: 700 };
+        let face = map_detector_box(tile, 40.0, 30.0, 80.0, 90.0, 0.5, 0.5, 4000.0, 3000.0);
+        let text = map_detector_box(tile, 40.0, 30.0, 80.0, 90.0, 0.5, 0.5, 4000.0, 3000.0);
+        assert_eq!(face, text);
+        assert!((face.x - 1880.0 / 4000.0).abs() < 1e-9);
+        assert!((face.y - 260.0 / 3000.0).abs() < 1e-9);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn cropped_bitmap_matches_the_marker_and_is_deleted() {
+        let png = solid_marker_png(640, 480, 400, 300, 24);
+        let report = media::probe_marker(&png, 400, 300);
+        eprintln!("privacy-find-bitmap {report}");
+        assert!(report.contains("picture=ok"), "{report}");
+        assert!(report.contains("crop_ok=true"), "{report}");
+        assert!(!std::env::temp_dir().join("edulauncher-find-diag").exists());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn drawn_phone_number_lands_within_three_percent() {
+        if !media::facts().text {
+            eprintln!("korean ocr unavailable, skip");
+            return;
+        }
+        check_phone(1200, 1600);
+        check_phone(4000, 3000);
+    }
+
+    #[cfg(windows)]
+    fn check_phone(width: i32, height: i32) {
+        let (png, expect) = draw_phone_png(width, height).expect("gdi phone");
+        for pass in [TilePass::Full, TilePass::Grid2, TilePass::Grid3, TilePass::All] {
+            let outcome = media::scan_bytes(&png, Wish { face: false, number: true, plate: false, text: false }, pass).expect("scan");
+            assert!(!outcome.partial, "{width}x{height} {pass:?} {}", outcome.partial_reason);
+            let numbers: Vec<_> = outcome.regions.iter().filter(|region| region.kind == "number").collect();
+            assert_eq!(numbers.len(), 1, "{width}x{height} {pass:?} {numbers:?}");
+            let found = numbers[0];
+            let dx = (found.x + found.w / 2.0) - (expect.x + expect.w / 2.0);
+            let dy = (found.y + found.h / 2.0) - (expect.y + expect.h / 2.0);
+            eprintln!("ocr {width}x{height} {pass:?} dx={dx:.4} dy={dy:.4} found=({:.4},{:.4},{:.4},{:.4})", found.x, found.y, found.w, found.h);
+            assert!(dx.abs() <= 0.03 && dy.abs() <= 0.03, "{width}x{height} {pass:?} dx={dx} dy={dy} found={found:?} expect={expect:?}");
+        }
+    }
+
+    #[cfg(windows)]
+    fn solid_marker_png(width: u32, height: u32, x: u32, y: u32, size: u32) -> Vec<u8> {
+        let mut rgba = vec![255u8; width as usize * height as usize * 4];
+        for row in y..y.saturating_add(size).min(height) {
+            for col in x..x.saturating_add(size).min(width) {
+                let at = (row * width + col) as usize * 4;
+                rgba[at] = 255;
+                rgba[at + 1] = 0;
+                rgba[at + 2] = 0;
+            }
+        }
+        encode_test_png(&rgba, width, height)
+    }
+
+    #[cfg(windows)]
+    fn encode_test_png(rgba: &[u8], width: u32, height: u32) -> Vec<u8> {
+        let mut png = Vec::new();
+        let mut encoder = png::Encoder::new(&mut png, width, height);
+        encoder.set_color(png::ColorType::Rgba);
+        encoder.set_depth(png::BitDepth::Eight);
+        let mut writer = encoder.write_header().expect("png header");
+        writer.write_image_data(rgba).expect("png data");
+        writer.finish().expect("png finish");
+        png
+    }
+
+    #[cfg(windows)]
+    fn draw_phone_png(width: i32, height: i32) -> Option<(Vec<u8>, NormBox)> {
+        use std::mem::size_of;
+        use windows::core::PCWSTR;
+        use windows::Win32::Foundation::{COLORREF, SIZE};
+        use windows::Win32::Graphics::Gdi::{
+            CreateCompatibleDC, CreateDIBSection, CreateFontW, DeleteDC, DeleteObject, GetTextExtentPoint32W, SelectObject, SetBkMode, SetTextColor, TextOutW,
+            ANTIALIASED_QUALITY, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, CLIP_DEFAULT_PRECIS, DEFAULT_CHARSET, DIB_RGB_COLORS, HFONT, HGDIOBJ, OUT_DEFAULT_PRECIS, TRANSPARENT,
+        };
+        let text: Vec<u16> = "010-1234-5678".encode_utf16().collect();
+        let face: Vec<u16> = "Malgun Gothic\0".encode_utf16().collect();
+        unsafe {
+            let hdc = CreateCompatibleDC(None);
+            if hdc.is_invalid() {
+                return None;
+            }
+            let info = BITMAPINFO {
+                bmiHeader: BITMAPINFOHEADER {
+                    biSize: size_of::<BITMAPINFOHEADER>() as u32,
+                    biWidth: width,
+                    biHeight: -height,
+                    biPlanes: 1,
+                    biBitCount: 32,
+                    biCompression: BI_RGB.0,
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+            let mut bits: *mut std::ffi::c_void = std::ptr::null_mut();
+            let dib = CreateDIBSection(Some(hdc), &info, DIB_RGB_COLORS, &mut bits, None, 0).ok()?;
+            let previous = SelectObject(hdc, HGDIOBJ(dib.0));
+            if !bits.is_null() {
+                let count = (width as usize) * (height as usize) * 4;
+                std::ptr::write_bytes(bits as *mut u8, 255, count);
+            }
+            let corner = grid_tiles(3, width as u32, height as u32, TILE_OVERLAP).pop()?;
+            let origin_x = corner.x as i32 + 28;
+            let origin_y = corner.y as i32 + 28;
+            let limit_w = corner.w as i32 - 56;
+            let limit_h = corner.h as i32 - 56;
+            if limit_w < 40 || limit_h < 40 {
+                let _ = DeleteObject(HGDIOBJ(dib.0));
+                let _ = DeleteDC(hdc);
+                return None;
+            }
+            let mut font_px = (limit_h / 2).clamp(32, 180);
+            let mut font = HFONT::default();
+            let mut extent = SIZE::default();
+            let mut measured = windows::core::BOOL(0);
+            while font_px >= 32 {
+                font = CreateFontW(
+                    -font_px,
+                    0,
+                    0,
+                    0,
+                    700,
+                    0,
+                    0,
+                    0,
+                    DEFAULT_CHARSET,
+                    OUT_DEFAULT_PRECIS,
+                    CLIP_DEFAULT_PRECIS,
+                    ANTIALIASED_QUALITY,
+                    0,
+                    PCWSTR(face.as_ptr()),
+                );
+                let previous_try = SelectObject(hdc, HGDIOBJ(font.0));
+                measured = GetTextExtentPoint32W(hdc, &text, &mut extent);
+                SelectObject(hdc, previous_try);
+                if measured.as_bool() && extent.cx <= limit_w && extent.cy <= limit_h {
+                    break;
+                }
+                let _ = DeleteObject(HGDIOBJ(font.0));
+                font_px -= 4;
+            }
+            if font_px < 32 || !measured.as_bool() {
+                let _ = DeleteObject(HGDIOBJ(dib.0));
+                let _ = DeleteDC(hdc);
+                return None;
+            }
+            let previous_font = SelectObject(hdc, HGDIOBJ(font.0));
+            let _ = SetBkMode(hdc, TRANSPARENT);
+            let _ = SetTextColor(hdc, COLORREF(0));
+            let drawn = TextOutW(hdc, origin_x, origin_y, &text);
+            let rgba = if drawn.as_bool() && measured.as_bool() && !bits.is_null() {
+                let bgra = std::slice::from_raw_parts(bits as *const u8, (width as usize) * (height as usize) * 4);
+                let mut rgba = vec![255u8; bgra.len()];
+                for pixel in 0..(bgra.len() / 4) {
+                    rgba[pixel * 4] = bgra[pixel * 4 + 2];
+                    rgba[pixel * 4 + 1] = bgra[pixel * 4 + 1];
+                    rgba[pixel * 4 + 2] = bgra[pixel * 4];
+                    rgba[pixel * 4 + 3] = 255;
+                }
+                Some(rgba)
+            } else {
+                None
+            };
+            SelectObject(hdc, previous_font);
+            SelectObject(hdc, previous);
+            let _ = DeleteObject(HGDIOBJ(font.0));
+            let _ = DeleteObject(HGDIOBJ(dib.0));
+            let _ = DeleteDC(hdc);
+            let rgba = rgba?;
+            if extent.cx < 8 || extent.cy < 8 {
+                return None;
+            }
+            let png = encode_test_png(&rgba, width as u32, height as u32);
+            let expect = NormBox {
+                x: origin_x as f64 / width as f64,
+                y: origin_y as f64 / height as f64,
+                w: extent.cx as f64 / width as f64,
+                h: extent.cy as f64 / height as f64,
+            };
+            Some((png, expect))
+        }
     }
 
     #[test]
