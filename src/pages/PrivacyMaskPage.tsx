@@ -1,17 +1,26 @@
+import { listen } from "@tauri-apps/api/event";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { holdPrivacyDrop } from "../services/privacyDropGate";
 import {
   exportCover,
+  findPrivacyRegions,
   loadPrivacyShot,
   paintCover,
+  paintMarks,
+  privacyFindCaps,
   privacySaveName,
+  stopPrivacyFind,
   writePrivacyFile,
   type CoverBox,
   type CoverKind,
   type CoverLevel,
+  type FaceCover,
+  type FindCaps,
+  type FindOutcome,
   type JpegGrade,
   type PrivacyShot,
+  type RegionKind,
 } from "../services/privacyMaskService";
 import { pickOpenFiles, pickSaveFile } from "../services/savePick";
 import type { GrantedFile } from "../services/dropSiteService";
@@ -49,10 +58,20 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
   const [selectedId, setSelectedId] = useState("");
   const [kind, setKind] = useState<CoverKind>("solid");
   const [level, setLevel] = useState<CoverLevel>("mid");
+  const [faceCover, setFaceCover] = useState<FaceCover>("soft");
   const [grade, setGrade] = useState<JpegGrade>("high");
   const [zoom, setZoom] = useState(1);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [finding, setFinding] = useState(false);
+  const [findStep, setFindStep] = useState("");
+  const [elapsed, setElapsed] = useState(0);
+  const [caps, setCaps] = useState<FindCaps | null>(null);
+  const [wishFace, setWishFace] = useState(true);
+  const [wishNumber, setWishNumber] = useState(true);
+  const [wishPlate, setWishPlate] = useState(false);
+  const [wishText, setWishText] = useState(false);
+  const findStarted = useRef(0);
 
   boxesRef.current = boxes;
   shotRef.current = shot;
@@ -102,7 +121,38 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
 
   useEffect(() => {
     drawPreview();
-  }, [shot, boxes, kind, level]);
+  }, [shot, boxes, kind, level, faceCover]);
+
+  useEffect(() => {
+    void privacyFindCaps()
+      .then((next) => {
+        setCaps(next);
+        if (!next.face) setWishFace(false);
+        if (!next.text) {
+          setWishNumber(false);
+          setWishPlate(false);
+          setWishText(false);
+        }
+      })
+      .catch(() => setCaps({ face: false, text: false }));
+  }, []);
+
+  useEffect(() => {
+    if (!finding) return;
+    const timer = window.setInterval(() => {
+      setElapsed(Date.now() - findStarted.current);
+    }, 200);
+    return () => window.clearInterval(timer);
+  }, [finding]);
+
+  useEffect(() => {
+    const unlisten = listen<string>("privacy-find-step", (event) => {
+      setFindStep(event.payload === "text" ? "글자를 찾는 중" : "얼굴을 찾는 중");
+    });
+    return () => {
+      void unlisten.then((stop) => stop());
+    };
+  }, []);
 
   useEffect(() => {
     const node = frameRef.current;
@@ -134,7 +184,8 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
     if (!ctx) {
       return;
     }
-    paintCover(ctx, current.image, canvas.width, canvas.height, boxesRef.current, kind, level);
+    paintCover(ctx, current.image, canvas.width, canvas.height, boxesRef.current, kind, level, faceCover);
+    paintMarks(ctx, canvas.width, canvas.height, boxesRef.current);
   };
 
   const replaceShot = (next: PrivacyShot | null) => {
@@ -237,7 +288,7 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
   const onPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const current = shotRef.current;
     const canvas = canvasRef.current;
-    if (!current || !canvas || busy) {
+    if (!current || !canvas || busy || finding) {
       return;
     }
     canvas.setPointerCapture(event.pointerId);
@@ -269,7 +320,7 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
       return;
     }
     const id = nextBoxId();
-    const created: CoverBox = { id, x: point.x, y: point.y, w: 0, h: 0 };
+    const created: CoverBox = { id, x: point.x, y: point.y, w: 0, h: 0, kind: "manual", on: true };
     setSelectedId(id);
     dragRef.current = {
       mode: "new",
@@ -327,8 +378,12 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
       setMessage("그림을 먼저 고르세요.");
       return;
     }
-    if (boxesRef.current.length === 0) {
+    if (!boxesRef.current.some((box) => box.on)) {
       setMessage("가릴 영역을 먼저 지정하세요.");
+      return;
+    }
+    if (finding) {
+      setMessage("찾기가 끝난 뒤에 저장하세요.");
       return;
     }
     setBusy(true);
@@ -342,13 +397,69 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
       if (!picked) {
         return;
       }
-      const blob = await exportCover(current, boxesRef.current, kind, level, grade);
+      const blob = await exportCover(current, boxesRef.current, kind, level, grade, faceCover);
       await writePrivacyFile(current.readId, picked.id, blob);
       setMessage("새 파일로 저장했습니다. 원본 그림은 그대로입니다. 저장 전에 가린 자리를 직접 확인하세요.");
     } catch (error) {
       setMessage(asMessage(error, "저장하지 못했습니다."));
     } finally {
       setBusy(false);
+    }
+  };
+
+  const anyWish = () => wishFace || wishNumber || wishPlate || wishText;
+
+  const toggleBox = (id: string) => {
+    remember(boxesRef.current.map((box) => (box.id === id ? { ...box, on: !box.on } : box)));
+  };
+
+  const removeBox = (id: string) => {
+    const next = boxesRef.current.filter((box) => box.id !== id);
+    if (next.length === boxesRef.current.length) return;
+    remember(next);
+    if (selectedId === id) setSelectedId("");
+  };
+
+  const runFind = async () => {
+    const current = shotRef.current;
+    if (!current || finding) return;
+    setFinding(true);
+    setFindStep("찾는 중");
+    findStarted.current = Date.now();
+    setElapsed(0);
+    setMessage("");
+    try {
+      const outcome = await findPrivacyRegions(current.readId, {
+        face: wishFace,
+        number: wishNumber,
+        plate: wishPlate,
+        text: wishText,
+      });
+      const manual = boxesRef.current.filter((box) => box.kind === "manual");
+      const added = outcome.regions.map((region) => ({
+        id: nextBoxId(),
+        x: region.x,
+        y: region.y,
+        w: region.w,
+        h: region.h,
+        kind: region.kind,
+        on: true,
+      }));
+      remember([...manual, ...added]);
+      setMessage(findMessage(outcome, { face: wishFace, number: wishNumber, plate: wishPlate, text: wishText }));
+    } catch (error) {
+      setMessage(asMessage(error, "사진을 확인하지 못했습니다."));
+    } finally {
+      setFinding(false);
+      setFindStep("");
+    }
+  };
+
+  const haltFind = async () => {
+    try {
+      await stopPrivacyFind();
+    } catch (error) {
+      setMessage(asMessage(error, "찾기를 멈추지 못했습니다."));
     }
   };
 
@@ -368,9 +479,14 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
           원본 파일은 바꾸지 않습니다.
         </p>
         <p className="text-[11px] leading-5 text-quiet">
-          자동으로 찾는 기능은 이번 버전에 없습니다. 가릴 곳을 직접 지정하세요. 새 파일에는 위치·카메라
-          정보가 들어가지 않습니다. 특허 비침해를 보장하지 않습니다.
+          자동으로 찾기는 이 PC 안에서만 얼굴과 숫자 후보를 보여 줍니다. 켠 영역만 새 파일에 가려 저장하며,
+          결과는 자동으로 저장되지 않습니다. 새 파일에는 위치·카메라 정보가 들어가지 않습니다.
         </p>
+        <p className="text-[11px] leading-5 text-quiet">
+          자동 찾기는 모든 얼굴과 숫자를 찾지 못할 수 있습니다. 옆모습, 작거나 가려진 얼굴, 흐린 글자는 빠질 수
+          있으니 저장 전에 사진 전체를 직접 확인하세요.
+        </p>
+        <p className="text-[11px] leading-5 text-quiet">특허 비침해를 보장하지 않으며 법적 검토가 아닙니다.</p>
         <button type="button" className="btn-primary" onClick={() => void pickPicture()} disabled={busy}>
           사진 선택
         </button>
@@ -410,6 +526,66 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
             화면 맞춤
           </button>
         </div>
+        <div className="space-y-2 rounded-lg border border-line bg-card p-2">
+          <p className="text-xs text-desk">자동으로 찾기</p>
+          <div className="grid grid-cols-2 gap-2 text-xs text-desk">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={wishFace} disabled={finding || caps?.face === false} onChange={(event) => setWishFace(event.target.checked)} />
+              얼굴
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={wishNumber} disabled={finding || caps?.text === false} onChange={(event) => setWishNumber(event.target.checked)} />
+              개인정보 숫자·글자
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={wishPlate} disabled={finding || caps?.text === false} onChange={(event) => setWishPlate(event.target.checked)} />
+              번호판
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={wishText} disabled={finding || caps?.text === false} onChange={(event) => setWishText(event.target.checked)} />
+              모든 글자
+            </label>
+          </div>
+          {caps && !caps.face ? <p className="text-[11px] leading-5 text-quiet">이 PC에서는 얼굴 찾기를 사용할 수 없습니다.</p> : null}
+          {caps && !caps.text ? <p className="text-[11px] leading-5 text-quiet">이 PC에서는 글자 인식을 사용할 수 없습니다(Windows 언어 설정 확인).</p> : null}
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" className="btn-primary h-9 text-xs" onClick={() => void runFind()} disabled={!shot || finding || busy || !anyWish()}>
+              자동으로 찾기
+            </button>
+            <button type="button" className="btn-secondary h-9 text-xs" onClick={() => void haltFind()} disabled={!finding}>
+              중지
+            </button>
+          </div>
+          {finding ? (
+            <p className="text-[11px] text-quiet">
+              {findStep || "찾는 중"} · {(elapsed / 1000).toFixed(1)}초
+            </p>
+          ) : null}
+        </div>
+        {boxes.length > 0 ? (
+          <div className="max-h-36 space-y-1 overflow-y-auto rounded-lg border border-line bg-card p-2">
+            {boxes.map((box, index) => (
+              <div key={box.id} className="flex items-center gap-2 text-xs text-desk">
+                <input type="checkbox" checked={box.on} onChange={() => toggleBox(box.id)} aria-label={`${kindLabel(box.kind)} 영역 켜기`} />
+                <span className="min-w-0 flex-1" style={{ color: kindTone(box.kind) }}>
+                  {kindLabel(box.kind)} {index + 1}
+                </span>
+                <button type="button" className="btn-secondary h-7 px-2 text-[11px]" onClick={() => removeBox(box.id)}>
+                  지우기
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" className={kindButton(faceCover === "soft")} onClick={() => setFaceCover("soft")} aria-pressed={faceCover === "soft"}>
+            얼굴 강한 흐림
+          </button>
+          <button type="button" className={kindButton(faceCover === "block")} onClick={() => setFaceCover("block")} aria-pressed={faceCover === "block"}>
+            얼굴 큰 모자이크
+          </button>
+        </div>
+        <p className="text-[11px] leading-5 text-quiet">아래 가리기 방식은 직접 그린 영역에 적용됩니다. 숫자·번호판·글자는 단색으로 덮습니다.</p>
         <div className="grid grid-cols-3 gap-2">
           <button type="button" className={kindButton(kind === "solid")} onClick={() => setKind("solid")} aria-pressed={kind === "solid"}>
             완전 가림
@@ -459,7 +635,7 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
           </button>
         </div>
         <p className="text-xs text-quiet">가릴 곳 {boxes.length}개. Delete 키로 선택 영역을 지웁니다.</p>
-        <button type="button" className="btn-primary" onClick={() => void saveFile()} disabled={busy || !shot}>
+        <button type="button" className="btn-primary" onClick={() => void saveFile()} disabled={busy || finding || !shot}>
           {busy ? "처리 중..." : "새 파일로 저장"}
         </button>
         {message ? <p className="text-sm leading-6 text-desk">{message}</p> : null}
@@ -475,6 +651,46 @@ export function PrivacyMaskPage({ title, onBack, startFile }: PrivacyMaskPagePro
     const fittedSize = fitBox(current.width, current.height, 640, 420);
     setZoom(clampZoom(current.width / fittedSize.width));
   }
+}
+
+function findMessage(outcome: FindOutcome, wish: { face: boolean; number: boolean; plate: boolean; text: boolean }): string {
+  const parts: string[] = [];
+  if (wish.face) parts.push(`얼굴 ${outcome.faceCount}개`);
+  if (wish.number) parts.push(`숫자 ${outcome.numberCount}개`);
+  if (wish.plate) parts.push(`번호판 ${outcome.plateCount}개`);
+  if (wish.text) parts.push(`글자 ${outcome.textCount}개`);
+  const total = outcome.faceCount + outcome.numberCount + outcome.plateCount + outcome.textCount;
+  const lines: string[] = [];
+  if (total > 0 && parts.length > 0) {
+    lines.push(`${parts.join(", ")}를 찾았습니다.`);
+  } else if (!outcome.partial) {
+    lines.push("찾지 못했습니다.");
+  }
+  if (outcome.partialReason === "timeout") {
+    lines.push("시간이 되어 여기까지 찾았습니다. 나머지는 직접 확인하세요.");
+  } else if (outcome.partialReason === "stopped") {
+    lines.push("찾기를 멈췄습니다.");
+  } else if (outcome.partialReason === "trimmed") {
+    lines.push("영역이 많아 여기까지만 표시합니다. 나머지는 직접 확인하세요.");
+  }
+  lines.push(`걸린 시간 ${(outcome.elapsedMs / 1000).toFixed(1)}초`);
+  return lines.join(" ");
+}
+
+function kindLabel(kind: RegionKind): string {
+  if (kind === "face") return "얼굴";
+  if (kind === "number") return "개인정보 숫자";
+  if (kind === "plate") return "번호판";
+  if (kind === "text") return "글자";
+  return "직접 지정";
+}
+
+function kindTone(kind: RegionKind): string {
+  if (kind === "face") return "#c2410c";
+  if (kind === "number") return "#1d4ed8";
+  if (kind === "plate") return "#15803d";
+  if (kind === "text") return "#7c3aed";
+  return "inherit";
 }
 
 function kindButton(active: boolean): string {

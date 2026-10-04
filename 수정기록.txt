@@ -5,6 +5,33 @@
 
 ---
 
+날짜: 2026-10-04
+대상: 사진 모자이크 자동 찾기
+작성자: 요청자
+
+요청: 사진 모자이크에서 이 PC 안의 얼굴 감지와 문자 인식으로 가릴 영역 후보를 찾고, 사용자가 확인한 뒤 새 파일로 저장한다. 인식한 글자는 화면에 보내지 않는다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. windows 크레이트에 Foundation, Foundation_Collections, Globalization, Graphics_Imaging, Storage_Streams, Media_FaceAnalysis, Media_Ocr 기능만 추가함. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+다시 쓴 파일:
+- src-tauri/Cargo.toml
+- src-tauri/src/lib.rs
+- src-tauri/src/privacy_find.rs
+- src-tauri/src/privacy_mask.rs
+- src/services/privacyMaskService.ts
+- src/pages/PrivacyMaskPage.tsx
+- src/pages/SettingsPage.tsx
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+
+그대로 둔 파일: 개인정보 패턴 엔진, 업무자료 서명, 관리 정책, 다른 화면.
+
+---
+
 날짜: 2026-10-03
 대상: 문서 검색 폴더, 단축키, 도구 대상 고르기
 작성자: 요청자

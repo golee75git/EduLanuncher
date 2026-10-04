@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.171-20261004",
+    note: "사진 모자이크에서 이 PC 안의 얼굴과 숫자 후보를 찾아 확인한 뒤 새 파일로 저장합니다.",
+  },
+  {
     version: "0.1.170-20261003",
     note: "문서 검색 폴더와 도구 대상은 고르기 창으로만 넣습니다. 단축키는 허용된 조합만 등록합니다.",
   },

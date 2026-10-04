@@ -3,6 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 export type CoverKind = "solid" | "block" | "soft";
 export type CoverLevel = "light" | "mid" | "heavy";
 export type JpegGrade = "best" | "high" | "small";
+export type RegionKind = "face" | "number" | "plate" | "text" | "manual";
+export type FaceCover = "block" | "soft";
 
 export interface CoverBox {
   id: string;
@@ -10,6 +12,34 @@ export interface CoverBox {
   y: number;
   w: number;
   h: number;
+  kind: RegionKind;
+  on: boolean;
+}
+
+export interface FindCaps {
+  face: boolean;
+  text: boolean;
+}
+
+export interface FoundRegion {
+  kind: "face" | "number" | "plate" | "text";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface FindOutcome {
+  regions: FoundRegion[];
+  faceCount: number;
+  numberCount: number;
+  plateCount: number;
+  textCount: number;
+  faceAvailable: boolean;
+  textAvailable: boolean;
+  partial: boolean;
+  partialReason: string;
+  elapsedMs: number;
 }
 
 export interface PrivacyShot {
@@ -83,6 +113,21 @@ export async function writePrivacyFile(readId: string, writeId: string, blob: Bl
   await invoke("write_privacy_picture", { readId, writeId, data });
 }
 
+export async function privacyFindCaps(): Promise<FindCaps> {
+  return invoke<FindCaps>("privacy_find_caps");
+}
+
+export async function findPrivacyRegions(
+  readId: string,
+  wish: { face: boolean; number: boolean; plate: boolean; text: boolean },
+): Promise<FindOutcome> {
+  return invoke<FindOutcome>("find_privacy_regions", { readId, ...wish });
+}
+
+export async function stopPrivacyFind(): Promise<void> {
+  await invoke("stop_privacy_find");
+}
+
 export function paintCover(
   ctx: CanvasRenderingContext2D,
   source: CanvasImageSource,
@@ -91,6 +136,7 @@ export function paintCover(
   boxes: CoverBox[],
   kind: CoverKind,
   level: CoverLevel,
+  faceCover: FaceCover,
 ): void {
   const base = document.createElement("canvas");
   base.width = width;
@@ -102,19 +148,23 @@ export function paintCover(
   baseCtx.drawImage(source, 0, 0, width, height);
   ctx.clearRect(0, 0, width, height);
   ctx.drawImage(base, 0, 0);
-  const rate = coverRate(level);
   const short = Math.min(width, height);
   for (const box of boxes) {
+    if (!box.on) {
+      continue;
+    }
+    const cover = coverFor(box.kind, kind, level, faceCover);
+    const rate = coverRate(cover.level);
     const x = Math.round(box.x * width);
     const y = Math.round(box.y * height);
     const w = Math.max(1, Math.round(box.w * width));
     const h = Math.max(1, Math.round(box.h * height));
-    if (kind === "solid") {
+    if (cover.kind === "solid") {
       ctx.fillStyle = "#141414";
       ctx.fillRect(x, y, w, h);
       continue;
     }
-    if (kind === "block") {
+    if (cover.kind === "block") {
       const cell = Math.max(2, Math.round(short * rate));
       const sw = Math.max(1, Math.ceil(w / cell));
       const sh = Math.max(1, Math.ceil(h / cell));
@@ -134,6 +184,9 @@ export function paintCover(
       chip.height = 0;
       continue;
     }
+    if (cover.kind !== "soft") {
+      continue;
+    }
     const radius = Math.max(1, Math.round(short * rate));
     ctx.save();
     ctx.beginPath();
@@ -148,12 +201,28 @@ export function paintCover(
   base.height = 0;
 }
 
+export function paintMarks(ctx: CanvasRenderingContext2D, width: number, height: number, boxes: CoverBox[]): void {
+  for (const box of boxes) {
+    const x = box.x * width;
+    const y = box.y * height;
+    const w = box.w * width;
+    const h = box.h * height;
+    ctx.save();
+    ctx.strokeStyle = markColor(box.kind);
+    ctx.lineWidth = box.on ? 2 : 1;
+    ctx.setLineDash(box.on ? [] : [4, 3]);
+    ctx.strokeRect(x + 1, y + 1, Math.max(1, w - 2), Math.max(1, h - 2));
+    ctx.restore();
+  }
+}
+
 export async function exportCover(
   shot: PrivacyShot,
   boxes: CoverBox[],
   kind: CoverKind,
   level: CoverLevel,
   grade: JpegGrade,
+  faceCover: FaceCover,
 ): Promise<Blob> {
   const canvas = document.createElement("canvas");
   canvas.width = shot.width;
@@ -163,7 +232,7 @@ export async function exportCover(
     throw new Error("그림을 그리지 못했습니다.");
   }
   try {
-    paintCover(ctx, shot.image, shot.width, shot.height, boxes, kind, level);
+    paintCover(ctx, shot.image, shot.width, shot.height, boxes, kind, level, faceCover);
     const mime = shot.mime === "image/png" ? "image/png" : "image/jpeg";
     const quality = mime === "image/jpeg" ? jpegQuality(grade) : undefined;
     return await canvasToBlob(canvas, mime, quality);
@@ -171,6 +240,24 @@ export async function exportCover(
     canvas.width = 0;
     canvas.height = 0;
   }
+}
+
+function coverFor(region: RegionKind, manualKind: CoverKind, manualLevel: CoverLevel, faceCover: FaceCover): { kind: CoverKind; level: CoverLevel } {
+  if (region === "face") {
+    return { kind: faceCover, level: "heavy" };
+  }
+  if (region === "number" || region === "plate" || region === "text") {
+    return { kind: "solid", level: "heavy" };
+  }
+  return { kind: manualKind, level: manualLevel };
+}
+
+function markColor(kind: RegionKind): string {
+  if (kind === "face") return "#c2410c";
+  if (kind === "number") return "#1d4ed8";
+  if (kind === "plate") return "#15803d";
+  if (kind === "text") return "#7c3aed";
+  return "#111827";
 }
 
 function canvasToBlob(canvas: HTMLCanvasElement, mime: string, quality?: number): Promise<Blob> {
