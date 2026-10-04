@@ -10,6 +10,7 @@ import {
 import { useToolStore } from "../stores/toolStore";
 import type { LauncherPack } from "../data/educationPack";
 import type { NoticePack } from "../types/notice";
+import { parseHandoverText, type HandoverBox } from "./workHandoverService";
 
 export function isPackPath(path: string): boolean {
   return /\.(edupack|json)$/i.test(path.trim());
@@ -19,7 +20,8 @@ export const isNoticePackPath = isPackPath;
 
 export type PackOpenResult =
   | { mode: "done"; message: string }
-  | { mode: "notice-pick"; pack: NoticePack; sitePack?: LauncherPack };
+  | { mode: "notice-pick"; pack: NoticePack; sitePack?: LauncherPack }
+  | { mode: "work-handover"; box: HandoverBox };
 
 export async function applyNoticePackFromPath(path: string): Promise<PackOpenResult> {
   return openPackFromPath(path);
@@ -38,7 +40,7 @@ export async function openPackFromPath(id: string): Promise<PackOpenResult> {
 }
 
 export async function openPackFromText(contents: string): Promise<PackOpenResult> {
-  if (contents.length > 256 * 1024) {
+  if (contents.length > 2 * 1024 * 1024) {
     throw new Error("파일이 너무 큽니다.");
   }
   let parsed: unknown;
@@ -47,7 +49,20 @@ export async function openPackFromText(contents: string): Promise<PackOpenResult
   } catch {
     throw new Error("Pack 형식이 올바르지 않습니다.");
   }
+  if (isWorkHandoverPack(parsed)) {
+    return { mode: "work-handover", box: await parseHandoverText(contents) };
+  }
+  if (contents.length > 256 * 1024) {
+    throw new Error("파일이 너무 큽니다.");
+  }
   return openParsedPack(parsed);
+}
+
+export function isWorkHandoverPack(parsed: unknown): boolean {
+  if (!parsed || typeof parsed !== "object") {
+    return false;
+  }
+  return (parsed as { kind?: unknown }).kind === "work-handover";
 }
 
 async function openParsedPack(parsed: unknown): Promise<PackOpenResult> {

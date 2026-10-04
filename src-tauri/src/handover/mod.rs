@@ -2,6 +2,7 @@
 //! 원본 폴더는 읽기만 하고, 결과 위치는 원본 안이면 거부한다.
 
 pub(crate) mod assist;
+pub(crate) mod handover_box;
 mod marks;
 mod ratio;
 
@@ -63,6 +64,8 @@ pub struct WorkCard {
     pub org_open: Vec<bool>,
     pub files: Vec<WorkFile>,
     pub include: bool,
+    #[serde(default)]
+    pub successor_note: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -593,6 +596,7 @@ fn build_card(name: String, files: Vec<WorkFile>) -> WorkCard {
         org_open: Vec::new(),
         files,
         include: true,
+        successor_note: String::new(),
     }
 }
 
@@ -701,6 +705,7 @@ pub fn merge_cards(left: WorkCard, right: WorkCard) -> WorkCard {
     card.ai_name = left.ai_name.or(right.ai_name);
     card.ai_open = left.ai_open || right.ai_open;
     card.include = left.include || right.include;
+    card.successor_note = if left.successor_note.trim().is_empty() { right.successor_note } else { left.successor_note };
     card
 }
 
@@ -782,9 +787,11 @@ pub fn merge_work_cards(window: WebviewWindow, left: WorkCard, right: WorkCard) 
 pub fn save_work_cards(app: AppHandle, window: WebviewWindow, folder_id: String, write_id: String, batch: CardBatch) -> Result<(), String> {
     main_only(&window)?;
     let book = app.state::<GrantBook>();
-    let source = path_grant::view_work_folder(&book, &folder_id).map_err(|_| "폴더를 찾지 못했습니다.".to_string())?;
     let dest = path_grant::view_write(&book, &write_id, &["json"]).map_err(|_| "저장하지 못했습니다.".to_string())?;
-    reject_result_inside_source(&source, &dest).map_err(|message| message.to_string())?;
+    if !folder_id.is_empty() {
+        let source = path_grant::view_work_folder(&book, &folder_id).map_err(|_| "폴더를 찾지 못했습니다.".to_string())?;
+        reject_result_inside_source(&source, &dest).map_err(|message| message.to_string())?;
+    }
     for task in &batch.tasks {
         for file in &task.files {
             if !rel_is_relative(&file.rel) {

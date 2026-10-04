@@ -2079,10 +2079,14 @@ fn read_json_file(app: AppHandle, id: String) -> Result<String, String> {
         return Err("Pack 파일을 읽지 못했습니다.".into());
     }
     let meta = fs::metadata(&path).map_err(|_| "Pack 파일을 읽지 못했습니다.".to_string())?;
-    if meta.len() > 256 * 1024 {
+    if meta.len() > 2 * 1024 * 1024 {
         return Err("파일이 너무 큽니다.".into());
     }
-    fs::read_to_string(&path).map_err(|_| "Pack 파일을 읽지 못했습니다.".to_string())
+    let text = fs::read_to_string(&path).map_err(|_| "Pack 파일을 읽지 못했습니다.".to_string())?;
+    if text.len() > 256 * 1024 && !handover::handover_box::looks_like_handover(&text) {
+        return Err("파일이 너무 큽니다.".into());
+    }
+    Ok(text)
 }
 
 #[tauri::command]
@@ -2835,6 +2839,13 @@ pub fn run() {
             handover::assist::list_local_models,
             handover::assist::check_local_model,
             handover::assist::assist_work_cards,
+            handover::handover_box::handover_box_name,
+            handover::handover_box::handover_privacy_spots,
+            handover::handover_box::write_handover_box,
+            handover::handover_box::read_handover_box,
+            handover::handover_box::parse_handover_box,
+            handover::handover_box::check_handover_file,
+            handover::handover_box::local_target_present,
             doc_search_remove_folder,
             doc_search_clear,
             doc_search_status,

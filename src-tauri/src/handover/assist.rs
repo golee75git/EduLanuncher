@@ -234,7 +234,7 @@ fn drop_open_model(card: &mut WorkCard) {
 }
 
 fn refill(card: WorkCard) -> WorkCard {
-    let WorkCard { name, ai_name, ai_open, todos, todo_open, orgs, org_open, files, include, .. } = card;
+    let WorkCard { name, ai_name, ai_open, todos, todo_open, orgs, org_open, files, include, successor_note, .. } = card;
     let mut next = build_card(name, files);
     next.ai_name = ai_name;
     next.ai_open = ai_open;
@@ -243,6 +243,7 @@ fn refill(card: WorkCard) -> WorkCard {
     next.orgs = orgs;
     next.org_open = org_open;
     next.include = include;
+    next.successor_note = successor_note;
     next
 }
 

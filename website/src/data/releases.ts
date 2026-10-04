@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.175-20261004",
+    note: "업무 인수인계에서 고른 카드와 바로가기·메모를 인계 박스로 넘깁니다. 근거 파일은 같은 위치와 내용일 때만 엽니다.",
+  },
+  {
     version: "0.1.174-20261004",
     note: "업무 인수인계의 AI 보조는 기본으로 꺼져 있고, 켜면 이 PC의 127.0.0.1 모델만 이름·할 일·기관·날짜를 제안합니다. 모델은 설치 파일에 없습니다.",
   },

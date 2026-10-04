@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { APP_CONFIG } from "../config/app";
 import type { LauncherPack } from "../data/educationPack";
-import { applyPackFromPath } from "../services/applyNoticePack";
+import { applyPackFromPath, applyPackFromText, isWorkHandoverPack } from "../services/applyNoticePack";
 import { launchQuickUrl } from "../services/launcherService";
 import { refreshVerifiedKnowledge } from "../services/knowledgeSync";
 import { findNewerRelease } from "../services/releaseCheckService";
@@ -11,6 +11,7 @@ import { applyLauncherBackup, buildLauncherBackup, parseLauncherBackup } from ".
 import { buildLauncherPack } from "../services/launcherPackService";
 import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/noticePackService";
 import { pickOpenFiles, pickSaveFile } from "../services/savePick";
+import type { HandoverBox } from "../services/workHandoverService";
 import type { NoticePack } from "../types/notice";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useAdminToolStore } from "../stores/adminToolStore";
@@ -26,6 +27,7 @@ interface SettingsPageProps {
   onTopicReview: () => void;
   onHandbook: () => void;
   onNoticePack: (pack: NoticePack, sitePack?: LauncherPack) => void;
+  onHandoverBox: (box: HandoverBox) => void;
 }
 
 export function SettingsPage({
@@ -35,6 +37,7 @@ export function SettingsPage({
   onTopicReview,
   onHandbook,
   onNoticePack,
+  onHandoverBox,
 }: SettingsPageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const shortcutNote = useSettingsStore((state) => state.shortcutNote);
@@ -258,6 +261,10 @@ export function SettingsPage({
                     return;
                   }
                   const result = await applyPackFromPath(file.id);
+                  if (result.mode === "work-handover") {
+                    onHandoverBox(result.box);
+                    return;
+                  }
                   if (result.mode === "notice-pick") {
                     onNoticePack(result.pack, result.sitePack);
                     return;
@@ -315,6 +322,10 @@ export function SettingsPage({
                     return;
                   }
                   const result = await applyPackFromPath(file.id);
+                  if (result.mode === "work-handover") {
+                    onHandoverBox(result.box);
+                    return;
+                  }
                   if (result.mode === "notice-pick") {
                     onNoticePack(result.pack, result.sitePack);
                     return;
@@ -350,7 +361,15 @@ export function SettingsPage({
                   if (!file) {
                     return;
                   }
-                  const parsed = JSON.parse(await readJsonFile(file.id)) as unknown;
+                  const text = await readJsonFile(file.id);
+                  const parsed = JSON.parse(text) as unknown;
+                  if (isWorkHandoverPack(parsed)) {
+                    const result = await applyPackFromText(text);
+                    if (result.mode === "work-handover") {
+                      onHandoverBox(result.box);
+                    }
+                    return;
+                  }
                   onNoticePack(parseNoticePack(parsed));
                 } catch (error) {
                   setNoticeMessage(
@@ -526,7 +545,7 @@ export function SettingsPage({
             <li>업무도구의 QR코드 넣기는 이 PC 그림 오른쪽 아래에 주소 QR코드를 넣고 PNG로 저장합니다. http 또는 https만 됩니다. QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 특허 비침해를 보장하지 않습니다.</li>
             <li>업무도구의 사진 모자이크는 이 PC의 PNG·JPEG에서 영역을 직접 지정하거나, 이 PC 안에서 얼굴과 숫자 후보를 찾아 확인한 뒤 가립니다. 원본 크기의 새 파일로 저장하고 원본은 바꾸지 않습니다. 새 파일에는 위치·카메라 정보가 들어가지 않습니다. 자동 찾기는 모든 얼굴과 숫자를 찾지 못할 수 있으니 저장 전에 직접 확인합니다. 특허 비침해를 보장하지 않으며 법적 검토가 아닙니다.</li>
             <li>업무도구의 PDF 도구는 이 PC에서 PDF를 합치거나 나누고, 페이지를 빼거나 순서를 바꾸거나 회전해 새 파일로 저장합니다. 원본은 바꾸지 않습니다. 암호가 있는 PDF는 열지 않습니다. 전자서명이 보이면 알립니다. 특허 비침해를 보장하지 않습니다.</li>
-            <li>홈의 업무 인수인계는 고른 업무 폴더의 문서만 이 PC 안에서 읽어 월별 시기와 기한을 정리합니다. 원본은 바꾸지 않습니다. 결과는 저장을 누르기 전에는 이 PC에 남기지 않습니다. 구형 한글 문서는 읽지 않습니다. AI 보조는 기본으로 꺼져 있고, 켜면 이 PC의 127.0.0.1에만 연결합니다. 모델은 설치 파일에 들어 있지 않습니다. 특허 비침해를 보장하지 않으며 법적 검토가 아닙니다. 라이선스 준수를 보장하지 않습니다.</li>
+            <li>홈의 업무 인수인계는 고른 업무 폴더의 문서만 이 PC 안에서 읽어 월별 시기와 기한을 정리합니다. 원본은 바꾸지 않습니다. 결과는 저장을 누르기 전에는 이 PC에 남기지 않습니다. 구형 한글 문서는 읽지 않습니다. AI 보조는 기본으로 꺼져 있고, 켜면 이 PC의 127.0.0.1에만 연결합니다. 모델은 설치 파일에 들어 있지 않습니다. 인계 박스는 고른 카드와 바로가기·메모만 담고, 내용 해시는 파일이 깨졌는지 보는 용도이며 만든 사람을 증명하지 않습니다. 특허 비침해를 보장하지 않으며 법적 검토가 아닙니다. 라이선스 준수를 보장하지 않습니다.</li>
             <li>내 문서 검색은 설정에서 고른 폴더의 HWPX, XLSX, DOCX, PDF, TXT, MD, CSV에서 단어 조각만 이 PC 앱 데이터 폴더의 색인에 남깁니다. 문서 문장 자체는 색인에 넣지 않고, 주민등록번호 형식·휴대전화·계좌 후보·이메일은 색인 전에 뺍니다. 파일 이름과 경로는 그대로 남습니다. 같은 사용자 권한으로 실행되는 프로그램은 색인 키를 풀 수 있습니다. 이 장치는 색인 파일만 복사된 경우를 막습니다. 검색창의 내 문서에서 세 글자 이상은 원본을 다시 읽어 짧은 구절을 보고, 한두 글자는 파일 이름만 찾습니다. 문서 내용은 올리지 않습니다. 색인 지우기를 눌러도 원래 파일은 그대로입니다. HWP와 글자 없는 PDF는 읽지 않습니다. 특허 비침해를 보장하지 않으며 법적 검토가 아닙니다. 라이선스 준수를 보장하지 않습니다.</li>
             <li>네트워크·CCTV 검색 중에는 예상 시간이 나오고 중지로 멈출 수 있습니다.</li>
             <li>주소·파일·Pack을 패널에 끌어 넣을 수 있습니다. 폴더는 Windows 탐색기(explorer.exe)로 엽니다. 파일·프로그램·사이트는 이전과 같습니다. 탐색기에서 인터넷 바로가기(.url)를 오른쪽 클릭한 뒤 보내기 → 교육업무 런처를 고르면 주소와 그 파일 아이콘을 넣습니다. .url을 기본 프로그램으로 바꾸지는 않습니다. 즐겨찾기 표시줄에서 끌어 올 때 브라우저가 넘긴 PNG만 바로가기 그림으로 남깁니다. 사이트에 다시 접속하지 않습니다. JPEG·ICO는 넣지 않습니다. 이미 있는 주소는 그림이 비어 있을 때만 채웁니다.</li>

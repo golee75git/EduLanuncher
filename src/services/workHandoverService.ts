@@ -34,6 +34,7 @@ export interface WorkCard {
   org_open?: boolean[];
   files: WorkFileNote[];
   include: boolean;
+  successor_note?: string;
 }
 
 export interface CardBatch {
@@ -142,6 +143,136 @@ export async function assistWorkCards(folderId: string, batch: CardBatch, port: 
     return await invoke<CardBatch>("assist_work_cards", { folderId, batch, port, model });
   } catch (error) {
     throw asError(error);
+  }
+}
+
+export interface BoxDeadline {
+  month: number;
+  day: number;
+  file: string;
+  snippet: string;
+  from_model?: boolean;
+}
+
+export interface BoxFile {
+  name: string;
+  rel: string;
+  hash: string;
+}
+
+export interface BoxLink {
+  name: string;
+  type: string;
+  target: string;
+}
+
+export interface BoxFolder {
+  name: string;
+  path: string;
+}
+
+export interface BoxCard {
+  name: string;
+  months: number[];
+  period: string;
+  confidence: string;
+  deadlines: BoxDeadline[];
+  todos: string[];
+  todo_open?: boolean[];
+  orgs: string[];
+  org_open?: boolean[];
+  ai_open?: boolean;
+  note?: string;
+  files: BoxFile[];
+}
+
+export interface HandoverBox {
+  kind: string;
+  format: number;
+  made_at: string;
+  model?: string | null;
+  note?: string;
+  cards: BoxCard[];
+  shortcuts?: BoxLink[];
+  folder?: BoxFolder | null;
+  memos?: string[];
+  content_hash?: string;
+}
+
+export interface PrivacySpot {
+  key: string;
+  label: string;
+  kind: string;
+}
+
+export interface ExportDraft {
+  folder_id: string;
+  include_folder: boolean;
+  note: string;
+  batch: CardBatch;
+  shortcuts: BoxLink[];
+  memos: string[];
+  keep: string[];
+}
+
+export async function handoverBoxName(folderId: string): Promise<string> {
+  try {
+    return await invoke<string>("handover_box_name", { folderId });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function handoverPrivacySpots(draft: ExportDraft): Promise<PrivacySpot[]> {
+  try {
+    return await invoke<PrivacySpot[]>("handover_privacy_spots", { draft });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function writeHandoverBox(writeId: string, draft: ExportDraft): Promise<void> {
+  try {
+    await invoke("write_handover_box", { writeId, draft });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function readHandoverBox(): Promise<HandoverBox | null> {
+  const files = await pickOpenFiles("pack");
+  const file = files[0];
+  if (!file) {
+    return null;
+  }
+  try {
+    return await invoke<HandoverBox>("read_handover_box", { id: file.id });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function parseHandoverText(text: string): Promise<HandoverBox> {
+  try {
+    return await invoke<HandoverBox>("parse_handover_box", { text });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function checkHandoverFile(folderId: string, rel: string, hash: string): Promise<string> {
+  try {
+    return await invoke<string>("check_handover_file", { folderId, rel, hash });
+  } catch (error) {
+    throw asError(error);
+  }
+}
+
+export async function localTargetPresent(target: string): Promise<boolean> {
+  try {
+    return await invoke<boolean>("local_target_present", { target });
+  } catch {
+    return false;
   }
 }
 

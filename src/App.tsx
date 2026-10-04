@@ -101,7 +101,7 @@ type View =
   | { name: "pc-print"; backTo?: View }
   | { name: "pc-security"; backTo?: View }
   | { name: "privacy-scan"; backTo?: View }
-  | { name: "work-handover"; backTo?: View }
+  | { name: "work-handover"; backTo?: View; box?: import("./services/workHandoverService").HandoverBox | null }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
   | { name: "doc-shrink"; backTo?: View; startFiles?: GrantedFile[] }
@@ -202,6 +202,11 @@ export default function App() {
     async (path: string) => {
       try {
         const result = await applyNoticePackFromPath(path);
+        if (result.mode === "work-handover") {
+          setView({ name: "work-handover", box: result.box, backTo: { name: "home" } });
+          await showPanel();
+          return;
+        }
         if (result.mode === "notice-pick") {
           setPackPick({ pack: result.pack, sitePack: result.sitePack });
         } else {
@@ -221,6 +226,11 @@ export default function App() {
     async (contents: string) => {
       try {
         const result = await applyPackFromText(contents);
+        if (result.mode === "work-handover") {
+          setView({ name: "work-handover", box: result.box, backTo: { name: "home" } });
+          await showPanel();
+          return;
+        }
         if (result.mode === "notice-pick") {
           setPackPick({ pack: result.pack, sitePack: result.sitePack });
         } else {
@@ -858,6 +868,7 @@ export default function App() {
                 setPackPick({ pack, sitePack });
                 setView({ name: "home" });
               }}
+              onHandoverBox={(box) => setView({ name: "work-handover", box, backTo: { name: "settings" } })}
             />
           ) : null}
           {view.name === "notice-edit" ? (
@@ -1008,7 +1019,7 @@ export default function App() {
             <ThisPcAddressPage onBack={() => setView({ name: "computer-tools" })} />
           ) : null}
           {view.name === "work-handover" ? (
-            <WorkHandoverPage onBack={() => setView(view.backTo ?? { name: "home" })} />
+            <WorkHandoverPage onBack={() => setView(view.backTo ?? { name: "home" })} incoming={view.box} />
           ) : null}
           {view.name === "privacy-scan" ? (
             <PrivacyScanPage

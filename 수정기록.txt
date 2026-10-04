@@ -6,6 +6,36 @@
 ---
 
 날짜: 2026-10-04
+대상: 업무바통 4단계 인계 박스와 후임자 화면
+작성자: 요청자
+
+요청: 고른 카드와 바로가기·메모를 .edupack 인계 박스로 넘기고, 후임자는 고른 항목만 넣는다. 근거 파일은 상대 위치와 내용 해시가 같을 때만 연다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 내용 해시는 만든 사람을 증명하는 서명이 아님.
+
+새로 쓴 파일:
+- src-tauri/src/handover/handover_box.rs
+- src/pages/WorkHandoverBox.tsx
+
+다시 쓴 파일:
+- src-tauri/src/handover/mod.rs
+- src-tauri/src/handover/assist.rs
+- src-tauri/src/lib.rs
+- src/pages/WorkHandoverPage.tsx
+- src/pages/SettingsPage.tsx
+- src/App.tsx
+- src/services/workHandoverService.ts
+- src/services/applyNoticePack.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/IP_DESIGN_LOG.md
+
+---
+
+날짜: 2026-10-04
 대상: 업무바통 3단계 이 PC 모델 연결
 작성자: 요청자
 

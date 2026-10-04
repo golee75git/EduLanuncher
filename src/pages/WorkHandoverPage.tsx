@@ -9,15 +9,19 @@ import {
   mergeWorkCards,
   openWorkFile,
   pickWorkFolder,
+  readHandoverBox,
   runWorkCards,
   saveWorkCards,
   watchHandover,
   type CardBatch,
+  type HandoverBox,
   type WorkCard,
 } from "../services/workHandoverService";
+import { HandoverExport, HandoverReceive } from "./WorkHandoverBox";
 
 interface WorkHandoverPageProps {
   onBack: () => void;
+  incoming?: HandoverBox | null;
 }
 
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -27,7 +31,7 @@ function fileName(rel: string): string {
   return parts[parts.length - 1] || rel;
 }
 
-export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
+export function WorkHandoverPage({ onBack, incoming }: WorkHandoverPageProps) {
   const [folderId, setFolderId] = useState<string | null>(null);
   const [batch, setBatch] = useState<CardBatch | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -41,7 +45,10 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
   const [modelChoices, setModelChoices] = useState<string[] | null>(null);
   const [aiReady, setAiReady] = useState(false);
   const [aiNote, setAiNote] = useState("");
+  const [exportOpen, setExportOpen] = useState(false);
+  const [incomingBox, setIncomingBox] = useState<HandoverBox | null>(incoming ?? null);
   const stopped = useRef(false);
+  const shownBox = incoming ?? incomingBox;
 
   function portNumber(): number | null {
     const port = Number(portText);
@@ -195,6 +202,10 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
     }
   }
 
+  if (shownBox) {
+    return <HandoverReceive box={shownBox} onBack={onBack} />;
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-2 border-b border-line px-3 py-2">
@@ -331,6 +342,25 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
           <button type="button" className="btn-secondary" onClick={() => void load()} disabled={busy}>
             불러오기
           </button>
+          <button type="button" className="btn-secondary" disabled={!batch || busy} onClick={() => setExportOpen(true)}>
+            인계 박스 만들기
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            disabled={busy}
+            onClick={() => {
+              void readHandoverBox()
+                .then((box) => {
+                  if (box) {
+                    setIncomingBox(box);
+                  }
+                })
+                .catch((error: unknown) => setNote(error instanceof Error ? error.message : "인계 박스를 열지 못했습니다."));
+            }}
+          >
+            인계 박스 열기
+          </button>
           {busy ? (
             <button
               type="button"
@@ -372,6 +402,7 @@ export function WorkHandoverPage({ onBack }: WorkHandoverPageProps) {
             </button>
           ) : null}
         </div>
+        {exportOpen && batch ? <HandoverExport batch={batch} folderId={folderId} onClose={() => setExportOpen(false)} /> : null}
         {step ? <p className="text-xs text-desk">{step}</p> : null}
         {batch?.notice ? <p className="text-xs text-desk">{batch.notice}</p> : null}
         {batch?.reviewed_at ? <p className="text-xs text-quiet">확인 시각 {batch.reviewed_at}</p> : null}
