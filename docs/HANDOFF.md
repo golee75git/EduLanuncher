@@ -3,7 +3,7 @@
 기준일: 2026-09-24  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.176-20261005`
+최신 커밋 시점의 앱 버전: `0.1.177-20261005`
 
 지원 종료 표는 해마다 새 버전 출시 때 갱신 필요, 출처: Microsoft Windows 11 release information. 표는 `src-tauri/src/security_judge.rs`의 `SUPPORT_ENDS`이다. 날짜가 비어 있으면 그 버전은 확인 불가다. Windows 11 25H2 칸은 비어 있다.
 
@@ -193,7 +193,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감). `/m
 
 ```powershell
 $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=9222"
-Start-Process "$env:LOCALAPPDATA\EduLauncher\edulauncher.exe"
+Start-Process "$env:LOCALAPPDATA\AILauncher\AILauncher.exe"
 ```
 
 Edge에서 `http://127.0.0.1:9222`를 열고 해당 페이지의 콘솔을 본다. CSP 위반 문장이 없으면 이상 없음이다. 포트가 열리지 않으면 그 항목은 계속 미확인이다.

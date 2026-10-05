@@ -6,6 +6,29 @@
 ---
 
 날짜: 2026-10-05
+대상: 실행 파일 이름 AILauncher.exe와 텍스트 추출 분석
+작성자: 요청자
+
+요청: 실행 파일 이름을 AILauncher.exe로 바꾼다. 텍스트 추출은 기본값으로 분석 보고서만 남기고 기능 코드는 쓰지 않는다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. OCR 모델은 넣지 않음.
+
+새로 쓴 파일:
+- docs/analysis/ocr-analysis.md
+
+다시 쓴 파일:
+- src-tauri/Cargo.toml
+- src-tauri/tauri.conf.json
+- src-tauri/src/lib.rs
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/구동안내서.md
+
+---
+
+날짜: 2026-10-05
 대상: 바로가기 이름 AILauncher, 창 제목 AI런처
 작성자: 요청자
 

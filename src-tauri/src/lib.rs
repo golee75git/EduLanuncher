@@ -746,16 +746,15 @@ fn installed_launcher_exe() -> Option<PathBuf> {
     let mut candidates = Vec::new();
     if let Some(local) = std::env::var_os("LOCALAPPDATA") {
         for name in ["AILauncher", "EduLauncher"] {
-            candidates.push(PathBuf::from(&local).join(name).join("edulauncher.exe"));
-            candidates.push(PathBuf::from(&local).join("Programs").join(name).join("edulauncher.exe"));
+            for file in ["AILauncher.exe", "edulauncher.exe"] {
+                candidates.push(PathBuf::from(&local).join(name).join(file));
+                candidates.push(PathBuf::from(&local).join("Programs").join(name).join(file));
+            }
         }
     }
-    candidates.push(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("target")
-            .join("release")
-            .join("edulauncher.exe"),
-    );
+    let release = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target").join("release");
+    candidates.push(release.join("AILauncher.exe"));
+    candidates.push(release.join("edulauncher.exe"));
     candidates.into_iter().find(|path| path.exists())
 }
 
