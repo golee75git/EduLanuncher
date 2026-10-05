@@ -73,7 +73,8 @@ fn resolve_shortcut_target_windows(path: &Path) -> Option<PathBuf> {
     }
 }
 
-const SEND_TO_LINK_NAME: &str = "교육업무 런처.lnk";
+const SEND_TO_LINK_NAME: &str = "AILauncher.lnk";
+const OLD_SEND_TO_LINK_NAME: &str = "교육업무 런처.lnk";
 
 pub fn write_send_to_link(exe: &Path) -> Option<()> {
     #[cfg(windows)]
@@ -128,5 +129,42 @@ fn write_send_to_link_windows(exe: &Path) -> Option<()> {
         let persist: IPersistFile = link.cast().ok()?;
         persist.Save(PCWSTR(dest_wide.as_ptr()), true).ok()?;
     }
+    let old = folder.join(OLD_SEND_TO_LINK_NAME);
+    if old.is_file() && link_points_at_launcher(&old) {
+        let _ = std::fs::remove_file(old);
+    }
     Some(())
+}
+
+pub fn retire_old_launcher_links() {
+    #[cfg(windows)]
+    {
+        let mut paths = Vec::new();
+        if let Some(profile) = std::env::var_os("USERPROFILE") {
+            paths.push(PathBuf::from(profile).join("Desktop").join("EduLauncher.lnk"));
+        }
+        if let Some(appdata) = std::env::var_os("APPDATA") {
+            let menu = PathBuf::from(&appdata).join("Microsoft").join("Windows").join("Start Menu").join("Programs");
+            paths.push(menu.join("EduLauncher.lnk"));
+            paths.push(menu.join("Startup").join("EduLauncher.lnk"));
+            paths.push(
+                PathBuf::from(appdata)
+                    .join("Microsoft")
+                    .join("Windows")
+                    .join("SendTo")
+                    .join(OLD_SEND_TO_LINK_NAME),
+            );
+        }
+        for path in paths {
+            if path.is_file() && link_points_at_launcher(&path) {
+                let _ = std::fs::remove_file(path);
+            }
+        }
+    }
+}
+
+fn link_points_at_launcher(path: &Path) -> bool {
+    resolve_shortcut_target(path)
+        .and_then(|target| target.file_name().map(|name| name.to_string_lossy().eq_ignore_ascii_case("edulauncher.exe")))
+        .unwrap_or(false)
 }

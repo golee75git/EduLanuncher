@@ -23,8 +23,8 @@ export function LauncherMock() {
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-ink shadow-[0_0_0_3px] shadow-ink-soft" />
           <div>
-            <p className="text-[11px] font-semibold tracking-wide text-ink">EduLauncher</p>
-            <p className="text-[15px] font-semibold text-desk">교육업무 런처</p>
+            <p className="text-[11px] font-semibold tracking-wide text-ink">AILauncher</p>
+            <p className="text-[15px] font-semibold text-desk">AI런처</p>
           </div>
         </div>
         <span className="text-xs text-quiet">샘플</span>

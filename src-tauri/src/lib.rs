@@ -651,7 +651,7 @@ fn position_panel(window: &tauri::WebviewWindow, mode: &str) {
 }
 
 fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
-    let open = MenuItemBuilder::with_id("open", "교육업무 런처 열기").build(app)?;
+    let open = MenuItemBuilder::with_id("open", "AI런처 열기").build(app)?;
     let settings = MenuItemBuilder::with_id("settings", "설정").build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "종료").build(app)?;
     let sep = PredefinedMenuItem::separator(app)?;
@@ -662,7 +662,7 @@ fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
     let mut tray = TrayIconBuilder::with_id("main")
         .menu(&menu)
         .show_menu_on_left_click(false)
-        .tooltip("교육업무 런처")
+        .tooltip("AILauncher")
         .on_menu_event(|app, event| match event.id().as_ref() {
             "open" => reveal_panel(app),
             "settings" => {
@@ -745,13 +745,10 @@ fn wanted_auto_start(app: &tauri::App) -> bool {
 fn installed_launcher_exe() -> Option<PathBuf> {
     let mut candidates = Vec::new();
     if let Some(local) = std::env::var_os("LOCALAPPDATA") {
-        candidates.push(PathBuf::from(&local).join("EduLauncher").join("edulauncher.exe"));
-        candidates.push(
-            PathBuf::from(&local)
-                .join("Programs")
-                .join("EduLauncher")
-                .join("edulauncher.exe"),
-        );
+        for name in ["AILauncher", "EduLauncher"] {
+            candidates.push(PathBuf::from(&local).join(name).join("edulauncher.exe"));
+            candidates.push(PathBuf::from(&local).join("Programs").join(name).join("edulauncher.exe"));
+        }
     }
     candidates.push(
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -806,6 +803,7 @@ fn setup_edupack_association() {
 }
 
 fn setup_send_to_link() {
+    shortcut::retire_old_launcher_links();
     if let Some(exe) = pack_association_exe() {
         let _ = shortcut::write_send_to_link(&exe);
     }
@@ -817,11 +815,18 @@ fn enable_login_item(exe: &std::path::Path) {
         "add",
         r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
         "/v",
-        "EduLauncher",
+        "AILauncher",
         "/t",
         "REG_SZ",
         "/d",
         &value,
+        "/f",
+    ]);
+    run_reg(&[
+        "delete",
+        r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
+        "/v",
+        "EduLauncher",
         "/f",
     ]);
 }
@@ -829,6 +834,13 @@ fn enable_login_item(exe: &std::path::Path) {
 fn setup_autostart(app: &tauri::App) {
     use tauri_plugin_autostart::ManagerExt;
 
+    run_reg(&[
+        "delete",
+        r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run",
+        "/v",
+        "EduLauncher",
+        "/f",
+    ]);
     if !wanted_auto_start(app) {
         let _ = app.autolaunch().disable();
         return;
@@ -2725,7 +2737,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(
             tauri_plugin_autostart::Builder::new()
-                .app_name("EduLauncher")
+                .app_name("AILauncher")
                 .build(),
         )
         .plugin(

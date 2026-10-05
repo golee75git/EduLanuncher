@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.176-20261005",
+    note: "바로가기 이름은 AILauncher이고, 창 제목은 AI런처입니다. 이전 EduLauncher 설치는 제거한 뒤 이 파일로 다시 설치합니다.",
+  },
+  {
     version: "0.1.176-20261004",
     note: "업무 인수인계에서 사용자 폴더 경로는 자리표시로 넘기고, 후임자 질문은 넘겨받은 자료 안에서만 답합니다.",
   },

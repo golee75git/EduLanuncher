@@ -5,6 +5,53 @@
 
 ---
 
+날짜: 2026-10-05
+대상: 바로가기 이름 AILauncher, 창 제목 AI런처
+작성자: 요청자
+
+요청: 아이콘·바로가기 이름을 AILauncher로 바꾸고, 창 제목은 AI런처 0.1.176-20261005로 한다. 설치 파일을 다시 만들고 홈페이지 받기 주소도 그 파일로 맞춘다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+다시 쓴 파일:
+- src-tauri/tauri.conf.json
+- src/config/app.ts
+- src/pages/SettingsPage.tsx
+- src-tauri/src/lib.rs
+- src-tauri/src/shortcut.rs
+- website/src/config.ts
+- website/src/data/releases.ts
+- website/src/components/LauncherMock.tsx
+- docs/HANDOFF.md
+- docs/구동안내서.md
+
+---
+
+날짜: 2026-10-05
+대상: 업무바통 시연 자료 정리와 로컬 연결 테스트
+작성자: 요청자
+
+요청: 가짜 연락처 문서를 민원처리 폴더의 담당자 연락망으로 옮겨 카드가 8개가 되게 한다. 부하 중 실패하던 로컬 응답 테스트의 가짜 서버가 요청을 끝까지 읽게 한다. 시연은 압축을 풀어 사용한다. 제출 요약의 시제품 작성 주체를 고친다. 기능과 버전은 바꾸지 않는다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. OFL 글꼴이 프로젝트에 새로 들어가지 않았음을 확인. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- demo/업무바통_시연자료.zip
+
+다시 쓴 파일:
+- demo/make_demo_folder.py
+- demo/expected.json
+- demo/README.md
+- demo/시연-인계박스.edupack
+- demo/folder
+- src-tauri/src/handover/mod.rs
+- src-tauri/src/loopback.rs
+- docs/구동안내서.md
+- docs/시연시나리오.md
+- docs/제출요약.md
+
+---
+
 날짜: 2026-10-04
 대상: 업무바통 5단계 경로 자리표시와 질의응답
 작성자: 요청자
