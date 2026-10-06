@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-EduLauncher (교육업무 런처) — a Windows tray launcher for Korean school-office staff, built with Tauri 2 (Rust backend) + React 19 + TypeScript (Vite frontend). It lives in the system tray and opens a small panel (default 520×720, user-resized size persisted per PC) via tray click or `Ctrl+Alt+E`. UI strings and commit-facing text in this repo are Korean.
+EduLauncher (교육업무 런처) — a Windows tray launcher for Korean school-office staff, built with Tauri 2 (Rust backend) + React 19 + TypeScript (Vite frontend). It lives in the system tray and opens a small panel (first open or a stored 520×720 grows once to the monitor work-area height, capped at 900; width stays 520; later resizes persist per PC) via tray click or `Ctrl+Alt+E`. UI strings and commit-facing text in this repo are Korean.
 
 ## Commands
 

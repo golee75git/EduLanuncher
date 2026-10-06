@@ -142,24 +142,86 @@ fn clip_panel_size(width: f64, height: f64) -> (f64, f64) {
     )
 }
 
-fn read_saved_panel_size(app: &AppHandle) -> (f64, f64) {
+fn stored_panel_size(app: &AppHandle) -> Option<(f64, f64)> {
+    use tauri_plugin_store::StoreExt;
+
+    let store = app.store("settings.json").ok()?;
+    let value = store.get("value")?;
+    let width = value.get("panelWidth")?.as_f64()?;
+    let height = value.get("panelHeight")?.as_f64()?;
+    Some(clip_panel_size(width, height))
+}
+
+fn panel_fit_marked(app: &AppHandle) -> bool {
+    use tauri_plugin_store::StoreExt;
+
+    app.store("settings.json")
+        .ok()
+        .and_then(|store| store.get("panelFit"))
+        .and_then(|entry| entry.as_bool())
+        .unwrap_or(false)
+}
+
+fn mark_panel_fit(app: &AppHandle) {
     use tauri_plugin_store::StoreExt;
 
     let Ok(store) = app.store("settings.json") else {
-        return (PANEL_DEFAULT_W, PANEL_DEFAULT_H);
+        return;
     };
-    let value = store.get("value");
-    let width = value
-        .as_ref()
-        .and_then(|entry| entry.get("panelWidth"))
-        .and_then(|entry| entry.as_f64())
-        .unwrap_or(PANEL_DEFAULT_W);
-    let height = value
-        .as_ref()
-        .and_then(|entry| entry.get("panelHeight"))
-        .and_then(|entry| entry.as_f64())
-        .unwrap_or(PANEL_DEFAULT_H);
-    clip_panel_size(width, height)
+    if store.get("panelFit").and_then(|entry| entry.as_bool()) == Some(true) {
+        return;
+    }
+    let _ = store.set("panelFit", serde_json::Value::Bool(true));
+    let _ = store.save();
+}
+
+fn factory_panel_size(width: f64, height: f64) -> bool {
+    (width.round() - PANEL_DEFAULT_W).abs() < 0.5 && (height.round() - PANEL_DEFAULT_H).abs() < 0.5
+}
+
+fn first_panel_size(window: &tauri::WebviewWindow) -> (f64, f64) {
+    let scale = window.scale_factor().unwrap_or(1.0).max(0.5);
+    let inner = window.inner_size().ok();
+    let outer = window.outer_size().ok();
+    let (chrome_w, chrome_h) = match (inner, outer) {
+        (Some(inner), Some(outer)) => (
+            ((outer.width as f64 - inner.width as f64) / scale).max(0.0),
+            ((outer.height as f64 - inner.height as f64) / scale).max(32.0),
+        ),
+        _ => (0.0, 32.0),
+    };
+    let Some(monitor) = window
+        .current_monitor()
+        .ok()
+        .flatten()
+        .or_else(|| window.primary_monitor().ok().flatten())
+    else {
+        return clip_panel_size(PANEL_DEFAULT_W, PANEL_MAX_H);
+    };
+    let work = monitor.work_area();
+    let margin = 12.0;
+    let work_w = work.size.width as f64 / scale;
+    let work_h = work.size.height as f64 / scale;
+    clip_panel_size(
+        PANEL_DEFAULT_W.min(work_w - chrome_w - margin),
+        work_h - chrome_h - margin,
+    )
+}
+
+fn open_panel_size(app: &AppHandle, window: &tauri::WebviewWindow) -> (f64, f64) {
+    if panel_fit_marked(app) {
+        return stored_panel_size(app).unwrap_or((PANEL_DEFAULT_W, PANEL_DEFAULT_H));
+    }
+    if let Some((width, height)) = stored_panel_size(app) {
+        if !factory_panel_size(width, height) {
+            mark_panel_fit(app);
+            return (width, height);
+        }
+    }
+    let (width, height) = first_panel_size(window);
+    save_panel_size(app, width, height);
+    mark_panel_fit(app);
+    (width, height)
 }
 
 fn save_panel_size(app: &AppHandle, width: f64, height: f64) {
@@ -700,7 +762,7 @@ fn setup_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let window = app
         .get_webview_window("main")
         .ok_or("main window is missing")?;
-    let (width, height) = read_saved_panel_size(app.handle());
+    let (width, height) = open_panel_size(app.handle(), &window);
     apply_panel_size(&window, width, height);
     place_main_panel(app.handle(), &window);
     let app_handle = app.handle().clone();
