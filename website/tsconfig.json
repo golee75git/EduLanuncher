@@ -16,6 +16,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../src/services/pilotManualCore.ts"],
+  "include": ["src", "../src/services/pilotManualCore.ts", "../src/services/workMapLayout.ts", "../src/services/mindMapService.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

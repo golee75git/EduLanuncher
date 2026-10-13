@@ -62,7 +62,7 @@ import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut, 
 import { readFileUrls, type SiteNameUrl } from "./services/siteListService";
 import { focusSearchInput } from "./services/focusBus";
 import { dismissMemoNote, hidePanel, openMemoNote, showPanel } from "./services/windowService";
-import { initStorage } from "./services/storageService";
+import { initStorage, loadSettings } from "./services/storageService";
 import { startupKnowledge } from "./services/knowledgeSync";
 import { wantsLaunchUpdates } from "./services/startupNetwork";
 import { loadOrgPolicy } from "./services/orgPolicy";
@@ -411,12 +411,13 @@ export default function App() {
 
     const bootstrap = async () => {
       if (mapWindow || memoWindow) {
-        if (mapWindow) {
-          const settings = await hydrateSettings();
-          const policy = await loadOrgPolicy();
-          await startupKnowledge(
-            policy.disableStartupKnowledge ? false : settings.fetchKnowledgeOnLaunch,
-          );
+        try {
+          if (mapWindow) {
+            const settings = await loadSettings();
+            useSettingsStore.getState().hydrate(settings);
+          }
+        } catch {
+          // 그림 창은 패널 위치와 단축키를 바꾸지 않는다.
         }
         if (!cancelled) {
           setReady(true);

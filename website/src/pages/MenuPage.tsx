@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { MenuWorkMap } from "../components/MenuWorkMap";
 import { PilotManualArticle } from "../components/PilotManualArticle";
 import { TopicStepBoards } from "../components/TopicStepBoards";
 import {
@@ -228,14 +229,32 @@ export function MenuPage({ pathname }: { pathname: string }) {
 
   const section = path[0] ?? "";
   const itemId = path[1] ?? "";
+  const hrefFor = (topicId: string) => {
+    if (data.topics.some((row) => row.id === topicId) || data.manual.some((row) => row.id === topicId)) {
+      return `/menu/topic/${encodeURIComponent(topicId)}`;
+    }
+    if (
+      data.handbook.categories.some((row) => row.id === topicId) ||
+      data.handbook.topics.some((row) => row.id === topicId)
+    ) {
+      return `/menu/handbook/${encodeURIComponent(topicId)}`;
+    }
+    return null;
+  };
 
   if (section === "") {
     return withRail("", (
       <div className="space-y-6">
         <header className="max-w-2xl space-y-2">
           <h1 className="text-2xl font-semibold text-desk">매뉴얼</h1>
-          <p className="text-sm leading-relaxed text-quiet">왼쪽에서 편람 분류, 업무자료, 시범 매뉴얼, 인증서를 고르면 오른쪽에 내용이 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다.</p>
+          <p className="text-sm leading-relaxed text-quiet">왼쪽에서 편람 분류, 업무자료, 시범 매뉴얼, 인증서를 고르면 오른쪽에 내용이 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다. 아래 업무 그림은 검색하면 맞는 그림으로 바뀝니다.</p>
         </header>
+        <MenuWorkMap
+          query={manualQuery}
+          hitIds={manualHits.map((hit) => hit.topic.id)}
+          hrefFor={hrefFor}
+          showIdle
+        />
         <input
           className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
           value={manualQuery}
@@ -334,7 +353,13 @@ export function MenuPage({ pathname }: { pathname: string }) {
           매뉴얼
         </a>
         <h1 className="text-2xl font-semibold text-desk">업무자료</h1>
-        <p className="text-sm text-quiet">단계가 있는 업무에는 한눈에 보기가 있습니다.</p>
+        <p className="text-sm text-quiet">단계가 있는 업무에는 한눈에 보기가 있습니다. 검색하면 업무 그림도 나옵니다.</p>
+        <MenuWorkMap
+          query={query}
+          hitIds={query.trim() ? topicHits.map((row) => row.id) : []}
+          hrefFor={hrefFor}
+          showIdle={false}
+        />
         <input
           className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
           value={query}

@@ -6,6 +6,36 @@
 ---
 
 날짜: 2026-10-13
+대상: 업무 그림 크게 보기가 멈추지 않게 하고, 소개 사이트 매뉴얼에 같은 그림을 표시
+작성자: 요청자
+
+요청: 런처 업무 그림 크게 보기 창이 불러오는 중에서 멈춘다. 소개 사이트 매뉴얼에도 업무 그림을 보이게 한다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 그림 창은 패널 위치와 단축키를 바꾸지 않음. 사이트 상자는 이 사이트에 있는 업무만 열고, 주소는 페이지 안에서만 만듦.
+
+새로 쓴 파일:
+- website/src/components/MenuWorkMap.tsx
+
+다시 쓴 파일:
+- src/App.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/pages/MenuPage.tsx
+- website/src/config.ts
+- website/src/data/releases.ts
+- website/tsconfig.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 업무 그림 배치, 편람 업무 흐름, 업무자료 한눈에 보기
+
+---
+
+날짜: 2026-10-13
 대상: 편람은 업무 흐름, 업무자료는 한눈에 보기, 병가·질병휴직 시범 매뉴얼 공개
 작성자: 요청자
 
