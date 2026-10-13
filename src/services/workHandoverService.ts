@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { launchResult } from "./windowService";
 import { pickOpenFiles, pickSaveFile } from "./savePick";
+import type { ToolItem } from "../types/tool";
 
 export interface WorkDeadline {
   month: number;
@@ -59,6 +60,18 @@ function asError(error: unknown): Error {
     return error;
   }
   return new Error("파일을 읽지 못했습니다.");
+}
+
+export function savedFolderTools(tools: ToolItem[]): ToolItem[] {
+  return tools.filter((tool) => tool.type === "folder" && tool.enabled !== false && tool.target.trim().length > 0);
+}
+
+export async function savedWorkFolder(toolId: string): Promise<string> {
+  try {
+    return await invoke<string>("saved_work_folder", { toolId });
+  } catch (error) {
+    throw asError(error);
+  }
 }
 
 export async function pickWorkFolder(): Promise<string | null> {

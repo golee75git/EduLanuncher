@@ -101,6 +101,22 @@ pub fn reject_result_inside_source(source: &Path, result: &Path) -> Result<(), &
     Ok(())
 }
 
+pub fn accept_work_dir(app: &AppHandle, path: &Path) -> Result<String, String> {
+    if !path.is_dir() {
+        return Err("폴더만 넣을 수 있습니다.".into());
+    }
+    let plain = privacy_folder::plain_text(path);
+    match privacy_folder::judge(&plain, &privacy_folder::known_roots()) {
+        privacy_folder::PlaceAsk::System | privacy_folder::PlaceAsk::Root | privacy_folder::PlaceAsk::Link | privacy_folder::PlaceAsk::Slow => {
+            Err("드라이브 전체나 Windows 폴더, 연결 폴더는 고르지 않습니다.".into())
+        }
+        _ => {
+            let book = app.state::<GrantBook>();
+            remember_work_folder(&book, path).map_err(|_| "폴더를 넣지 못했습니다.".to_string())
+        }
+    }
+}
+
 pub fn remember_work_folder(book: &GrantBook, path: &Path) -> Result<String, &'static str> {
     let name = path.file_name().and_then(|value| value.to_str()).unwrap_or("folder");
     let id = book.issue(GrantUse::WorkFolder, path, name, "dir", GrantOrigin::Dialog)?;
@@ -203,19 +219,20 @@ pub async fn pick_work_folder(app: AppHandle, window: WebviewWindow) -> Result<S
         return Err("cancelled".into());
     };
     let path = file.into_path().map_err(|_| "폴더를 넣지 못했습니다.".to_string())?;
-    if !path.is_dir() {
-        return Err("폴더만 넣을 수 있습니다.".into());
+    accept_work_dir(&app, &path)
+}
+
+#[tauri::command]
+pub fn saved_work_folder(app: AppHandle, window: WebviewWindow, tool_id: String) -> Result<String, String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 바꿀 수 없습니다.".into());
     }
-    let plain = privacy_folder::plain_text(&path);
-    match privacy_folder::judge(&plain, &privacy_folder::known_roots()) {
-        privacy_folder::PlaceAsk::System | privacy_folder::PlaceAsk::Root | privacy_folder::PlaceAsk::Link | privacy_folder::PlaceAsk::Slow => {
-            Err("드라이브 전체나 Windows 폴더, 연결 폴더는 고르지 않습니다.".into())
-        }
-        _ => {
-            let book = app.state::<GrantBook>();
-            remember_work_folder(&book, &path).map_err(|_| "폴더를 넣지 못했습니다.".to_string())
-        }
+    let tool = crate::stored_tool(&app, &tool_id).map_err(|_| "런처에서 폴더를 찾지 못했습니다.".to_string())?;
+    if !tool.enabled || tool.kind != "folder" {
+        return Err("런처에서 폴더를 찾지 못했습니다.".into());
     }
+    let path = path_grant::file_target(&tool.target).map_err(|_| "폴더를 넣지 못했습니다.".to_string())?;
+    accept_work_dir(&app, &path)
 }
 
 #[tauri::command]

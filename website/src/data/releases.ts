@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.187-20261013",
+    note: "인수인계에서 폴더를 고르면 런처에 올려 둔 폴더가 기본입니다. 다른 폴더만 탐색기를 엽니다.",
+  },
+  {
     version: "0.1.186-20261013",
     note: "홈 검색은 영문 자판으로 친 글자도 한글로 함께 찾습니다. 최근 7일 검색어는 검색창 아래에 최대 5개 올라옵니다.",
   },

@@ -1582,13 +1582,13 @@ fn main_window(window: &tauri::WebviewWindow) -> bool {
     window.label() == "main"
 }
 
-struct StoredTool {
+pub(crate) struct StoredTool {
     kind: String,
     target: String,
     enabled: bool,
 }
 
-fn stored_tool(app: &AppHandle, id: &str) -> Result<StoredTool, &'static str> {
+pub(crate) fn stored_tool(app: &AppHandle, id: &str) -> Result<StoredTool, &'static str> {
     use tauri_plugin_store::StoreExt;
 
     let id = id.trim();
@@ -2922,6 +2922,7 @@ pub fn run() {
             doc_search_folders,
             doc_search_add_folder,
             handover::pick_work_folder,
+            handover::saved_work_folder,
             handover::work_cards,
             handover::run_work_cards,
             handover::halt_work_cards,

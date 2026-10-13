@@ -6,6 +6,38 @@
 ---
 
 날짜: 2026-10-13
+대상: 인수인계 폴더 선택 시 런처에 올려 둔 폴더를 기본으로 참조
+작성자: 요청자
+
+요청: 인수인계에서 폴더를 고를 때 런처에 가져다 놓은 폴더를 기본으로 참조한다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 화면은 폴더 이름과 항목 번호만 보내고, 경로는 넘기지 않음. 드라이브 전체와 Windows 폴더는 기존과 같이 거부함.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src-tauri/src/handover/mod.rs
+- src-tauri/src/lib.rs
+- src/services/workHandoverService.ts
+- src/pages/WorkHandoverPage.tsx
+- src/pages/WorkHandoverBox.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
+날짜: 2026-10-13
 대상: 홈 검색에서 영문 자판을 한글로도 비교하고, 최근 7일 검색어를 검색창 아래에 표시
 작성자: 요청자
 

@@ -13,6 +13,8 @@ import {
   localTargetPresent,
   openWorkFile,
   pickWorkFolder,
+  savedFolderTools,
+  savedWorkFolder,
   saveWorkCards,
   writeHandoverBox,
   type AskReply,
@@ -22,6 +24,43 @@ import {
   type HandoverBox,
   type PrivacySpot,
 } from "../services/workHandoverService";
+
+export function SavedFolderPick({
+  toolId,
+  onToolId,
+}: {
+  toolId: string;
+  onToolId: (id: string) => void;
+}) {
+  const tools = useToolStore((state) => state.tools);
+  const folders = useMemo(() => savedFolderTools(tools), [tools]);
+  useEffect(() => {
+    const next = folders.some((tool) => tool.id === toolId) ? toolId : (folders[0]?.id ?? "");
+    if (next !== toolId) {
+      onToolId(next);
+    }
+  }, [folders, toolId, onToolId]);
+  if (folders.length === 0) {
+    return null;
+  }
+  return (
+    <label className="block text-xs text-desk">
+      런처에 있는 폴더
+      <select
+        className="ml-2 max-w-[16rem] rounded-lg border border-line bg-transparent px-2 py-1 text-xs text-desk"
+        value={toolId}
+        onChange={(event) => onToolId(event.target.value)}
+        aria-label="런처에 있는 폴더"
+      >
+        {folders.map((tool) => (
+          <option key={tool.id} value={tool.id}>
+            {tool.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 function fileName(rel: string): string {
   const parts = rel.split(/[/\\]/);
@@ -199,6 +238,7 @@ export function HandoverExport({ batch, folderId, onClose }: { batch: CardBatch;
 
 export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () => void }) {
   const [folderId, setFolderId] = useState<string | null>(null);
+  const [savedToolId, setSavedToolId] = useState("");
   const [notes, setNotes] = useState<string[]>(box.cards.map((card) => card.note ?? ""));
   const [fileNote, setFileNote] = useState<Record<string, string>>({});
   const [pickedLinks, setPickedLinks] = useState<number[]>([]);
@@ -396,21 +436,40 @@ export function HandoverReceive({ box, onBack }: { box: HandoverBox; onBack: () 
             업무 폴더 {box.folder.name} · {folderPath || "경로 확인 필요"}
           </p>
         ) : null}
+        <SavedFolderPick toolId={savedToolId} onToolId={setSavedToolId} />
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             className="btn-secondary"
             onClick={() => {
-              void pickWorkFolder().then((id) => {
+              void (savedToolId ? savedWorkFolder(savedToolId) : pickWorkFolder()).then((id) => {
                 if (id) {
                   setFolderId(id);
                   setMessage("업무 폴더를 골랐습니다. 같은 상대 위치와 해시인 파일만 엽니다.");
                 }
+              }).catch((error: unknown) => {
+                setMessage(error instanceof Error ? error.message : "폴더를 넣지 못했습니다.");
               });
             }}
           >
             업무 폴더 고르기
           </button>
+          {savedToolId ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                void pickWorkFolder().then((id) => {
+                  if (id) {
+                    setFolderId(id);
+                    setMessage("업무 폴더를 골랐습니다. 같은 상대 위치와 해시인 파일만 엽니다.");
+                  }
+                });
+              }}
+            >
+              다른 폴더
+            </button>
+          ) : null}
           <button type="button" className="btn-secondary" onClick={() => void saveWorkCards(folderId ?? "", asBatch()).then(() => setMessage("저장했습니다.")).catch((error: unknown) => setMessage(error instanceof Error ? error.message : "저장하지 못했습니다."))}>
             저장
           </button>

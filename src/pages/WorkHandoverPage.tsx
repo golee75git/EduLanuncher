@@ -9,6 +9,7 @@ import {
   mergeWorkCards,
   openWorkFile,
   pickWorkFolder,
+  savedWorkFolder,
   readHandoverBox,
   runWorkCards,
   saveWorkCards,
@@ -17,7 +18,7 @@ import {
   type HandoverBox,
   type WorkCard,
 } from "../services/workHandoverService";
-import { HandoverExport, HandoverReceive } from "./WorkHandoverBox";
+import { HandoverExport, HandoverReceive, SavedFolderPick } from "./WorkHandoverBox";
 
 interface WorkHandoverPageProps {
   onBack: () => void;
@@ -33,6 +34,7 @@ function fileName(rel: string): string {
 
 export function WorkHandoverPage({ onBack, incoming }: WorkHandoverPageProps) {
   const [folderId, setFolderId] = useState<string | null>(null);
+  const [savedToolId, setSavedToolId] = useState("");
   const [batch, setBatch] = useState<CardBatch | null>(null);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -97,10 +99,10 @@ export function WorkHandoverPage({ onBack, incoming }: WorkHandoverPageProps) {
     setMergeOn([]);
   }
 
-  async function chooseFolder() {
+  async function chooseFolder(other = false) {
     setNote("");
     try {
-      const id = await pickWorkFolder();
+      const id = !other && savedToolId ? await savedWorkFolder(savedToolId) : await pickWorkFolder();
       if (!id) {
         return;
       }
@@ -216,7 +218,7 @@ export function WorkHandoverPage({ onBack, incoming }: WorkHandoverPageProps) {
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-auto px-3 py-3">
         <p className="text-xs leading-5 text-quiet">
-          업무 폴더의 문서를 이 PC 안에서 읽어 업무별 시기와 기한을 정리합니다. 원본 파일은 바꾸지 않습니다.
+          업무 폴더의 문서를 이 PC 안에서 읽어 업무별 시기와 기한을 정리합니다. 런처에 올려 둔 폴더가 있으면 그 폴더가 기본입니다. 원본 파일은 바꾸지 않습니다.
         </p>
         <div className="space-y-2 rounded-lg border border-line p-2">
           <label className="flex items-center gap-2 text-xs text-desk">
@@ -332,10 +334,16 @@ export function WorkHandoverPage({ onBack, incoming }: WorkHandoverPageProps) {
           ) : null}
           {aiNote ? <p className="text-xs text-desk">{aiNote}</p> : null}
         </div>
+        <SavedFolderPick toolId={savedToolId} onToolId={setSavedToolId} />
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary" onClick={() => void chooseFolder()} disabled={busy}>
+          <button type="button" className="btn-secondary" onClick={() => void chooseFolder(false)} disabled={busy}>
             업무 폴더 고르기
           </button>
+          {savedToolId ? (
+            <button type="button" className="btn-secondary" onClick={() => void chooseFolder(true)} disabled={busy}>
+              다른 폴더
+            </button>
+          ) : null}
           <button type="button" className="btn-secondary" onClick={() => void save()} disabled={!batch || busy}>
             저장
           </button>
