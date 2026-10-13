@@ -41,6 +41,7 @@ mod privacy_scan;
 mod privacy_folder;
 mod file_desk;
 mod path_grant;
+mod site_list;
 mod url_mark;
 mod user_folder;
 use doc_shrink::{doc_picture_bytes, write_new_picture};
@@ -2095,6 +2096,19 @@ fn granted_path(app: &AppHandle, id: &str) -> Result<PathBuf, String> {
 }
 
 #[tauri::command]
+fn read_site_list(app: AppHandle, id: String) -> Result<site_list::SiteSheet, String> {
+    let path = granted_path(&app, &id)?;
+    let is_sheet = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("xlsx"));
+    if !is_sheet {
+        return Err("엑셀 파일을 읽지 못했습니다.".into());
+    }
+    site_list::read_site_sheet(&path)
+}
+
+#[tauri::command]
 fn read_bookmark_html(app: AppHandle, id: String) -> Result<String, String> {
     let path = granted_path(&app, &id)?;
     let is_html = path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| {
@@ -2931,6 +2945,7 @@ pub fn run() {
             take_startup_pack_paths,
             take_startup_url_paths,
             read_bookmark_html,
+            read_site_list,
             favicon_for_url,
             favicon_for_urls,
             admin_tools_query,

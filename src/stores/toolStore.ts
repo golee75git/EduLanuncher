@@ -18,6 +18,7 @@ interface ToolState {
   seedIfEmpty: () => Promise<void>;
   applyLauncherPack: (pack: LauncherPack) => Promise<{ added: number; updated: number; skipped: number }>;
   addTool: (tool: ToolItem) => Promise<void>;
+  addTools: (incoming: ToolItem[]) => Promise<void>;
   updateTool: (id: string, patch: Partial<ToolItem>) => Promise<void>;
   removeTool: (id: string) => Promise<void>;
   toggleFavorite: (id: string) => Promise<void>;
@@ -117,6 +118,15 @@ export const useToolStore = create<ToolState>((set, get) => ({
   addTool: async (tool) => {
     const next = { ...tool, origin: tool.origin ?? "local" };
     const tools = [next, ...get().tools];
+    set({ tools });
+    await persist(tools);
+  },
+  addTools: async (incoming) => {
+    if (incoming.length === 0) {
+      return;
+    }
+    const added = incoming.map((tool) => ({ ...tool, origin: tool.origin ?? "local" }));
+    const tools = [...added, ...get().tools];
     set({ tools });
     await persist(tools);
   },

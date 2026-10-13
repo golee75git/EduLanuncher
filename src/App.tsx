@@ -38,6 +38,7 @@ import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
 import { DocShrinkPage } from "./pages/DocShrinkPage";
 import { PdfToolPage } from "./pages/PdfToolPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
+import { SiteListImportPage } from "./pages/SiteListImportPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
 import { HandbookCategoryListPage, HandbookCategoryPage, HandbookTopicPage } from "./pages/HandbookFlowPages";
@@ -106,6 +107,7 @@ type View =
   | { name: "doc-search"; query?: string; backTo?: View }
   | { name: "doc-shrink"; backTo?: View; startFiles?: GrantedFile[] }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
+  | { name: "site-sheet"; backTo?: View }
   | { name: "internal"; id: string; title: string; startFiles?: GrantedFile[] };
 
 function currentWindowLabel(): string {
@@ -906,6 +908,11 @@ export default function App() {
                   backTo: { name: "tool-group", groupType: view.groupType },
                 })
               }
+              onSheet={
+                view.groupType === "url"
+                  ? () => setView({ name: "site-sheet", backTo: { name: "tool-group", groupType: "url" } })
+                  : undefined
+              }
             />
           ) : null}
           {view.name === "pc-urls" ? <PcUrlListPage onBack={() => setView({ name: "home" })} /> : null}
@@ -1088,7 +1095,19 @@ export default function App() {
               tool={view.tool}
               createType={view.createType}
               onBack={() => setView(view.backTo ?? { name: "home" })}
+              onSheet={
+                view.tool
+                  ? undefined
+                  : () =>
+                      setView({
+                        name: "site-sheet",
+                        backTo: { name: "tool-edit", createType: "url", backTo: view.backTo },
+                      })
+              }
             />
+          ) : null}
+          {view.name === "site-sheet" ? (
+            <SiteListImportPage onBack={() => setView(view.backTo ?? { name: "home" })} />
           ) : null}
           {view.name === "internal" && (view.id === "pc-address" || view.id === "pc-sys:pc-address") ? (
             <ThisPcAddressPage title={view.title} onBack={() => setView({ name: "home" })} />

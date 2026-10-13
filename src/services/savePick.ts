@@ -17,7 +17,7 @@ function asError(error: unknown): Error {
   return new Error("저장하지 못했습니다.");
 }
 
-export type OpenKind = "bookmark" | "pack" | "json" | "picture" | "pictures" | "pdf" | "pdfs";
+export type OpenKind = "bookmark" | "pack" | "json" | "picture" | "pictures" | "pdf" | "pdfs" | "sitelist";
 
 export async function pickOpenFiles(kind: OpenKind): Promise<SaveCard[]> {
   try {

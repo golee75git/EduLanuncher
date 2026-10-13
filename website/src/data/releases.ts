@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.179-20261013",
+    note: "사이트 추가에서 사이트명과 url 칸이 있는 엑셀 파일을 읽어 고른 주소만 넣습니다.",
+  },
+  {
     version: "0.1.178-20261006",
     note: "처음이거나 창이 520×720이면 세로를 모니터 작업 영역 최대(상한 900)로 한 번 맞춥니다. 다른 저장 크기는 유지합니다.",
   },

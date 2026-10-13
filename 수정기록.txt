@@ -5,6 +5,42 @@
 
 ---
 
+날짜: 2026-10-13
+대상: 사이트명·url 엑셀로 사이트 한꺼번에 넣기
+작성자: 요청자
+
+요청: 사이트 도구 추가에서 사이트명과 url로 된 엑셀 파일을 한꺼번에 등록한다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 새 패키지 없음. zip 8.6.0과 quick-xml 0.42.0은 기존 MIT 의존. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 파일 경로는 화면에 넘기지 않고, http·https만 읽으며, 넣기 전에는 저장하지 않음.
+
+새로 쓴 파일:
+- src-tauri/src/site_list.rs
+- src/pages/SiteListImportPage.tsx
+- src/services/siteListService.ts
+
+다시 쓴 파일:
+- src-tauri/src/lib.rs
+- src-tauri/src/path_grant.rs
+- src/App.tsx
+- src/pages/ToolEditPage.tsx
+- src/pages/ToolGroupPage.tsx
+- src/pages/SettingsPage.tsx
+- src/stores/toolStore.ts
+- src/services/savePick.ts
+- src-tauri/tauri.conf.json
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PRD.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 문서 검색의 xlsx 읽기, 즐겨찾기 HTML 가져오기, 사이트 한 개 추가의 저장 방식
+
+---
+
 날짜: 2026-10-06
 대상: 처음 패널 세로를 모니터 작업 영역 최대로
 작성자: 요청자

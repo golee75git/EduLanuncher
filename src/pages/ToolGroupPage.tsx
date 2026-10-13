@@ -13,6 +13,7 @@ interface ToolGroupPageProps {
   onBack: () => void;
   onLaunch: (tool: ToolItem) => void;
   onEdit: (tool?: ToolItem, createType?: ToolType) => void;
+  onSheet?: () => void;
   onPcUrls?: () => void;
   onComputerTools?: () => void;
   onShortcuts?: () => void;
@@ -25,6 +26,7 @@ export function ToolGroupPage({
   onBack,
   onLaunch,
   onEdit,
+  onSheet,
   onPcUrls,
   onComputerTools,
   onShortcuts,
@@ -57,6 +59,15 @@ export function ToolGroupPage({
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">{toolGroupLabel(groupType)}</h1>
+        {groupType === "url" && onSheet ? (
+          <button
+            type="button"
+            className="rounded-full px-2 py-0.5 text-[11px] font-medium text-ink transition-colors duration-150 hover:bg-ink-soft"
+            onClick={onSheet}
+          >
+            엑셀
+          </button>
+        ) : null}
         {groupType === "url" && onPcUrls ? (
           <button
             type="button"

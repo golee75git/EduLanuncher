@@ -10,6 +10,7 @@ interface ToolEditPageProps {
   tool?: ToolItem;
   createType?: ToolType;
   onBack: () => void;
+  onSheet?: () => void;
 }
 
 function iconForType(type: ToolType): string {
@@ -36,7 +37,7 @@ const TYPES: Array<{ id: ToolType; label: string }> = [
   { id: "internal", label: "내부 기능" },
 ];
 
-export function ToolEditPage({ tool, createType, onBack }: ToolEditPageProps) {
+export function ToolEditPage({ tool, createType, onBack, onSheet }: ToolEditPageProps) {
   const addTool = useToolStore((state) => state.addTool);
   const updateTool = useToolStore((state) => state.updateTool);
   const initialType = tool?.type ?? createType ?? "url";
@@ -137,6 +138,15 @@ export function ToolEditPage({ tool, createType, onBack }: ToolEditPageProps) {
                     : "파일 또는 폴더 선택"
               }
             />
+            {!tool && type === "url" && onSheet ? (
+              <button
+                type="button"
+                className="shrink-0 rounded-lg bg-desk px-3 text-sm text-white transition-colors duration-150 hover:bg-desk/90"
+                onClick={onSheet}
+              >
+                엑셀
+              </button>
+            ) : null}
             {type === "file" || type === "folder" || type === "app" ? (
               <button
                 type="button"

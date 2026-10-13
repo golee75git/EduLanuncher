@@ -714,6 +714,7 @@ pub struct OpenCard {
 fn open_rule(kind: &str) -> Result<(&'static str, &'static [&'static str], bool), &'static str> {
     match kind {
         "bookmark" => Ok(("즐겨찾기", &["html", "htm"], false)),
+        "sitelist" => Ok(("사이트 목록", &["xlsx"], false)),
         "pack" => Ok(("Pack", &["edupack", "json"], false)),
         "json" => Ok(("JSON", &["json"], false)),
         "picture" => Ok(("그림", &["png", "jpg", "jpeg"], false)),
@@ -924,6 +925,7 @@ mod tests {
         }
         for name in [
             "fn read_bookmark_html",
+            "fn read_site_list",
             "fn read_json_file",
             "fn read_url_shortcut",
             "fn dropped_path_info",
