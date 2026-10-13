@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.182-20261013",
+    note: "끌어 놓은 엑셀은 첫 번째 열을 사이트명으로 보여 줍니다.",
+  },
+  {
     version: "0.1.181-20261013",
     note: "사이트 목록 엑셀은 첫 번째 열을 사이트명으로 보여 줍니다.",
   },
@@ -143,7 +147,7 @@ export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   },
   {
     version: "0.1.148-20261001",
-    note: "인터넷 연결 점검은 확인 주소 응답만으로 장애를 정하지 않습니다. 화면 이름은 교육업무 런처이고, 전체 확인은 15초 안에 끝납니다.",
+    note: "인터넷 연결 점검은 확인 주소 응답만으로 장애를 정하지 않습니다. 화면 이름은 업무 런처이고, 전체 확인은 15초 안에 끝납니다.",
   },
   {
     version: "0.1.147-20261001",
@@ -247,7 +251,7 @@ export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   },
   {
     version: "0.1.122-20260927",
-    note: "교육행정 매뉴얼은 사이트 편람 2장으로 찾고, 결과는 웹 페이지로 엽니다.",
+    note: "행정 매뉴얼은 사이트 편람 2장으로 찾고, 결과는 웹 페이지로 엽니다.",
   },
   {
     version: "0.1.121-20260927",
@@ -331,7 +335,7 @@ export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   },
   {
     version: "0.1.101-20260924",
-    note: "업무자료에 강원 기준, 전국 공통, 타 교육청 참고, 지역 확인 필요를 표시합니다. 타 교육청 값은 강원 기준으로 바꾸지 않습니다.",
+    note: "업무자료에 강원 기준, 전국 공통, 다른 지역 참고, 지역 확인 필요를 표시합니다. 다른 지역 값은 강원 기준으로 바꾸지 않습니다.",
   },
   {
     version: "0.1.100-20260924",

@@ -6,6 +6,38 @@
 ---
 
 날짜: 2026-10-13
+대상: 끌어 놓은 엑셀의 첫 번째 열을 사이트명으로 표시, 소개 사이트에서 교육 문구 정리
+작성자: 요청자
+
+요청: 엑셀로 넣은 사이트 이름이 주소로 보이므로 첫 번째 열을 사이트명으로 보여 준다. 소개 사이트에서 교육이라는 말을 빼고, 개인정보 보호 교육은 그대로 둔다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 새 패키지 없음. zip·quick-xml은 기존 의존. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 파일 경로는 화면에 넘기지 않고, http·https만 받으며, 넣기 전에는 저장하지 않음. 첫 칸이 비어 있거나 주소이면 호스트 이름을 씀.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src-tauri/src/site_list.rs
+- src/pages/SettingsPage.tsx
+- src-tauri/tauri.conf.json
+- src/config/app.ts
+- website/index.html
+- website/src/pages/IntroPage.tsx
+- website/src/components/LauncherMock.tsx
+- website/public/third-party-notices.txt
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PRD.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 사이트명·url 칸으로 고르는 엑셀 등록, PDF·HWPX 글에서 주소를 찾는 경로, 개인정보 보호 교육 문구
+
+---
+
+날짜: 2026-10-13
 대상: 사이트 목록 엑셀의 첫 번째 열을 사이트명으로 표시
 작성자: 요청자
 

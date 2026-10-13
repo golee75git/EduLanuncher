@@ -43,6 +43,14 @@ pub fn urls_in_document(path: &Path) -> Result<SiteSheet, String> {
     if !meta.is_file() || meta.len() > 20 * 1024 * 1024 {
         return Ok(SiteSheet { rows: Vec::new(), skipped: 0, limited: false });
     }
+    if ext == "xlsx" {
+        if let Ok(table) = first_sheet_table(path) {
+            let named = names_for_sheet_rows(&table);
+            if !named.rows.is_empty() {
+                return Ok(named);
+            }
+        }
+    }
     match crate::document_search::extract::extract_file(path) {
         Ok(text) => Ok(urls_in_text(&text)),
         Err(_) => Ok(SiteSheet { rows: Vec::new(), skipped: 0, limited: false }),
@@ -93,6 +101,55 @@ pub fn urls_in_text(text: &str) -> SiteSheet {
         rest = &tail[end..];
     }
     SiteSheet { rows, skipped: 0, limited }
+}
+
+fn names_for_sheet_rows(table: &[Vec<String>]) -> SiteSheet {
+    let mut rows = Vec::new();
+    let mut seen = HashSet::new();
+    let mut limited = false;
+    for row in table {
+        if row.iter().all(|cell| cell.trim().is_empty()) {
+            continue;
+        }
+        let label = row.first().map(|cell| cell.trim()).unwrap_or("");
+        for cell in row {
+            let found = urls_in_text(cell);
+            if found.limited {
+                limited = true;
+            }
+            for item in found.rows {
+                if rows.len() >= MAX_ROWS {
+                    limited = true;
+                    break;
+                }
+                if seen.insert(url_key(&item.url)) {
+                    rows.push(SiteNameUrl {
+                        name: site_name(label, &item.url),
+                        url: item.url,
+                    });
+                }
+            }
+            if rows.len() >= MAX_ROWS {
+                break;
+            }
+        }
+        if rows.len() >= MAX_ROWS {
+            break;
+        }
+    }
+    SiteSheet { rows, skipped: 0, limited }
+}
+
+fn first_sheet_table(path: &Path) -> Result<Vec<Vec<String>>, String> {
+    let names = zip_names(path)?;
+    let mut archive = open_zip(path)?;
+    let mut budget = 0u64;
+    let workbook = read_part(&mut archive, "xl/workbook.xml", &mut budget)?.unwrap_or_default();
+    let rels = read_part(&mut archive, "xl/_rels/workbook.xml.rels", &mut budget)?.unwrap_or_default();
+    let sheet_name = first_sheet_name(&names, &workbook, &rels)?;
+    let shared = read_part(&mut archive, "xl/sharedStrings.xml", &mut budget)?.unwrap_or_default();
+    let sheet = read_part(&mut archive, &sheet_name, &mut budget)?.ok_or("첫 시트를 읽지 못했습니다.")?;
+    Ok(sheet_table(&sheet, &shared_strings(&shared)))
 }
 
 fn url_stop(ch: char) -> bool {
@@ -640,6 +697,33 @@ mod tests {
         assert_eq!(parsed.rows[0].name, "school.example");
         assert_eq!(parsed.rows[1].url, "http://second.example/b");
         assert!(urls_in_text("ftp://skip.example").rows.is_empty());
+    }
+
+    #[test]
+    fn dropped_xlsx_uses_the_first_column_as_the_name() {
+        let bytes = zip_with(&[
+            (
+                "xl/workbook.xml",
+                r#"<workbook><sheets><sheet name="목록" sheetId="1" r:id="rId1"/></sheets></workbook>"#,
+            ),
+            (
+                "xl/_rels/workbook.xml.rels",
+                r#"<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/></Relationships>"#,
+            ),
+            (
+                "xl/worksheets/sheet1.xml",
+                &sheet("<row><c r=\"A1\"><v>학교홈</v></c><c r=\"B1\"><v>https://school.example/home</v></c></row>"),
+            ),
+        ]);
+        let dir = std::env::temp_dir().join(format!("edul-site-xlsx-name-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("sites.xlsx");
+        std::fs::write(&path, bytes).unwrap();
+        let parsed = urls_in_document(&path).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(parsed.rows.len(), 1);
+        assert_eq!(parsed.rows[0].name, "학교홈");
+        assert_eq!(parsed.rows[0].url, "https://school.example/home");
     }
 
     #[test]

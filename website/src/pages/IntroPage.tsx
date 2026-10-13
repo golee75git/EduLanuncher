@@ -25,7 +25,7 @@ const HOLDS = [
   "업무도구에서 컴퓨터 이름·이 PC IP 주소·제어판·소리·인터넷 옵션·작업 관리자·익스플로러 설정 복원 등 이 PC 화면 열기",
   "홈 검색과 컴퓨터도구에서 이 사용자 폴더의 이름만 찾기 (내용은 읽지 않음)",
   "업무도구에서 이 PC 그림에 QR코드를 넣어 PNG로 저장",
-  "홈 검색과 업무자료에서 교육행정 관련 업무 찾기",
+  "홈 검색과 업무자료에서 행정 관련 업무 찾기",
   "검색 결과 위에 업무 그림을 두고, 크게 보기는 런처 옆을 조금 더 넓게 펼치고 끌어서 옮기기",
   "연 업무에서 뒤로 가면 직전 검색 화면이 다시 나오기",
   "업무자료 업무지도에서 마인드맵 계층을 목록으로 보기",
@@ -34,7 +34,7 @@ const HOLDS = [
 
 const DOES_NOT = [
   "계정 로그인이나 클라우드 동기화",
-  "나이스·교육청 등 학교 시스템 자동 연결",
+  "나이스 등 학교 시스템 자동 연결",
   "브라우저에서 프로그램·파일 실행",
   "디스크 전체 검색이나 파일 내용 색인",
   "NotebookLM 등 외부 노트 화면 수집",
@@ -47,7 +47,7 @@ export function IntroPage() {
         <div className="max-w-2xl space-y-4">
         <p className="text-[11px] font-semibold tracking-wide text-ink">{SITE_CONFIG.appName}</p>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          <span className="text-desk">교육행정 업무 효율화를 위한</span>
+          <span className="text-desk">행정 업무 효율화를 위한</span>
           <br />
           <span className="text-ink">Windows 업무 런처</span>
         </h1>
@@ -55,7 +55,7 @@ export function IntroPage() {
           기능 이름을 몰라도, 하고 싶은 일을 검색하면 됩니다.
         </p>
         <p className="text-base leading-relaxed text-quiet">
-          {SITE_CONFIG.displayName}는 교육기관 직원용 작은 패널입니다. 웹 서비스가 아니라 이 PC에 설치하는
+          {SITE_CONFIG.displayName}는 기관 직원용 작은 패널입니다. 웹 서비스가 아니라 이 PC에 설치하는
           프로그램입니다. 평소에는 화면을 가리지 않고, 필요할 때만 엽니다.
         </p>
         <p className="rounded-lg border border-line bg-card px-4 py-3 text-sm leading-relaxed text-desk">
