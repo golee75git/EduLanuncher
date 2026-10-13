@@ -2109,6 +2109,12 @@ fn read_site_list(app: AppHandle, id: String) -> Result<site_list::SiteSheet, St
 }
 
 #[tauri::command]
+fn read_file_urls(app: AppHandle, id: String) -> Result<site_list::SiteSheet, String> {
+    let path = granted_path(&app, &id)?;
+    site_list::urls_in_document(&path)
+}
+
+#[tauri::command]
 fn read_bookmark_html(app: AppHandle, id: String) -> Result<String, String> {
     let path = granted_path(&app, &id)?;
     let is_html = path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| {
@@ -2946,6 +2952,7 @@ pub fn run() {
             take_startup_url_paths,
             read_bookmark_html,
             read_site_list,
+            read_file_urls,
             favicon_for_url,
             favicon_for_urls,
             admin_tools_query,

@@ -14,3 +14,7 @@ export interface SiteSheet {
 export async function readSiteList(id: string): Promise<SiteSheet> {
   return invoke<SiteSheet>("read_site_list", { id });
 }
+
+export async function readFileUrls(id: string): Promise<SiteSheet> {
+  return invoke<SiteSheet>("read_file_urls", { id });
+}

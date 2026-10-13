@@ -12,6 +12,7 @@ interface DropActionPickProps {
   pdfs: GrantedFile[];
   places: DropPlaceLine[];
   siteLabel: string;
+  fileUrlCount: number;
   packLabel: string;
   onMosaic: () => void;
   onShrink: () => void;
@@ -20,6 +21,7 @@ interface DropActionPickProps {
   onShortcut: () => void;
   onPlaces: () => void;
   onSite: () => void;
+  onFileUrls: () => void;
   onPack: () => void;
   onClose: () => void;
 }
@@ -35,6 +37,7 @@ export function DropActionPick({
   pdfs,
   places,
   siteLabel,
+  fileUrlCount,
   packLabel,
   onMosaic,
   onShrink,
@@ -43,6 +46,7 @@ export function DropActionPick({
   onShortcut,
   onPlaces,
   onSite,
+  onFileUrls,
   onPack,
   onClose,
 }: DropActionPickProps) {
@@ -60,6 +64,7 @@ export function DropActionPick({
           </p>
         ))}
         {siteLabel ? <p className="truncate text-xs text-desk">{siteLabel} · 사이트</p> : null}
+        {fileUrlCount > 0 ? <p className="truncate text-xs text-desk">문서에서 주소 {fileUrlCount}개</p> : null}
         {packLabel ? <p className="truncate text-xs text-desk">{packLabel} · Pack</p> : null}
         <div className="flex flex-col gap-2">
           {pictures.length === 1 ? (
@@ -89,12 +94,17 @@ export function DropActionPick({
           ) : null}
           {places.length > 0 ? (
             <button type="button" className="btn-secondary !bg-zone-notice hover:!bg-zone-notice" onClick={onPlaces}>
-              {hasTools ? "다른 항목 넣기" : "넣기"}
+              {fileUrlCount > 0 ? "파일로 넣기" : hasTools ? "다른 항목 넣기" : "넣기"}
             </button>
           ) : null}
           {siteLabel ? (
             <button type="button" className="btn-secondary !bg-zone-notice hover:!bg-zone-notice" onClick={onSite}>
               사이트에 넣기
+            </button>
+          ) : null}
+          {fileUrlCount > 0 ? (
+            <button type="button" className="btn-secondary !bg-zone-notice hover:!bg-zone-notice" onClick={onFileUrls}>
+              사이트로 넣기
             </button>
           ) : null}
           {packLabel ? (

@@ -56,7 +56,8 @@ import { findNewerRelease } from "./services/releaseCheckService";
 import { APP_CONFIG } from "./config/app";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { splitDropActions } from "./services/dropActionPick";
-import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut, type GrantedFile } from "./services/dropSiteService";
+import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut, sameHttpUrl, type GrantedFile } from "./services/dropSiteService";
+import { readFileUrls, type SiteNameUrl } from "./services/siteListService";
 import { focusSearchInput } from "./services/focusBus";
 import { dismissMemoNote, hidePanel, openMemoNote, showPanel } from "./services/windowService";
 import { initStorage } from "./services/storageService";
@@ -107,7 +108,7 @@ type View =
   | { name: "doc-search"; query?: string; backTo?: View }
   | { name: "doc-shrink"; backTo?: View; startFiles?: GrantedFile[] }
   | { name: "tool-edit"; tool?: ToolItem; createType?: ToolType; backTo?: View }
-  | { name: "site-sheet"; backTo?: View }
+  | { name: "site-sheet"; backTo?: View; rows?: SiteNameUrl[] }
   | { name: "internal"; id: string; title: string; startFiles?: GrantedFile[] };
 
 function currentWindowLabel(): string {
@@ -139,6 +140,7 @@ interface DropHold {
   urlFile: GrantedFile | null;
   packFile: GrantedFile | null;
   packText: string | null;
+  fileUrls: SiteNameUrl[];
 }
 
 function blankDropHold(): DropHold {
@@ -150,6 +152,7 @@ function blankDropHold(): DropHold {
     urlFile: null,
     packFile: null,
     packText: null,
+    fileUrls: [],
   };
 }
 
@@ -161,7 +164,8 @@ function dropHoldOpen(hold: DropHold): boolean {
     hold.site !== null ||
     hold.urlFile !== null ||
     hold.packFile !== null ||
-    hold.packText !== null
+    hold.packText !== null ||
+    hold.fileUrls.length > 0
   );
 }
 
@@ -330,12 +334,34 @@ export default function App() {
           return;
         }
       }
+      const linkDocs = [...split.pdfs, ...split.rest].filter((file) => /\.(xlsx|pdf|hwpx)$/i.test(file.name));
+      const fileUrls: SiteNameUrl[] = [];
+      for (const file of linkDocs.slice(0, 8)) {
+        try {
+          const found = await readFileUrls(file.id);
+          for (const row of found.rows) {
+            if (fileUrls.some((item) => sameHttpUrl(item.url, row.url))) {
+              continue;
+            }
+            fileUrls.push(row);
+            if (fileUrls.length >= 300) {
+              break;
+            }
+          }
+        } catch {
+          // 주소를 못 읽어도 파일로 넣는 선택은 남긴다.
+        }
+        if (fileUrls.length >= 300) {
+          break;
+        }
+      }
       setDropPick((current) => {
         const next: DropHold = {
           ...(current ?? blankDropHold()),
           pictures: split.pictures,
           pdfs: split.pdfs,
           places,
+          fileUrls,
         };
         return dropHoldOpen(next) ? next : null;
       });
@@ -1107,7 +1133,10 @@ export default function App() {
             />
           ) : null}
           {view.name === "site-sheet" ? (
-            <SiteListImportPage onBack={() => setView(view.backTo ?? { name: "home" })} />
+            <SiteListImportPage
+              initialRows={view.rows}
+              onBack={() => setView(view.backTo ?? { name: "home" })}
+            />
           ) : null}
           {view.name === "internal" && (view.id === "pc-address" || view.id === "pc-sys:pc-address") ? (
             <ThisPcAddressPage title={view.title} onBack={() => setView({ name: "home" })} />
@@ -1305,6 +1334,7 @@ export default function App() {
             ]
               .filter(Boolean)
               .join(", ")}
+            fileUrlCount={dropPick.fileUrls.length}
             packLabel={
               dropPick.packFile
                 ? dropPick.packFile.name || "Pack"
@@ -1359,6 +1389,11 @@ export default function App() {
                 return dropHoldOpen(next) ? next : null;
               });
               void saveDroppedShortcuts(files);
+            }}
+            onFileUrls={() => {
+              const rows = dropPick.fileUrls;
+              setDropPick(null);
+              setView({ name: "site-sheet", backTo: { name: "home" }, rows });
             }}
             onSite={() => {
               const site = dropPick.site;

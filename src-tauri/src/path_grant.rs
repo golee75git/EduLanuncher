@@ -926,6 +926,7 @@ mod tests {
         for name in [
             "fn read_bookmark_html",
             "fn read_site_list",
+            "fn read_file_urls",
             "fn read_json_file",
             "fn read_url_shortcut",
             "fn dropped_path_info",

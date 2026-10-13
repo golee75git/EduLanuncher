@@ -6,6 +6,40 @@
 ---
 
 날짜: 2026-10-13
+대상: 끌어 놓은 xlsx·pdf·hwpx에서 주소 찾기
+작성자: 요청자
+
+요청: 런처 창에 엑셀, PDF, HWPX를 끌어 놓으면 칸 이름과 상관없이 글 안의 주소를 사이트로 넣을지, 파일로 둘지 고르게 한다. 소개 사이트의 설치 파일 받기도 이 버전으로 맞춘다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 새 패키지 없음. zip·quick-xml·lopdf는 기존 의존. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 파일 경로는 화면에 넘기지 않고, http·https만 모으며, 넣기 전에는 저장하지 않음. 구형 hwp는 읽지 않음.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src-tauri/src/site_list.rs
+- src-tauri/src/lib.rs
+- src-tauri/src/path_grant.rs
+- src/App.tsx
+- src/components/DropActionPick.tsx
+- src/pages/SiteListImportPage.tsx
+- src/pages/SettingsPage.tsx
+- src/services/siteListService.ts
+- src-tauri/tauri.conf.json
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PRD.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 사이트명·url 칸으로 고르는 엑셀 등록, PDF 도구, 문서 검색의 글자 읽기
+
+---
+
+날짜: 2026-10-13
 대상: 사이트명·url 엑셀로 사이트 한꺼번에 넣기
 작성자: 요청자
 

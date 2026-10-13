@@ -14,14 +14,25 @@ import { useToolStore } from "../stores/toolStore";
 
 interface SiteListImportPageProps {
   onBack: () => void;
+  initialRows?: SiteNameUrl[];
 }
 
-export function SiteListImportPage({ onBack }: SiteListImportPageProps) {
+function pickState(rows: SiteNameUrl[], tools: { type: string; target: string }[]): Record<string, boolean> {
+  const next: Record<string, boolean> = {};
+  for (const row of rows) {
+    next[row.url] = !tools.some((tool) => tool.type === "url" && sameHttpUrl(tool.target, row.url));
+  }
+  return next;
+}
+
+export function SiteListImportPage({ onBack, initialRows = [] }: SiteListImportPageProps) {
   const tools = useToolStore((state) => state.tools);
   const addTools = useToolStore((state) => state.addTools);
-  const [rows, setRows] = useState<SiteNameUrl[]>([]);
-  const [picked, setPicked] = useState<Record<string, boolean>>({});
-  const [notice, setNotice] = useState("");
+  const [rows, setRows] = useState<SiteNameUrl[]>(initialRows);
+  const [picked, setPicked] = useState<Record<string, boolean>>(() => pickState(initialRows, tools));
+  const [notice, setNotice] = useState(
+    initialRows.length > 0 ? `문서에서 ${initialRows.length}개 주소를 찾았습니다.` : "",
+  );
   const [busy, setBusy] = useState(false);
 
   const known = (url: string) => tools.some((tool) => tool.type === "url" && sameHttpUrl(tool.target, url));

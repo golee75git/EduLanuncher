@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.180-20261013",
+    note: "창에 끌어 놓은 엑셀·PDF·HWPX에서 주소를 찾아, 사이트로 넣을지 파일로 둘지 고릅니다.",
+  },
+  {
     version: "0.1.179-20261013",
     note: "사이트 추가에서 사이트명과 url 칸이 있는 엑셀 파일을 읽어 고른 주소만 넣습니다.",
   },

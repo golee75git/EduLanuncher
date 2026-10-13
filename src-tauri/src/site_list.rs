@@ -30,6 +30,75 @@ pub struct SiteNameUrl {
     pub url: String,
 }
 
+pub fn urls_in_document(path: &Path) -> Result<SiteSheet, String> {
+    let ext = path
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    if ext != "xlsx" && ext != "pdf" && ext != "hwpx" {
+        return Err("이 파일에서는 주소를 찾지 않습니다.".into());
+    }
+    let meta = std::fs::metadata(path).map_err(|_| "파일을 읽지 못했습니다.".to_string())?;
+    if !meta.is_file() || meta.len() > 20 * 1024 * 1024 {
+        return Ok(SiteSheet { rows: Vec::new(), skipped: 0, limited: false });
+    }
+    match crate::document_search::extract::extract_file(path) {
+        Ok(text) => Ok(urls_in_text(&text)),
+        Err(_) => Ok(SiteSheet { rows: Vec::new(), skipped: 0, limited: false }),
+    }
+}
+
+pub fn urls_in_text(text: &str) -> SiteSheet {
+    let mut rows = Vec::new();
+    let mut seen = HashSet::new();
+    let mut limited = false;
+    let mut rest = text;
+    while !rest.is_empty() {
+        let lower = rest.to_ascii_lowercase();
+        let https_at = lower.find("https://");
+        let http_at = lower.find("http://");
+        let Some(at) = (match (https_at, http_at) {
+            (Some(https), Some(http)) => Some(https.min(http)),
+            (Some(https), None) => Some(https),
+            (None, Some(http)) => Some(http),
+            (None, None) => None,
+        }) else {
+            break;
+        };
+        let tail = &rest[at..];
+        let mut end = 0usize;
+        for (index, ch) in tail.char_indices() {
+            if url_stop(ch) {
+                break;
+            }
+            end = index + ch.len_utf8();
+        }
+        if end == 0 {
+            rest = &tail[1..];
+            continue;
+        }
+        let raw = tail[..end].trim_end_matches(|ch: char| matches!(ch, '.' | ',' | ';' | ')' | ']' | '。' | '，'));
+        if rows.len() >= MAX_ROWS {
+            if http_url(raw).is_some() {
+                limited = true;
+            }
+            break;
+        }
+        if let Some(url) = http_url(raw) {
+            if seen.insert(url_key(&url)) {
+                rows.push(SiteNameUrl { name: host_label(&url), url });
+            }
+        }
+        rest = &tail[end..];
+    }
+    SiteSheet { rows, skipped: 0, limited }
+}
+
+fn url_stop(ch: char) -> bool {
+    ch.is_whitespace() || ch.is_control() || matches!(ch, '"' | '\'' | '<' | '>' | '{' | '}' | '|' | '\\' | '「' | '」' | '『' | '』')
+}
+
 pub fn read_site_sheet(path: &Path) -> Result<SiteSheet, String> {
     let meta = std::fs::metadata(path).map_err(|_| "엑셀 파일을 읽지 못했습니다.".to_string())?;
     if !meta.is_file() || meta.len() > MAX_FILE_BYTES {
@@ -544,5 +613,29 @@ mod tests {
         assert_eq!(parsed.rows.len(), 1);
         assert_eq!(parsed.rows[0].name, "맞는시트");
         assert_eq!(parsed.rows[0].url, "https://right.example");
+    }
+
+    #[test]
+    fn finds_urls_without_column_names() {
+        let parsed = urls_in_text("안내 https://school.example/a, 다음 http://second.example/b 끝 https://school.example/a/");
+        assert_eq!(parsed.rows.len(), 2);
+        assert_eq!(parsed.rows[0].url, "https://school.example/a");
+        assert_eq!(parsed.rows[0].name, "school.example");
+        assert_eq!(parsed.rows[1].url, "http://second.example/b");
+        assert!(urls_in_text("ftp://skip.example").rows.is_empty());
+    }
+
+    #[test]
+    fn finds_a_url_in_hwpx_text() {
+        let section = r#"<?xml version="1.0"?><sec><p><run><t>참고 https://note.example/p</t></run></p></sec>"#;
+        let bytes = zip_with(&[("Contents/section0.xml", section)]);
+        let dir = std::env::temp_dir().join(format!("edul-site-hwpx-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("note.hwpx");
+        std::fs::write(&path, bytes).unwrap();
+        let parsed = urls_in_document(&path).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(parsed.rows.len(), 1);
+        assert_eq!(parsed.rows[0].url, "https://note.example/p");
     }
 }
