@@ -175,6 +175,75 @@ function withRail(section: string, body: ReactNode) {
   return <MenuFrame section={section}>{body}</MenuFrame>;
 }
 
+function MapSide({ data, topicId }: { data: MenuData; topicId: string | null }) {
+  if (!topicId) {
+    return <p className="text-sm text-quiet">왼쪽 상자를 누르면 여기에 내용이 나옵니다.</p>;
+  }
+  const row = data.topics.find((item) => item.id === topicId);
+  if (row) {
+    const tasks = section2ForTitle(data.section2, row.title);
+    return (
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold text-desk">{row.title}</h3>
+        <p className="text-xs text-quiet">{[row.category, row.subcategory].filter(Boolean).join(" · ")}</p>
+        {row.steps && row.steps.length > 0 ? <TopicStepBoards board="glance" steps={row.steps} /> : null}
+        {row.beginnerSummary ? <p className="text-sm leading-6 text-desk">{row.beginnerSummary}</p> : null}
+        <TaskBlocks tasks={tasks} />
+        <a className="text-sm text-ink" href={`/menu/topic/${encodeURIComponent(row.id)}`}>
+          이 업무 페이지
+        </a>
+      </div>
+    );
+  }
+  const manual = data.manual.find((item) => item.id === topicId);
+  if (manual) {
+    return (
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold text-desk">{manual.legacyLabel || manual.title}</h3>
+        {manual.parts.slice(0, 3).map((part) => (
+          <article key={part.id} className="space-y-2">
+            <h4 className="text-sm font-semibold text-desk">{part.title}</h4>
+            <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{part.body}</p>
+          </article>
+        ))}
+        <a className="text-sm text-ink" href={`/menu/topic/${encodeURIComponent(manual.id)}`}>
+          이 업무 페이지
+        </a>
+      </div>
+    );
+  }
+  const category = data.handbook.categories.find((item) => item.id === topicId);
+  if (category) {
+    return (
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold text-desk">{category.name}</h3>
+        {category.picture ? <TopicStepBoards board="flow" steps={pictureSteps(category.picture)} /> : null}
+        <a className="text-sm text-ink" href={`/menu/handbook/${encodeURIComponent(category.id)}`}>
+          이 분류 페이지
+        </a>
+      </div>
+    );
+  }
+  const handbook = data.handbook.topics.find((item) => item.id === topicId);
+  if (handbook) {
+    const tasks = handbookTopicTasks(data, handbook);
+    const steps = (handbook.picture ? pictureSteps(handbook.picture) : []).map((step) => {
+      const task = tasks.find((item) => item.name.trim() === step.title.trim());
+      return task ? { ...step, note: taskNote(task) } : step;
+    });
+    return (
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold text-desk">{handbook.officialName || handbook.title}</h3>
+        {steps.length > 0 ? <TopicStepBoards board="flow" steps={steps} /> : <TaskBlocks tasks={tasks} />}
+        <a className="text-sm text-ink" href={`/menu/handbook/${encodeURIComponent(handbook.id)}`}>
+          이 업무 페이지
+        </a>
+      </div>
+    );
+  }
+  return <p className="text-sm text-quiet">이 상자는 매뉴얼 본문에 연결되어 있지 않습니다.</p>;
+}
+
 export function MenuPage({ pathname }: { pathname: string }) {
   const [data, setData] = useState<MenuData | null>(null);
   const [error, setError] = useState("");
@@ -247,13 +316,14 @@ export function MenuPage({ pathname }: { pathname: string }) {
       <div className="space-y-6">
         <header className="max-w-2xl space-y-2">
           <h1 className="text-2xl font-semibold text-desk">매뉴얼</h1>
-          <p className="text-sm leading-relaxed text-quiet">왼쪽에서 편람 분류, 업무자료, 시범 매뉴얼, 인증서를 고르면 오른쪽에 내용이 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다. 아래 업무 그림은 검색하면 맞는 그림으로 바뀝니다.</p>
+          <p className="text-sm leading-relaxed text-quiet">왼쪽에서 편람 분류, 업무자료, 시범 매뉴얼, 인증서를 고르면 오른쪽에 내용이 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다. 아래 업무 그림은 검색하면 맞는 그림으로 바뀝니다. 크게 보기는 왼쪽 그림과 오른쪽 내용으로 나뉩니다.</p>
         </header>
         <MenuWorkMap
           query={manualQuery}
           hitIds={manualHits.map((hit) => hit.topic.id)}
           hrefFor={hrefFor}
           showIdle
+          renderSide={(topicId) => <MapSide data={data} topicId={topicId} />}
         />
         <input
           className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
@@ -359,6 +429,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
           hitIds={query.trim() ? topicHits.map((row) => row.id) : []}
           hrefFor={hrefFor}
           showIdle={false}
+          renderSide={(topicId) => <MapSide data={data} topicId={topicId} />}
         />
         <input
           className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"

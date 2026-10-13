@@ -6,6 +6,36 @@
 ---
 
 날짜: 2026-10-13
+대상: 매뉴얼 업무 그림 크게 보기를 왼쪽 그림과 오른쪽 내용으로 나누고, 상자에 연한 색을 넣음
+작성자: 요청자
+
+요청: 사각형을 누르면 잘못된 주소로 첫 화면에 돌아간다. 프레임을 나눠 오른쪽 영역에 내용을 보이게 한다. 사각형에 연한 색을 넣는다. 저작권, 특허, 의존성 라이선스에 새 문제가 없게 한다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 상자 주소는 태그의 문자열만 읽음. 오른쪽 본문은 이미 불러온 자료에서만 찾고, 외부 주소를 만들지 않음.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- website/src/App.tsx
+- website/src/components/MenuWorkMap.tsx
+- website/src/pages/MenuPage.tsx
+- website/src/config.ts
+- website/src/data/releases.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 업무 그림 배치, 런처 크게 보기 창
+
+---
+
+날짜: 2026-10-13
 대상: 업무 그림 크게 보기가 멈추지 않게 하고, 소개 사이트 매뉴얼에 같은 그림을 표시
 작성자: 요청자
 

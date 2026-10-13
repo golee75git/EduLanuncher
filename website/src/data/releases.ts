@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.185-20261013",
+    note: "매뉴얼 업무 그림의 크게 보기는 왼쪽 그림과 오른쪽 내용으로 나뉩니다. 사각형은 연한 색입니다.",
+  },
+  {
     version: "0.1.184-20261013",
     note: "업무 그림 크게 보기가 불러오는 중에서 멈추지 않습니다. 소개 사이트 매뉴얼에도 같은 업무 그림이 있습니다.",
   },

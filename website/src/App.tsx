@@ -34,10 +34,10 @@ export default function App() {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
         return;
       }
-      const anchor = (event.target as HTMLElement | null)?.closest("a");
-      if (!anchor || anchor.hasAttribute("download")) return;
-      if ((anchor.getAttribute("href") || "").endsWith(".txt")) return;
-      const pathname = isInternalPath(anchor.href);
+      const anchor = (event.target as Element | null)?.closest("a");
+      const rawHref = anchor?.getAttribute("href") ?? "";
+      if (!anchor || anchor.hasAttribute("download") || rawHref === "" || rawHref.endsWith(".txt")) return;
+      const pathname = isInternalPath(rawHref);
       if (!pathname) return;
       event.preventDefault();
       if (pathname !== window.location.pathname) {
