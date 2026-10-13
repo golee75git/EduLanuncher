@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.186-20261013",
+    note: "홈 검색은 영문 자판으로 친 글자도 한글로 함께 찾습니다. 최근 7일 검색어는 검색창 아래에 최대 5개 올라옵니다.",
+  },
+  {
     version: "0.1.185-20261013",
     note: "매뉴얼 업무 그림의 크게 보기는 왼쪽 그림과 오른쪽 내용으로 나뉩니다. 사각형은 연한 색입니다.",
   },

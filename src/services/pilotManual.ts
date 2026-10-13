@@ -1,6 +1,8 @@
 import { create } from "zustand";
+import { searchForms } from "./keyLine";
 import {
   buildPilotView,
+  dedupePilotHits,
   isPilotTopicId,
   pilotHits,
   type PilotHit,
@@ -49,7 +51,17 @@ export function pilotHitsForQuery(query: string, existingIds: string[]): PilotHi
   if (!pilotManualEnabled() || !pack) {
     return [];
   }
-  return pilotHits(true, pack.search, query, existingIds);
+  const seen = [...existingIds];
+  const hits: PilotHit[] = [];
+  for (const form of searchForms(query)) {
+    hits.push(...pilotHits(true, pack.search, form, seen));
+    for (const hit of hits) {
+      if (!seen.includes(hit.id)) {
+        seen.push(hit.id);
+      }
+    }
+  }
+  return dedupePilotHits(hits, existingIds);
 }
 
 export function pilotViewFor(topicId: string): PilotView | null {

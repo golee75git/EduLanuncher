@@ -12,6 +12,7 @@ import {
   asIdList,
   type AppSettings,
 } from "../types/settings";
+import type { KeptQuery } from "./keptSearch";
 import type { RecentTopicItem } from "../types/recentTopic";
 import type { TodoItem } from "../types/todo";
 import type { ToolItem } from "../types/tool";
@@ -22,6 +23,7 @@ let settingsStore: Store | null = null;
 let memoStore: Store | null = null;
 let noticesStore: Store | null = null;
 let recentTopicsStore: Store | null = null;
+let keptSearchStore: Store | null = null;
 
 async function getStore(path: string): Promise<Store> {
   return Store.load(path);
@@ -34,6 +36,7 @@ export async function initStorage(): Promise<void> {
   memoStore = await getStore("memo.json");
   noticesStore = await getStore("notices.json");
   recentTopicsStore = await getStore("recent-topics.json");
+  keptSearchStore = await getStore("kept-search.json");
 }
 
 export async function loadTools(): Promise<ToolItem[]> {
@@ -148,6 +151,27 @@ export async function loadRecentTopics(): Promise<RecentTopicItem[]> {
   return items.filter(
     (item) => item && typeof item.id === "string" && typeof item.usedAt === "string" && item.id && item.usedAt,
   );
+}
+
+export async function loadKeptSearches(): Promise<KeptQuery[]> {
+  if (!keptSearchStore) {
+    await initStorage();
+  }
+  const items = await keptSearchStore?.get<KeptQuery[]>("items");
+  if (!Array.isArray(items)) {
+    return [];
+  }
+  return items.filter(
+    (item) => item && typeof item.text === "string" && typeof item.at === "number" && item.text && item.at > 0,
+  );
+}
+
+export async function saveKeptSearches(items: KeptQuery[]): Promise<void> {
+  if (!keptSearchStore) {
+    await initStorage();
+  }
+  await keptSearchStore?.set("items", items);
+  await keptSearchStore?.save();
 }
 
 export async function saveRecentTopics(items: RecentTopicItem[]): Promise<void> {

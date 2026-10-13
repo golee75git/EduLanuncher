@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "../config/app";
+import { searchForms } from "./keyLine";
 
 export interface ManualIndexTopic {
   id: string;
@@ -25,16 +26,18 @@ export function manualIndexUnavailable(): string {
 }
 
 export function searchManualIndex(query: string): ManualIndexTopic[] {
-  const needle = fold(query);
-  if (!needle || topics.length === 0) return [];
+  const needles = searchForms(query).map(fold).filter((needle) => needle.length > 0);
+  if (needles.length === 0 || topics.length === 0) return [];
   const hits: Array<{ topic: ManualIndexTopic; score: number }> = [];
   for (const topic of topics) {
     const title = fold(topic.title);
     const body = fold(topic.text);
     let score = 0;
-    if (title === needle) score = 100;
-    else if (title.includes(needle)) score = 80;
-    else if (body.includes(needle)) score = 40;
+    for (const needle of needles) {
+      if (title === needle) score = Math.max(score, 100);
+      else if (title.includes(needle)) score = Math.max(score, 80);
+      else if (body.includes(needle)) score = Math.max(score, 40);
+    }
     if (score > 0) hits.push({ topic, score });
   }
   hits.sort((a, b) => b.score - a.score || a.topic.title.localeCompare(b.topic.title, "ko"));

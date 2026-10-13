@@ -20,6 +20,9 @@ import { setSearchFocusHandler } from "../services/focusBus";
 import { launchQuickUrl, openListed, openListedFolder } from "../services/launcherService";
 import { clearSearchGrants } from "../services/windowService";
 import { manualIndexUnavailable, manualTopicUrl, searchManualIndex, type ManualIndexTopic } from "../services/manualIndexService";
+import { freshQueries, matchingQueries, rememberQuery, type KeptQuery } from "../services/keptSearch";
+import { latinLookup, searchForms } from "../services/keyLine";
+import { loadKeptSearches, saveKeptSearches } from "../services/storageService";
 import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
 import {
   HOME_TROUBLE_LIMIT,
@@ -184,6 +187,38 @@ function flattenResults(
   return [...tools, ...recents, ...folders, ...docs, ...schools, ...troubles, ...manuals, ...topics];
 }
 
+function KeptSearchList({
+  items,
+  prior,
+  onPick,
+}: {
+  items: string[];
+  prior: boolean;
+  onPick: (text: string) => void;
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <ul className={prior ? "mx-3 mt-1 space-y-0.5" : "mx-7 mt-1 space-y-0.5"} aria-label="최근 검색어">
+      {items.map((text) => (
+        <li key={text}>
+          <button
+            type="button"
+            className="w-full rounded-lg border border-line bg-card px-3 py-1 text-left text-xs text-desk"
+            onMouseDown={(event) => {
+              event.preventDefault();
+              onPick(text);
+            }}
+          >
+            {text}
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function WorkToolMark({ icon: Icon }: { icon: LucideIcon }) {
   return <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />;
 }
@@ -198,6 +233,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const recentTopicItems = useRecentTopicStore((state) => state.items);
   const [query, setQuery] = useState(search);
+  const [keptQueries, setKeptQueries] = useState<KeptQuery[]>([]);
   const [folderHits, setFolderHits] = useState<UserFolderHit[]>([]);
   const [folderBusy, setFolderBusy] = useState(false);
   const [docHits, setDocHits] = useState<DocHit[]>([]);
@@ -207,6 +243,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [activeSchool, setActiveSchool] = useState<SchoolItem | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const keptReady = useRef(false);
   const folderBatch = useRef("");
   const docBatch = useRef("");
 
@@ -284,7 +321,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     return entry ? computerToolAsItem(entry) : null;
   }, []);
   const handoverWords = ["업무 인수인계", "인수인계", "인계", "업무 넘기기", "업무 카드", "연간 업무", "업무 달력"];
-  const showHandover = handoverWords.some((word) => query.includes(word));
+  const showHandover = handoverWords.some((word) => searchForms(query).some((form) => form.includes(word)));
+  const keptMatches = useMemo(() => matchingQueries(keptQueries, query), [keptQueries, query]);
   const showPrivacy = Boolean(
     privacyTool &&
       scoreText(query, privacyTool.name, privacyTool.description, privacyTool.category, ...(privacyTool.keywords ?? [])) > 0,
@@ -346,6 +384,40 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const navigable = query.trim() ? flat : idleItems;
 
   useEffect(() => {
+    let live = true;
+    void loadKeptSearches()
+      .then((items) => {
+        if (live) {
+          keptReady.current = true;
+          setKeptQueries(freshQueries(items));
+        }
+      })
+      .catch(() => {
+        if (live) {
+          setKeptQueries([]);
+        }
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const needle = query.trim();
+    if (!keptReady.current || needle.length < 2) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setKeptQueries((current) => {
+        const next = rememberQuery(current, needle);
+        void saveKeptSearches(next).catch(() => undefined);
+        return next;
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
     setSearchFocusHandler(() => {
       setActiveSchool(null);
       inputRef.current?.focus();
@@ -387,7 +459,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   }, [query]);
 
   useEffect(() => {
-    const needle = query.trim();
+    const needle = latinLookup(query);
     if (needle.length < 2) {
       setFolderHits([]);
       setFolderBusy(false);
@@ -427,7 +499,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   }, [query]);
 
   useEffect(() => {
-    const needle = query.trim();
+    const needle = latinLookup(query);
     if (!needle) {
       setDocHits([]);
       setDocHint("");
@@ -597,11 +669,13 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
         <div className="home-band">
           <AppHeader dateLabel={todayLabel()} extra={homeJump} onSettings={() => onAction({ type: "settings" })} onAdd={() => onAction({ type: "edit" })} />
           <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
+          <KeptSearchList items={keptMatches} prior={false} onPick={setQuery} />
         </div>
       )}
       {prior ? (
         <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="사이트·업무·파일·폴더·컴퓨터도구·PC 문제" />
       ) : null}
+      {prior ? <KeptSearchList items={keptMatches} prior onPick={setQuery} /> : null}
       {prior || searching || activeSchool ? null : (
         <HomeJumpRow
           onShortcuts={() => onAction({ type: "shortcuts" })}

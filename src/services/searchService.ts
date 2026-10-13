@@ -1,3 +1,4 @@
+import { searchForms } from "./keyLine";
 import type { SchoolItem } from "../types/school";
 import type { Topic } from "../types/topic";
 import type { ToolItem } from "../types/tool";
@@ -19,6 +20,14 @@ function normalize(value: string): string {
 }
 
 export function scoreText(query: string, ...fields: Array<string | undefined>): number {
+  const forms = searchForms(query);
+  if (forms.length === 0) {
+    return 0;
+  }
+  return Math.max(...forms.map((form) => scoreOne(form, fields)));
+}
+
+function scoreOne(query: string, fields: Array<string | undefined>): number {
   const q = normalize(query);
   if (!q) {
     return 0;
@@ -222,6 +231,26 @@ function topicTitleScore(query: string, title: string): number {
 }
 
 export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
+  const forms = searchForms(query);
+  if (forms.length === 0) {
+    return [];
+  }
+  if (forms.length === 1) {
+    return searchTopicsOne(forms[0], topics);
+  }
+  const found = new Map<string, TopicSearchHit>();
+  for (const form of forms) {
+    for (const hit of searchTopicsOne(form, topics)) {
+      const prev = found.get(hit.item.id);
+      if (!prev || hit.score > prev.score) {
+        found.set(hit.item.id, hit);
+      }
+    }
+  }
+  return [...found.values()].sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title, "ko"));
+}
+
+function searchTopicsOne(query: string, topics: Topic[]): TopicSearchHit[] {
   const q = query.trim();
   if (!q) {
     return [];
@@ -414,19 +443,22 @@ export function searchTopics(query: string, topics: Topic[]): TopicSearchHit[] {
 }
 
 export function highlightParts(text: string, query: string): Array<{ text: string; match: boolean }> {
-  const q = query.trim();
-  if (!q) {
+  const forms = searchForms(query).sort((a, b) => b.length - a.length);
+  if (forms.length === 0) {
     return [{ text, match: false }];
   }
   const lower = text.toLowerCase();
-  const needle = q.toLowerCase();
-  const index = lower.indexOf(needle);
-  if (index < 0) {
-    return [{ text, match: false }];
+  for (const form of forms) {
+    const needle = form.toLowerCase();
+    const index = lower.indexOf(needle);
+    if (index < 0) {
+      continue;
+    }
+    return [
+      { text: text.slice(0, index), match: false },
+      { text: text.slice(index, index + form.length), match: true },
+      { text: text.slice(index + form.length), match: false },
+    ].filter((part) => part.text.length > 0);
   }
-  return [
-    { text: text.slice(0, index), match: false },
-    { text: text.slice(index, index + q.length), match: true },
-    { text: text.slice(index + q.length), match: false },
-  ].filter((part) => part.text.length > 0);
+  return [{ text, match: false }];
 }

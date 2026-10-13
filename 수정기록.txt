@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-10-13
+대상: 홈 검색에서 영문 자판을 한글로도 비교하고, 최근 7일 검색어를 검색창 아래에 표시
+작성자: 요청자
+
+요청: 영문으로 잘못 친 글자를 한글로 검색한다. 최근 검색어는 일주일 정도 이 PC에 남기고, 검색창에 칠 때 아래에 올린다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 검색어는 이 PC 저장 파일에만 있고 7일 뒤 지움. 11자리 이상 숫자와 메일 주소는 저장하지 않음. 다른 PC로 보내지 않음.
+
+새로 쓴 파일:
+- src/services/keyLine.ts
+- src/services/keptSearch.ts
+
+다시 쓴 파일:
+- src/services/searchService.ts
+- src/services/manualIndexService.ts
+- src/services/pilotManual.ts
+- src/services/storageService.ts
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
+날짜: 2026-10-13
 대상: 매뉴얼 업무 그림 크게 보기를 왼쪽 그림과 오른쪽 내용으로 나누고, 상자에 연한 색을 넣음
 작성자: 요청자
 
