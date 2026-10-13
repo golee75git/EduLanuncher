@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.188-20261013",
+    note: "글이 없는 추가 메모는 목록에서 빠집니다. 패널을 열 때 고정 디스크에서 없어진 파일·폴더·프로그램을 알립니다.",
+  },
+  {
     version: "0.1.187-20261013",
     note: "인수인계에서 폴더를 고르면 런처에 올려 둔 폴더가 기본입니다. 다른 폴더만 탐색기를 엽니다.",
   },

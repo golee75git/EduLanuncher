@@ -1,7 +1,7 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DropActionPick } from "./components/DropActionPick";
 import { DropZone } from "./components/DropZone";
 import { StatusBar } from "./components/home/StatusBar";
@@ -175,6 +175,11 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState<View>({ name: "home" });
   const [missing, setMissing] = useState<MissingState | null>(null);
+  const goneLeft = useRef<string[]>([]);
+  const goneHold = useRef(false);
+  const resumeGone = useRef(false);
+  const missingNow = useRef<MissingState | null>(null);
+  missingNow.current = missing;
   const [removeTarget, setRemoveTarget] = useState<ToolItem | null>(null);
   const [removeNotice, setRemoveNotice] = useState<NoticeItem | null>(null);
   const [packPick, setPackPick] = useState<{ pack: NoticePack; sitePack?: LauncherPack } | null>(null);
@@ -405,6 +410,73 @@ export default function App() {
     [revealDropHold],
   );
 
+  const clearGone = useCallback(() => {
+    goneLeft.current = [];
+    goneHold.current = false;
+    resumeGone.current = false;
+  }, []);
+
+  const forgetBlankNotes = useCallback((ids: string[]) => {
+    if (ids.length === 0) {
+      return;
+    }
+    void useMemoStore.getState().persist();
+    for (const id of ids) {
+      void dismissMemoNote(id);
+    }
+  }, []);
+
+  const showGoneId = useCallback((start: string) => {
+    let id: string | undefined = start;
+    while (id) {
+      const tool = useToolStore.getState().getById(id);
+      const kept =
+        tool &&
+        tool.enabled !== false &&
+        (tool.type === "file" || tool.type === "folder" || tool.type === "app");
+      if (tool && kept) {
+        const name = Array.from(tool.name.trim() || "항목").slice(0, 40).join("");
+        goneHold.current = true;
+        setMissing({ message: `${name} 항목을 찾을 수 없습니다.`, tool });
+        return;
+      }
+      id = goneLeft.current.shift();
+    }
+    goneHold.current = false;
+    setMissing(null);
+  }, []);
+
+  const advanceGone = useCallback(() => {
+    const next = goneLeft.current.shift();
+    if (!next) {
+      goneHold.current = false;
+      setMissing(null);
+      return;
+    }
+    showGoneId(next);
+  }, [showGoneId]);
+
+  const lookForGone = useCallback(async () => {
+    if (goneHold.current || missingNow.current || goneLeft.current.length > 0) {
+      return;
+    }
+    try {
+      const rows = await invoke<Array<{ id?: string }>>("gone_saved_names");
+      if (goneHold.current || missingNow.current) {
+        return;
+      }
+      const ids = rows.flatMap((row) => (typeof row?.id === "string" && row.id ? [row.id] : []));
+      if (ids.length === 0) {
+        return;
+      }
+      const [first, ...rest] = ids;
+      goneLeft.current = rest;
+      showGoneId(first);
+    } catch {
+      // 브라우저 미리보기에는 이 명령이 없다.
+    }
+  }, [showGoneId]);
+
   useEffect(() => {
     let cancelled = false;
     const unlisteners: Array<() => void> = [];
@@ -424,6 +496,7 @@ export default function App() {
         }
         return;
       }
+      let panelOpened = false;
       try {
         await initStorage();
         const settings = await hydrateSettings();
@@ -434,7 +507,10 @@ export default function App() {
         await hydrateTools();
         await useAdminToolStore.getState().refresh();
         await hydrateTodos();
-        await hydrateMemo();
+        const droppedMemos = await hydrateMemo();
+        for (const id of droppedMemos) {
+          void dismissMemoNote(id);
+        }
         await hydrateNotices();
         await hydrateRecentTopics();
         try {
@@ -456,6 +532,7 @@ export default function App() {
         }
         if (settings.showWindowOnLaunch || !settings.onboarded) {
           await showPanel();
+          panelOpened = true;
         } else {
           await hidePanel();
         }
@@ -515,6 +592,9 @@ export default function App() {
           if (useMemoStore.getState().updateNote(id, { text })) {
             void useMemoStore.getState().persist();
           }
+          if (!useMemoStore.getState().openIds.includes(id)) {
+            forgetBlankNotes(useMemoStore.getState().releaseBlankNotes());
+          }
         }),
         await listen<{ id?: string; x?: number; y?: number; width?: number; height?: number }>(
           "memo-note-placed",
@@ -547,7 +627,14 @@ export default function App() {
           const { id, open } = event.payload ?? {};
           if (typeof id === "string" && typeof open === "boolean") {
             useMemoStore.getState().setNoteOpen(id, open);
+            if (!open) {
+              forgetBlankNotes(useMemoStore.getState().releaseBlankNotes());
+            }
           }
+        }),
+        await listen("panel-shown", () => {
+          forgetBlankNotes(useMemoStore.getState().releaseBlankNotes());
+          void lookForGone();
         }),
         await listen("memo-add-request", () => {
           const note = useMemoStore.getState().addNote();
@@ -591,6 +678,9 @@ export default function App() {
         }
       } catch {
         // Command is unavailable in browser preview.
+      }
+      if (panelOpened) {
+        void lookForGone();
       }
     };
 
@@ -1255,6 +1345,7 @@ export default function App() {
             ) : null}
             <HomeJumpButton
               onClick={() => {
+                clearGone();
                 setMissing(null);
                 setRemoveTarget(null);
                 setRemoveNotice(null);
@@ -1271,6 +1362,7 @@ export default function App() {
             tool={missing.tool}
             onRetarget={() => {
               const tool = missing.tool;
+              clearGone();
               setMissing(null);
               setView({ name: "tool-edit", tool });
             }}
@@ -1278,9 +1370,11 @@ export default function App() {
               if (missing.tool) {
                 setRemoveTarget(missing.tool);
               }
+              resumeGone.current = goneLeft.current.length > 0;
+              goneHold.current = resumeGone.current;
               setMissing(null);
             }}
-            onClose={() => setMissing(null)}
+            onClose={() => advanceGone()}
           />
         ) : null}
         {removeTarget ? (
@@ -1289,8 +1383,18 @@ export default function App() {
             onConfirm={() => {
               void useToolStore.getState().removeTool(removeTarget.id);
               setRemoveTarget(null);
+              if (resumeGone.current) {
+                resumeGone.current = false;
+                advanceGone();
+              }
             }}
-            onClose={() => setRemoveTarget(null)}
+            onClose={() => {
+              setRemoveTarget(null);
+              if (resumeGone.current) {
+                resumeGone.current = false;
+                advanceGone();
+              }
+            }}
           />
         ) : null}
         {removeNotice ? (

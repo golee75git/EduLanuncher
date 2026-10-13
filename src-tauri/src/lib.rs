@@ -473,6 +473,7 @@ fn reveal_panel(app: &AppHandle) {
         let _ = window.show();
         let _ = window.set_focus();
         let _ = window.emit("focus-search", ());
+        let _ = window.emit("panel-shown", ());
         show_map_window(app);
         place_map_next_to_panel(app, &window, false);
         show_memo_pad(app);
@@ -1685,6 +1686,112 @@ fn run_app(app: &AppHandle, target: &str) -> LaunchResult {
     }
 }
 
+fn kind_is_present(kind: &str, path: &Path) -> bool {
+    match kind {
+        "file" | "app" => path.is_file(),
+        "folder" => path.is_dir(),
+        _ => true,
+    }
+}
+
+#[cfg(windows)]
+fn fixed_disk(path: &Path) -> bool {
+    let text = path.to_string_lossy();
+    let mut letters = text.chars();
+    let Some(letter) = letters.next() else {
+        return false;
+    };
+    if !letter.is_ascii_alphabetic() || letters.next() != Some(':') {
+        return false;
+    }
+    let root: Vec<u16> = format!("{letter}:\\")
+        .encode_utf16()
+        .chain(std::iter::once(0))
+        .collect();
+    const DRIVE_FIXED: u32 = 3;
+    unsafe { GetDriveTypeW(root.as_ptr()) == DRIVE_FIXED }
+}
+
+fn clip_saved_name(raw: &str) -> String {
+    let cleaned: String = raw.chars().filter(|ch| !ch.is_control()).take(40).collect();
+    let trimmed = cleaned.trim();
+    if trimmed.is_empty() {
+        "항목".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+#[derive(Serialize)]
+struct GoneName {
+    id: String,
+    name: String,
+}
+
+#[tauri::command]
+fn gone_saved_names(app: AppHandle, window: tauri::WebviewWindow) -> Vec<GoneName> {
+    if !main_window(&window) {
+        return Vec::new();
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = app;
+        return Vec::new();
+    }
+    #[cfg(windows)]
+    {
+        use tauri_plugin_store::StoreExt;
+
+        let Ok(store) = app.store("tools.json") else {
+            return Vec::new();
+        };
+        let _ = store.reload();
+        let Some(list) = store.get("items").and_then(|value| value.as_array().cloned()) else {
+            return Vec::new();
+        };
+        let mut gone = Vec::new();
+        for item in list {
+            if gone.len() >= 16 {
+                break;
+            }
+            let Some(id) = item.get("id").and_then(|value| value.as_str()) else {
+                continue;
+            };
+            if id.is_empty() || id.len() > 80 || id.chars().any(|ch| ch.is_control()) {
+                continue;
+            }
+            if item.get("enabled").and_then(|value| value.as_bool()) == Some(false) {
+                continue;
+            }
+            let kind = item.get("type").and_then(|value| value.as_str()).unwrap_or("");
+            if kind != "file" && kind != "folder" && kind != "app" {
+                continue;
+            }
+            let target = item.get("target").and_then(|value| value.as_str()).unwrap_or("");
+            let name = clip_saved_name(item.get("name").and_then(|value| value.as_str()).unwrap_or(""));
+            let path = match path_grant::file_target(target) {
+                Ok(path) => path,
+                Err("missing") => continue,
+                Err(_) => {
+                    gone.push(GoneName {
+                        id: id.to_string(),
+                        name,
+                    });
+                    continue;
+                }
+            };
+            if !fixed_disk(&path) || kind_is_present(kind, &path) {
+                continue;
+            }
+            gone.push(GoneName {
+                id: id.to_string(),
+                name,
+            });
+        }
+        gone
+    }
+}
+
 fn run_saved(app: &AppHandle, kind: &str, target: &str) -> LaunchResult {
     match kind {
         "url" => open_web(app, target),
@@ -1737,6 +1844,12 @@ fn launch_result(app: AppHandle, window: tauri::WebviewWindow, id: String) -> La
 #[link(name = "user32")]
 extern "system" {
     fn LockWorkStation() -> i32;
+}
+
+#[cfg(windows)]
+#[link(name = "kernel32")]
+extern "system" {
+    fn GetDriveTypeW(root: *const u16) -> u32;
 }
 
 #[tauri::command]
@@ -2885,6 +2998,7 @@ pub fn run() {
             set_memo_window_size,
             reveal_topic,
             launch_tool,
+            gone_saved_names,
             launch_result,
             open_folder_with_explorer,
             path_grant::clear_search_grants,
@@ -3012,5 +3126,27 @@ mod shortcut_rules {
         assert!(shortcut_chord("Ctrl+Alt+Del").is_err());
         assert!(shortcut_chord("E").is_err());
         assert!(shortcut_chord("Ctrl+Alt").is_err());
+    }
+}
+
+#[cfg(all(test, windows))]
+mod saved_disk {
+    use super::{clip_saved_name, fixed_disk, kind_is_present};
+    use std::path::Path;
+
+    #[test]
+    fn only_the_matching_kind_counts_as_present() {
+        let file = std::env::temp_dir().join("edul-saved-disk-probe.txt");
+        let _ = std::fs::write(&file, b"ok");
+        assert!(kind_is_present("file", &file));
+        assert!(kind_is_present("app", &file));
+        assert!(!kind_is_present("folder", &file));
+        assert!(kind_is_present("url", Path::new(r"C:\no\such\edul-saved-disk")));
+        assert!(!kind_is_present("file", Path::new(r"C:\no\such\edul-saved-disk")));
+        let _ = std::fs::remove_file(&file);
+        assert_eq!(clip_saved_name("  예산 "), "예산");
+        assert_eq!(clip_saved_name(" \u{0001} "), "항목");
+        assert!(!fixed_disk(Path::new(r"\\server\share")));
+        assert!(fixed_disk(Path::new(r"C:\")));
     }
 }

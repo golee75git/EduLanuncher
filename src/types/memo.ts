@@ -101,6 +101,10 @@ export function memoWindowTitle(index: number): string {
   return `메모 ${number}`;
 }
 
+export function noteHasLine(text: string): boolean {
+  return text.split(/\r?\n/).some((part) => part.trim().length > 0);
+}
+
 export function memoNotePreview(text: string): string {
   const line = text
     .split(/\r?\n/)

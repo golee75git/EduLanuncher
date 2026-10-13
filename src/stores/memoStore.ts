@@ -8,6 +8,7 @@ import {
   EXTRA_MEMO_LIMIT,
   EXTRA_MEMO_SIZE,
   newMemoNoteId,
+  noteHasLine,
   type LocalMemo,
   type MemoNote,
 } from "../types/memo";
@@ -31,6 +32,7 @@ interface MemoState {
   addNote: () => MemoNote | null;
   updateNote: (id: string, patch: NotePatch) => boolean;
   removeNote: (id: string) => void;
+  releaseBlankNotes: () => string[];
   persist: () => Promise<void>;
 }
 
@@ -100,6 +102,16 @@ export const useMemoStore = create<MemoState>((set, get) => ({
     return true;
   },
   removeNote: (id) => set({ notes: get().notes.filter((note) => note.id !== id) }),
+  releaseBlankNotes: () => {
+    const open = new Set(get().openIds);
+    const removed = get().notes.filter((note) => !noteHasLine(note.text) && !open.has(note.id));
+    if (removed.length === 0) {
+      return [];
+    }
+    const ids = new Set(removed.map((note) => note.id));
+    set({ notes: get().notes.filter((note) => !ids.has(note.id)) });
+    return removed.map((note) => note.id);
+  },
   persist: () => {
     persistQueue = persistQueue
       .then(async () => {
@@ -117,7 +129,13 @@ export const useMemoStore = create<MemoState>((set, get) => ({
   },
 }));
 
-export async function hydrateMemo(): Promise<void> {
+export async function hydrateMemo(): Promise<string[]> {
   const memo = await loadMemo();
-  useMemoStore.getState().hydrate(memo);
+  const store = useMemoStore.getState();
+  store.hydrate(memo);
+  const dropped = useMemoStore.getState().releaseBlankNotes();
+  if (dropped.length > 0) {
+    await useMemoStore.getState().persist();
+  }
+  return dropped;
 }

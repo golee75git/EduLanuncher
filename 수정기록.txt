@@ -6,6 +6,38 @@
 ---
 
 날짜: 2026-10-13
+대상: 빈 추가 메모를 목록에서 빼고, 패널을 열 때 없는 경로를 알림
+작성자: 요청자
+
+요청: 빈 메모는 목록에서 빼고, 패널을 열 때 저장된 경로가 없으면 이름만 모아 같은 알림을 띄운다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 경로 확인은 도구 번호로 이 PC 목록을 읽고, 화면으로 넘기는 새 응답에는 경로를 넣지 않음. 네트워크 경로와 사이트 주소는 이 확인에서 보지 않음.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src-tauri/src/lib.rs
+- src/types/memo.ts
+- src/stores/memoStore.ts
+- src/pages/MemoWindowPage.tsx
+- src/App.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
+날짜: 2026-10-13
 대상: 인수인계 폴더 선택 시 런처에 올려 둔 폴더를 기본으로 참조
 작성자: 요청자
 
