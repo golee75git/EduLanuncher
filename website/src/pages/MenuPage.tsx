@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { PilotManualArticle } from "../components/PilotManualArticle";
 import { TopicStepBoards } from "../components/TopicStepBoards";
 import {
   handbookTopicTasks,
@@ -142,6 +143,7 @@ function EpkiTree({ node }: { node: EpkiNode }) {
 const MENU_RAIL = [
   { id: "handbook", href: "/menu/handbook", label: "편람 분류" },
   { id: "topic", href: "/menu/topic", label: "업무자료" },
+  { id: "pilot", href: "/menu/pilot", label: "시범 매뉴얼" },
   { id: "epki", href: "/menu/epki", label: "인증서" },
 ] as const;
 
@@ -232,7 +234,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
       <div className="space-y-6">
         <header className="max-w-2xl space-y-2">
           <h1 className="text-2xl font-semibold text-desk">매뉴얼</h1>
-          <p className="text-sm leading-relaxed text-quiet">왼쪽에서 편람 분류, 업무자료, 인증서를 고르면 오른쪽에 내용이 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다.</p>
+          <p className="text-sm leading-relaxed text-quiet">왼쪽에서 편람 분류, 업무자료, 시범 매뉴얼, 인증서를 고르면 오른쪽에 내용이 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다.</p>
         </header>
         <input
           className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
@@ -264,7 +266,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
           매뉴얼
         </a>
         <h1 className="text-2xl font-semibold text-desk">편람 분류</h1>
-        <p className="text-sm text-quiet">분류를 열면 업무 흐름과 한눈에 보기가 있습니다.</p>
+        <p className="text-sm text-quiet">분류를 열면 업무 흐름이 있습니다.</p>
         <ul className="space-y-2">
           {data.handbook.categories.map((category) => (
             <li key={category.id}>
@@ -288,7 +290,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
           편람 분류
         </a>
         <h1 className="text-2xl font-semibold text-desk">{category?.name ?? "분류"}</h1>
-        {category?.picture ? <TopicStepBoards steps={pictureSteps(category.picture)} /> : null}
+        {category?.picture ? <TopicStepBoards board="flow" steps={pictureSteps(category.picture)} /> : null}
         <ul className="space-y-2">
           {topics.map((topic) => (
             <li key={topic.id}>
@@ -319,7 +321,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
         </a>
         <h1 className="text-2xl font-semibold text-desk">{topic?.officialName || topic?.title || "업무"}</h1>
         {topic?.pages ? <p className="text-xs text-quiet">쪽수 {topic.pages}</p> : null}
-        {steps.length > 0 ? <TopicStepBoards steps={steps} /> : null}
+        {steps.length > 0 ? <TopicStepBoards board="flow" steps={steps} /> : null}
         {steps.length === 0 ? <TaskBlocks tasks={tasks} /> : rest.length > 0 ? <TaskBlocks tasks={rest} /> : null}
       </div>
     ));
@@ -332,7 +334,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
           매뉴얼
         </a>
         <h1 className="text-2xl font-semibold text-desk">업무자료</h1>
-        <p className="text-sm text-quiet">단계가 있는 업무에는 업무 흐름과 한눈에 보기가 있습니다.</p>
+        <p className="text-sm text-quiet">단계가 있는 업무에는 한눈에 보기가 있습니다.</p>
         <input
           className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
           value={query}
@@ -407,7 +409,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
         </a>
         <h1 className="text-2xl font-semibold text-desk">{row?.title ?? "업무"}</h1>
         {row ? <p className="text-xs text-quiet">{[row.category, row.subcategory].filter(Boolean).join(" · ")}</p> : null}
-        {row?.steps && row.steps.length > 0 ? <TopicStepBoards steps={row.steps} /> : null}
+        {row?.steps && row.steps.length > 0 ? <TopicStepBoards board="glance" steps={row.steps} /> : null}
         {row?.beginnerSummary ? <p className="text-sm leading-6 text-desk">{row.beginnerSummary}</p> : null}
         {row?.description && row.description !== row.beginnerSummary ? (
           <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{row.description}</p>
@@ -415,6 +417,38 @@ export function MenuPage({ pathname }: { pathname: string }) {
         <TaskBlocks tasks={tasks} />
       </div>
     ));
+  }
+
+  if (section === "pilot" && itemId === "") {
+    return withRail("pilot", (
+      <div className="space-y-4">
+        <a className="text-sm text-ink" href="/menu">
+          매뉴얼
+        </a>
+        <h1 className="text-2xl font-semibold text-desk">시범 매뉴얼</h1>
+        <p className="text-sm leading-relaxed text-quiet">
+          병가와 질병휴직은 개발용 시범입니다. 현행 법령 검증 중이며 실제 업무 기준으로 쓰지 않습니다.
+        </p>
+        <ul className="space-y-2">
+          <li>
+            <a className="card-surface block px-4 py-3" href="/menu/pilot/gwe-2026-p053">
+              <span className="block text-sm font-medium text-desk">병가</span>
+              <span className="text-xs text-quiet">복무</span>
+            </a>
+          </li>
+          <li>
+            <a className="card-surface block px-4 py-3" href="/menu/pilot/gwe-work-0001">
+              <span className="block text-sm font-medium text-desk">질병휴직</span>
+              <span className="text-xs text-quiet">인사</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    ));
+  }
+
+  if (section === "pilot" && itemId) {
+    return withRail("pilot", <PilotManualArticle topicId={itemId} />);
   }
 
   if (section === "epki") {

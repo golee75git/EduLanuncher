@@ -6,6 +6,40 @@
 ---
 
 날짜: 2026-10-13
+대상: 편람은 업무 흐름, 업무자료는 한눈에 보기, 병가·질병휴직 시범 매뉴얼 공개
+작성자: 요청자
+
+요청: 사이트 편람에는 업무 흐름만, 업무자료에는 한눈에 보기만 둔다. 개발용 병가·질병휴직 시범 매뉴얼을 런처와 소개 사이트 매뉴얼에 나오게 한다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 시범 본문은 이 PC와 사이트에 포함한 자료만 읽고, 현행 법령 검증 중이라 실제 업무 기준으로 쓰지 않는다고 화면에 적음.
+
+새로 쓴 파일:
+- website/src/components/PilotManualArticle.tsx
+
+다시 쓴 파일:
+- website/src/components/TopicStepBoards.tsx
+- website/src/pages/MenuPage.tsx
+- website/tools/copyKnowledge.mjs
+- website/tsconfig.json
+- src/components/StepFlow.tsx
+- src/services/pilotManual.ts
+- src/pages/SettingsPage.tsx
+- src/pages/PilotManualPage.tsx
+- src/services/pilotManualCore.ts
+- src/App.tsx
+- src/pages/HomePage.tsx
+- generated/knowledge-v1/standard/family-0001.json
+- generated/knowledge-v1/search/family-0001.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/IP_DESIGN_LOG.md
+
+그대로 둔 파일:
+- 편람 분류 그림, 업무자료 JSON 단계 순서
+
+---
+
+날짜: 2026-10-13
 대상: 끌어 놓은 엑셀의 첫 번째 열을 사이트명으로 표시, 소개 사이트에서 교육 문구 정리
 작성자: 요청자
 

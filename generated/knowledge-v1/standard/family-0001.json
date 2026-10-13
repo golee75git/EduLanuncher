@@ -1,0 +1,1882 @@
+{
+  "schemaVersion": "standard-1.0",
+  "familyId": "family-0001",
+  "markdownRef": "knowledge-source/topics/family-0001.md",
+  "rolloutStatus": "draft",
+  "partialPublication": false,
+  "publicRelease": false,
+  "verification": {
+    "handbookPresence": "checked",
+    "transcription": "conflict",
+    "currency": "not_checked",
+    "occupationScope": "separated",
+    "display": "review",
+    "release": "draft"
+  },
+  "topics": [
+    {
+      "topicId": "gwe-2026-p053",
+      "title": "병가",
+      "categoryId": "CAT-03",
+      "categoryName": "복무",
+      "rolloutStatus": "draft",
+      "parentHandbookTopicId": "TOPIC-03-01",
+      "parentWebTopicId": "topic-03-01",
+      "legacyIds": {
+        "launcher": "gwe-2026-p053"
+      },
+      "sectionIds": [
+        "family-0001-sec-01",
+        "family-0001-sec-02",
+        "family-0001-sec-03",
+        "family-0001-sec-04",
+        "family-0001-sec-06",
+        "family-0001-sec-07",
+        "family-0001-sec-08",
+        "family-0001-sec-09",
+        "family-0001-sec-10",
+        "family-0001-sec-11",
+        "family-0001-sec-12",
+        "family-0001-sec-13",
+        "family-0001-sec-14",
+        "family-0001-sec-15",
+        "family-0001-sec-16"
+      ],
+      "relations": [
+        {
+          "topicId": "gwe-2026-p050",
+          "kind": "related"
+        },
+        {
+          "topicId": "gwe-2026-p052",
+          "kind": "related"
+        },
+        {
+          "topicId": "gwe-2026-p054",
+          "kind": "related"
+        },
+        {
+          "topicId": "gwe-work-0001",
+          "kind": "related"
+        }
+      ],
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "separated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "topicId": "gwe-work-0001",
+      "title": "질병휴직",
+      "categoryId": "CAT-02",
+      "categoryName": "인사",
+      "rolloutStatus": "draft",
+      "parentHandbookTopicId": "TOPIC-02-03",
+      "parentWebTopicId": "topic-02-03",
+      "legacyIds": {},
+      "sectionIds": [
+        "family-0001-sec-01",
+        "family-0001-sec-02",
+        "family-0001-sec-03",
+        "family-0001-sec-05",
+        "family-0001-sec-06",
+        "family-0001-sec-07",
+        "family-0001-sec-08",
+        "family-0001-sec-09",
+        "family-0001-sec-10",
+        "family-0001-sec-11",
+        "family-0001-sec-12",
+        "family-0001-sec-13",
+        "family-0001-sec-14",
+        "family-0001-sec-15",
+        "family-0001-sec-16"
+      ],
+      "relations": [
+        {
+          "topicId": "gwe-2026-p041",
+          "kind": "related"
+        },
+        {
+          "topicId": "gwe-2026-p043",
+          "kind": "related"
+        },
+        {
+          "topicId": "gwe-2026-p053",
+          "kind": "related"
+        }
+      ],
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "conflict",
+        "currency": "not_checked",
+        "occupationScope": "separated",
+        "display": "review",
+        "release": "draft"
+      }
+    }
+  ],
+  "sections": [
+    {
+      "sectionId": "family-0001-sec-01",
+      "title": "기본정보",
+      "markdown": "* **업무명**: 병가 (일반병가 및 공무상 병가) 및 질병휴직\n* **적용 대상**: 교원, 지방공무원(교육행정직 등), 교육공무직원, 사회복무요원, 원어민 영어보조교사 (직종별 복무 규정 개별 적용)\n* **소관 부서/기관**: 각급 학교(교무실 및 행정실), 교육지원청, 도교육청 복무·인사 담당 부서\n* **업무 개요**: 질병 또는 부상으로 인하여 직무를 수행할 수 없거나 감염병에 걸려 해당 교직원의 출근이 다른 교직원이나 학생의 건강에 영향을 미칠 우려가 있을 때 허가하는 휴가 및 휴직 제도입니다.\n* **주요 기준 요약 (2026 학교행정 업무편람 기재 기준)**:\n  * **교원 및 지방공무원 일반병가**: 연 60일 이내 (유급) [책자 p.53 / PDF p.55]\n  * **교원 및 지방공무원 공무상 병가**: 연 180일 이내 (동일 사유 시 연도 구분 없이 총 180일) [책자 p.53 / PDF p.55]\n  * **교육공무직원 병가**: 연간 최대 60일 범위 내 (유급) / 업무상 병가는 산재법상 요양기간에 대해 연간 최대 180일까지 유급 [책자 p.91 / PDF p.93]\n  * **사회복무요원 병가**: 통산 30일 이내 (유급) / 공무상 질병·부상은 통산 범위 미산입 (30일 초과 시 초과일수만큼 복무기간 연장) [책자 p.109 / PDF p.111]\n  * **원어민 영어보조교사 병가**: 연간 유급 11일 (연간 병가 30일 초과 시 고용계약 해지 조치 가능) [책자 p.108 / PDF p.110]\n  * **진단서 제출 기준**: 연속 7일 이상 병가 또는 연간 누계 6일을 초과하는 경우 의사 진단서 제출 필요 [책자 p.53 / PDF p.55] (교육공무직원 항목의 의료법 제17조 인용은 책자 p.91 / PDF p.93)\n  * **진단서 미제출 시 조치**: 병가 일수에는 산입하지 아니하고 **연가 일수에서 공제** [책자 p.53 / PDF p.55]\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [],
+      "role": "prose",
+      "verification": {
+        "handbookPresence": "not_checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-02",
+      "title": "업무 한눈에 보기",
+      "markdown": "### 업무 처리 흐름도 (적용 범위: 각급 학교 교원 및 지방공무원 기준 / 타 직종은 개별 규정 적용)\n1. **사유 발생**: 질병·부상 발생 또는 감염병 이환\n2. **진단서 의무 판단**:\n   - **진단서 의무 대상(연속 7일 이상 OR 연간 누계 6일 초과)**: 진단서 정상 제출 시 병가 승인 / 미제출 시 병가 미산입 및 연가 일수 공제 [책자 p.53 / PDF p.55]\n   - **단기 병가(연간 누계 6일 이내 & 연속 7일 미만)**: 진단서 없이 병가 신청 (학교장 판단에 따라 소견서/처방전/진료확인서 제출 가능) [책자 p.53 / PDF p.55]\n3. **NEIS 복무 신청**: 사전 신청 원칙 (불가피한 경우 즉시 소속기관에 연락하고 사후/대리 상신; 정오 12시 일률적 기준은 별도 확인) [편람 책자 p.50 / PDF p.52; 교원 예규 별도 검증]\n4. **시간 계산 및 공휴일 검토**: 지각·조퇴·외출 누계 8시간당 병가 1일 계산(8시간 미만 잔여시간은 계산하지 아니함), 연속 30일 이상 병가 시 토요일 및 공휴일 산입 [책자 p.50, 53 / PDF p.52, 55]\n5. **질병휴직 검토 (병가 소진 후)**:\n   - **법적 요건**: 신체·정신상의 장애로 장기요양이 필요한 경우 (지방공무원법 제63조, 교육공무원법 제44조)\n   - **실무 안내(법적 선행 요건과 구분)**: 일반병가 만료 후 법정 연가 범위에서 연가 허가 가능, 병가·연가를 모두 사용한 후 휴직 처리한다는 편람 설명이 있음. **다만 질병휴직 자체의 요건은 장기요양 필요성으로 별도 판단** [책자 p.41, 53 / PDF p.43, 55]\n6. **질병휴직자 관리 및 복직 절차**:\n   - **복무상황 보고**: 분기별(1월 5일, 4월 5일, 7월 5일, 10월 5일) 소속기관장에게 복무상황 보고 (출입국사실증명서 첨부 필수) [책자 p.43 / PDF p.45]\n   - **휴직 사유 소멸 시**: 사유 소멸 후 30일 이내 신고 ➔ 임용권자 지체 없이 복직 명함 [책자 p.43 / PDF p.45]\n   - **휴직 기간 만료 시**: 당연 복직 대상 ➔ 30일 이내 복직원 및 정상 근무 가능 진단서 제출 [책자 p.43 / PDF p.45]\n\n### Mermaid Flowchart — 지방공무원 중심(교원·교육공무직원 등은 별도 규정 확인)\n\n```mermaid\nflowchart TD\n A([질병·부상 발생]) --> B{직종 확인}\n B -->|지방공무원| C{진단서 제출 의무?}\n B -->|교원·교육공무직원·기타| Z[해당 직종 규정 별도 확인]\n C -->|연속 7일 이상 또는 연 누계 6일 초과| D{진단서 제출?}\n C -->|그 외| E[병가 신청]\n D -->|제출| E\n D -->|미제출| F[병가 미산입·연가 공제]\n E --> G[NEIS 상신·승인]\n G --> H[시간 누계·30일 연속 휴가 산입 검토]\n H --> I{장기요양 필요성?}\n I -->|아니오| J[병가 종료·업무 복귀]\n I -->|예| K[질병휴직 법적 요건·진단서·인사 절차 검토]\n K --> L[휴직 발령 및 분기별 복무관리]\n L --> M{복직 사유}\n M -->|사유 소멸| N[30일 이내 신고·복직 심사]\n M -->|기간 만료| O[당연 복직 관련 절차·근무 가능 진단서 확인]\n```\n\n> 이 흐름도는 **병가 60일 소진을 질병휴직 신청의 법정 필수 조건으로 설정하지 않습니다.** 병가 종료 후 연가 활용 설명과 장기요양에 따른 질병휴직 요건을 구분합니다. [편람 책자 p.41, 53 / PDF p.43, 55]\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [],
+      "role": "prose",
+      "verification": {
+        "handbookPresence": "not_checked",
+        "transcription": "conflict",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-03",
+      "title": "초보자 길라잡이",
+      "markdown": "### 1단계: 증빙서류 수령 및 제출 기준 판단하기\n* **진단서 없이 가능한 경우**: 연간 누계 **6일까지**는 별도의 의사 진단서 없이 병가 신청이 가능합니다. *(단, 기관장/학교장의 판단에 따라 진료확인서, 처방전, 소견서 등을 확인 자료로 첨부받을 수 있습니다)*. [책자 p.53 / PDF p.55]\n* **진단서가 반드시 필요한 경우**: **연속 7일 이상** 병가를 쓰거나, **연간 누계 병가일수가 6일을 초과**하게 되는 7일째 병가부터는 **의사 진단서**를 첨부해야 합니다. [책자 p.53 / PDF p.55]\n* **진단서 미제출 시 불이익**: 진단서 제출 의무 대상임에도 제출하지 못하면 병가 일수에 산입하지 아니하고 **연가 일수에서 공제**됩니다. [책자 p.53 / PDF p.55]\n\n### 2단계: NEIS(나이스) 복무 상신 수칙\n* **사전 상신 원칙**: 병가는 미리 신청하여 사유 발생 전까지 결재를 받는 것이 원칙입니다.\n* **긴급 병가 연락**: 불가피하게 사전 신청하지 못하는 경우 즉시 소속기관에 연락하고 기관 지침에 따라 사후 또는 대리 신청합니다. **당일 정오 12시까지 연락해야 한다는 일률적 기준은 이 편람에서 확인되지 않았으며, 교원휴가 예규·기관 지침 원문을 별도로 확인해야 합니다.** [편람 책자 p.50 / PDF p.52: 사전 신청 및 대리 신청 경로]\n* **대리 신청**: 본인이 의식불명이나 중증 부상으로 직접 신청할 수 없는 경우, 가족이 연락하여 복무담당자 또는 동료 교직원이 대리 신청할 수 있습니다. [출처: 교원휴가업무처리요령 / 책자 p.50 / PDF p.52]\n\n### 3단계: 시간 계산 및 공휴일 처리 확인\n* **8시간 누계 법칙**: 질병으로 인한 지각·조퇴·외출은 종별 구분 없이 합산하여 **8시간당 병가 1일**로 계산하며, **8시간 미만의 잔여시간은 계산하지 아니합니다.** [책자 p.53 / PDF p.55]\n* **연속 30일 이상 시 공휴일 포함**: 병가가 **연속 30일 이상** 지속되는 경우 기간 중의 토요일과 공휴일도 병가 일수에 산입됩니다. [책자 p.52 / PDF p.54]\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-052",
+        "SRC-HANDBOOK-2026-PDF-054",
+        "SRC-HANDBOOK-2026-PDF-055"
+      ],
+      "role": "prose",
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-04",
+      "title": "일반 상세 업무매뉴얼",
+      "markdown": "### 1. 일반병가 및 공무상 병가 기본 규정\n* **일반병가 한도**: 질병 또는 부상으로 인하여 직무를 수행할 수 없거나 감염병에 걸려 출근이 다른 공무원의 건강에 영향을 미칠 우려가 있을 때 **연 60일 이내** 허가 [책자 p.53 / PDF p.55]\n* **공무상 병가 한도**: 공무상 질병 또는 부상으로 직무를 수행할 수 없거나 요양이 필요한 경우 **연 180일 이내** 허가. 단, **병가사유가 동일한 경우에는 연도의 구분 없이 180일의 범위에서 허가**함. [책자 p.53 / PDF p.55]\n* **1년 단위 계산**: 병가 일수는 1월 1일부터 12월 31일까지 1년 단위로 계산하며, 연도가 바뀌면 새로 60일이 부여됩니다. *(단, 공무상 병가는 동일 사유일 경우 연도가 바뀌어도 이어서 총 180일 한도로 계산)* [책자 p.53 / PDF p.55]\n\n### 2. 병가 지각·조퇴·외출 시간 누계 수칙\n* **누계 산정**: 질병이나 부상으로 인한 지각, 조퇴, 외출은 누계 8시간을 병가 1일로 계산합니다. [책자 p.53 / PDF p.55]\n* **잔여시간 처리**: **8시간 미만의 잔여시간은 병가 1일로 환산하지 아니함.** [책자 p.53 / PDF p.55]\n  - *원문 적용*: 연간 질병 관련 외출·조퇴·지각 시간을 합산하여 8시간 단위로 나누고, 8시간에 미달하는 잔여시간은 병가 **일수**로 환산하지 않습니다. 실제 사용 시간의 기록·연가 가산 영향과는 별개의 문제입니다(책자 p.52 / PDF p.54).\n\n### 3. 연속 30일 이상 병가 시 공휴일 및 토요일 산입 수칙\n* **원칙**: 휴가기간 중의 토요일 또는 공휴일은 휴가일수에서 제외합니다. [책자 p.50 / PDF p.52]\n* **30일 이상 산입 예외**: 연가를 제외한 휴가일수가 **30일 이상 계속되는 경우**에는 그 휴가기간 중의 **토요일 또는 공휴일을 휴가일수에 산입**합니다. [책자 p.50, 52 / PDF p.52, 54]\n* **연속성 판단 예시**: 동일 질병으로 화·수·목·금 4일간 병가를 쓰고, 다음 주 월요일 1일 출근한 후 화요일부터 25일간 병가를 신청한 경우, 형식상 연속 30일 이하라 하더라도 30일 이상을 이어서 병가 사유로 사용하는 것으로 간주하여 공휴일 및 토요일을 병가 일수에 산입합니다. [책자 p.52 / PDF p.54]\n\n---",
+      "topicIds": [
+        "gwe-2026-p053"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-052",
+        "SRC-HANDBOOK-2026-PDF-054",
+        "SRC-HANDBOOK-2026-PDF-055"
+      ],
+      "role": "prose",
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-05",
+      "title": "질병휴직 및 복직 상세 절차",
+      "markdown": "### 1. 질병휴직 법적 요건 vs 일반적 실무 처리 순서 구분\n* **법적 요건**: 신체·정신상의 장애로 장기요양이 필요한 때 (지방공무원법 제63조제1항제1호, 교육공무원법 제44조제1항제1호). 진단서 첨부 필수.\n* **편람의 병가 종료 후 처리 안내**: 일반병가기간 만료 후 법정 연가 범위에서 연가를 허가할 수 있고, 병가·연가를 모두 사용한 후에는 휴직하여야 한다고 설명합니다(책자 p.53 / PDF p.55). **별개로 질병휴직의 법적 요건은 신체·정신상 장애에 따른 장기요양 필요성입니다(책자 p.41 / PDF p.43).** 편람의 운영 설명을 모든 직종·모든 질병휴직 신청의 획일적 선행 요건으로 확대하지 않습니다. [책자 p.41, 53 / PDF p.43, 55]\n* **질병휴직 기간 및 요건**:\n  - **일반질병휴직**: 신체·정신상의 장애로 장기요양이 필요한 때. 기간은 **1년 이내(1년 범위에서 연장 가능, 총 2년 한도)** [책자 p.41, 42 / PDF p.43, 44]\n  - **공무상 질병휴직**: 「공무원연금법 시행령」 제30조에 따른 공무상 요양 승인 결정 시. 기간은 **3년 이내** [책자 p.41, 42 / PDF p.43, 44]\n* **신청 시기 및 구비서류**:\n  - **신청 시기**: 휴직예정일 **1개월 전까지** [책자 p.42 / PDF p.44]\n  - **구비서류**: 本人 작성 **휴직원**, **각서**, 병명 등이 명시된 **진단서** *(불임·난임치료의 경우 진단서 및 소견서)* [책자 p.42 / PDF p.44]\n  - *진단서 발급기관*: 「공무원 채용 신체검사 규정」 제3조제1항에 따라 일반검진기관으로 지정된 의료기관·보건소 또는 「공무원연금법」에 의하여 지정된 공무원 요양기관 [책자 p.42 / PDF p.44]\n\n### 2. 질병휴직자 봉급, 수당 및 교원연구비 지급 제한\n\n| 구분 | 일반질병휴직 | 공무상 질병휴직 |\n| :--- | :--- | :--- |\n| **휴직 기간** | 1년 이내 (1년 연장 가능, 총 2년) [책자 p.41 / PDF p.43] | 3년 이내 [책자 p.41 / PDF p.43] |\n| **봉급 지급 비율** | - **1년 이하**: 봉급의 **70%** 지급<br>- **1~2년**: 봉급의 **50%** 지급 [책자 p.41 / PDF p.43] | 봉급의 **100% (10할)** 전액 지급 [책자 p.41 / PDF p.43] |\n| **승급기간 산입** | 승급기간 **미산입** [책자 p.41 / PDF p.43] | 복직일에 휴직기간 전체 **승급기간 산입** [책자 p.41 / PDF p.43] |\n| **수당 및 교원연구비** | **육아휴직을 제외한 질병휴직 등 휴직 시 교원연구비 지급 불가** (조정수당 0원 처리) [출처: 책자 p.140 / PDF p.142 (편람 기준)] | 공무상 질병휴직의 개별 수당 지급 기준은 별도 확인 필요 |\n\n### 3. 휴직자 복무상황 보고 및 실태 점검\n* **분기별 보고**: 질병휴직자는 **분기별(매년 1월 5일, 4월 5일, 7월 5일, 10월 5일)** 소속기관장에게 복무상황 보고서를 제출해야 합니다. [책자 p.43 / PDF p.45]\n* **출입국사실증명서 필수 첨부**: **2021. 7. 1.부터 복무상황 신고 시 출입국사실증명서를 첨부하여 제출**해야 합니다. (정부24 발급) [책자 p.43 / PDF p.45]\n* **반기별 점검 보고**: 소속기관장은 휴직 실태점검 결과를 교육감(장)에게 매 반기별(1월 10일, 7월 10일)까지 제출합니다. [책자 p.43 / PDF p.45]\n\n### 4. 복직 절차 및 30일 기한 구별\n* **휴직사유 소멸에 따른 복직**: 휴직기간 중 그 사유가 소멸되면 **사유 소멸 후 30일 이내에 임용권자에게 신고**하여야 하며, 임용권자는 지체 없이 복직을 명해야 합니다. (지방공무원법 제65조제2항) [책자 p.43 / PDF p.45]\n* **휴직기간 만료에 따른 복직**: **휴직기간이 끝난 공무원은 당연히 복직됨** (지방공무원법 제65조제2항). 실무상 본인이 작성한 복직원과 정상 근무 가능 진단서를 제출하여 복직 절차를 이행합니다. (*복직원 제출기한의 정확한 기산점에 대하여 편람 원문에 명시되지 않은 내용은 임의로 추측·해석하지 않음*) [책자 p.43 / PDF p.45]\n* **직권 면직 관련 규정**: 휴직기간이 끝나거나 휴직사유가 소멸된 후에도 직무에 복귀하지 아니하거나 직무를 감당할 수 없을 때에는 **직권으로 면직**시킬 수 있습니다. (지방공무원법 제62조제1항제2호) [책자 p.43 / PDF p.45]\n* **복직 진단서**: 질병휴직자의 복직 시 **정상적인 근무가 가능하다는 진단서**를 제출받아 정상 근무 가능 여부를 판단한 후 복직을 명합니다. [책자 p.43 / PDF p.45]\n\n---",
+      "topicIds": [
+        "gwe-work-0001"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-043",
+        "SRC-HANDBOOK-2026-PDF-044",
+        "SRC-HANDBOOK-2026-PDF-045",
+        "SRC-HANDBOOK-2026-PDF-055",
+        "SRC-HANDBOOK-2026-PDF-142"
+      ],
+      "role": "prose",
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "conflict",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-06",
+      "title": "NEIS 신청 및 취소·변경 절차 (원문 메뉴 검증)",
+      "markdown": "편람 원문 [책자 p.50 / PDF p.52]에 명시된 NEIS 공식 메뉴와 조작 경로만을 사용합니다.\n\n### 1. NEIS 복무 신청 절차\n* **본인신청**: `기본 메뉴 → 복무 → 개인근무상황관리 → 신청 → 내용입력 후 승인 요청 → 결재자 지정 후 상신 → 승인자 승인 후 기결함에서 “완결” 확인` [책자 p.50 / PDF p.52]\n* **대리신청(복무담당자)**: `복무 → 근무상황관리 → 조회 → 신청 → 성명 입력 후 조회 → 내용입력 후 승인 요청 → 결재자 지정 후 상신 → 승인자 승인 후 기결함에서 “완결” 확인` [책자 p.50 / PDF p.52]\n* **대리신청(본인 대리)**: `기본 메뉴 → 복무 → 개인근무상황관리 → 대리신청 → 성명 입력 후 조회 → 내용입력 후 승인 요청 → 결재자 지정 후 상신 → 승인자 승인 후 기결함에서 “완결” 확인` [책자 p.50 / PDF p.52]\n\n### 2. NEIS 기결문서 취소 및 변경 절차\n* **취소 및 변경 경로**: `기본 메뉴 → 승인사항 → 상신함에서 해당 제목 선택 → 기결문서 취소(기존 결재선으로 다시 결재과정) → 결재완료 후 나의메뉴 → 복무 → 개인근무상황신청에서 해당 건 선택 후 삭제 → 다시 신청` [책자 p.50 / PDF p.52]\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-052"
+      ],
+      "role": "prose",
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-07",
+      "title": "직종별 적용 기준 상세 비교 (원문 근거 1:1 매핑)",
+      "markdown": "| 구 분 | 교 원 | 지방공무원 (교육행정직 등) | 교육공무직원 | 사회복무요원 | 원어민 영어보조교사 |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n| **근거 법령 / 지침** | 「교원휴가에 관한 예규」<br>「교육공무원법」 | 「지방공무원 복무규정」<br>「지방공무원법」 | 「근로기준법」, 단체협약<br>교육공무직원 업무편람 | 「병역법」<br>사회복무요원 복무관리 규정 | 고용계약서<br>원어민 교사 관리지침 |\n| **일반병가 한도** | 연 60일 이내 (유급)<br>[출처: 교원휴가예규 제3조] | 연 60일 이내 (유급)<br>[책자 p.53 / PDF p.55] | 연간 최대 60일 (유급)<br>[출처: 책자 p.91 / PDF p.93] | 통산 30일 이내 (유급)<br>[출처: 책자 p.109 / PDF p.111] | 연간 유급 11일 이내<br>[출처: 책자 p.108 / PDF p.110] |\n| **공무상 병가 한도** | 연 180일 이내<br>(동일 사유 연도 미구분)<br>[출처: 교원휴가예규 제3조] | 연 180일 이내<br>(동일 사유 연도 미구분)<br>[책자 p.53 / PDF p.55] | 업무상 병가 연 최대 180일<br>(산재 요양기간 유급)<br>[출처: 책자 p.91 / PDF p.93] | 공무상 질병/부상은 통산 범위 미산입<br>[출처: 책자 p.109 / PDF p.111] | **확인 필요**<br>(개별 고용계약서 확인) |\n| **진단서 제출 기준** | 연속 7일 이상 또는<br>연간 누계 6일 초과 시<br>[출처: 교원휴가예규 제3조] | 연속 7일 이상 또는<br>연간 누계 6일 초과 시<br>[책자 p.53 / PDF p.55] | 연속 7일 이상 또는<br>연간 누계 6일 초과 시<br>[출처: 책자 p.91 / PDF p.93] | 3일 이내: 소견서/처방전<br>4일 이상: 진단서+입퇴원증<br>[출처: 책자 p.109 / PDF p.111] | 누적 3일 초과 사용 시<br>사용 때마다 진단서 제출<br>[출처: 책자 p.108 / PDF p.110] |\n| **진단서 미제출 시** | 연가 공제 (병가 미산입)<br>[출처: 교원휴가예규 제3조] | 연가 공제 (병가 미산입)<br>[책자 p.53 / PDF p.55] | **연차에서 공제**<br>[출처: 책자 p.91 / PDF p.93] | 연가 공제 (초과 시 결근)<br>[출처: 책자 p.109 / PDF p.111] | 무급 처리<br>[출처: 책자 p.108 / PDF p.110] |\n| **공휴일/토요일 산입** | 연속 30일 이상 시 포함<br>[출처: 교원휴가예규 제3조] | 연속 30일 이상 시 포함<br>[책자 p.52 / PDF p.54] | 단체협약/취업규칙 준용<br>[출처: 책자 p.91 / PDF p.93] | 공휴일 원칙 제외, **연가 외 연속 30일 이상 휴가 공휴일 포함**<br>[책자 p.110 / PDF p.112] | 계약 조건 적용<br>[출처: 책자 p.108 / PDF p.110] |\n| **질병휴직 기간** | 1년 이내 (1년 연장 가능,<br>총 2년 한도)<br>[출처: 교육공무원법 제45조] | 1년 이내 (1년 연장 가능,<br>총 2년 한도)<br>[책자 p.41 / PDF p.43] | 동일 질병 재직 중 1년 이내<br>(1년 연장 가능, 총 2년)<br>[출처: 단체협약 제39조] | 병가 30일 초과 시<br>복무기간 연장/재심사<br>[출처: 책자 p.109 / PDF p.111] | **연간 병가 30일 초과 시<br>고용계약 해지 조치**<br>[출처: 책자 p.108 / PDF p.110] |\n| **질병휴직 봉급** | 1년 이하 70%, 1~2년 50%<br>(공무상 질병휴직 100%)<br>[출처: 공무원보수규정 제28조] | 1년 이하 70%, 1~2년 50%<br>(공무상 질병휴직 100%)<br>[책자 p.41 / PDF p.43] | 무급 (취업규칙/단협 따름)<br>[출처: 교육공무직원 업무편람] | 무급 (공무상 질병 시 유급)<br>[출처: 책자 p.109 / PDF p.111] | 무급 (30일 초과 시 해지)<br>[출처: 책자 p.108 / PDF p.110] |\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-043",
+        "SRC-HANDBOOK-2026-PDF-054",
+        "SRC-HANDBOOK-2026-PDF-055",
+        "SRC-HANDBOOK-2026-PDF-093",
+        "SRC-HANDBOOK-2026-PDF-110",
+        "SRC-HANDBOOK-2026-PDF-111",
+        "SRC-HANDBOOK-2026-PDF-112"
+      ],
+      "role": "occupation-table",
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "separated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-08",
+      "title": "상황별 판단 기준 및 실제 계산 사례",
+      "markdown": "### [사례 1] 시간 단위 외출·조퇴 누계 8시간 계산\n* **상황**: 1년 동안 외출 3시간, 조퇴 4시간, 지참 2시간, 외출 3시간을 사용한 경우.\n* **계산**: 총 누계 시간 = 3 + 4 + 2 + 3 = **12시간**.\n* **처리**: `12시간 ÷ 8시간 = 1일 + 4시간`. 병가 **1일** 공제 처리하며, **8시간 미만의 잔여시간(4시간)은 계산하지 아니합니다.** [책자 p.53 / PDF p.55]\n\n### [사례 2] 주말 전후 연속 30일 이상 병가 산입\n* **상황**: 동일 질병으로 화~금(4일) 병가 사용 후, 월요일 1일 출근하고 화요일부터 25일간 연속 병가를 신청한 경우.\n* **판단**: 형식상 월요일 출근이 있으나, 동일 사유로 30일 이상 이어서 사용하는 경우로 간주하여 **중간의 토요일과 공휴일을 병가 일수에 모두 산입**함. [책자 p.52 / PDF p.54]\n\n### [사례 3] 공무상 요양승인 심의 중 병가 소급 전환\n* **상황**: 공무상 부상으로 공무원연금공단에 요양승인을 신청하고 심의 중인 경우.\n* **처리**: 요양승인 결정 전까지는 **우선 일반병가 및 연가를 허가**하여 사용하고, 향후 공무상 요양승인 결정서 통보 시 **소급하여 공무상 병가(180일)로 변경 처리**함. [출처: 「교원휴가에 관한 예규」 제5조 및 행안부 예규]\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-054",
+        "SRC-HANDBOOK-2026-PDF-055"
+      ],
+      "role": "prose",
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-09",
+      "title": "업무상 주의사항 및 자주 묻는 질문(FAQ)",
+      "markdown": "### 업무상 주의사항\n* ⚠️ **진단서 제출 의무 확인**: 연간 누계 6일을 초과하거나 연속 7일 이상인 병가에 대해 진단서를 첨부받지 않고 유급 병가 승인하지 않도록 유의합니다. 진단서 미제출 시 병가 일수에 산입하지 아니하고 연가에서 공제합니다. [책자 p.53 / PDF p.55]\n* ⚠️ **고의적 병가 처리 방지**: 연가 사유임에도 진단서 없이 고의로 병가 처리하는 일이 없도록 승인권자(학교장)가 엄격히 확인해야 합니다. [책자 p.53 / PDF p.55]\n* ⚠️ **질병휴직자 출입국사실증명서 첨부**: 질병휴직자 분기별 복무상황 보고 접수 시 2021. 7. 1.부터 출입국사실증명서 첨부가 의무화되었음을 확인합니다. [책자 p.43 / PDF p.45]\n\n### 자주 묻는 질문 (FAQ)\n* **Q1. 병가를 1일도 사용하지 않으면 연가가 가산되나요?**\n  * **A**: 네. 연가 가산 요건을 충족하고 병가를 사용하지 않은 경우(공무상 병가 제외) **1일 가산** 규정이 있습니다. **8시간 미만의 병가 사용도 연가 가산 대상에서 제외**된다고 편람에 명시되어 있습니다. [책자 p.52 / PDF p.54]\n* **Q2. 병가 기간 중 개인 사유 해외여행이 가능한가요?**\n  * **A**: 불가능합니다. 병가는 질병 치료 및 요양이 목적이므로 단순 관광·견문 목적의 출국을 병가 처리할 수 없습니다.\n* **Q3. 사회복무요원의 소집해제 당일에 병가를 쓸 수 있나요?**\n  * **A**: 불가능합니다. 소집해제 당일은 정상 근무를 해야 하며, 소집해제 당일 연가나 병가 사용은 불가합니다. [책자 p.109 / PDF p.111]\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-045",
+        "SRC-HANDBOOK-2026-PDF-054",
+        "SRC-HANDBOOK-2026-PDF-055",
+        "SRC-HANDBOOK-2026-PDF-111"
+      ],
+      "role": "faq",
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-10",
+      "title": "관련 법령·지침 및 정확한 출처",
+      "markdown": "1. **2026 학교행정 업무편람 (강원특별자치도교육청, 2025.12. 기준 / 2026.02. 발행)**\n   - **인사 (휴직 및 복직)**: 책자 p.41~43 / PDF p.43~45\n   - **복무 (휴가 개요 및 병가)**: 책자 p.50~54 / PDF p.52~56\n   - **교육공무직원 복무**: 책자 p.90~91 / PDF p.92~93\n   - **원어민 영어보조교사**: 책자 p.108 / PDF p.110\n   - **사회복무요원 복무**: 책자 p.109~111 / PDF p.111~113\n   - **인사이동 시 사안별 업무표**: 책자 p.334 / PDF p.336 (인쇄 쪽수 대응, 해당 내용 별도 확인)\n2. **관련 국가 법령 및 예규**\n   - 「지방공무원 복무규정」 제7조의5 (병가)\n   - 「지방공무원법」 제63조(휴직) 및 제65조(휴직의 효력)\n   - 「교원휴가에 관한 예규」(교육부 예규 제77호) 제3조, 제5조\n   - 「지방공무원 임용령」 제38조의16 (업무대행공무원의 지정)\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [],
+      "role": "sources",
+      "verification": {
+        "handbookPresence": "not_checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-11",
+      "title": "연관 업무 및 AI런처박스 검색 키워드",
+      "markdown": "* **선행 업무**: 복무 관리, 개인근무상황 관리\n* **후속 업무**: 업무대행공무원 지정 및 수당 지급(30일 이상 병가 시), 대체인력 채용, 연가 공제, 질병휴직 전환, 복무상황 보고\n* **검색 키워드**:\n  * **행정 용어**: `일반병가 60일`, `공무상 병가 180일`, `진단서 6일 초과`, `병가 8시간 1일`, `연속 30일 공휴일 산입`, `질병휴직 출입국사실증명서`\n  * **자연어 질문**: \"병가 며칠부터 진단서 첨부하나요?\", \"조퇴 몇 번 해야 병가 1일인가요?\", \"병가 다 쓰면 휴직해야 하나요?\"\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [],
+      "role": "search-material",
+      "verification": {
+        "handbookPresence": "not_checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-12",
+      "title": "지역·기관정보 (강원특별자치도교육청 전담 기준)",
+      "markdown": "| 구분 | 적용 기관/대상 | 적용 기준 및 지침 |\n| :--- | :--- | :--- |\n| **강원특별자치도** | 강원특별자치도교육청 소속 교직원 | 「2026 학교행정 업무편람」, 「강원특별자치도교육감 소속 지방공무원 복무 조례」 적용 |\n| **전국 공통** | 각급 학교 교원 및 지방공무원 | 「지방공무원 복무규정」, 「교원휴가에 관한 예규」 공통 적용 |\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [],
+      "role": "prose",
+      "verification": {
+        "handbookPresence": "not_checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-13",
+      "title": "AI런처박스 검색결과용 요약",
+      "markdown": "* **업무명**: 병가 및 질병휴직\n* **한 줄 설명**: 질병·부상 시 허가받는 유급 휴가(일반 60일, 공무상 180일) 및 질병휴직(최대 2년).\n* **가장 먼저 할 일**: 누계 6일 초과/연속 7일 이상 여부 확인 및 진단서 제출 의무 확인 및 필요 시 의사 진단서 수령.\n* **핵심 순서**: 증빙 준비 ➔ NEIS 복무 상신 ➔ 결재 완결 ➔ (필요시) 질병휴직 신청 ➔ 질병휴직 발령 ➔ 분기별 복무상황 보고(출입국사실증명서).\n* **주요 주의사항**: 진단서 미제출 시 연가 공제, 8시간 누계 1일 차감(8시간 미만 잔여시간은 계산하지 아니함), 연속 30일 이상 병가 시 공휴일/토요일 산입.\n\n---",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [],
+      "role": "search-material",
+      "verification": {
+        "handbookPresence": "not_checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-14",
+      "title": "v6 원문 검증 상태 및 배포 전 확인",
+      "markdown": "### A. 편람 원문에서 직접 확인\n\n| 항목 | 책자 | PDF | 상태 |\n|---|---:|---:|---|\n| 지방공무원 일반병가 60일·공무상 병가 180일·진단서 요건·8시간 계산 | 53 | 55 | 편람 확인 |\n| 일반 질병휴직 기간·보수·법적 요건 | 41 | 43 | 편람 확인 |\n| 휴직 신청·연장 1개월 전, 업무대행수당 조건 | 42 | 44 | 편람 확인 |\n| 휴직자 보고·복직·진단서 | 43 | 45 | 편람 확인 |\n| NEIS 신청·취소, 휴가 30일 산입 | 50 | 52 | 편람 확인 |\n| 연가 가산에서 8시간 미만 병가 사용 영향 | 52 | 54 | 편람 확인 |\n| 연속 30일 병가 사례·연도 경계 | 51 | 53 | 편람 확인 |\n| 교육공무직원 병가 60일·진단서·연차 공제 | 91 | 93 | 편람 확인 |\n| 원어민 영어보조교사 유급병가 11일·계약 관련 규정 | 108 | 110 | 편람 확인 |\n| 사회복무요원 공휴일 산입 예외 | 110 | 112 | 편람 확인 |\n| 교원연구비 휴직 시 지급 유의사항 | 140 | 142 | 편람 확인 |\n\n### B. 별도 원문 확인 필요\n\n- 「교원휴가에 관한 예규」의 최신 시행본과 조문 번호·교원 병가/질병휴직 세부 규정\n- **당일 정오 12시까지 연락**이라는 규칙: 편람에 없음. 별도 지침에서 확인 전까지 확정 안내 금지\n- 「지방공무원법」·「교육공무원법」·「공무원보수규정」 등 2026년 10월 현재 시행본\n- 교육공무직원 단체협약의 질병휴직 기간·보수·적용 범위\n- 원어민 영어보조교사 개별 고용계약서의 예외·해지 처리 요건\n- 사회복무요원 소집해제일 병가 제한 등 관련 복무관리 규정 최신본\n- 복직원 제출기한의 정확한 기산점과 실무 제출 시기\n\n**검증 원칙:** 위 A는 '2026 학교행정 업무편람에 기재됨'을 의미하며, 최신 법령과의 적합성을 보증하지 않습니다. B는 확인 전까지 최종 확정 규정으로 취급하지 않습니다.",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [],
+      "role": "verification-note",
+      "verification": {
+        "handbookPresence": "not_checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-15",
+      "title": "v5 → v6 주요 변경",
+      "markdown": "1. 원본 PDF의 실제 페이지를 직접 대조하여 인쇄 쪽수 +2 방식이 확인되는 인용에 한해 PDF 페이지 입력\n2. 의료법 제18조 표기를 편람의 교육공무직원 조문 인용(제17조)과 구분하고, 최신 조문 확인 필요로 표시\n3. '정오 12시 연락'을 편람 확인 규정에서 제외하고 별도 지침 확인 대상으로 전환\n4. 병가 60일 소진을 질병휴직의 법정 필수 관문으로 표현하던 Mermaid 흐름도 수정\n5. 사회복무요원 연가 외 연속 30일 이상 휴가의 공휴일 포함 예외 추가\n6. 병가 8시간 미만 시간 계산과 연가 가산 영향 구분\n7. 직종별 규정 중 편람 외 예규·단체협약·계약서 원문 미대조 항목을 검증 완료로 확정하지 않음",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [],
+      "role": "history",
+      "verification": {
+        "handbookPresence": "not_checked",
+        "transcription": "not_checked",
+        "currency": "not_checked",
+        "occupationScope": "not_stated",
+        "display": "review",
+        "release": "draft"
+      }
+    },
+    {
+      "sectionId": "family-0001-sec-16",
+      "title": "편람 대조 기록",
+      "markdown": "1~15절의 문장은 그대로 두었다. 아래는 2026-10-11에 `HelpMake/2026 학교행정 업무편람(202602).pdf`를 읽어 확인한 기록이다. 후보에 적힌 sourceDocumentSha256과 이 PDF, 같은 바이트의 `EduLauncher/HelpMake` 사본, HWPX는 모두 해시가 다르다. 현행 법령은 확인하지 않았다.\n\n- 인쇄 43쪽(PDF 45쪽): 휴직 사유가 소멸하면 30일 이내에 임용권자에게 신고한다. 휴직 기간 만료는 당연 복직이다. 방법 줄은 복직원과 증빙을 30일 이내 제출한다고 적고, 그 30일의 기산점은 없다. 질병휴직자는 정상 근무가 가능하다는 진단서를 낸 뒤 복직을 명한다.\n- 인쇄 51쪽(PDF 53쪽): 연속 30일 병가 산정 예시가 있다. 이전 출처 목록에 이 쪽이 없었다.\n- 인쇄 90쪽(PDF 92쪽): 교육공무직원 복무관리의 시작이다. 병가 일수 표는 인쇄 91쪽(PDF 93쪽)에 있다.\n- 인쇄 109~111쪽(PDF 111~113쪽): 사회복무요원 복무·병가·보수. 30일 초과는 복무기간 연장·변경면제이며 지방공무원 질병휴직이 아니다.\n- 인쇄 334쪽(PDF 336쪽): 인사 이동 시 업무 인계 표다. 병가 절차 문장은 없다.\n- 교원 병가·질병휴직의 별도 예규 원문은 이 대조에서 확인하지 못했다. 인쇄 53쪽의 일수 문장을 교원 규정으로 옮기지 않았다.\n\n2026-10-11에 국가법령정보센터 현행 본문을 따로 확인했다. 조문별 결과는 `docs/phase4a-3-law-verification.md`에 적었다. 바로 위의 ‘현행 법령은 확인하지 않았다’와 ‘교원 예규 원문은 확인하지 못했다’는 편람 PDF 대조 당시의 기록이다. 1~15절은 고치지 않았다.",
+      "topicIds": [
+        "gwe-2026-p053",
+        "gwe-work-0001"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-045",
+        "SRC-HANDBOOK-2026-PDF-053",
+        "SRC-HANDBOOK-2026-PDF-055",
+        "SRC-HANDBOOK-2026-PDF-092",
+        "SRC-HANDBOOK-2026-PDF-093",
+        "SRC-HANDBOOK-2026-PDF-110",
+        "SRC-HANDBOOK-2026-PDF-112",
+        "SRC-HANDBOOK-2026-PDF-113",
+        "SRC-HANDBOOK-2026-PDF-336"
+      ],
+      "role": "verification-note",
+      "verification": {
+        "handbookPresence": "checked",
+        "transcription": "matched",
+        "currency": "not_checked",
+        "occupationScope": "separated",
+        "display": "review",
+        "release": "draft"
+      }
+    }
+  ],
+  "workflow": [
+    {
+      "stepId": "family-0001-step-sick-01",
+      "title": "병가 사유와 일수 구분",
+      "actor": "신청 공무원",
+      "precondition": "질병 또는 부상으로 직무를 수행할 수 없거나, 감염병으로 다른 공무원의 건강에 영향을 미칠 우려가 있을 때",
+      "inputs": [],
+      "method": "편람은 일반병가를 연 60일 이내, 공무상 병가를 연 180일 이내로 적는다. 같은 사유면 연도를 나누지 않고 180일 범위에서 허가한다고 적는다. 지방공무원 복무규정 제7조의5(시행 2026. 10. 2.)는 연 60일과 연 180일만 정하고, 연도 구분 없는 180일은 정하지 않는다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-sick-02"
+      ],
+      "sectionIds": [
+        "family-0001-sec-04"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-055"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-LOCAL-DUTY"
+        ],
+        "note": "제7조의5제1항·제2항의 연 60일·연 180일과 맞다. 같은 사유를 연도 구분 없이 180일로 본다는 문장은 이 조문에 없다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-sick-02",
+      "title": "진단서 제출 여부",
+      "actor": "신청 공무원",
+      "precondition": "연간 누계가 6일을 넘거나 7일 이상 연속되는 병가",
+      "inputs": [
+        "진단서"
+      ],
+      "method": "연간 누계 6일까지는 진단서 없이 사용할 수 있다고 편람이 적는다. 내야 하는데 내지 못하면 연가에서 공제하고 병가일수에는 넣지 않는다. 같은 사유는 처음 낸 진단서로 갈음할 수 있다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-sick-03"
+      ],
+      "sectionIds": [
+        "family-0001-sec-04"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-055"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "differs",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-LOCAL-DUTY"
+        ],
+        "note": "제7조의5제3항은 연 6일을 초과하면 진단서를 요구한다. 7일 이상 연속은 이 조문에 없다. 제7조의2제7항은 진단서가 없는 제1항 병가의 6일 초과분을 연가에서 빼고, 제7조의5제1항은 그 공제분을 병가 일수에 넣지 않는다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-sick-03",
+      "title": "휴가 승인 신청",
+      "actor": "본인 또는 복무담당자",
+      "precondition": "휴가 승인은 사유가 생기기 전에 받는다",
+      "inputs": [],
+      "method": "미리 신청한다. 사전 승인을 받지 못하면 사후에 지체 없이 절차를 밟고, 다른 공무원이 대행할 수 있다고 편람이 적는다. 나이스 경로는 본인신청과 대리신청으로 나뉜다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-sick-04"
+      ],
+      "sectionIds": [
+        "family-0001-sec-06"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-052"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "not_checked",
+        "currency": "not_checked",
+        "needsRevision": false,
+        "lawSourceIds": [],
+        "note": "나이스 신청 경로는 읽은 복무규정 조문에 없다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-sick-04",
+      "title": "병가 일수 계산",
+      "actor": "복무담당자",
+      "precondition": "승인된 병가의 일수를 셀 때",
+      "inputs": [],
+      "method": "1월 1일부터 12월 31일까지 계산한다. 지각·조퇴·외출은 합쳐 8시간을 1일로 보고, 8시간 미만은 계산하지 않는다. 연가를 뺀 휴가가 30일 이상 이어지면 토요일과 공휴일을 일수에 넣는다. 인쇄 51쪽 예시는 형식상 30일 이하여도 30일 이상을 이어서 병가 사유로 보면 토요일과 공휴일을 넣는다고 적는다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-sick-05"
+      ],
+      "sectionIds": [
+        "family-0001-sec-04",
+        "family-0001-sec-08"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-055",
+        "SRC-HANDBOOK-2026-PDF-052",
+        "SRC-HANDBOOK-2026-PDF-053"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "differs",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-LOCAL-DUTY"
+        ],
+        "note": "8시간 1일 계산은 제7조의5제1항과 맞다. 제7조의8은 같은 해 병가 일수의 합이 30일 이상이면 토요일·공휴일을 넣는다. 편람의 연속 30일 예시와 같지 않다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-sick-05",
+      "title": "병가와 연가를 모두 쓴 뒤",
+      "actor": "소속기관의 장",
+      "precondition": "일반병가 또는 공무상 병가의 기간이 끝난 때",
+      "inputs": [],
+      "method": "공무상 병가가 끝나도 직무를 하기 어렵거나 요양이 이어지면 일반병가를 허가할 수 있다고 편람이 적는다. 일반병가가 끝나면 법정 연가 범위에서 연가를 허가할 수 있고, 병가와 연가를 모두 쓴 뒤에는 휴직하여야 한다고 적는다. 이 문장은 질병휴직 표의 장기요양 요건과 같은 문장이 아니다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [],
+      "sectionIds": [
+        "family-0001-sec-04"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-055"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "not_checked",
+        "currency": "not_checked",
+        "needsRevision": false,
+        "lawSourceIds": [
+          "LAW-LOCAL-DUTY"
+        ],
+        "note": "병가와 연가를 모두 쓴 뒤 휴직하여야 한다는 문장은 제7조의5에 없다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-edu-01",
+      "title": "교육공무직원 병가 한도",
+      "actor": "교육공무직원",
+      "precondition": "질병이나 부상으로 근무를 계속하기 어려울 때",
+      "inputs": [],
+      "method": "연간 최대 60일 범위에서 허가하고 모두 유급이라고 편람이 적는다. 업무상 병가는 산업재해보상보험법상 업무상 부상·질병으로 근무를 계속할 수 없을 때 공단이 정한 요양 기간에 대해 허가하고, 연간 최대 180일까지 유급이라고 적는다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0003",
+        "name": "교육공무직원"
+      },
+      "nextStepIds": [
+        "family-0001-step-edu-02"
+      ],
+      "sectionIds": [
+        "family-0001-sec-07"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-093"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "not_checked",
+        "currency": "not_checked",
+        "needsRevision": false,
+        "lawSourceIds": [],
+        "note": "교육공무직원 단체협약과 강원 교육청 지침 본문을 열지 못했다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-edu-02",
+      "title": "교육공무직원 진단서",
+      "actor": "교육공무직원",
+      "precondition": "연간 누계가 6일을 넘거나 병가가 7일 이상 연속될 때",
+      "inputs": [
+        "진단서"
+      ],
+      "method": "의료법 제17조에 따라 교부된 진단서를 낸다고 편람이 적는다. 같은 사유는 처음 낸 진단서로 일수를 계산한다. 내야 하는데 내지 못하면 연차에서 공제한다. 지각·조퇴·외출은 합쳐 8시간을 병가 1일로 계산한다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0003",
+        "name": "교육공무직원"
+      },
+      "nextStepIds": [],
+      "sectionIds": [
+        "family-0001-sec-07"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-093"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "not_checked",
+        "currency": "not_checked",
+        "needsRevision": false,
+        "lawSourceIds": [],
+        "note": "교육공무직원 진단서·질병휴직 기간의 공식 협약 본문을 열지 못했다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-native-01",
+      "title": "원어민 영어보조교사 유급병가",
+      "actor": "원어민 영어보조교사",
+      "precondition": "유급휴가와 병가를 쓰는 계약 기간",
+      "inputs": [
+        "의사 진단서"
+      ],
+      "method": "유급병가는 연간 11일이라고 편람이 적는다. 누적 3일을 넘기면 사용할 때마다 의사 진단서를 기관장에게 낸다. 연간 30일을 넘기면 고용계약을 해지할 수 있다고 적는다. 유급휴가와 병가를 모두 쓴 뒤의 초과 병가는 무급이다. 1년 미만 계약은 근무기간에 비례하여 일수를 산정한다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0005",
+        "name": "원어민 영어보조교사"
+      },
+      "nextStepIds": [],
+      "sectionIds": [
+        "family-0001-sec-07"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-110"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "not_checked",
+        "currency": "not_checked",
+        "needsRevision": false,
+        "lawSourceIds": [],
+        "note": "원어민 영어보조교사 고용계약과 길라잡이 본문을 열지 못했다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-social-01",
+      "title": "사회복무요원 병가",
+      "actor": "사회복무요원",
+      "precondition": "질병 사유로 복무하지 못하는 때",
+      "inputs": [
+        "진료확인서 또는 처방전 또는 소견서",
+        "진단서",
+        "입퇴원확인서"
+      ],
+      "method": "통산 30일 범위에서 사용한다고 편람이 적는다. 3일 이내는 진료확인서, 처방전, 소견서 중 하나를 낸다. 4일 이상 연속이면 진단서와 입퇴원확인서를 낸다. 진단서를 내야 하는데 내지 못하면 연가에서 공제하고 병가일수에는 넣지 않는다. 질병 사유 지각·조퇴·외출은 합쳐 8시간을 병가 1일로 처리한다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0004",
+        "name": "사회복무요원"
+      },
+      "nextStepIds": [
+        "family-0001-step-social-02"
+      ],
+      "sectionIds": [
+        "family-0001-sec-07"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-111",
+        "SRC-HANDBOOK-2026-PDF-112"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "differs",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-SOCIAL"
+        ],
+        "note": "현행 제23조는 1일 미만은 증빙 없음, 3일 이하는 진료확인서·처방전·소견서 중 하나이되 통틀어 6일까지는 증빙을 면하고, 3일 초과는 진단서와 입퇴원확인서다. 편람의 4일 이상 연속과 다르다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-social-02",
+      "title": "30일 초과 시 복무기간",
+      "actor": "복무기관",
+      "precondition": "개인 사유 병가가 통산 30일을 넘을 때",
+      "inputs": [],
+      "method": "초과한 일수만큼 복무기간을 연장한다고 편람이 적는다. 공무상 질병 또는 부상으로 인한 병가 기간은 복무기간에 포함한다. 30일을 넘어 복무를 계속하기 곤란하면 병역복무 변경·면제 신청서를 내게 한다. 이 절차는 지방공무원 질병휴직이 아니다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0004",
+        "name": "사회복무요원"
+      },
+      "nextStepIds": [],
+      "sectionIds": [
+        "family-0001-sec-07"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-112"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-SOCIAL"
+        ],
+        "note": "제23조제6항은 통틀어 30일을 쓴 뒤의 공무 외 허가결근을 연장 복무로 하고 토요일·공휴일을 포함한다. 공무상 병가는 복무기간에 포함한다. 질병휴직이 아니다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-ill-01",
+      "title": "장기요양 요건 확인",
+      "actor": "신청 공무원",
+      "precondition": "신체·정신상의 장애로 장기 요양이 필요할 때",
+      "inputs": [
+        "진단서"
+      ],
+      "method": "질병휴직은 진단서를 내고, 1년 이내에 1년 연장이 가능하다고 편람이 적는다. 1년 이하 보수는 70%, 1년 초과 2년 이하는 50%라고 적는다. 공무상 질병휴직은 3년 이내, 보수 10할이며 공무상 요양 승인 또는 요양급여 결정이 필요하다고 적는다. 병가 일수 소진은 이 표의 요건으로 적혀 있지 않다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-ill-02"
+      ],
+      "sectionIds": [
+        "family-0001-sec-05"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-043"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-LOCAL-ACT",
+          "LAW-LOCAL-APPOINT"
+        ],
+        "note": "제64조제1호는 1년 이내와 1년 연장, 공무상은 3년 이내 뒤 대통령령으로 2년 범위의 추가 연장을 둔다. 편람의 3년 이내는 추가 연장을 빠뜨린다. 보수 비율은 이 조문에 없다. 제38조의18제4항은 공무상 요양·재요양 승인 또는 요양급여·재요양 결정이 있을 때로 한정한다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-ill-02",
+      "title": "휴직 신청",
+      "actor": "신청 공무원",
+      "precondition": "휴직 예정일 1개월 전",
+      "inputs": [
+        "휴직원",
+        "각서",
+        "진단서"
+      ],
+      "method": "본인이 작성한 휴직원, 각서, 휴직 사유 증빙을 교육청 또는 교육지원청에 낸다고 편람이 적는다. 질병휴직 증빙은 병명이 적힌 진단서다. 공무상 질병휴직은 공무상요양비 지급 승인 서류로 한다고 적는다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-ill-03"
+      ],
+      "sectionIds": [
+        "family-0001-sec-05"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-044"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-LOCAL-APPOINT"
+        ],
+        "note": "제38조의18제1항은 요양기관 진단서나 그 밖 증명자료를 요구한다. 1개월 전 제출, 각서, 교육청 제출은 이 조문에 없다. 제7항은 운영 사항을 교육부장관 또는 행정안전부장관이 정한다고 하고, 그 예규 본문은 확인하지 않았다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-ill-03",
+      "title": "복무상황 보고",
+      "actor": "휴직자",
+      "precondition": "질병휴직 기간 중",
+      "inputs": [
+        "출입국사실증명서"
+      ],
+      "method": "질병휴직은 매년 1월 5일, 4월 5일, 7월 5일, 10월 5일에 소속기관장에게 보고한다고 편람이 적는다. 2021년 7월 1일부터 출입국사실증명서를 붙인다. 복직하는 경우와 보고 시점 전에 복직하면 복직할 때 보고한다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-ill-04",
+        "family-0001-step-ill-05"
+      ],
+      "sectionIds": [
+        "family-0001-sec-05"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-045"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "not_checked",
+        "currency": "not_checked",
+        "needsRevision": false,
+        "lawSourceIds": [],
+        "note": "분기 보고일과 출입국사실증명서 첨부는 읽은 법·임용령 조문에 없다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-ill-04",
+      "title": "휴직 사유 소멸 신고",
+      "actor": "휴직 공무원",
+      "precondition": "휴직 기간 중 휴직 사유가 소멸한 때",
+      "inputs": [],
+      "method": "사유가 소멸하면 30일 이내에 임용권자에게 신고하고, 임용권자는 지체 없이 복직을 명한다고 편람이 적는다. 이 문장은 지방공무원법 제65조제2항(시행 2026. 10. 2.)과 같다. 직권면직 문장은 이번에 연 조문에 없다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-ill-06"
+      ],
+      "sectionIds": [
+        "family-0001-sec-05"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-045"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-LOCAL-ACT"
+        ],
+        "note": "제65조제2항은 사유 소멸 후 30일 이내 신고와 지체 없는 복직 명령과 맞다. 직권면직 문장은 이번에 연 조문에 없다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-ill-05",
+      "title": "휴직 기간 만료",
+      "actor": "임용권자",
+      "precondition": "휴직 기간이 끝난 때",
+      "inputs": [],
+      "method": "편람은 휴직 기간 만료를 당연 복직으로 적는다. 만료일부터 며칠 안에 복직원을 내라는 기산점은 이 문장에 없다. 지방공무원법 제65조제3항(시행 2026. 10. 2.)은 휴직기간이 끝난 공무원이 30일 이내에 복귀신고를 하면 당연히 복직된다고 정한다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [
+        "family-0001-step-ill-06"
+      ],
+      "sectionIds": [
+        "family-0001-sec-05"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-045"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "matched",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-LOCAL-ACT"
+        ],
+        "note": "편람 문장에는 기산점이 없다. 제65조제3항은 휴직기간이 끝난 공무원이 30일 이내에 복귀신고를 하면 당연히 복직된다고 정한다. 2절과 5절 문장은 고치지 않았다."
+      },
+      "origin": "verified-source"
+    },
+    {
+      "stepId": "family-0001-step-ill-06",
+      "title": "복직원과 질병휴직 진단서",
+      "actor": "휴직 공무원",
+      "precondition": "복직 절차를 밟을 때",
+      "inputs": [
+        "복직원",
+        "복직 사유 증빙",
+        "정상 근무 가능 진단서"
+      ],
+      "method": "방법 줄은 본인이 작성한 복직원과 복직 사유 증빙을 30일 이내 교육청 또는 교육지원청에 낸다고 적는다. 30일의 기산점은 적혀 있지 않다. 질병휴직자는 정상 근무가 가능하다는 진단서를 내게 하여 가능 여부를 판단한 뒤 복직을 명한다고 적는다.",
+      "outcome": null,
+      "occupation": {
+        "occupationId": "occ-0002",
+        "name": "지방공무원 (교육행정직 등)"
+      },
+      "nextStepIds": [],
+      "sectionIds": [
+        "family-0001-sec-05"
+      ],
+      "sourceIds": [
+        "SRC-HANDBOOK-2026-PDF-045"
+      ],
+      "verification": {
+        "status": "handbook_checked",
+        "currency": "not_checked",
+        "transcription": "conflict",
+        "release": "draft"
+      },
+      "lawCheck": {
+        "status": "differs",
+        "currency": "not_checked",
+        "needsRevision": true,
+        "lawSourceIds": [
+          "LAW-LOCAL-ACT"
+        ],
+        "note": "제65조제3항의 30일은 휴직기간이 끝난 때부터의 복귀신고다. 복직원, 교육청 제출, 정상 근무 가능 진단서는 이 조문에 없다. 편람 대조의 불일치는 유지한다."
+      },
+      "origin": "verified-source"
+    }
+  ],
+  "occupations": [
+    {
+      "occupationId": "occ-0001",
+      "name": "교 원",
+      "currency": "not_checked",
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "lawSourceIds": [
+          "LAW-TEACHER-LEAVE",
+          "LAW-NATIONAL-DUTY",
+          "LAW-EDU-ACT"
+        ],
+        "note": "예규 제6조는 병가를 국가공무원 복무규정과 복무·징계 예규에 따른다고만 정한다. 복무규정 제18조는 읽었고, 복무·징계 예규 본문은 열지 못했다. 질병휴직 기간은 교육공무원법 제44조제1항제1호·제45조제1항제1호를 읽었다. 복직 30일 절차는 이 법 본문에서 찾지 못했다."
+      }
+    },
+    {
+      "occupationId": "occ-0002",
+      "name": "지방공무원 (교육행정직 등)",
+      "currency": "not_checked",
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "lawSourceIds": [
+          "LAW-LOCAL-ACT",
+          "LAW-LOCAL-DUTY",
+          "LAW-LOCAL-APPOINT"
+        ],
+        "note": "병가 일수와 질병휴직 기간·복직 신고의 일부 조문을 읽었다. 나이스, 보수 비율, 1개월 전 신청, 분기 보고, 7일 연속 진단서는 현행 확인이 끝나지 않았다."
+      }
+    },
+    {
+      "occupationId": "occ-0003",
+      "name": "교육공무직원",
+      "currency": "not_checked",
+      "lawCheck": {
+        "status": "not_checked",
+        "currency": "not_checked",
+        "lawSourceIds": [],
+        "note": "단체협약과 교육청 지침 본문을 열지 못했다."
+      }
+    },
+    {
+      "occupationId": "occ-0004",
+      "name": "사회복무요원",
+      "currency": "not_checked",
+      "lawCheck": {
+        "status": "partial",
+        "currency": "not_checked",
+        "lawSourceIds": [
+          "LAW-SOCIAL"
+        ],
+        "note": "훈령 제23조·제49조를 읽었다. 편람의 4일 기준은 현행 제23조와 다르다. 소집해제 당일 병가 금지 문장은 확인한 본문에서 찾지 못했다."
+      }
+    },
+    {
+      "occupationId": "occ-0005",
+      "name": "원어민 영어보조교사",
+      "currency": "not_checked",
+      "lawCheck": {
+        "status": "not_checked",
+        "currency": "not_checked",
+        "lawSourceIds": [],
+        "note": "고용계약과 길라잡이 본문을 열지 못했다."
+      }
+    }
+  ],
+  "sources": [
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-043",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 41,
+      "pdfPage": 43,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-044",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 42,
+      "pdfPage": 44,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-045",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 43,
+      "pdfPage": 45,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-052",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 50,
+      "pdfPage": 52,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-053",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 51,
+      "pdfPage": 53,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-054",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 52,
+      "pdfPage": 54,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-055",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 53,
+      "pdfPage": 55,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-092",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 90,
+      "pdfPage": 92,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-093",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 91,
+      "pdfPage": 93,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-110",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 108,
+      "pdfPage": 110,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-111",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 109,
+      "pdfPage": 111,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-112",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 110,
+      "pdfPage": 112,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-113",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 111,
+      "pdfPage": 113,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-142",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 140,
+      "pdfPage": 142,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    },
+    {
+      "sourceId": "SRC-HANDBOOK-2026-PDF-336",
+      "documentId": "handbook-2026-gangwon-school-admin-202602",
+      "documentTitle": "2026 학교행정 업무편람(202602)",
+      "printedPage": 334,
+      "pdfPage": 336,
+      "sourceType": "handbook",
+      "handbookPresence": "checked",
+      "currency": "not_checked",
+      "verificationStatus": "handbook_checked_not_current_law"
+    }
+  ],
+  "lawSources": [
+    {
+      "lawSourceId": "LAW-LOCAL-ACT",
+      "title": "지방공무원법",
+      "kind": "법률",
+      "effectiveDate": "2026-10-02",
+      "proclamation": "법률 제21857호, 2026-08-04, 타법개정",
+      "articles": [
+        "제63조",
+        "제64조",
+        "제65조"
+      ],
+      "url": "https://www.law.go.kr/LSW/lsInfoP.do?lsId=001653",
+      "articleUrls": {
+        "제63조": "https://www.law.go.kr/LSW/lsLawLinkInfo.do?chrClsCd=010202&lsId=001653&lsJoLnkSeq=900673870&print=print",
+        "제64조": "https://www.law.go.kr/LSW/lsLawLinkInfo.do?chrClsCd=010202&lsId=001653&lsJoLnkSeq=900673859&print=print",
+        "제65조": "https://www.law.go.kr/LSW/lsLawLinkInfo.do?chrClsCd=010202&lsId=001653&lsJoLnkSeq=900673882&print=print"
+      },
+      "retrievedAt": "2026-10-11",
+      "bodyRead": true
+    },
+    {
+      "lawSourceId": "LAW-LOCAL-DUTY",
+      "title": "지방공무원 복무규정",
+      "kind": "대통령령",
+      "effectiveDate": "2026-10-02",
+      "proclamation": "대통령령 제36728호, 2026-09-29, 타법개정",
+      "articles": [
+        "제7조",
+        "제7조의2",
+        "제7조의5",
+        "제7조의8"
+      ],
+      "url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=290493",
+      "bodyUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290493&efYd=20261002&chrClsCd=010202",
+      "retrievedAt": "2026-10-11",
+      "bodyRead": true
+    },
+    {
+      "lawSourceId": "LAW-LOCAL-APPOINT",
+      "title": "지방공무원 임용령",
+      "kind": "대통령령",
+      "effectiveDate": "2026-06-30",
+      "proclamation": "대통령령 제36487호, 2026-06-30, 일부개정",
+      "articles": [
+        "제38조의18"
+      ],
+      "url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=287515",
+      "bodyUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=287515&efYd=20260630&chrClsCd=010202",
+      "retrievedAt": "2026-10-11",
+      "bodyRead": true
+    },
+    {
+      "lawSourceId": "LAW-TEACHER-LEAVE",
+      "title": "교원휴가에 관한 예규",
+      "kind": "교육부예규",
+      "effectiveDate": "2026-02-27",
+      "proclamation": "교육부예규 제104호, 2026-02-27, 일부개정",
+      "articles": [
+        "제5조",
+        "제6조"
+      ],
+      "url": "https://www.law.go.kr/LSW/admRulInfoP.do?admRulSeq=2100000275274",
+      "retrievedAt": "2026-10-11",
+      "bodyRead": true
+    },
+    {
+      "lawSourceId": "LAW-NATIONAL-DUTY",
+      "title": "국가공무원 복무규정",
+      "kind": "대통령령",
+      "effectiveDate": "2026-10-02",
+      "proclamation": "대통령령 제36728호, 2026-09-29, 타법개정",
+      "articles": [
+        "제18조",
+        "제22조"
+      ],
+      "url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=290349",
+      "bodyUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290349&efYd=20261002&chrClsCd=010202",
+      "retrievedAt": "2026-10-11",
+      "bodyRead": true
+    },
+    {
+      "lawSourceId": "LAW-EDU-ACT",
+      "title": "교육공무원법",
+      "kind": "법률",
+      "effectiveDate": "2026-10-02",
+      "proclamation": "법률 제21857호, 2026-08-04, 타법개정",
+      "articles": [
+        "제44조",
+        "제45조"
+      ],
+      "url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=290751",
+      "bodyUrl": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290751&efYd=20261002&chrClsCd=010202",
+      "retrievedAt": "2026-10-11",
+      "bodyRead": true
+    },
+    {
+      "lawSourceId": "LAW-SOCIAL",
+      "title": "사회복무요원 복무관리 규정",
+      "kind": "병무청훈령",
+      "effectiveDate": "2026-04-23",
+      "proclamation": "병무청훈령 제2206호, 2026-04-23, 일부개정",
+      "articles": [
+        "제23조",
+        "제49조"
+      ],
+      "url": "https://www.law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000284594",
+      "retrievedAt": "2026-10-11",
+      "bodyRead": true
+    }
+  ],
+  "observedPages": {
+    "printed": [
+      41,
+      42,
+      43,
+      50,
+      51,
+      52,
+      53,
+      90,
+      91,
+      108,
+      109,
+      110,
+      111,
+      140,
+      334
+    ],
+    "pdf": [
+      43,
+      44,
+      45,
+      52,
+      53,
+      54,
+      55,
+      92,
+      93,
+      110,
+      111,
+      112,
+      113,
+      142,
+      336
+    ]
+  },
+  "chart": {
+    "sourceSectionId": "family-0001-sec-02",
+    "status": "candidate_requires_review",
+    "scope": "지방공무원 중심; 타 직종 별도 검증",
+    "workflowPromoted": false,
+    "mermaid": "flowchart TD\n A([질병·부상 발생]) --> B{직종 확인}\n B -->|지방공무원| C{진단서 제출 의무?}\n B -->|교원·교육공무직원·기타| Z[해당 직종 규정 별도 확인]\n C -->|연속 7일 이상 또는 연 누계 6일 초과| D{진단서 제출?}\n C -->|그 외| E[병가 신청]\n D -->|제출| E\n D -->|미제출| F[병가 미산입·연가 공제]\n E --> G[NEIS 상신·승인]\n G --> H[시간 누계·30일 연속 휴가 산입 검토]\n H --> I{장기요양 필요성?}\n I -->|아니오| J[병가 종료·업무 복귀]\n I -->|예| K[질병휴직 법적 요건·진단서·인사 절차 검토]\n K --> L[휴직 발령 및 분기별 복무관리]\n L --> M{복직 사유}\n M -->|사유 소멸| N[30일 이내 신고·복직 심사]\n M -->|기간 만료| O[당연 복직 관련 절차·근무 가능 진단서 확인]",
+    "nodes": [
+      {
+        "nodeId": "A",
+        "label": "질병·부상 발생",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "B",
+        "label": "직종 확인",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "C",
+        "label": "진단서 제출 의무?",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "Z",
+        "label": "해당 직종 규정 별도 확인",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "D",
+        "label": "진단서 제출?",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "E",
+        "label": "병가 신청",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "F",
+        "label": "병가 미산입·연가 공제",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "G",
+        "label": "NEIS 상신·승인",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "H",
+        "label": "시간 누계·30일 연속 휴가 산입 검토",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "I",
+        "label": "장기요양 필요성?",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "J",
+        "label": "병가 종료·업무 복귀",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "K",
+        "label": "질병휴직 법적 요건·진단서·인사 절차 검토",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "L",
+        "label": "휴직 발령 및 분기별 복무관리",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "M",
+        "label": "복직 사유",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "N",
+        "label": "30일 이내 신고·복직 심사",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      },
+      {
+        "nodeId": "O",
+        "label": "당연 복직 관련 절차·근무 가능 진단서 확인",
+        "targetTopicId": null,
+        "targetStepId": null,
+        "targetSectionId": null
+      }
+    ],
+    "edges": [
+      {
+        "from": "A",
+        "to": "B",
+        "label": null
+      },
+      {
+        "from": "B",
+        "to": "C",
+        "label": "지방공무원"
+      },
+      {
+        "from": "B",
+        "to": "Z",
+        "label": "교원·교육공무직원·기타"
+      },
+      {
+        "from": "C",
+        "to": "D",
+        "label": "연속 7일 이상 또는 연 누계 6일 초과"
+      },
+      {
+        "from": "C",
+        "to": "E",
+        "label": "그 외"
+      },
+      {
+        "from": "D",
+        "to": "E",
+        "label": "제출"
+      },
+      {
+        "from": "D",
+        "to": "F",
+        "label": "미제출"
+      },
+      {
+        "from": "E",
+        "to": "G",
+        "label": null
+      },
+      {
+        "from": "G",
+        "to": "H",
+        "label": null
+      },
+      {
+        "from": "H",
+        "to": "I",
+        "label": null
+      },
+      {
+        "from": "I",
+        "to": "J",
+        "label": "아니오"
+      },
+      {
+        "from": "I",
+        "to": "K",
+        "label": "예"
+      },
+      {
+        "from": "K",
+        "to": "L",
+        "label": null
+      },
+      {
+        "from": "L",
+        "to": "M",
+        "label": null
+      },
+      {
+        "from": "M",
+        "to": "N",
+        "label": "사유 소멸"
+      },
+      {
+        "from": "M",
+        "to": "O",
+        "label": "기간 만료"
+      }
+    ],
+    "nodeLinks": []
+  },
+  "verifiedFlow": {
+    "status": "draft",
+    "basedOn": "verified-source-steps",
+    "mermaidPromoted": false,
+    "release": "blocked",
+    "nodes": [
+      {
+        "nodeId": "family-0001-step-sick-01",
+        "label": "병가 사유와 일수 구분",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-sick-01"
+      },
+      {
+        "nodeId": "family-0001-step-sick-02",
+        "label": "진단서 제출 여부",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-sick-02"
+      },
+      {
+        "nodeId": "family-0001-step-sick-03",
+        "label": "휴가 승인 신청",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-sick-03"
+      },
+      {
+        "nodeId": "family-0001-step-sick-04",
+        "label": "병가 일수 계산",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-sick-04"
+      },
+      {
+        "nodeId": "family-0001-step-sick-05",
+        "label": "병가와 연가를 모두 쓴 뒤",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-sick-05"
+      },
+      {
+        "nodeId": "family-0001-step-edu-01",
+        "label": "교육공무직원 병가 한도",
+        "occupationId": "occ-0003",
+        "stepId": "family-0001-step-edu-01"
+      },
+      {
+        "nodeId": "family-0001-step-edu-02",
+        "label": "교육공무직원 진단서",
+        "occupationId": "occ-0003",
+        "stepId": "family-0001-step-edu-02"
+      },
+      {
+        "nodeId": "family-0001-step-native-01",
+        "label": "원어민 영어보조교사 유급병가",
+        "occupationId": "occ-0005",
+        "stepId": "family-0001-step-native-01"
+      },
+      {
+        "nodeId": "family-0001-step-social-01",
+        "label": "사회복무요원 병가",
+        "occupationId": "occ-0004",
+        "stepId": "family-0001-step-social-01"
+      },
+      {
+        "nodeId": "family-0001-step-social-02",
+        "label": "30일 초과 시 복무기간",
+        "occupationId": "occ-0004",
+        "stepId": "family-0001-step-social-02"
+      },
+      {
+        "nodeId": "family-0001-step-ill-01",
+        "label": "장기요양 요건 확인",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-ill-01"
+      },
+      {
+        "nodeId": "family-0001-step-ill-02",
+        "label": "휴직 신청",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-ill-02"
+      },
+      {
+        "nodeId": "family-0001-step-ill-03",
+        "label": "복무상황 보고",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-ill-03"
+      },
+      {
+        "nodeId": "family-0001-step-ill-04",
+        "label": "휴직 사유 소멸 신고",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-ill-04"
+      },
+      {
+        "nodeId": "family-0001-step-ill-05",
+        "label": "휴직 기간 만료",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-ill-05"
+      },
+      {
+        "nodeId": "family-0001-step-ill-06",
+        "label": "복직원과 질병휴직 진단서",
+        "occupationId": "occ-0002",
+        "stepId": "family-0001-step-ill-06"
+      }
+    ],
+    "edges": [
+      {
+        "from": "family-0001-step-sick-01",
+        "to": "family-0001-step-sick-02",
+        "condition": "지방공무원 병가"
+      },
+      {
+        "from": "family-0001-step-sick-02",
+        "to": "family-0001-step-sick-03",
+        "condition": "진단서 판단 후 신청"
+      },
+      {
+        "from": "family-0001-step-sick-03",
+        "to": "family-0001-step-sick-04",
+        "condition": "승인 후 일수 계산"
+      },
+      {
+        "from": "family-0001-step-sick-04",
+        "to": "family-0001-step-sick-05",
+        "condition": "일반병가 또는 공무상 병가가 끝난 때"
+      },
+      {
+        "from": "family-0001-step-edu-01",
+        "to": "family-0001-step-edu-02",
+        "condition": "교육공무직원"
+      },
+      {
+        "from": "family-0001-step-social-01",
+        "to": "family-0001-step-social-02",
+        "condition": "통산 30일 초과"
+      },
+      {
+        "from": "family-0001-step-ill-01",
+        "to": "family-0001-step-ill-02",
+        "condition": "장기요양"
+      },
+      {
+        "from": "family-0001-step-ill-02",
+        "to": "family-0001-step-ill-03",
+        "condition": "휴직 중"
+      },
+      {
+        "from": "family-0001-step-ill-03",
+        "to": "family-0001-step-ill-04",
+        "condition": "휴직 사유 소멸"
+      },
+      {
+        "from": "family-0001-step-ill-03",
+        "to": "family-0001-step-ill-05",
+        "condition": "휴직 기간 만료"
+      },
+      {
+        "from": "family-0001-step-ill-04",
+        "to": "family-0001-step-ill-06",
+        "condition": "사유 소멸 후 복직 서류"
+      },
+      {
+        "from": "family-0001-step-ill-05",
+        "to": "family-0001-step-ill-06",
+        "condition": "만료 후 복직 서류"
+      }
+    ]
+  },
+  "search": {
+    "publicQueries": [
+      "병가",
+      "질병휴직",
+      "NEIS 병가",
+      "나이스 복무",
+      "복직",
+      "출입국사실증명서"
+    ],
+    "withheldQueries": [
+      "공무상 병가",
+      "진단서",
+      "병가 6일",
+      "병가 7일",
+      "병가 60일",
+      "공무상 병가 180일",
+      "조퇴 8시간",
+      "병가 공휴일",
+      "연가 공제"
+    ],
+    "faqsIncludedInSectionId": "family-0001-sec-09"
+  },
+  "conflicts": [
+    {
+      "sectionIds": [
+        "family-0001-sec-02",
+        "family-0001-sec-05"
+      ],
+      "note": "인쇄 43쪽은 사유 소멸 시 30일 이내 신고, 기간 만료는 당연 복직, 방법 줄의 30일은 기산점이 없고, 질병휴직은 근무 가능 진단서 후 복직 명령이라고 적는다. 2절과 5절의 문장은 삭제하지 않았다."
+    },
+    {
+      "sectionIds": [
+        "family-0001-sec-02",
+        "family-0001-sec-05"
+      ],
+      "note": "지방공무원법 제65조제3항(시행 2026. 10. 2.)은 휴직기간이 끝난 공무원이 30일 이내에 복귀신고를 하면 당연히 복직된다고 정한다. 2절과 5절의 편람 문장은 삭제하지 않았다."
+    }
+  ],
+  "preservedCandidateProse": {
+    "publicRelease": false,
+    "purpose": "교직원 등의 병가·질병휴직 관련 기준과 신청·복직 절차를 직종별로 확인한다.",
+    "easyExplanation": "질병이나 부상으로 근무하기 어려울 때 병가 신청 방법과 진단서 제출 여부를 확인하고, 장기요양이 필요한 경우 질병휴직 절차를 별도로 검토하는 업무입니다. 직종별 규정이 다릅니다.",
+    "beginnerSummary": "먼저 직종을 확인하고 병가 일수·진단서 필요 여부를 판단합니다. NEIS 신청·승인을 진행하며 장기요양이 필요하면 별도의 휴직 요건을 확인합니다.",
+    "officialCodeName": "병가 / 질병휴직"
+  }
+}

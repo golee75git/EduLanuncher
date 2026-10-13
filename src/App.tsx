@@ -42,7 +42,9 @@ import { SiteListImportPage } from "./pages/SiteListImportPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
 import { ToolGroupPage } from "./pages/ToolGroupPage";
 import { HandbookCategoryListPage, HandbookCategoryPage, HandbookTopicPage } from "./pages/HandbookFlowPages";
+import { PilotManualPage } from "./pages/PilotManualPage";
 import { TopicDetailPage } from "./pages/TopicDetailPage";
+import { isPilotTopicId, pilotManualEnabled, usePilotManualStore } from "./services/pilotManual";
 import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
@@ -180,6 +182,7 @@ export default function App() {
   const [dropPick, setDropPick] = useState<DropHold | null>(null);
   const [releaseNotice, setReleaseNotice] = useState<string | null>(null);
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
+  const pilotOn = usePilotManualStore((state) => state.enabled);
   const priorSkin = useSettingsStore((state) => isPriorSkin(state.settings.panelSkin));
   const windowLabel = currentWindowLabel();
   const mapWindow = windowLabel === "work-map";
@@ -1041,7 +1044,14 @@ export default function App() {
               onOpen={(topicId) => openTopic(topicId, { name: "topic-review" })}
             />
           ) : null}
-          {view.name === "topic" ? (
+          {view.name === "topic" && isPilotTopicId(view.topicId) && pilotOn && pilotManualEnabled() ? (
+            <PilotManualPage
+              topicId={view.topicId}
+              onBack={() => setView(view.backTo)}
+              onOpenRelated={(topicId) => openTopic(topicId, view.backTo)}
+            />
+          ) : null}
+          {view.name === "topic" && !(isPilotTopicId(view.topicId) && pilotOn && pilotManualEnabled()) ? (
             <TopicDetailPage
               topicId={view.topicId}
               onBack={() => setView(view.backTo)}

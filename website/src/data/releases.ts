@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.183-20261013",
+    note: "편람은 업무 흐름만, 업무자료는 한눈에 보기만 보여 줍니다. 병가·질병휴직은 개발용 시범 매뉴얼로 검색과 시범 매뉴얼에 나옵니다.",
+  },
+  {
     version: "0.1.182-20261013",
     note: "끌어 놓은 엑셀은 첫 번째 열을 사이트명으로 보여 줍니다.",
   },

@@ -301,6 +301,7 @@ fs.writeFileSync(path.join(outDir, "handbook.json"), JSON.stringify(handbook));
 fs.writeFileSync(path.join(outDir, "topics.json"), JSON.stringify(topicIndex));
 fs.writeFileSync(path.join(outDir, "master.json"), JSON.stringify(master));
 fs.writeFileSync(path.join(outDir, "epki.json"), JSON.stringify(epki));
+fs.copyFileSync(path.join(repoRoot, "generated/knowledge-v1/standard/family-0001.json"), path.join(outDir, "pilot-standard.json"));
 fs.writeFileSync(path.join(packDir, "handbook.json"), JSON.stringify(pack));
 fs.writeFileSync(path.join(packDir, "topics.json"), JSON.stringify(topics));
 fs.writeFileSync(path.join(packDir, "master.json"), JSON.stringify(master));

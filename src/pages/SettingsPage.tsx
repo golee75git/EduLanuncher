@@ -13,12 +13,27 @@ import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/notice
 import { pickOpenFiles, pickSaveFile } from "../services/savePick";
 import type { HandoverBox } from "../services/workHandoverService";
 import type { NoticePack } from "../types/notice";
+import { usePilotManualStore } from "../services/pilotManual";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useAdminToolStore } from "../stores/adminToolStore";
 import { useToolStore } from "../stores/toolStore";
 import { DocumentSearchSettings } from "../components/DocumentSearchSettings";
 import { loadOrgPolicy, type OrgPolicy } from "../services/orgPolicy";
 import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
+
+function PilotManualToggle() {
+  const enabled = usePilotManualStore((state) => state.enabled);
+  return (
+    <label className="flex items-center gap-2 text-sm text-desk">
+      <input
+        type="checkbox"
+        checked={enabled}
+        onChange={(event) => usePilotManualStore.getState().setEnabled(event.target.checked)}
+      />
+      개발용 병가·질병휴직 시범 매뉴얼
+    </label>
+  );
+}
 
 interface SettingsPageProps {
   onBack: () => void;
@@ -442,10 +457,11 @@ export function SettingsPage({
 
         <SettingsCard title="업무자료">
           <p className="text-xs leading-5 text-quiet">
-            홈 검색 또는 업무도구의 업무자료에서 관련 업무를 찾습니다. 편람 분류는 업무자료와 따로 둡니다. 검색 결과 위에 업무 그림이 나오고, 크게 보기에서 런처 옆을 조금 더 넓게 펼칩니다. 그림은 그 창을 채웁니다. 자세한 업무에서 뒤로 가면 방금 검색한 화면이 다시 나옵니다. 업무지도 탭은 목록입니다. 교육행정전자서명(EPKI) 인증서는 같은 JSON에서 검색·목록·상세가 이어집니다.
+            홈 검색 또는 업무도구의 업무자료에서 관련 업무를 찾습니다. 병가와 질병휴직은 개발용 시범 매뉴얼로 검색에 나옵니다. 현행 법령 검증 중이라 실제 업무 기준으로 쓰지 않습니다. 편람 분류는 업무자료와 따로 둡니다. 검색 결과 위에 업무 그림이 나오고, 크게 보기에서 런처 옆을 조금 더 넓게 펼칩니다. 그림은 그 창을 채웁니다. 자세한 업무에서 뒤로 가면 방금 검색한 화면이 다시 나옵니다. 업무지도 탭은 목록입니다. 교육행정전자서명(EPKI) 인증서는 같은 JSON에서 검색·목록·상세가 이어집니다.
           </p>
           {import.meta.env.DEV ? (
             <>
+              <PilotManualToggle />
               <button type="button" className="btn-secondary" onClick={onHandbook}>
                 편람 분류
               </button>
@@ -532,6 +548,7 @@ export function SettingsPage({
             <li>사이트 칸의 인터넷 즐겨찾기는 이 PC Edge·Chrome 북마크와 Windows .url만 읽습니다. Windows .url을 넣으면 그 파일 아이콘을 같이 남깁니다. Edge·Chrome 북마크는 주소만 넣습니다.</li>
             <li>사이트 추가와 사이트 목록의 엑셀에서 xlsx 첫 시트의 첫 번째 열을 사이트명으로 보여 주고, url 칸의 주소만 읽습니다. 고른 주소만 넣고, 넣기 전에는 저장하지 않습니다. http와 https만 됩니다. 이미 있는 주소는 건너뜁니다. 사이트에 접속하지 않습니다. 예전 xls는 읽지 않습니다.</li>
             <li>창에 xlsx, pdf, hwpx를 끌어 놓으면 글 안의 http·https 주소를 찾습니다. xlsx는 첫 번째 열을 사이트명으로 보여 줍니다. 주소가 있으면 사이트로 넣을지, 파일로 둘지 고릅니다. PDF는 PDF 도구도 고를 수 있습니다. 넣기 전에는 저장하지 않습니다. 구형 hwp는 읽지 않습니다. 사이트에 접속하지 않습니다.</li>
+            <li>홈 검색에서 병가 또는 질병휴직을 찾으면 개발용 시범 매뉴얼이 열립니다. 현행 법령 검증 중이라 실제 업무 기준으로 쓰지 않습니다. 소개 사이트 매뉴얼의 시범 매뉴얼에도 같은 내용이 있습니다.</li>
             <li>안쪽 화면 오른쪽 아래 처음 화면, 또는 홈에서 검색 중일 때 위쪽 처음 화면을 누르면 공지·바로가기 첫 화면으로 갑니다.</li>
             <li>홈 아래 메모의 크게 보기는 런처 옆에 창 하나를 엽니다. 제목 줄로 옮기고, 모서리로 크기를 바꿉니다. 바꾼 크기는 이 PC에 남습니다. 패널을 숨기면 같이 숨고, 다시 열면 옮긴 자리·크기가 있습니다. 제목 줄 X로 닫으면 다음 크게는 다시 옆에서 엽니다. + 추가로 메모 2부터 별도 창을 4개까지 엽니다. 그 창은 제목 줄로 옮긴 자리를 화면 안에 남깁니다. X로 닫아도 글은 남습니다. 메모 줄을 누르면 그 창을 다시 엽니다. - 는 그 글을 지웁니다.</li>
             <li>홈 검색 결과는 관련 도구, 최근 사용, 이 PC 폴더, 학교, PC 문제 해결, 관련 업무 순입니다. 관련 도구 줄마다 사이트·프로그램·파일·폴더·업무도구가 보입니다. PC 문제 해결은 학교와 관련 업무 사이에 최대 5줄이 나오고, 더 보기에서 분류·검색 목록을 엽니다. 관련 업무와 섞지 않습니다. 설정의 보기에서 빈 구역 숨김을 켜면 일치가 없는 구역은 빼고, 모두 없으면 한 줄만 남깁니다. 이 PC 폴더는 한 글자일 때 두 글자 안내를 남깁니다. 관련 업무 위에 업무 그림이 있고, 크게 보기에서 런처 옆을 조금 더 넓게 펼칩니다. 그림은 창을 채웁니다. 확대·축소 단추와 마우스 휠로 크기를 바꾸고, 끌어서 옮깁니다. 상자를 누르면 패널에 자세한 업무가 열립니다. 그 창은 제목 줄 X로 닫습니다. 패널을 숨기면 같이 숨습니다. 프로그램은 트레이 종료로 끕니다. 관련 업무를 연 뒤 위쪽 뒤로 또는 오른쪽 아래 이전화면을 누르면 검색어와 그림·목록이 그대로 있습니다. 처음 화면을 누르면 빈 홈으로 갑니다.</li>

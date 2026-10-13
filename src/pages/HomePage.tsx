@@ -28,6 +28,7 @@ import {
 } from "../services/troubleshootingService";
 import { TROUBLE_CATEGORY_LABEL } from "../types/troubleshooting";
 import { getTopicById, getTopics } from "../services/topicService";
+import { isPilotTopicId, pilotHitsForQuery, usePilotManualStore } from "../services/pilotManual";
 import { TopicSearch } from "../components/TopicSearch";
 import { WorkMapPreview } from "../components/WorkMapPreview";
 import {
@@ -119,6 +120,7 @@ function todayLabel(): string {
 
 function flattenResults(
   topicHits: TopicSearchHit[],
+  pilotHits: Array<{ id: string }>,
   results: SearchResults,
   recentUse: RecentUseItem[],
   folderHits: UserFolderHit[],
@@ -126,11 +128,18 @@ function flattenResults(
   troubleHits: TroubleSearchHit[],
   manualHits: ManualIndexTopic[],
 ): ResultItem[] {
-  const topics: ResultItem[] = topicHits.map((hit) => ({
-    kind: "topic",
-    id: `topic:${hit.item.id}`,
-    topicId: hit.item.id,
-  }));
+  const topics: ResultItem[] = [
+    ...topicHits.map((hit) => ({
+      kind: "topic" as const,
+      id: `topic:${hit.item.id}`,
+      topicId: hit.item.id,
+    })),
+    ...pilotHits.map((hit) => ({
+      kind: "topic" as const,
+      id: `topic:${hit.id}`,
+      topicId: hit.id,
+    })),
+  ];
   const schools: ResultItem[] = results.schools.map((hit) => ({
     kind: "school",
     id: `school:${hit.item.id}`,
@@ -281,6 +290,15 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       scoreText(query, privacyTool.name, privacyTool.description, privacyTool.category, ...(privacyTool.keywords ?? [])) > 0,
   );
   const topicHits = useMemo(() => searchTopics(query, topicList), [query, topicList]);
+  const pilotOn = usePilotManualStore((state) => state.enabled && state.ready);
+  const listedTopicHits = useMemo(
+    () => (pilotOn ? topicHits.filter((hit) => !isPilotTopicId(hit.item.id)) : topicHits),
+    [pilotOn, topicHits],
+  );
+  const pilotHits = useMemo(
+    () => (pilotOn ? pilotHitsForQuery(query, listedTopicHits.map((hit) => hit.item.id)) : []),
+    [pilotOn, query, listedTopicHits],
+  );
   const manualHits = useMemo(() => searchManualIndex(query), [query]);
   const troubleHits = useMemo(() => searchTroubleCards(query), [query]);
   const recentUseMatched = useMemo(() => {
@@ -307,8 +325,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       .slice(0, settings.recentCount);
   }, [query, recentUse, recentUseAll, settings.recentCount]);
   const flat = useMemo(
-    () => flattenResults(topicHits, results, recentUseMatched, folderHits, docHits, troubleHits, manualHits),
-    [topicHits, results, recentUseMatched, folderHits, docHits, troubleHits, manualHits],
+    () => flattenResults(listedTopicHits, pilotHits, results, recentUseMatched, folderHits, docHits, troubleHits, manualHits),
+    [listedTopicHits, pilotHits, results, recentUseMatched, folderHits, docHits, troubleHits, manualHits],
   );
   const idleItems: ResultItem[] = useMemo(
     () => [
@@ -535,7 +553,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const showDocs = !hideEmpty || !folderReady || docBusy || docHits.length > 0;
   const showSchools = !hideEmpty || results.schools.length > 0;
   const showTroubles = !hideEmpty || troubleHits.length > 0;
-  const showTopics = !hideEmpty || topicHits.length > 0;
+  const showTopics = !hideEmpty || listedTopicHits.length > 0 || pilotHits.length > 0;
   const showManuals = !hideEmpty || manualHits.length > 0 || Boolean(manualIndexUnavailable());
   const anySearchGroup =
     showTools || showRecents || showFolders || showDocs || showSchools || showTroubles || showManuals || showTopics;
@@ -1129,20 +1147,34 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
             {showTopics ? (
             <ResultGroup title="관련 업무" empty="일치하는 업무가 없습니다.">
               {topicHits.length > 0 ? (
-                <>
-                  <WorkMapPreview
-                    query={query}
-                    hitIds={topicHits.map((hit) => hit.item.id)}
-                    onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
-                  />
-                  <TopicSearch
-                    items={topicHits}
-                    selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
-                    query={query}
-                    onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
-                  />
-                </>
+                <WorkMapPreview
+                  query={query}
+                  hitIds={topicHits.map((hit) => hit.item.id)}
+                  onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
+                />
               ) : null}
+              {listedTopicHits.length > 0 ? (
+                <TopicSearch
+                  items={listedTopicHits}
+                  selectedId={selectedId?.startsWith("topic:") ? selectedId.slice("topic:".length) : undefined}
+                  query={query}
+                  onOpen={(topicId) => onAction({ type: "topic", topicId, search: query })}
+                />
+              ) : null}
+              {pilotHits.map((hit) => (
+                <button
+                  key={hit.id}
+                  type="button"
+                  className={`card-surface w-full p-3 text-left ${selectedId === `topic:${hit.id}` ? "ring-1 ring-ink/20" : ""}`}
+                  onClick={() => onAction({ type: "topic", topicId: hit.id, search: query })}
+                >
+                  <p className="text-[11px] text-quiet">{hit.category} · 개발용 시범</p>
+                  <h3 className="mt-1 text-sm font-semibold text-desk">
+                    <HighlightText text={hit.title} query={query} />
+                  </h3>
+                  <p className="mt-2 text-[11px] font-medium text-ink">업무 자세히 보기</p>
+                </button>
+              ))}
             </ResultGroup>
             ) : null}
             {hideEmpty && !anySearchGroup ? (

@@ -37,16 +37,52 @@ function lines(value: string[] | undefined): string[] {
   return (value ?? []).map((item) => item.trim()).filter(Boolean);
 }
 
-export function TopicStepBoards({ steps }: { steps: TopicStep[] }) {
+export function TopicStepBoards({ steps, board }: { steps: TopicStep[]; board: "flow" | "glance" }) {
   const [open, setOpen] = useState(0);
   const ready = steps.filter((step) => step.title.trim());
   if (ready.length === 0) return null;
   const current = ready[open] ?? ready[0];
   const documents = lines(current.documents);
   const caveats = lines(current.caveats);
+  const detail =
+    current.note || current.pages || current.href || documents.length > 0 || caveats.length > 0 ? (
+      <div className="rounded-xl border border-line bg-card px-3 py-2 text-sm leading-6 text-desk">
+        <p className="text-[11px] text-quiet">
+          {current.order || open + 1}. {current.title}
+        </p>
+        {current.note ? <p className="mt-1 whitespace-pre-wrap">{current.note}</p> : null}
+        {documents.length > 0 ? (
+          <div className="mt-2">
+            <p className="text-[11px] text-quiet">이 단계의 서류</p>
+            <ul className="list-disc space-y-0.5 pl-4">
+              {documents.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {caveats.length > 0 ? (
+          <div className="mt-2">
+            <p className="text-[11px] text-quiet">이 단계의 주의</p>
+            <ul className="list-disc space-y-0.5 pl-4">
+              {caveats.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {current.pages ? <p className="mt-1 text-[11px] text-quiet">{current.pages}</p> : null}
+        {current.href?.startsWith("/menu/handbook/") ? (
+          <a className="mt-2 inline-block text-sm text-ink" href={current.href}>
+            이 업무 열기
+          </a>
+        ) : null}
+      </div>
+    ) : null;
 
   return (
     <div className="space-y-4">
+      {board === "flow" ? (
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-desk">업무 흐름</h2>
         <ol className="m-0 flex list-none flex-col gap-2 p-0 sm:flex-row sm:flex-wrap sm:items-stretch">
@@ -77,41 +113,10 @@ export function TopicStepBoards({ steps }: { steps: TopicStep[] }) {
             );
           })}
         </ol>
-        {current.note || current.pages || current.href || documents.length > 0 || caveats.length > 0 ? (
-          <div className="rounded-xl border border-line bg-card px-3 py-2 text-sm leading-6 text-desk">
-            <p className="text-[11px] text-quiet">
-              {current.order || open + 1}. {current.title}
-            </p>
-            {current.note ? <p className="mt-1 whitespace-pre-wrap">{current.note}</p> : null}
-            {documents.length > 0 ? (
-              <div className="mt-2">
-                <p className="text-[11px] text-quiet">이 단계의 서류</p>
-                <ul className="list-disc space-y-0.5 pl-4">
-                  {documents.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            {caveats.length > 0 ? (
-              <div className="mt-2">
-                <p className="text-[11px] text-quiet">이 단계의 주의</p>
-                <ul className="list-disc space-y-0.5 pl-4">
-                  {caveats.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            {current.pages ? <p className="mt-1 text-[11px] text-quiet">{current.pages}</p> : null}
-            {current.href?.startsWith("/menu/handbook/") ? (
-              <a className="mt-2 inline-block text-sm text-ink" href={current.href}>
-                이 업무 열기
-              </a>
-            ) : null}
-          </div>
-        ) : null}
+        {detail}
       </section>
+      ) : null}
+      {board === "glance" ? (
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-desk">한눈에 보기</h2>
         <ol className="m-0 flex list-none flex-wrap items-center gap-1 p-0">
@@ -140,7 +145,9 @@ export function TopicStepBoards({ steps }: { steps: TopicStep[] }) {
             );
           })}
         </ol>
+        {detail}
       </section>
+      ) : null}
     </div>
   );
 }
