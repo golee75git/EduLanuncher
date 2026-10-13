@@ -143,7 +143,7 @@ export function SiteListImportPage({ onBack, initialRows = [] }: SiteListImportP
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          엑셀 첫 시트의 사이트명과 url 칸을 읽습니다. http와 https만 됩니다. 넣기를 누르기 전에는 저장하지 않습니다.
+          엑셀 첫 시트의 첫 번째 열을 사이트명으로 보여 줍니다. url 칸의 주소만 읽습니다. http와 https만 됩니다. 넣기를 누르기 전에는 저장하지 않습니다.
           이미 있는 주소는 건너뜁니다. 사이트에 접속하지 않습니다.
         </p>
         <button

@@ -118,7 +118,7 @@ pub fn read_site_sheet(path: &Path) -> Result<SiteSheet, String> {
 pub fn rows_from_sheet(shared_xml: &str, sheet_xml: &str) -> Result<SiteSheet, String> {
     let shared = shared_strings(shared_xml);
     let table = sheet_table(sheet_xml, &shared);
-    let mut header: Option<(usize, usize)> = None;
+    let mut url_at: Option<usize> = None;
     let mut rows = Vec::new();
     let mut seen = HashSet::new();
     let mut skipped = 0u32;
@@ -128,13 +128,13 @@ pub fn rows_from_sheet(shared_xml: &str, sheet_xml: &str) -> Result<SiteSheet, S
         if row.iter().all(|cell| cell.trim().is_empty()) {
             continue;
         }
-        let Some((name_at, url_at)) = header else {
-            let name_at = row.iter().position(|cell| cell.trim() == "사이트명");
-            let url_at = row.iter().position(|cell| cell.trim().eq_ignore_ascii_case("url"));
-            if name_at.is_none() || url_at.is_none() || name_at == url_at {
+        let Some(url_column) = url_at else {
+            let has_name = row.iter().any(|cell| cell.trim() == "사이트명");
+            let found = row.iter().position(|cell| cell.trim().eq_ignore_ascii_case("url"));
+            if !has_name || found.is_none() || found == Some(0) {
                 return Err("첫 줄에 사이트명과 url 칸이 필요합니다.".into());
             }
-            header = Some((name_at.unwrap_or(0), url_at.unwrap_or(0)));
+            url_at = found;
             continue;
         };
         if data_rows >= MAX_ROWS {
@@ -142,8 +142,8 @@ pub fn rows_from_sheet(shared_xml: &str, sheet_xml: &str) -> Result<SiteSheet, S
             break;
         }
         data_rows += 1;
-        let raw_name = row.get(name_at).map(|cell| cell.trim()).unwrap_or("");
-        let raw_url = row.get(url_at).map(|cell| cell.trim()).unwrap_or("");
+        let raw_name = row.first().map(|cell| cell.trim()).unwrap_or("");
+        let raw_url = row.get(url_column).map(|cell| cell.trim()).unwrap_or("");
         let Some(url) = http_url(raw_url) else {
             skipped += 1;
             continue;
@@ -158,7 +158,7 @@ pub fn rows_from_sheet(shared_xml: &str, sheet_xml: &str) -> Result<SiteSheet, S
             url,
         });
     }
-    if header.is_none() {
+    if url_at.is_none() {
         return Err("첫 줄에 사이트명과 url 칸이 필요합니다.".into());
     }
     Ok(SiteSheet { rows, skipped, limited })
@@ -552,6 +552,23 @@ mod tests {
         assert_eq!(parsed.rows[1].name, "나이스");
         assert_eq!(parsed.skipped, 2);
         assert!(!parsed.limited);
+    }
+
+    #[test]
+    fn first_column_is_the_shown_name() {
+        let body = sheet(
+            "<row r=\"1\"><c r=\"B1\"><v>url</v></c><c r=\"C1\"><v>사이트명</v></c></row>\
+             <row r=\"2\"><c r=\"A2\"><v>학교홈</v></c><c r=\"B2\"><v>https://school.example/home</v></c><c r=\"C2\"><v>다른이름</v></c></row>",
+        );
+        let parsed = rows_from_sheet("", &body).unwrap();
+        assert_eq!(parsed.rows.len(), 1);
+        assert_eq!(parsed.rows[0].name, "학교홈");
+        assert_eq!(parsed.rows[0].url, "https://school.example/home");
+        let swapped = sheet("<row><c r=\"A1\"><v>url</v></c><c r=\"B1\"><v>사이트명</v></c></row>");
+        assert_eq!(
+            rows_from_sheet("", &swapped).unwrap_err(),
+            "첫 줄에 사이트명과 url 칸이 필요합니다."
+        );
     }
 
     #[test]
