@@ -1,7 +1,7 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { isIeResetTarget } from "../data/computerTools";
 import type { ToolItem } from "../types/tool";
-import { launchNative, launchResult, openFolder, openIeReset } from "./windowService";
+import { launchNative, launchResult, openFolder, openIeReset, openPcPanel } from "./windowService";
 import { useToolStore } from "../stores/toolStore";
 
 export class LaunchError extends Error {
@@ -35,6 +35,21 @@ async function finishLaunch(result: { ok: boolean; error?: string | null }, tool
     return;
   }
   throw new LaunchError(result.error ?? "failed", launchMessage(result.error), tool);
+}
+
+function pcPanelKey(tool: ToolItem): string | null {
+  if (tool.type !== "file" && tool.type !== "app") {
+    return null;
+  }
+  const prefix = "pc-sys:";
+  if (!tool.id.startsWith(prefix)) {
+    return null;
+  }
+  const key = tool.id.slice(prefix.length);
+  if (!key || key.includes(":") || key.includes("\\") || key.includes("/")) {
+    return null;
+  }
+  return key;
 }
 
 function normalizeUrl(target: string): string {
@@ -71,6 +86,13 @@ export async function launchTool(tool: ToolItem): Promise<"internal" | "launched
       "실행 대상이 아직 설정되지 않았습니다. 도구를 편집해 URL 또는 경로를 지정하세요.",
       tool,
     );
+  }
+
+  const panelKey = pcPanelKey(tool);
+  if (panelKey) {
+    await finishLaunch(await openPcPanel(panelKey), tool);
+    await useToolStore.getState().markUsed(tool.id);
+    return "launched";
   }
 
   await finishLaunch(await launchNative(tool.id), tool);

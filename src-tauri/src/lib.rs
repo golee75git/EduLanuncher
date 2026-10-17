@@ -1954,6 +1954,57 @@ fn run_shortcut_action(action_id: String) -> Result<(), String> {
     }
 }
 
+fn pc_panel_name(id: &str) -> Result<&'static str, &'static str> {
+    let id = id.trim();
+    if id.is_empty()
+        || id.len() > 40
+        || !id.chars().all(|ch| ch.is_ascii_lowercase() || ch == '-')
+    {
+        return Err("denied");
+    }
+    match id {
+        "rename-pc" => Ok("SystemPropertiesComputerName.exe"),
+        "display" => Ok("desk.cpl"),
+        "sound" => Ok("mmsys.cpl"),
+        "devices" => Ok("devmgmt.msc"),
+        "net-links" => Ok("ncpa.cpl"),
+        "clock" => Ok("timedate.cpl"),
+        "programs" => Ok("appwiz.cpl"),
+        "task-manager" => Ok("taskmgr.exe"),
+        "control-panel" => Ok("control.exe"),
+        "internet-options" => Ok("inetcpl.cpl"),
+        "pc-info" => Ok("msinfo32.exe"),
+        _ => Err("denied"),
+    }
+}
+
+#[tauri::command]
+fn open_pc_panel(app: AppHandle, window: tauri::WebviewWindow, id: String) -> LaunchResult {
+    if !main_window(&window) {
+        return launch_err("denied");
+    }
+    let name = match pc_panel_name(&id) {
+        Ok(name) => name,
+        Err(code) => return launch_err(code),
+    };
+    #[cfg(windows)]
+    {
+        let path = PathBuf::from(r"C:\Windows\System32").join(name);
+        if !path.is_file() {
+            return launch_err("missing");
+        }
+        return match app.opener().open_path(path.to_string_lossy().as_ref(), None::<&str>) {
+            Ok(_) => launch_ok(),
+            Err(_) => launch_err("failed"),
+        };
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (app, name);
+        launch_err("unsupported")
+    }
+}
+
 #[tauri::command]
 fn open_ie_reset() -> Result<(), String> {
     #[cfg(windows)]
@@ -3003,6 +3054,7 @@ pub fn run() {
             open_folder_with_explorer,
             path_grant::clear_search_grants,
             run_shortcut_action,
+            open_pc_panel,
             open_ie_reset,
             read_open_source_notices,
             read_json_file,
@@ -3110,6 +3162,23 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod pc_panel_rules {
+    use super::pc_panel_name;
+
+    #[test]
+    fn only_listed_panel_names_open() {
+        assert_eq!(pc_panel_name("display").unwrap(), "desk.cpl");
+        assert_eq!(pc_panel_name("devices").unwrap(), "devmgmt.msc");
+        assert_eq!(pc_panel_name("control-panel").unwrap(), "control.exe");
+        assert_eq!(pc_panel_name(" task-manager ").unwrap(), "taskmgr.exe");
+        assert!(pc_panel_name("pc-link").is_err());
+        assert!(pc_panel_name("pc-sys:display").is_err());
+        assert!(pc_panel_name(r"display\..\notepad.exe").is_err());
+        assert!(pc_panel_name("desk.cpl").is_err());
+    }
 }
 
 #[cfg(test)]

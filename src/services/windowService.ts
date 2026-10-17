@@ -27,6 +27,10 @@ export async function launchNative(id: string): Promise<LaunchResult> {
   return invoke<LaunchResult>("launch_tool", { id });
 }
 
+export async function openPcPanel(id: string): Promise<LaunchResult> {
+  return invoke<LaunchResult>("open_pc_panel", { id });
+}
+
 export async function launchResult(id: string): Promise<LaunchResult> {
   return invoke<LaunchResult>("launch_result", { id });
 }
