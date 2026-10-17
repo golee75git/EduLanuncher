@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.190-20261017",
+    note: "홈 검색에서 학교를 빼고, 「컴퓨터」를 치면 컴퓨터 이름 바꾸기가 나옵니다.",
+  },
+  {
     version: "0.1.189-20261017",
     note: "컴퓨터도구의 Windows 설정 화면은 저장 목록 없이 앱에 적힌 System32 파일만 엽니다.",
   },

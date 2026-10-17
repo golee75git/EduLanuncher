@@ -14,7 +14,7 @@ import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
-import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget, listComputerTools } from "../data/computerTools";
+import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget, listComputerTools, sameLocalPath } from "../data/computerTools";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { launchQuickUrl, openListed, openListedFolder } from "../services/launcherService";
@@ -23,7 +23,7 @@ import { manualIndexUnavailable, manualTopicUrl, searchManualIndex, type ManualI
 import { freshQueries, matchingQueries, rememberQuery, type KeptQuery } from "../services/keptSearch";
 import { latinLookup, searchForms } from "../services/keyLine";
 import { loadKeptSearches, saveKeptSearches } from "../services/storageService";
-import { searchAll, searchTopics, scoreText, type SearchResults, type TopicSearchHit } from "../services/searchService";
+import { searchAll, searchTopics, scoreText, type TopicSearchHit } from "../services/searchService";
 import {
   HOME_TROUBLE_LIMIT,
   searchTroubleCards,
@@ -46,7 +46,6 @@ import {
   type DocHit,
 } from "../services/documentSearchService";
 import { hidePanel } from "../services/windowService";
-import { getSchools } from "../stores/schoolStore";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
@@ -121,10 +120,27 @@ function todayLabel(): string {
   return `${now.getMonth() + 1}월${now.getDate()}일(${weekday})`;
 }
 
+function isSeparateComputerTarget(target: string): boolean {
+  return isLinkCheckTarget(target) || isPrintCheckTarget(target) || isSecurityCheckTarget(target) || isPrivacyTarget(target);
+}
+
+function sameListedTool(left: ToolItem, right: ToolItem): boolean {
+  if (left.type === "internal" || right.type === "internal") {
+    return left.type === right.type && (left.target || left.id) === (right.target || right.id);
+  }
+  return Boolean(left.target) && Boolean(right.target) && sameLocalPath(left.target, right.target);
+}
+
+function catalogComputerTools(): ToolItem[] {
+  return listComputerTools()
+    .map((entry) => computerToolAsItem(entry))
+    .filter((item) => !isSeparateComputerTarget(item.target || item.id));
+}
+
 function flattenResults(
   topicHits: TopicSearchHit[],
   pilotHits: Array<{ id: string }>,
-  results: SearchResults,
+  visibleTools: ToolItem[],
   recentUse: RecentUseItem[],
   folderHits: UserFolderHit[],
   docHits: DocHit[],
@@ -143,20 +159,15 @@ function flattenResults(
       topicId: hit.id,
     })),
   ];
-  const schools: ResultItem[] = results.schools.map((hit) => ({
-    kind: "school",
-    id: `school:${hit.item.id}`,
-    school: hit.item,
-  }));
-  const tools: ResultItem[] = results.tools.map((hit) => ({
+  const tools: ResultItem[] = visibleTools.map((tool) => ({
     kind: "tool",
-    id: `tool:${hit.item.id}`,
-    tool: hit.item,
+    id: `tool:${tool.id}`,
+    tool,
   }));
   const recents: ResultItem[] = recentUse
     .filter((item) =>
       item.kind === "tool"
-        ? !results.tools.some((hit) => hit.item.id === item.tool.id)
+        ? !visibleTools.some((tool) => tool.id === item.tool.id)
         : !topicHits.some((hit) => hit.item.id === item.topic.id),
     )
     .map((item) =>
@@ -184,7 +195,7 @@ function flattenResults(
     id: `manual:${topic.id}`,
     topic,
   }));
-  return [...tools, ...recents, ...folders, ...docs, ...schools, ...troubles, ...manuals, ...topics];
+  return [...tools, ...recents, ...folders, ...docs, ...troubles, ...manuals, ...topics];
 }
 
 function KeptSearchList({
@@ -247,7 +258,6 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const folderBatch = useRef("");
   const docBatch = useRef("");
 
-  const schools = useMemo(() => getSchools(), []);
   const topicList = useMemo(() => getTopics(), []);
   const favoriteGroups = useMemo(
     () =>
@@ -291,7 +301,48 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
     () => recentUseAll.slice(0, settings.recentCount),
     [recentUseAll, settings.recentCount],
   );
-  const results = useMemo(() => searchAll(query, tools, schools), [query, tools, schools]);
+  const results = useMemo(() => searchAll(query, tools, []), [query, tools]);
+  const searchTools = useMemo(() => {
+    const needle = query.trim();
+    const catalog = catalogComputerTools();
+    const nameScore = (name: string) => (needle ? scoreText(needle, name) : 0);
+    const textScore = (name: string, description?: string) => (needle ? scoreText(needle, name, description) : 0);
+    const named = catalog
+      .map((item) => ({ item, score: nameScore(item.name) }))
+      .filter((hit) => hit.score > 0)
+      .sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name, "ko"));
+    const described =
+      named.length > 0
+        ? []
+        : catalog
+            .map((item) => ({ item, score: textScore(item.name, item.description) }))
+            .filter((hit) => hit.score > 0)
+            .sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name, "ko"));
+    const picked = (named.length > 0 ? named : described).map((hit) => hit.item);
+    const catalogHits = picked.filter(
+      (item) => !results.tools.some((hit) => sameListedTool(hit.item, item) && nameScore(hit.item.name) > 0),
+    );
+    const storedHits = results.tools
+      .filter((hit) => {
+        const target = hit.item.target || hit.item.id;
+        if (isSeparateComputerTarget(target)) {
+          return false;
+        }
+        const twin = catalog.find((item) => sameListedTool(item, hit.item));
+        if (!twin) {
+          return true;
+        }
+        if (picked.some((item) => sameListedTool(item, hit.item))) {
+          return false;
+        }
+        if (named.length > 0) {
+          return nameScore(hit.item.name) > 0;
+        }
+        return textScore(hit.item.name, hit.item.description) > 0;
+      })
+      .map((hit) => hit.item);
+    return [...catalogHits, ...storedHits];
+  }, [query, results.tools]);
   const linkTool = useMemo(() => {
     const entry = listComputerTools().find((item) => item.id === "pc-link");
     return entry ? computerToolAsItem(entry) : null;
@@ -363,8 +414,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       .slice(0, settings.recentCount);
   }, [query, recentUse, recentUseAll, settings.recentCount]);
   const flat = useMemo(
-    () => flattenResults(listedTopicHits, pilotHits, results, recentUseMatched, folderHits, docHits, troubleHits, manualHits),
-    [listedTopicHits, pilotHits, results, recentUseMatched, folderHits, docHits, troubleHits, manualHits],
+    () => flattenResults(listedTopicHits, pilotHits, searchTools, recentUseMatched, folderHits, docHits, troubleHits, manualHits),
+    [listedTopicHits, pilotHits, searchTools, recentUseMatched, folderHits, docHits, troubleHits, manualHits],
   );
   const idleItems: ResultItem[] = useMemo(
     () => [
@@ -619,16 +670,15 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const searching = query.trim().length > 0;
   const hideEmpty = settings.hideEmptySearchGroups;
   const folderReady = query.trim().length >= 2;
-  const showTools = !hideEmpty || results.tools.some((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id) && !isSecurityCheckTarget(hit.item.target || hit.item.id) && !isPrivacyTarget(hit.item.target || hit.item.id)) || showLinkCheck || showPrintCheck || showSecurityCheck || showPrivacy;
+  const showTools = !hideEmpty || searchTools.length > 0 || showLinkCheck || showPrintCheck || showSecurityCheck || showPrivacy;
   const showRecents = !hideEmpty || recentUseMatched.length > 0;
   const showFolders = !hideEmpty || !folderReady || folderBusy || folderHits.length > 0;
   const showDocs = !hideEmpty || !folderReady || docBusy || docHits.length > 0;
-  const showSchools = !hideEmpty || results.schools.length > 0;
   const showTroubles = !hideEmpty || troubleHits.length > 0;
   const showTopics = !hideEmpty || listedTopicHits.length > 0 || pilotHits.length > 0;
   const showManuals = !hideEmpty || manualHits.length > 0 || Boolean(manualIndexUnavailable());
   const anySearchGroup =
-    showTools || showRecents || showFolders || showDocs || showSchools || showTroubles || showManuals || showTopics;
+    showTools || showRecents || showFolders || showDocs || showTroubles || showManuals || showTopics;
 
   const prior = isPriorSkin(settings.panelSkin);
   const linkClass = prior
@@ -950,28 +1000,28 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                   </span>
                 </button>
               ) : null,
-              ...results.tools.filter((hit) => !isLinkCheckTarget(hit.item.target || hit.item.id) && !isPrintCheckTarget(hit.item.target || hit.item.id) && !isSecurityCheckTarget(hit.item.target || hit.item.id) && !isPrivacyTarget(hit.item.target || hit.item.id)).map((hit) => {
+              ...searchTools.map((tool) => {
                 return (
                   <button
-                    key={hit.item.id}
+                    key={tool.id}
                     type="button"
-                    onClick={() => onAction({ type: "launch", tool: hit.item })}
+                    onClick={() => onAction({ type: "launch", tool })}
                     className={`desk-row gap-2 ${
-                      selectedId === `tool:${hit.item.id}` ? "desk-row-active" : ""
+                      selectedId === `tool:${tool.id}` ? "desk-row-active" : ""
                     }`}
                   >
                     <span className="flex h-4 w-4 shrink-0 items-center justify-center">
                       <ToolGlyph
-                        icon={hit.item.icon}
-                        iconImage={hit.item.iconImage}
+                        icon={tool.icon}
+                        iconImage={tool.iconImage}
                         className="h-4 w-4 text-quiet"
                       />
                     </span>
                     <span className="min-w-0 flex-1 truncate">
-                      <HighlightText text={hit.item.name} query={query} />
+                      <HighlightText text={tool.name} query={query} />
                     </span>
                     <span className="shrink-0 text-[11px] text-quiet">
-                      {toolGroupLabel(hit.item.type)}
+                      {tool.id.startsWith("pc-sys:") ? "컴퓨터도구" : toolGroupLabel(tool.type)}
                     </span>
                   </button>
                 );
@@ -1135,23 +1185,6 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                 </div>
               )}
             </section>
-            ) : null}
-            {showSchools ? (
-            <ResultGroup title="학교" empty="일치하는 학교가 없습니다.">
-              {results.schools.map((hit) => (
-                <button
-                  key={hit.item.id}
-                  type="button"
-                  onClick={() => setActiveSchool(hit.item)}
-                  className={`desk-row ${
-                    selectedId === `school:${hit.item.id}` ? "desk-row-active" : ""
-                  }`}
-                >
-                  <HighlightText text={hit.item.name} query={query} />
-                  <span className="ml-2 text-xs text-quiet">{hit.item.type}</span>
-                </button>
-              ))}
-            </ResultGroup>
             ) : null}
             {showTroubles ? (
             <section>

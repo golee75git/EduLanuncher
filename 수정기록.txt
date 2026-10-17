@@ -6,6 +6,36 @@
 ---
 
 날짜: 2026-10-17
+대상: 홈 검색에서 학교를 빼고 컴퓨터도구 이름이 나오게 함
+작성자: 요청자
+
+요청: 검색의 학교 목록을 뺀다. 「컴퓨터」를 치면 컴퓨터도구의 컴퓨터 이름 바꾸기가 보이게 한다.
+
+확인: 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 학교 이름은 검색 목록에 그리지 않음. 컴퓨터도구는 이름을 먼저 비교하고, 맞는 이름이 없을 때만 설명을 봄.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- website/src/components/LauncherMock.tsx
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
+날짜: 2026-10-17
 대상: 컴퓨터도구 Windows 설정 화면이 저장 목록 없이 열리게 함
 작성자: 요청자
 
