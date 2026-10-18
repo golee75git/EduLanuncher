@@ -15,10 +15,10 @@ import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
 import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget, listComputerTools, sameLocalPath } from "../data/computerTools";
+import { canRunShortcut, listShortcuts, type ShortcutEntry } from "../data/shortcuts";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
 import { launchQuickUrl, openListed, openListedFolder } from "../services/launcherService";
-import { clearSearchGrants } from "../services/windowService";
 import { manualIndexUnavailable, manualTopicUrl, searchManualIndex, type ManualIndexTopic } from "../services/manualIndexService";
 import { freshQueries, matchingQueries, rememberQuery, type KeptQuery } from "../services/keptSearch";
 import { latinLookup, searchForms } from "../services/keyLine";
@@ -45,7 +45,7 @@ import {
   queryDocuments,
   type DocHit,
 } from "../services/documentSearchService";
-import { hidePanel } from "../services/windowService";
+import { clearSearchGrants, hidePanel, runShortcutAction } from "../services/windowService";
 import { useRecentTopicStore } from "../stores/recentTopicStore";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useToolStore } from "../stores/toolStore";
@@ -95,7 +95,8 @@ type ResultItem =
   | { kind: "pc-file"; id: string; hit: UserFolderHit }
   | { kind: "doc"; id: string; hit: DocHit }
   | { kind: "trouble"; id: string; cardId: string }
-  | { kind: "manual"; id: string; topic: ManualIndexTopic };
+  | { kind: "manual"; id: string; topic: ManualIndexTopic }
+  | { kind: "shortcut"; id: string; entry: ShortcutEntry };
 
 function groupDotColor(type: ToolType): string | null {
   if (type === "app") {
@@ -137,10 +138,31 @@ function catalogComputerTools(): ToolItem[] {
     .filter((item) => !isSeparateComputerTarget(item.target || item.id));
 }
 
+function matchingShortcuts(query: string): ShortcutEntry[] {
+  const needle = query.trim();
+  if (!needle) {
+    return [];
+  }
+  const rows = listShortcuts();
+  const named = rows
+    .map((entry) => ({ entry, score: scoreText(needle, entry.name) }))
+    .filter((hit) => hit.score > 0)
+    .sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name, "ko"));
+  const keyed =
+    named.length > 0
+      ? []
+      : rows
+          .map((entry) => ({ entry, score: scoreText(needle, entry.keys) }))
+          .filter((hit) => hit.score > 0)
+          .sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name, "ko"));
+  return (named.length > 0 ? named : keyed).map((hit) => hit.entry);
+}
+
 function flattenResults(
   topicHits: TopicSearchHit[],
   pilotHits: Array<{ id: string }>,
   visibleTools: ToolItem[],
+  shortcutHits: ShortcutEntry[],
   recentUse: RecentUseItem[],
   folderHits: UserFolderHit[],
   docHits: DocHit[],
@@ -163,6 +185,11 @@ function flattenResults(
     kind: "tool",
     id: `tool:${tool.id}`,
     tool,
+  }));
+  const shortcuts: ResultItem[] = shortcutHits.map((entry) => ({
+    kind: "shortcut" as const,
+    id: `shortcut:${entry.id}`,
+    entry,
   }));
   const recents: ResultItem[] = recentUse
     .filter((item) =>
@@ -195,7 +222,7 @@ function flattenResults(
     id: `manual:${topic.id}`,
     topic,
   }));
-  return [...tools, ...recents, ...folders, ...docs, ...troubles, ...manuals, ...topics];
+  return [...tools, ...shortcuts, ...recents, ...folders, ...docs, ...troubles, ...manuals, ...topics];
 }
 
 function KeptSearchList({
@@ -411,9 +438,10 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       })
       .slice(0, settings.recentCount);
   }, [query, recentUse, recentUseAll, settings.recentCount]);
+  const shortcutHits = useMemo(() => matchingShortcuts(query), [query]);
   const flat = useMemo(
-    () => flattenResults(listedTopicHits, pilotHits, searchTools, recentUseMatched, folderHits, docHits, troubleHits, manualHits),
-    [listedTopicHits, pilotHits, searchTools, recentUseMatched, folderHits, docHits, troubleHits, manualHits],
+    () => flattenResults(listedTopicHits, pilotHits, searchTools, shortcutHits, recentUseMatched, folderHits, docHits, troubleHits, manualHits),
+    [listedTopicHits, pilotHits, searchTools, shortcutHits, recentUseMatched, folderHits, docHits, troubleHits, manualHits],
   );
   const idleItems: ResultItem[] = useMemo(
     () => [
@@ -631,6 +659,16 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       void launchQuickUrl(manualTopicUrl(item.topic.id));
       return;
     }
+    if (item.kind === "shortcut") {
+      if (!canRunShortcut(item.entry) || !item.entry.runId) {
+        onAction({ type: "shortcuts" });
+        return;
+      }
+      void runShortcutAction(item.entry.runId).catch((error: unknown) => {
+        setOpenNote(error instanceof Error ? error.message : "실행하지 못했습니다.");
+      });
+      return;
+    }
     onAction({ type: "launch", tool: item.tool });
   };
 
@@ -668,7 +706,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const searching = query.trim().length > 0;
   const hideEmpty = settings.hideEmptySearchGroups;
   const folderReady = query.trim().length >= 2;
-  const showTools = !hideEmpty || searchTools.length > 0 || showLinkCheck || showPrintCheck || showSecurityCheck || showPrivacy;
+  const showTools = !hideEmpty || searchTools.length > 0 || shortcutHits.length > 0 || showLinkCheck || showPrintCheck || showSecurityCheck || showPrivacy;
   const showRecents = !hideEmpty || recentUseMatched.length > 0;
   const showFolders = !hideEmpty || !folderReady || folderBusy || folderHits.length > 0;
   const showDocs = !hideEmpty || !folderReady || docBusy || docHits.length > 0;
@@ -1023,7 +1061,24 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                     </span>
                   </button>
                 );
-              })].filter((node) => node != null)}
+              }),
+              ...shortcutHits.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  onClick={() => activate({ kind: "shortcut", id: `shortcut:${entry.id}`, entry })}
+                  className={`desk-row gap-2 ${selectedId === `shortcut:${entry.id}` ? "desk-row-active" : ""}`}
+                >
+                  <Keyboard className="h-4 w-4 shrink-0 text-quiet" aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate">
+                    <span className="text-ink">{entry.keys}</span>
+                    <span className="text-quiet"> · </span>
+                    <HighlightText text={entry.name} query={query} />
+                  </span>
+                  <span className="shrink-0 text-[11px] text-quiet">단축키</span>
+                </button>
+              )),
+              ].filter((node) => node != null)}
             </ResultGroup>
             ) : null}
             {showRecents ? (
