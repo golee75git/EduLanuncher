@@ -319,9 +319,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
             .filter((hit) => hit.score > 0)
             .sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name, "ko"));
     const picked = (named.length > 0 ? named : described).map((hit) => hit.item);
-    const catalogHits = picked.filter(
-      (item) => !results.tools.some((hit) => sameListedTool(hit.item, item) && nameScore(hit.item.name) > 0),
-    );
+    const catalogHits = picked;
     const storedHits = results.tools
       .filter((hit) => {
         const target = hit.item.target || hit.item.id;

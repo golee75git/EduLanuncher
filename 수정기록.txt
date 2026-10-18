@@ -5,6 +5,35 @@
 
 ---
 
+날짜: 2026-10-18
+대상: 저장해 둔 컴퓨터도구가 검색에서 사라지지 않게 함
+작성자: 요청자
+
+요청: 0.1.190에서 「컴퓨터 이름」을 쳐도 관련 도구가 비어 있다. 컴퓨터 이름 바꾸기가 보이게 한다.
+
+확인: 이 PC 목록에 같은 System32 경로가 있으면 컴퓨터도구 줄과 저장 줄이 서로를 지웠다. 컴퓨터도구 줄만 남긴다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. GPL을 추가하지 않음. 직접 의존성 라이선스에 GPL 없음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 경로는 화면에서 받지 않고 기존 항목 번호로만 연다.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
 날짜: 2026-10-17
 대상: 홈 검색에서 학교를 빼고 컴퓨터도구 이름이 나오게 함
 작성자: 요청자

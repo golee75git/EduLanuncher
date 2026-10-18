@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.191-20261018",
+    note: "런처에 넣어 둔 컴퓨터도구도 검색에 한 줄로 남습니다. 「컴퓨터 이름」은 컴퓨터 이름 바꾸기가 나옵니다.",
+  },
+  {
     version: "0.1.190-20261017",
     note: "홈 검색에서 학교를 빼고, 「컴퓨터」를 치면 컴퓨터 이름 바꾸기가 나옵니다.",
   },
