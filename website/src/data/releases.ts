@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.193-20261020",
+    note: "홈 검색창 안내에 매뉴얼을 넣었습니다.",
+  },
+  {
     version: "0.1.192-20261018",
     note: "홈 검색에 단축키가 나오고, 파일 탐색기·잠금·설정·작업 관리자·화면 캡처는 그 자리에서 엽니다.",
   },

@@ -30,7 +30,7 @@ export function LauncherMock() {
         <span className="text-xs text-quiet">샘플</span>
       </header>
       <div className="mx-3 mt-3 h-10 rounded-lg border border-line bg-card px-3 text-sm leading-10 text-quiet">
-        사이트·업무·파일·폴더·컴퓨터도구·PC 문제
+        사이트·업무·파일·폴더·컴퓨터도구·PC 문제·매뉴얼
       </div>
       <div className="mt-3 min-h-0 flex-1 space-y-4 overflow-hidden px-3 pb-3">
         <section>

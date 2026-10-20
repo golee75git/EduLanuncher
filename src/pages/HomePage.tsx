@@ -759,7 +759,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
         </div>
       )}
       {prior ? (
-        <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="사이트·업무·파일·폴더·컴퓨터도구·PC 문제" />
+        <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="사이트·업무·파일·폴더·컴퓨터도구·PC 문제·매뉴얼" />
       ) : null}
       {prior ? <KeptSearchList items={keptMatches} prior onPick={setQuery} /> : null}
       {prior || searching || activeSchool ? null : (

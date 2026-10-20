@@ -9,7 +9,7 @@ interface GlobalSearchProps {
 }
 
 export const GlobalSearch = forwardRef<HTMLInputElement, GlobalSearchProps>(function GlobalSearch(
-  { value, onChange, onKeyDown, placeholder = "사이트·업무·파일·폴더·컴퓨터도구·PC 문제" },
+  { value, onChange, onKeyDown, placeholder = "사이트·업무·파일·폴더·컴퓨터도구·PC 문제·매뉴얼" },
   ref,
 ) {
   return (
