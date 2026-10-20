@@ -1,3 +1,5 @@
+import { isTemplateTitle } from "./manualField.ts";
+
 export interface FlowNode {
   id: string;
   label: string;
@@ -189,7 +191,10 @@ export function searchManual(topics: ManualTopic[], query: string): ManualHit[] 
     let score = 0;
     if (title === needle || legacy === needle) score = 100;
     else if (title.includes(needle) || needle.includes(title) || legacy.includes(needle)) score = 80;
-    else if (topic.steps.some((step) => foldManual(step.title).includes(needle)) || topic.parts.some((part) => foldManual(part.title).includes(needle))) score = 60;
+    else if (
+      topic.steps.some((step) => !isTemplateTitle(step.title) && foldManual(step.title).includes(needle)) ||
+      topic.parts.some((part) => !isTemplateTitle(part.title) && foldManual(part.title).includes(needle))
+    ) score = 60;
     else if (topic.parts.some((part) => foldManual(part.body).includes(needle)) || foldManual(topic.category).includes(needle)) score = 40;
     if (score > 0) hits.push({ topic, score });
   }
