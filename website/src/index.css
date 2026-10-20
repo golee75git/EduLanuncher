@@ -12,6 +12,22 @@
   --color-card: #ffffff;
   --shadow-card: 0 1px 1px 0 rgba(24, 35, 38, 0.04), 0 2px 6px -2px rgba(24, 35, 38, 0.08);
   --shadow-pop: 0 8px 16px -6px rgba(15, 30, 27, 0.18), 0 2px 6px -2px rgba(15, 30, 27, 0.1);
+  --guide-blue-bg: #eaf4ff;
+  --guide-blue-ink: #1d65c1;
+  --guide-green-bg: #e7f8ef;
+  --guide-green-ink: #087f54;
+  --guide-purple-bg: #f2ecff;
+  --guide-purple-ink: #713dd0;
+  --guide-orange-bg: #fff1e2;
+  --guide-orange-ink: #bb6509;
+  --guide-rose-bg: #fff0f2;
+  --guide-rose-ink: #ce3651;
+  --guide-red-bg: #fff0ed;
+  --guide-red-ink: #bf4237;
+  --guide-teal-bg: #e9f7f8;
+  --guide-teal-ink: #087c87;
+  --guide-slate-bg: #eef2f7;
+  --guide-slate-ink: #455d7a;
 }
 
 html,
@@ -39,5 +55,123 @@ a {
 
   .card-surface {
     @apply rounded-xl border border-line/70 bg-card shadow-card;
+  }
+
+  .guide-box {
+    border-radius: 12px;
+    border: 1px solid var(--color-line);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-card);
+    color: var(--color-desk);
+  }
+
+  .guide-head {
+    background: linear-gradient(180deg, #f8fbff 0%, var(--guide-blue-bg) 100%);
+    border-color: color-mix(in srgb, var(--guide-blue-ink) 28%, white);
+  }
+
+  .guide-blue { background: var(--guide-blue-bg); border-color: color-mix(in srgb, var(--guide-blue-ink) 32%, white); }
+  .guide-green { background: var(--guide-green-bg); border-color: color-mix(in srgb, var(--guide-green-ink) 32%, white); }
+  .guide-purple { background: var(--guide-purple-bg); border-color: color-mix(in srgb, var(--guide-purple-ink) 32%, white); }
+  .guide-orange { background: var(--guide-orange-bg); border-color: color-mix(in srgb, var(--guide-orange-ink) 32%, white); }
+  .guide-rose { background: var(--guide-rose-bg); border-color: color-mix(in srgb, var(--guide-rose-ink) 32%, white); }
+  .guide-red { background: var(--guide-red-bg); border-color: color-mix(in srgb, var(--guide-red-ink) 32%, white); }
+  .guide-teal { background: var(--guide-teal-bg); border-color: color-mix(in srgb, var(--guide-teal-ink) 32%, white); }
+  .guide-slate { background: var(--guide-slate-bg); border-color: color-mix(in srgb, var(--guide-slate-ink) 32%, white); }
+
+  .guide-blue h2 { color: var(--guide-blue-ink); }
+  .guide-green h2 { color: var(--guide-green-ink); }
+  .guide-purple h2 { color: var(--guide-purple-ink); }
+  .guide-orange h2 { color: var(--guide-orange-ink); }
+  .guide-rose h2 { color: var(--guide-rose-ink); }
+  .guide-red h2 { color: var(--guide-red-ink); }
+  .guide-teal h2 { color: var(--guide-teal-ink); }
+  .guide-slate h2 { color: var(--guide-slate-ink); }
+
+  .guide-pill {
+    border: 1px solid transparent;
+    border-radius: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .guide-pill:hover { filter: brightness(0.96); }
+  .guide-pill-blue { background: var(--guide-blue-bg); color: var(--guide-blue-ink); border-color: color-mix(in srgb, var(--guide-blue-ink) 35%, white); }
+  .guide-pill-green { background: var(--guide-green-bg); color: var(--guide-green-ink); border-color: color-mix(in srgb, var(--guide-green-ink) 35%, white); }
+  .guide-pill-purple { background: var(--guide-purple-bg); color: var(--guide-purple-ink); border-color: color-mix(in srgb, var(--guide-purple-ink) 35%, white); }
+  .guide-pill-orange { background: var(--guide-orange-bg); color: var(--guide-orange-ink); border-color: color-mix(in srgb, var(--guide-orange-ink) 35%, white); }
+  .guide-pill-rose { background: var(--guide-rose-bg); color: var(--guide-rose-ink); border-color: color-mix(in srgb, var(--guide-rose-ink) 35%, white); }
+  .guide-pill-teal { background: var(--guide-teal-bg); color: var(--guide-teal-ink); border-color: color-mix(in srgb, var(--guide-teal-ink) 35%, white); }
+
+  .guide-fold {
+    overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid var(--color-line);
+    background: var(--guide-blue-bg);
+  }
+
+  .guide-fold summary,
+  .guide-fold h3 {
+    padding: 12px 14px;
+    color: var(--guide-blue-ink);
+    background: color-mix(in srgb, var(--guide-blue-ink) 8%, var(--guide-blue-bg));
+  }
+
+  .guide-fold .guide-fold-body {
+    padding: 4px 14px 14px;
+    background: color-mix(in srgb, var(--guide-blue-bg) 42%, white);
+  }
+
+  .guide-fold-green { background: var(--guide-green-bg); border-color: color-mix(in srgb, var(--guide-green-ink) 30%, white); }
+  .guide-fold-green summary { color: var(--guide-green-ink); background: color-mix(in srgb, var(--guide-green-ink) 8%, var(--guide-green-bg)); }
+  .guide-fold-green .guide-fold-body { background: color-mix(in srgb, var(--guide-green-bg) 42%, white); }
+  .guide-fold-purple { background: var(--guide-purple-bg); border-color: color-mix(in srgb, var(--guide-purple-ink) 30%, white); }
+  .guide-fold-purple summary { color: var(--guide-purple-ink); background: color-mix(in srgb, var(--guide-purple-ink) 8%, var(--guide-purple-bg)); }
+  .guide-fold-purple .guide-fold-body { background: color-mix(in srgb, var(--guide-purple-bg) 42%, white); }
+  .guide-fold-orange { background: var(--guide-orange-bg); border-color: color-mix(in srgb, var(--guide-orange-ink) 30%, white); }
+  .guide-fold-orange summary { color: var(--guide-orange-ink); background: color-mix(in srgb, var(--guide-orange-ink) 8%, var(--guide-orange-bg)); }
+  .guide-fold-orange .guide-fold-body { background: color-mix(in srgb, var(--guide-orange-bg) 42%, white); }
+  .guide-fold-rose { background: var(--guide-rose-bg); border-color: color-mix(in srgb, var(--guide-rose-ink) 30%, white); }
+  .guide-fold-rose summary { color: var(--guide-rose-ink); background: color-mix(in srgb, var(--guide-rose-ink) 8%, var(--guide-rose-bg)); }
+  .guide-fold-rose .guide-fold-body { background: color-mix(in srgb, var(--guide-rose-bg) 42%, white); }
+  .guide-fold-teal { background: var(--guide-teal-bg); border-color: color-mix(in srgb, var(--guide-teal-ink) 30%, white); }
+  .guide-fold-teal summary { color: var(--guide-teal-ink); background: color-mix(in srgb, var(--guide-teal-ink) 8%, var(--guide-teal-bg)); }
+  .guide-fold-teal .guide-fold-body { background: color-mix(in srgb, var(--guide-teal-bg) 42%, white); }
+}
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  html,
+  body,
+  #root {
+    background: #fff;
+  }
+
+  main {
+    max-width: none;
+    padding: 0;
+  }
+
+  .guide-box,
+  .guide-fold,
+  .guide-pill {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 }

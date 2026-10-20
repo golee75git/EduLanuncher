@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { FieldColorIndex, FieldNav, FieldQuery, FieldTaskMap, GroupedHandbookResults, HandbookCardList, ManualPartList, linkedManual } from "../components/FieldGuide";
+import { HandbookWorkGuide, PurchaseGuide, handbookOverview } from "../components/WorkGuide";
+import { ManualChecklist, PrintButton, ShelfPanels, StarButton } from "../components/ManualShelfUi";
 import { MenuWorkMap } from "../components/MenuWorkMap";
 import { PilotManualArticle } from "../components/PilotManualArticle";
 import { TopicStepBoards } from "../components/TopicStepBoards";
 import {
-  handbookTopicTasks,
   loadMenuData,
   pictureSteps,
-  taskNote,
   searchManual,
   section2ForTitle,
   type EpkiNode,
@@ -14,6 +15,9 @@ import {
   type MenuData,
   type Section2Task,
 } from "../services/menuContent";
+import { fieldCardState, fieldStateLabel, handbookIdForDetail, selectHandbookTopics, visibleParts } from "../services/manualField";
+import { canonicalWorkId, noteVisit, shelfTarget } from "../services/manualShelf";
+import { useManualShelf } from "../services/useManualShelf";
 
 function menuPath(pathname: string): string[] {
   const path = decodeURI(pathname).replace(/\/+$/, "");
@@ -149,9 +153,10 @@ const MENU_RAIL = [
 ] as const;
 
 function MenuFrame({ section, children }: { section: string; children: ReactNode }) {
+  const shelf = useManualShelf();
   return (
     <div className="grid items-start gap-6 md:grid-cols-[11rem_minmax(0,1fr)]">
-      <nav aria-label="매뉴얼 구분" className="flex flex-wrap gap-2 md:sticky md:top-4 md:flex-col">
+      <nav aria-label="매뉴얼 구분" className="no-print flex flex-wrap gap-2 md:sticky md:top-4 md:flex-col">
         {MENU_RAIL.map((item) => {
           const current = section === item.id;
           return (
@@ -159,14 +164,21 @@ function MenuFrame({ section, children }: { section: string; children: ReactNode
               key={item.id}
               href={item.href}
               aria-current={current ? "page" : undefined}
-              className={`rounded-lg border px-3 py-2 text-sm text-desk ${current ? "border-ink bg-ink-soft" : "border-line bg-card"}`}
+              className={`inline-flex min-h-11 items-center rounded-lg border px-3 text-sm text-desk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink ${current ? "border-ink bg-ink-soft" : "border-line bg-card"}`}
             >
               {item.label}
             </a>
           );
         })}
       </nav>
-      <div className="min-w-0">{children}</div>
+      <div className="min-w-0 overflow-x-hidden">
+        {shelf.warning ? (
+          <p className="no-print mb-4 text-sm text-desk" role="status">
+            {shelf.warning}
+          </p>
+        ) : null}
+        {children}
+      </div>
     </div>
   );
 }
@@ -197,10 +209,12 @@ function MapSide({ data, topicId }: { data: MenuData; topicId: string | null }) 
   }
   const manual = data.manual.find((item) => item.id === topicId);
   if (manual) {
+    const parts = visibleParts(manual.parts);
     return (
       <div className="space-y-3">
         <h3 className="text-base font-semibold text-desk">{manual.legacyLabel || manual.title}</h3>
-        {manual.parts.slice(0, 3).map((part) => (
+        <p className="text-sm text-desk">검토 필요</p>
+        {parts.slice(0, 1).map((part) => (
           <article key={part.id} className="space-y-2">
             <h4 className="text-sm font-semibold text-desk">{part.title}</h4>
             <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{part.body}</p>
@@ -217,7 +231,19 @@ function MapSide({ data, topicId }: { data: MenuData; topicId: string | null }) 
     return (
       <div className="space-y-3">
         <h3 className="text-base font-semibold text-desk">{category.name}</h3>
-        {category.picture ? <TopicStepBoards board="flow" steps={pictureSteps(category.picture)} /> : null}
+        {category.picture ? (
+          <ul className="space-y-1">
+            {pictureSteps(category.picture).map((step) => (
+              <li key={`${step.order}-${step.title}`}>
+                {step.href ? (
+                  <a className="text-sm text-ink" href={step.href}>{step.title}</a>
+                ) : (
+                  <span className="text-sm text-desk">{step.title}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <a className="text-sm text-ink" href={`/menu/handbook/${encodeURIComponent(category.id)}`}>
           이 분류 페이지
         </a>
@@ -226,15 +252,14 @@ function MapSide({ data, topicId }: { data: MenuData; topicId: string | null }) 
   }
   const handbook = data.handbook.topics.find((item) => item.id === topicId);
   if (handbook) {
-    const tasks = handbookTopicTasks(data, handbook);
-    const steps = (handbook.picture ? pictureSteps(handbook.picture) : []).map((step) => {
-      const task = tasks.find((item) => item.name.trim() === step.title.trim());
-      return task ? { ...step, note: taskNote(task) } : step;
-    });
+    const state = fieldCardState(handbook.id);
+    const manual = state === "review" ? linkedManual(data.manual, handbook.id) : null;
     return (
       <div className="space-y-3">
         <h3 className="text-base font-semibold text-desk">{handbook.officialName || handbook.title}</h3>
-        {steps.length > 0 ? <TopicStepBoards board="flow" steps={steps} /> : <TaskBlocks tasks={tasks} />}
+        {handbook.pages ? <p className="text-xs text-quiet">편람 목차 기준 {handbook.pages}</p> : null}
+        <p className="text-sm text-desk">{fieldStateLabel(state)}</p>
+        {manual ? <ManualPartList parts={manual.parts} /> : null}
         <a className="text-sm text-ink" href={`/menu/handbook/${encodeURIComponent(handbook.id)}`}>
           이 업무 페이지
         </a>
@@ -244,19 +269,60 @@ function MapSide({ data, topicId }: { data: MenuData; topicId: string | null }) 
   return <p className="text-sm text-quiet">이 상자는 매뉴얼 본문에 연결되어 있지 않습니다.</p>;
 }
 
+function shelfRows(data: MenuData) {
+  const rows: Array<{ id: string; title: string; href: string; meta: string }> = [];
+  for (const topic of data.handbook.topics) {
+    if (!data.handbook.categories.some((category) => category.topicIds.includes(topic.id))) continue;
+    const href = shelfTarget(topic.id);
+    if (!href) continue;
+    const category = data.handbook.categories.find((item) => item.id === topic.categoryId);
+    rows.push({
+      id: canonicalWorkId(topic.id),
+      title: topic.officialName || topic.title,
+      href,
+      meta: [category?.name, fieldStateLabel(fieldCardState(topic.id))].filter(Boolean).join(" · "),
+    });
+  }
+  for (const topic of data.manual) {
+    if (handbookIdForDetail(topic.id)) continue;
+    const href = shelfTarget(topic.id);
+    if (!href) continue;
+    rows.push({
+      id: topic.id,
+      title: topic.legacyLabel || topic.title,
+      href,
+      meta: "분야 카드에 없는 기존 본문",
+    });
+  }
+  return rows;
+}
+
 export function MenuPage({ pathname }: { pathname: string }) {
   const [data, setData] = useState<MenuData | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [manualQuery, setManualQuery] = useState("");
-  const [manualStep, setManualStep] = useState("");
+  const [fieldQuery, setFieldQuery] = useState("");
   const [epkiPick, setEpkiPick] = useState("");
   const path = menuPath(pathname);
 
   useEffect(() => {
-    setManualStep("");
     setEpkiPick("");
+    setFieldQuery("");
   }, [pathname]);
+
+  useEffect(() => {
+    if (!data) return;
+    const parts = menuPath(pathname);
+    const section = parts[0] ?? "";
+    const itemId = parts[1] ?? "";
+    if (section === "handbook" && itemId.startsWith("TOPIC-") && itemId !== "TOPIC-EPKI-01") {
+      if (data.handbook.topics.some((topic) => topic.id === itemId)) noteVisit(itemId);
+    }
+    if (section === "topic" && itemId.startsWith("topic-") && data.manual.some((topic) => topic.id === itemId)) {
+      noteVisit(itemId);
+    }
+  }, [pathname, data]);
 
   useEffect(() => {
     let alive = true;
@@ -315,35 +381,54 @@ export function MenuPage({ pathname }: { pathname: string }) {
     return withRail("", (
       <div className="space-y-6">
         <header className="max-w-2xl space-y-2">
-          <h1 className="text-2xl font-semibold text-desk">매뉴얼</h1>
-          <p className="text-sm leading-relaxed text-quiet">왼쪽에서 편람 분류, 업무자료, 시범 매뉴얼, 인증서를 고르면 오른쪽에 내용이 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다. 아래 업무 그림은 검색하면 맞는 그림으로 바뀝니다. 크게 보기는 왼쪽 그림과 오른쪽 내용으로 나뉩니다.</p>
+          <h1 className="text-2xl font-semibold text-desk">학교행정 업무매뉴얼</h1>
+          <p className="text-sm leading-relaxed text-quiet">분야를 고르면 편람 목차의 업무가 나옵니다. 프로그램 실행은 이 페이지에서 하지 않습니다.</p>
         </header>
-        <MenuWorkMap
-          query={manualQuery}
-          hitIds={manualHits.map((hit) => hit.topic.id)}
-          hrefFor={hrefFor}
-          showIdle
-          renderSide={(topicId) => <MapSide data={data} topicId={topicId} />}
-        />
-        <input
-          className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
+        <ShelfPanels rows={shelfRows(data)} />
+        <FieldQuery
+          id="manual-query"
           value={manualQuery}
-          placeholder="업무 이름이나 세부업무"
-          onChange={(event) => setManualQuery(event.target.value)}
+          onChange={setManualQuery}
+          scope={manualQuery.trim() ? "전체 19개 분야에서 찾습니다." : ""}
+          count={
+            manualQuery.trim()
+              ? selectHandbookTopics(data.handbook.categories, data.handbook.topics, "", manualQuery).length +
+                manualHits.filter((hit) => !handbookIdForDetail(hit.topic.id)).length
+              : null
+          }
         />
-        {manualQuery.trim() ? (
-          <ul className="space-y-2">
-            {manualHits.map((hit) => (
-              <li key={hit.topic.id}>
-                <a className="card-surface block px-4 py-3" href={`/menu/topic/${encodeURIComponent(hit.topic.id)}`}>
-                  <span className="block text-sm font-medium text-desk">{hit.topic.legacyLabel || hit.topic.title}</span>
-                  <span className="mt-1 block text-sm text-quiet">{hit.topic.parts[0]?.body.replace(/\s+/g, " ").slice(0, 120)}</span>
-                </a>
-              </li>
-            ))}
-            {manualHits.length === 0 ? <li className="text-sm text-quiet">이 표현은 편람 2장 본문에서 찾지 못했습니다.</li> : null}
-          </ul>
+        {manualQuery.trim() && manualHits.length === 20 ? (
+          <p className="no-print text-xs text-quiet">기존 본문 검색은 20건까지 보여 줍니다.</p>
         ) : null}
+        {!manualQuery.trim() ? <FieldColorIndex categories={data.handbook.categories} /> : null}
+        <div className="grid items-start gap-6 md:grid-cols-[12rem_minmax(0,1fr)]">
+          <FieldNav categories={data.handbook.categories} activeId="" />
+          {manualQuery.trim() ? (
+            <GroupedHandbookResults
+              categories={data.handbook.categories}
+              topics={data.handbook.topics}
+              categoryId=""
+              query={manualQuery}
+              outside={manualHits}
+            />
+          ) : (
+            <HandbookCardList
+              categories={data.handbook.categories}
+              topics={data.handbook.topics}
+              categoryId=""
+              query=""
+            />
+          )}
+        </div>
+        <div className="no-print">
+          <MenuWorkMap
+            query={manualQuery}
+            hitIds={manualHits.map((hit) => hit.topic.id)}
+            hrefFor={hrefFor}
+            showIdle
+            renderSide={(topicId) => <MapSide data={data} topicId={topicId} />}
+          />
+        </div>
       </div>
     ));
   }
@@ -355,7 +440,7 @@ export function MenuPage({ pathname }: { pathname: string }) {
           매뉴얼
         </a>
         <h1 className="text-2xl font-semibold text-desk">편람 분류</h1>
-        <p className="text-sm text-quiet">분류를 열면 업무 흐름이 있습니다.</p>
+        <p className="text-sm text-quiet">분야를 열면 편람 목차의 업무가 나옵니다.</p>
         <ul className="space-y-2">
           {data.handbook.categories.map((category) => (
             <li key={category.id}>
@@ -372,48 +457,82 @@ export function MenuPage({ pathname }: { pathname: string }) {
 
   if (section === "handbook" && itemId.startsWith("CAT-")) {
     const category = data.handbook.categories.find((item) => item.id === itemId);
-    const topics = data.handbook.topics.filter((topic) => topic.categoryId === itemId);
+    const topics = data.handbook.topics.filter((topic) => category?.topicIds.includes(topic.id));
     return withRail("handbook", (
       <div className="space-y-4">
         <a className="text-sm text-ink" href="/menu/handbook">
           편람 분류
         </a>
         <h1 className="text-2xl font-semibold text-desk">{category?.name ?? "분류"}</h1>
-        {category?.picture ? <TopicStepBoards board="flow" steps={pictureSteps(category.picture)} /> : null}
-        <ul className="space-y-2">
-          {topics.map((topic) => (
-            <li key={topic.id}>
-              <a className="card-surface block px-4 py-3" href={`/menu/handbook/${encodeURIComponent(topic.id)}`}>
-                <span className="block text-sm font-medium text-desk">{topic.officialName || topic.title}</span>
-                {topic.pages ? <span className="text-xs text-quiet">쪽수 {topic.pages}</span> : null}
-              </a>
-            </li>
-          ))}
-        </ul>
+        {category?.pages ? <p className="text-xs text-quiet">편람 목차 기준 {category.pages}</p> : null}
+        <FieldQuery
+          id="field-query"
+          value={fieldQuery}
+          onChange={setFieldQuery}
+          scope={fieldQuery.trim() ? `${category?.name ?? "이 분야"} 분야에서 찾습니다. 검색어를 지워도 이 분야에 머뭅니다.` : ""}
+          count={fieldQuery.trim() ? selectHandbookTopics(data.handbook.categories, topics, itemId, fieldQuery).length : null}
+        />
+        {!fieldQuery.trim() && category ? <FieldTaskMap category={category} topics={topics} /> : null}
+        <div className="grid items-start gap-6 md:grid-cols-[12rem_minmax(0,1fr)]">
+          <FieldNav categories={data.handbook.categories} activeId={itemId} />
+          {fieldQuery.trim() ? (
+            <GroupedHandbookResults
+              categories={data.handbook.categories}
+              topics={topics}
+              categoryId={itemId}
+              query={fieldQuery}
+              outside={[]}
+            />
+          ) : (
+            <HandbookCardList
+              categories={data.handbook.categories}
+              topics={topics}
+              categoryId={itemId}
+              query=""
+            />
+          )}
+        </div>
       </div>
     ));
   }
 
   if (section === "handbook" && itemId) {
     const topic = data.handbook.topics.find((item) => item.id === itemId);
-    const tasks = topic ? handbookTopicTasks(data, topic) : [];
-    const steps = (topic?.picture ? pictureSteps(topic.picture) : []).map((step) => {
-      const task = tasks.find((item) => item.name.trim() === step.title.trim());
-      return task ? { ...step, note: taskNote(task) } : step;
-    });
-    const covered = new Set(steps.map((step) => step.title.trim()));
-    const rest = tasks.filter((task) => !covered.has(task.name.trim()));
-    return withRail("handbook", (
-      <div className="space-y-4">
-        <a className="text-sm text-ink" href={topic ? `/menu/handbook/${encodeURIComponent(topic.categoryId)}` : "/menu/handbook"}>
-          편람 분류
-        </a>
-        <h1 className="text-2xl font-semibold text-desk">{topic?.officialName || topic?.title || "업무"}</h1>
-        {topic?.pages ? <p className="text-xs text-quiet">쪽수 {topic.pages}</p> : null}
-        {steps.length > 0 ? <TopicStepBoards board="flow" steps={steps} /> : null}
-        {steps.length === 0 ? <TaskBlocks tasks={tasks} /> : rest.length > 0 ? <TaskBlocks tasks={rest} /> : null}
-      </div>
-    ));
+    if (topic?.id === "TOPIC-EPKI-01") {
+      return withRail("epki", (
+        <div className="space-y-3">
+          <a className="text-sm text-ink" href="/menu/epki">인증서</a>
+          <p className="text-sm text-desk">인증서 안내는 기존 화면에서 봅니다.</p>
+        </div>
+      ));
+    }
+    const state = topic ? fieldCardState(topic.id) : "preparing";
+    const manual = topic && state === "review" ? linkedManual(data.manual, topic.id) : null;
+    if (!topic) {
+      return withRail("handbook", (
+        <div className="space-y-4">
+          <a className="text-sm text-ink" href="/menu/handbook">편람 분류</a>
+          <h1 className="text-2xl font-semibold text-desk">업무</h1>
+          <p className="text-sm text-quiet">이 업무는 자료에 없습니다.</p>
+        </div>
+      ));
+    }
+    const category = data.handbook.categories.find((item) => item.id === topic.categoryId);
+    const opened = manual ? visibleParts(manual.parts) : [];
+    return (
+      <HandbookWorkGuide
+        topic={topic}
+        categoryName={category?.name ?? ""}
+        siblings={(category?.topicIds ?? []).flatMap((id) => {
+          const item = data.handbook.topics.find((row) => row.id === id);
+          return item && item.id !== "TOPIC-EPKI-01" ? [item] : [];
+        })}
+        stateLabel={fieldStateLabel(state)}
+        overview={handbookOverview(opened[0]?.body ?? "", fieldStateLabel(state))}
+        starId={topic.id}
+        body={manual ? <ManualPartList parts={manual.parts} /> : null}
+      />
+    );
   }
 
   if (section === "topic" && itemId === "") {
@@ -431,66 +550,97 @@ export function MenuPage({ pathname }: { pathname: string }) {
           showIdle={false}
           renderSide={(topicId) => <MapSide data={data} topicId={topicId} />}
         />
-        <input
-          className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
-          value={query}
-          placeholder="제목, 분류, 설명"
-          onChange={(event) => setQuery(event.target.value)}
-        />
+        <form role="search" className="no-print flex items-center gap-2" onSubmit={(event) => event.preventDefault()}>
+          <label className="sr-only" htmlFor="topic-query">
+            업무자료 검색
+          </label>
+          <input
+            id="topic-query"
+            className="min-h-11 w-full min-w-0 rounded-lg border border-line bg-card px-3 text-sm text-desk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+            value={query}
+            placeholder="제목, 분류, 설명"
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          {query.trim() ? (
+            <button
+              type="button"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-line bg-card px-3 text-sm text-desk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+              onClick={() => setQuery("")}
+            >
+              검색어 지우기
+            </button>
+          ) : null}
+        </form>
+        {query.trim() ? (
+          <p className="text-sm text-desk" aria-live="polite">
+            {topicHits.length === 0 ? "해당하는 업무가 없습니다." : `검색 결과 ${topicHits.length}건`}
+          </p>
+        ) : null}
         <ul className="space-y-2">
           {topicHits.map((row) => (
             <li key={row.id}>
-              <a className="card-surface block px-4 py-3" href={`/menu/topic/${encodeURIComponent(row.id)}`}>
-                <span className="block text-sm font-medium text-desk">{row.title}</span>
+              <a className="card-surface block min-h-11 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink" href={`/menu/topic/${encodeURIComponent(row.id)}`}>
+                <span className="block break-words text-sm font-medium text-desk">{row.title}</span>
                 <span className="text-xs text-quiet">{[row.category, row.subcategory].filter(Boolean).join(" · ")}</span>
               </a>
             </li>
           ))}
         </ul>
-        {topicHits.length === 0 ? <p className="text-sm text-quiet">해당하는 업무가 없습니다.</p> : null}
+        {!query.trim() && topicHits.length === 0 ? <p className="text-sm text-quiet">해당하는 업무가 없습니다.</p> : null}
       </div>
     ));
   }
 
   if (section === "topic" && itemId.startsWith("topic-")) {
     const topic = data.manual.find((item) => item.id === itemId);
-    const parts = topic?.parts ?? [];
-    const shown = manualStep ? parts.filter((part) => part.title === manualStep) : parts;
-    const visible = shown.length > 0 ? shown : parts;
+    if (!topic) {
+      return withRail("topic", (
+        <div className="space-y-4">
+          <a className="text-sm text-ink" href="/menu">매뉴얼</a>
+          <h1 className="text-2xl font-semibold text-desk">업무</h1>
+          <p className="text-sm text-quiet">이 업무는 자료에 없습니다.</p>
+        </div>
+      ));
+    }
+    const parts = topic.parts ?? [];
+    const handbookId = handbookIdForDetail(itemId);
+    const handbook = handbookId ? data.handbook.topics.find((item) => item.id === handbookId) : undefined;
+    if (handbook) {
+      const category = data.handbook.categories.find((item) => item.id === handbook.categoryId);
+      const opened = visibleParts(parts);
+      return (
+        <HandbookWorkGuide
+          topic={handbook}
+          categoryName={category?.name ?? ""}
+          siblings={(category?.topicIds ?? []).flatMap((id) => {
+            const item = data.handbook.topics.find((row) => row.id === id);
+            return item && item.id !== "TOPIC-EPKI-01" ? [item] : [];
+          })}
+          stateLabel="검토 필요"
+          overview={handbookOverview(opened[0]?.body ?? "", "검토 필요")}
+          starId={topic.id}
+          body={<ManualPartList parts={parts} />}
+        />
+      );
+    }
     return withRail("topic", (
       <div className="space-y-4">
-        <a className="text-sm text-ink" href="/menu">
+        <a className="no-print text-sm text-ink" href="/menu">
           매뉴얼
         </a>
-        <h1 className="text-2xl font-semibold text-desk">{topic?.legacyLabel || topic?.title || "업무"}</h1>
-        {topic?.category ? <p className="text-xs text-quiet">{topic.category}</p> : null}
-        {topic && topic.steps.length > 0 ? (
-          <div className="overflow-x-auto rounded-lg border border-line bg-card p-4">
-            <div className="flex flex-col items-start gap-2">
-              {topic.steps.map((step, index) => (
-                <div key={step.id} className="flex flex-col items-start gap-2">
-                  {index > 0 ? <span className="ml-4 h-4 border-l border-line" /> : null}
-                  <button
-                    type="button"
-                    className={`rounded-md border px-3 py-2 text-left text-sm text-desk ${
-                      manualStep === step.title ? "border-ink bg-ink-soft" : "border-line bg-card"
-                    }`}
-                    onClick={() => setManualStep((current) => (current === step.title ? "" : step.title))}
-                  >
-                    {step.title}
-                  </button>
-                </div>
-              ))}
-            </div>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="break-words text-2xl font-semibold text-desk">{topic.legacyLabel || topic.title}</h1>
+          <div className="flex shrink-0 gap-2">
+            <PrintButton />
+            <StarButton id={topic.id} title={topic.legacyLabel || topic.title} />
           </div>
-        ) : null}
-        {visible.map((part) => (
-          <article key={part.id} className="space-y-2">
-            <h3 className="text-base font-semibold text-desk">{part.title}</h3>
-            <p className="whitespace-pre-wrap text-sm leading-6 text-desk">{part.body}</p>
-          </article>
-        ))}
-        {!topic ? <p className="text-sm text-quiet">이 업무는 자료에 없습니다.</p> : null}
+        </div>
+        <p className="text-sm text-desk">검토 필요</p>
+        {topic.category ? <p className="break-words text-xs text-quiet">자료에 적힌 분야 {topic.category}</p> : null}
+        <p className="text-sm text-quiet">이 본문은 편람 분야 카드에 연결하지 않았습니다.</p>
+        <p className="text-sm text-desk">분야 카드에 없는 기존 본문</p>
+        <ManualPartList parts={parts} />
+        <ManualChecklist workId={topic.id} items={[]} />
       </div>
     ));
   }
@@ -538,9 +688,19 @@ export function MenuPage({ pathname }: { pathname: string }) {
               <span className="text-xs text-quiet">인사</span>
             </a>
           </li>
+          <li>
+            <a className="card-surface block px-4 py-3" href="/menu/guide/purchase">
+              <span className="block text-sm font-medium text-desk">물품구매</span>
+              <span className="text-xs text-quiet">시범 · 물품계약과 물품 관리로 연결</span>
+            </a>
+          </li>
         </ul>
       </div>
     ));
+  }
+
+  if (section === "guide" && itemId === "purchase") {
+    return <PurchaseGuide />;
   }
 
   if (section === "pilot" && itemId) {

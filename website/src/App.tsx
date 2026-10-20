@@ -57,7 +57,7 @@ export default function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader view={view} />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
+      <main className={pathname.startsWith("/menu/guide") || /^\/menu\/handbook\/TOPIC-/.test(pathname) || /^\/menu\/topic\/topic-/.test(pathname) ? "mx-auto w-full max-w-[90rem] flex-1 overflow-x-hidden px-3 py-4 sm:px-4" : "mx-auto w-full max-w-5xl flex-1 overflow-x-hidden px-4 py-10 sm:px-6"}>
         {view === "intro" ? <IntroPage /> : null}
         {view === "menu" ? <MenuPage pathname={pathname} /> : null}
         {view === "preview" ? <PreviewPage /> : null}
