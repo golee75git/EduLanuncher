@@ -5,6 +5,37 @@
 
 ---
 
+날짜: 2026-10-22
+버전: 0.1.194-20261022
+설치 파일: AILauncher_0.1.194-20261022_x64-setup.exe
+날짜 복사본: AILauncher_2026-10-22_1151_x64-setup.exe
+작성자: 요청자
+
+요청: 메모에 아래 빈 줄이 있을 때 글자를 치고 스페이스를 누르면 커서가 맨 아래 빈 줄로 간다. 그 자리에 남게 한다.
+
+확인: 조합이 끝나도 칸의 글이 그대로면 칸을 다시 쓰지 않는다. 방금 친 뒤의 커서 자리는 그 칸이 기억하고, 그려진 뒤에 그 자리로 되돌린다. 글은 2000자 자르기를 유지한다. 다른 입력 칸은 바꾸지 않음. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성 라이선스에 GPL 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 커서 자리는 그 칸 안에서만 쓰고, 밖으로는 보내지 않음.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/components/MemoField.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
 날짜: 2026-10-18
 대상: 홈 검색에서 단축키를 열고 소개 사이트 다운로드를 맞춤
 작성자: 요청자
@@ -5858,3 +5889,27 @@ PATENT_REVIEW
 
 그대로 둔 파일:
 - 업무 JSON, 검색 인덱스
+
+---
+
+날짜: 2026-10-20
+대상: 인사 메뉴 세로 순서도
+작성자: 요청자
+
+요청: 인사 4개 업무에 세로 색 순서도를 넣고 운영 사이트에 반영한다. 런처 소스와 다른 자료는 그대로 둔다.
+
+확인: 2026 학교행정 업무편람 PDF 34~49쪽의 업무진행 순서만 넣었다. 공문서 생산 그림의 단계와 공통 4단계는 넣지 않았다. 판단 마름모와 반려 화살표는 편람 순서에 없어 그리지 않았다. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. 새 패키지 없음. GPL을 추가하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- website/src/data/hrWorkflows.ts
+- website/src/components/HrFlowChart.tsx
+- docs/manual-phase6f-hr-interactive-workflow-2026-10-20.md
+
+다시 쓴 파일:
+- website/src/components/NewMenuBoard.tsx
+- website/src/index.css
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 런처 소스, 업무 JSON, 검색 인덱스
