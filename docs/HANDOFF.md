@@ -3,7 +3,7 @@
 기준일: 2026-09-24  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.194-20261022`
+최신 커밋 시점의 앱 버전: `0.1.195-20261028`
 
 지원 종료 표는 해마다 새 버전 출시 때 갱신 필요, 출처: Microsoft Windows 11 release information. 표는 `src-tauri/src/security_judge.rs`의 `SUPPORT_ENDS`이다. 날짜가 비어 있으면 그 버전은 확인 불가다. Windows 11 25H2 칸은 비어 있다.
 
@@ -111,7 +111,7 @@ npm run site:build
 | `packs/` | Pack 예시 JSON |
 | `docs/` | PRD, PLAN, HANDOFF, IP 로그 |
 
-데이터(설치 후): 앱 데이터 `tools.json`, `todos.json`, `settings.json`, `memo.json`, `notices.json`, `recent-topics.json`.
+데이터(설치 후): 앱 데이터 `tools.json`, `todos.json`, `settings.json`, `memo.json`, `notices.json`, `recent-topics.json`. 모두 목록 열은 `settings.json`의 `listColumns`이다. 창 크기를 저장하기 전에 이 파일을 읽으므로, 다시 실행하거나 업데이트한 뒤에도 고른 1열·2열은 그대로다.
 
 Pack 분기 (`src/services/applyNoticePack.ts`):
 

@@ -49,6 +49,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ settings: next, loaded: true });
   },
   update: async (patch) => {
+    if (!get().loaded) {
+      const stored = await loadSettings();
+      if (!get().loaded) {
+        get().hydrate(stored);
+      }
+    }
     const settings = {
       ...get().settings,
       ...patch,

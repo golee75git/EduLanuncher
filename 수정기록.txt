@@ -5,6 +5,37 @@
 
 ---
 
+날짜: 2026-10-28
+버전: 0.1.195-20261028
+설치 파일: AILauncher_0.1.195-20261028_x64-setup.exe
+날짜 복사본: AILauncher_2026-10-28_1040_x64-setup.exe
+작성자: 요청자
+
+요청: 프로그램 업데이트 등 실행 시 모두 목록 열은 기존에 설정한 대로 유지.
+
+확인: 설정을 디스크에서 읽기 전에 창 크기만 저장하면 메모리의 기본값(1열)으로 settings.json 전체가 덮였다. 아직 읽지 않았으면 이 PC의 settings.json을 먼저 읽은 뒤 바뀐 항목만 반영한다. 고른 1열·2열은 다시 실행하거나 업데이트 뒤에도 남는다. 2열을 넓히면 약 560px 이상에서 3열로 보이는 규칙은 그대로다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성 라이선스에 GPL 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 설정 파일은 이 PC에만 있고 밖으로 보내지 않음. 읽기 전에는 기본값으로 덮어쓰지 않음.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/stores/settingsStore.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
 날짜: 2026-10-22
 버전: 0.1.194-20261022
 설치 파일: AILauncher_0.1.194-20261022_x64-setup.exe

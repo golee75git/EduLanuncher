@@ -3492,6 +3492,31 @@ PATENT_REVIEW:
 
 ---
 
+Feature: 인사 업무 세로 순서도
+
+Purpose:
+인사 4개 업무의 편람 순서를 세로 도형으로 보여주고, 도형을 누르면 그 단계 설명을 연다.
+
+Design source:
+2026 학교행정 업무편람 PDF 34~49쪽의 업무진행 순서. 화면 배치는 세로 색 상자와 아래 화살표.
+
+Implementation:
+웹 매뉴얼의 인사 메뉴와 그 4개 업무 화면 상단에만 둔다. 도형과 화살표는 이 저장소의 HTML과 SVG다. 새 패키지 없음. 글꼴은 기존 Windows 시스템 글꼴.
+
+External code:
+없음. GPL 구성 요소를 추가하지 않음. 첨부 공문서 그림의 단계 문구는 복사하지 않음.
+
+Potential similar products:
+업무 순서도
+
+Difference:
+편람에 번호로 적힌 순서만 넣는다. 판단 마름모와 반려 화살표는 편람 순서에 없어 그리지 않는다.
+
+PATENT_REVIEW:
+세로 상자와 클릭 설명. 검증된 청구항 원문은 보지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음
+
+---
+
 Feature: 메모 띄어쓰기 자리
 
 Purpose:
@@ -3514,3 +3539,53 @@ Difference:
 
 PATENT_REVIEW:
 입력 칸의 커서 자리 유지. 검증된 청구항 원문은 보지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음
+
+---
+
+Feature: 인사 순서도의 화면과 인쇄를 나눔
+
+Purpose:
+이미 있는 인사 4개 순서를 화면에서는 눌러 보고, 인쇄에서는 같은 순서를 그림 글로 남긴다.
+
+Design source:
+이 저장소의 hrWorkflows.ts. 외부 순서도 사이트의 색과 소스는 가져오지 않음.
+
+Implementation:
+웹 매뉴얼만. 화면은 @xyflow/react(MIT)로 기존 노드를 그리고 클릭은 onNodeClick만 쓴다. 인쇄는 mermaid(MIT)가 같은 노드로 만든 flowchart TD SVG다. securityLevel은 strict. 노드 문장은 추가하지 않음. 런처 소스는 바꾸지 않음.
+
+External code:
+없음. 두 패키지는 의존성으로만 호출. GPL 구성 요소를 추가하지 않음.
+
+Potential similar products:
+순서도 편집기와 텍스트 순서도
+
+Difference:
+편람에서 확인한 인사 4개 순서만 그린다. 도형을 눌러도 업무 완료로 처리하지 않는다.
+
+PATENT_REVIEW:
+기존 노드를 두 표시로 나눈 것. 검증된 청구항 원문은 보지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음
+
+---
+
+Feature: 모두 목록 열 유지
+
+Purpose:
+다시 실행하거나 업데이트한 뒤에도 설정에서 고른 모두 목록 1열·2열이 그대로이게 하기 위함
+
+Design source:
+이 저장소의 settings.json과 설정 저장 함수
+
+Implementation:
+설정을 아직 읽지 않았으면 창 크기만 저장하지 않고, 이 PC의 settings.json을 먼저 읽은 뒤 바뀐 항목을 넣는다. 새 패키지 없음. 글꼴은 기존 Windows 시스템 글꼴
+
+External code:
+없음. GPL 구성 요소를 추가하지 않음
+
+Potential similar products:
+일반 설정 저장
+
+Difference:
+모두 목록 열 값만 지워지지 않게 읽기 순서를 바꿈. 열 개수 규칙은 그대로
+
+PATENT_REVIEW:
+로컬 설정 파일을 저장 전에 읽는 순서. 검증된 청구항 원문은 보지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음
