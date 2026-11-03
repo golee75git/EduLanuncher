@@ -6,6 +6,36 @@
 ---
 
 날짜: 2026-11-03
+버전: 0.1.198-20261103
+설치 파일: AILauncher_0.1.198-20261103_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-03_1349_x64-setup.exe
+작성자: 요청자
+
+요청: PDF 합치기 목록에서 파일을 뺄 수 있게 한다. 소개 사이트 다운로드를 이 버전으로 맞춘다.
+
+확인: 합치기 목록의 빼기는 그 줄만 목록에서 지운다. 원본 파일은 그대로다. 제목을 고치지 않았으면 맨 위 파일을 뺐을 때 제목은 새 첫 파일 이름에 _합친문서를 붙인다. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/pages/PdfToolPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
+날짜: 2026-11-03
 버전: 0.1.197-20261103
 설치 파일: AILauncher_0.1.197-20261103_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-03_1308_x64-setup.exe

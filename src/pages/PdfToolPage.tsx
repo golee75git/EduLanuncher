@@ -168,6 +168,10 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
     setFiles(next);
   };
 
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, fileIndex) => fileIndex !== index));
+  };
+
   const moveSlot = (index: number, delta: number) => {
     const target = index + delta;
     if (target < 0 || target >= slots.length) {
@@ -397,6 +401,9 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
                   </button>
                   <button type="button" className="icon-btn" aria-label="아래로" onClick={() => moveFile(index, 1)}>
                     <ArrowDown className="h-4 w-4" />
+                  </button>
+                  <button type="button" className="icon-btn px-2 text-xs" aria-label="목록에서 빼기" onClick={() => removeFile(index)}>
+                    빼기
                   </button>
                 </li>
               ))}
