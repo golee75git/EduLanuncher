@@ -10,6 +10,7 @@ import {
   glancePdf,
   haltPdf,
   mergePdf,
+  mergeTitleFromName,
   parsePageSpec,
   type PdfMade,
   type PdfSlot,
@@ -47,6 +48,8 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
   const [progress, setProgress] = useState("");
   const [message, setMessage] = useState("");
   const [made, setMade] = useState<PdfMade | null>(null);
+  const [title, setTitle] = useState("");
+  const [titleTouched, setTitleTouched] = useState(false);
   const dragIndex = useRef<number | null>(null);
 
   useEffect(() => holdPdfDrop((files) => addRef.current(files)), []);
@@ -62,6 +65,13 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
       addRef.current(startFiles);
     }
   }, [startFiles]);
+
+  useEffect(() => {
+    if (mode !== "merge" || titleTouched || files.length === 0) {
+      return;
+    }
+    setTitle(mergeTitleFromName(files[0].name));
+  }, [mode, files, titleTouched]);
 
   const readFile = async (file: GrantedFile): Promise<PdfFile> => {
     const glance = await glancePdf(file.id);
@@ -112,6 +122,9 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
       }
     }
     if (loaded.length) {
+      if (base.length === 0) {
+        setTitleTouched(false);
+      }
       setFiles(base.length === 0 && target === "merge" && mode === "menu" ? loaded : [...base, ...loaded]);
     }
   };
@@ -196,7 +209,7 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
     setProgress(`PDF를 처리하고 있습니다. 1 / ${ready.length} 파일`);
     setMessage("");
     try {
-      finish(await mergePdf(ready.map((file) => file.id)));
+      finish(await mergePdf(ready.map((file) => file.id), title.trim()));
     } catch (error) {
       setMessage(asMessage(error));
     } finally {
@@ -389,6 +402,20 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
               ))}
             </ul>
             <p className="text-xs text-quiet">총 {mergePages}페이지</p>
+            <label className="block text-xs text-quiet" htmlFor="pdf-merge-title">
+              제목
+            </label>
+            <input
+              id="pdf-merge-title"
+              className="w-full rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk"
+              value={title}
+              maxLength={60}
+              onChange={(event) => {
+                setTitleTouched(true);
+                setTitle(event.target.value);
+              }}
+            />
+            <p className="text-[11px] leading-5 text-quiet">비우면 첫 파일 이름 뒤에 _합친문서가 붙습니다.</p>
             {signed ? <p className="text-xs leading-5 text-desk">{SIGNED_NOTE}</p> : null}
             <button type="button" className="btn-primary w-full" disabled={busy} onClick={() => void runMerge()}>
               하나의 PDF로 합치기

@@ -332,6 +332,12 @@ export default function App() {
   const addLocalPaths = useCallback(
     async (files: GrantedFile[]) => {
       const split = splitDropActions(files);
+      if (split.pdfs.length >= 2 && split.pictures.length === 0 && split.rest.length === 0) {
+        setDropPick(null);
+        setView({ name: "internal", id: "pdf-pages", title: "PDF 도구", startFiles: split.pdfs });
+        await showPanel();
+        return;
+      }
       let places: DropHold["places"] = [];
       if (split.rest.length > 0) {
         try {

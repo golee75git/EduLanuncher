@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.196-20261103",
+    note: "PDF를 두 개 이상 놓으면 합치기 화면이 열립니다. 제목을 비우면 첫 파일 이름 뒤에 _합친문서가 붙습니다.",
+  },
+  {
     version: "0.1.195-20261028",
     note: "설정의 모두 목록 1열·2열은 다시 실행하거나 업데이트한 뒤에도 그대로입니다.",
   },

@@ -101,7 +101,7 @@ pub fn pdf_glance(app: AppHandle, id: String) -> Result<PdfGlance, String> {
 }
 
 #[tauri::command]
-pub fn pdf_merge(app: AppHandle, ids: Vec<String>) -> Result<PdfMade, String> {
+pub fn pdf_merge(app: AppHandle, ids: Vec<String>, title: String) -> Result<PdfMade, String> {
     STOP.store(false, Ordering::Relaxed);
     if ids.is_empty() {
         return Err("PDF 파일을 넣어 주세요.".into());
@@ -115,10 +115,10 @@ pub fn pdf_merge(app: AppHandle, ids: Vec<String>) -> Result<PdfMade, String> {
         .and_then(|path| path.parent())
         .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
     path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
-    publish(&app, merge_sources(sources)?)
+    publish(&app, merge_sources(sources, &title)?)
 }
 
-fn merge_sources(sources: Vec<PathBuf>) -> Result<SavedPdf, String> {
+fn merge_sources(sources: Vec<PathBuf>, title: &str) -> Result<SavedPdf, String> {
     let mut shell = empty_shell()?;
     let mut signed = false;
     let mut total: u32 = 0;
@@ -147,7 +147,7 @@ fn merge_sources(sources: Vec<PathBuf>) -> Result<SavedPdf, String> {
     let dir = sources[0]
         .parent()
         .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
-    let dest = fresh_pdf(dir, "합친문서.pdf", &sources)?;
+    let dest = fresh_pdf(dir, &merge_label(title, &sources[0]), &sources)?;
     let bytes = save_new(&mut shell, &dest, &sources)?;
     Ok(SavedPdf {
         paths: vec![dest],
@@ -609,6 +609,53 @@ fn set_turn(doc: &mut Document, page_id: ObjectId, turn: i32) -> Result<(), Stri
     Ok(())
 }
 
+fn merge_label(title: &str, first: &Path) -> String {
+    let custom = tidy_merge_title(title);
+    if !custom.is_empty() {
+        return format!("{custom}.pdf");
+    }
+    format!("{}_합친문서.pdf", file_stem(first))
+}
+
+fn tidy_merge_title(raw: &str) -> String {
+    if raw.contains(['\\', '/']) || raw.contains("..") {
+        return String::new();
+    }
+    let trimmed = raw.trim();
+    let without_ext = match trimmed.get(trimmed.len().saturating_sub(4)..) {
+        Some(tail) if tail.eq_ignore_ascii_case(".pdf") => trimmed[..trimmed.len() - 4].trim(),
+        _ => trimmed,
+    };
+    let mut cleaned = String::new();
+    for ch in without_ext.chars() {
+        if cleaned.chars().count() >= 60 {
+            break;
+        }
+        if ch.is_control() || matches!(ch, '\\' | '/' | ':' | '*' | '?' | '"' | '<' | '>' | '|') {
+            continue;
+        }
+        cleaned.push(ch);
+    }
+    let cleaned = cleaned.trim().trim_end_matches(['.', ' ']).to_string();
+    if cleaned.is_empty() || cleaned == "." || cleaned == ".." {
+        return String::new();
+    }
+    let key = cleaned.split('.').next().unwrap_or("").to_ascii_uppercase();
+    if is_reserved_device(&key) {
+        return String::new();
+    }
+    cleaned
+}
+
+fn is_reserved_device(key: &str) -> bool {
+    matches!(
+        key,
+        "CON" | "PRN" | "AUX" | "NUL"
+            | "COM1" | "COM2" | "COM3" | "COM4" | "COM5" | "COM6" | "COM7" | "COM8" | "COM9"
+            | "LPT1" | "LPT2" | "LPT3" | "LPT4" | "LPT5" | "LPT6" | "LPT7" | "LPT8" | "LPT9"
+    )
+}
+
 fn file_stem(path: &Path) -> String {
     let stem = path
         .file_stem()
@@ -775,14 +822,41 @@ mod tests {
         let first = blank_file(&dir, "가.pdf", 2);
         let second = blank_file(&dir, "나.pdf", 1);
         let before = fs::read(&first).unwrap();
-        let made = merge_sources(vec![first.clone(), second]).unwrap();
+        let made = merge_sources(vec![first.clone(), second], "").unwrap();
         assert_eq!(made.pages, 3);
         assert_eq!(made.paths.len(), 1);
         assert!(!made.stopped);
+        assert_eq!(
+            made.paths[0].file_name().and_then(|name| name.to_str()),
+            Some("가_합친문서.pdf")
+        );
         let after = fs::read(&first).unwrap();
         assert_eq!(before, after);
         let opened = Document::load(&made.paths[0]).unwrap();
         assert_eq!(opened.get_pages().len(), 3);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn merge_title_stays_beside_the_first_file() {
+        let dir = std::env::temp_dir().join(format!("edulauncher-pdf-title-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let first = blank_file(&dir, "가.pdf", 1);
+        let second = blank_file(&dir, "나.pdf", 1);
+        let named = merge_sources(vec![first.clone(), second.clone()], "회의자료").unwrap();
+        assert_eq!(named.paths[0].parent().unwrap(), dir.as_path());
+        assert_eq!(
+            named.paths[0].file_name().and_then(|name| name.to_str()),
+            Some("회의자료.pdf")
+        );
+        let escaped = merge_sources(vec![first, second], r"..\..\outside.pdf").unwrap();
+        assert_eq!(escaped.paths[0].parent().unwrap(), dir.as_path());
+        assert!(escaped.paths[0]
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap()
+            .starts_with("가_합친문서"));
         let _ = fs::remove_dir_all(&dir);
     }
 

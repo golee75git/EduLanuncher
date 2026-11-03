@@ -31,8 +31,15 @@ export function haltPdf(): Promise<void> {
   return invoke("pdf_halt");
 }
 
-export function mergePdf(ids: string[]): Promise<PdfMade> {
-  return invoke<PdfMade>("pdf_merge", { ids });
+export function mergePdf(ids: string[], title: string): Promise<PdfMade> {
+  return invoke<PdfMade>("pdf_merge", { ids, title });
+}
+
+export function mergeTitleFromName(name: string): string {
+  const leaf = name.split(/[/\\]/).pop() || "";
+  const stem = leaf.replace(/\.pdf$/i, "").trim();
+  const clipped = Array.from(stem).slice(0, 40).join("");
+  return `${clipped || "문서"}_합친문서`;
 }
 
 export function extractPdf(id: string, pages: number[], each: boolean): Promise<PdfMade> {
