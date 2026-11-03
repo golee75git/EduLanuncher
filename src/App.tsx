@@ -333,12 +333,12 @@ export default function App() {
   const addLocalPaths = useCallback(
     async (files: GrantedFile[]) => {
       const split = splitDropActions(files);
-      if (split.pdfs.length >= 2 && split.pictures.length === 0 && split.rest.length === 0) {
+      if (split.pdfs.length >= 1 && split.pictures.length === 0 && split.rest.length === 0) {
         const next: View = {
           name: "internal",
           id: "pdf-pages",
           title: "PDF 도구",
-          startFiles: split.pdfs,
+          ...(split.pdfs.length >= 2 ? { startFiles: split.pdfs } : {}),
         };
         pdfOpenHold.current = true;
         setDropPick(null);
