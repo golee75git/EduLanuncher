@@ -6,6 +6,34 @@
 ---
 
 날짜: 2026-11-03
+버전: 0.1.197-20261103
+설치 파일: AILauncher_0.1.197-20261103_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-03_1308_x64-setup.exe
+작성자: 요청자
+
+요청: PDF를 두 개 끌어 놓으면 합치기 화면이 깜빡인 뒤 사라지는 문제를 고친다.
+
+확인: 패널을 보이게 하면 검색 초점 신호가 화면을 홈으로 바꾼다. PDF만 두 개를 놓을 때는 그 신호 한 번을 무시하고 합치기 화면을 다시 연다. 트레이로 패널을 여는 홈 이동은 그대로다. PDF 하나의 넣을 곳 확인도 그대로다. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/App.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
+날짜: 2026-11-03
 버전: 0.1.196-20261103
 설치 파일: AILauncher_0.1.196-20261103_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-03_1149_x64-setup.exe

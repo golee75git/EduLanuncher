@@ -177,6 +177,7 @@ export default function App() {
   const [missing, setMissing] = useState<MissingState | null>(null);
   const goneLeft = useRef<string[]>([]);
   const goneHold = useRef(false);
+  const pdfOpenHold = useRef(false);
   const resumeGone = useRef(false);
   const missingNow = useRef<MissingState | null>(null);
   missingNow.current = missing;
@@ -333,9 +334,23 @@ export default function App() {
     async (files: GrantedFile[]) => {
       const split = splitDropActions(files);
       if (split.pdfs.length >= 2 && split.pictures.length === 0 && split.rest.length === 0) {
+        const next: View = {
+          name: "internal",
+          id: "pdf-pages",
+          title: "PDF 도구",
+          startFiles: split.pdfs,
+        };
+        pdfOpenHold.current = true;
         setDropPick(null);
-        setView({ name: "internal", id: "pdf-pages", title: "PDF 도구", startFiles: split.pdfs });
-        await showPanel();
+        setView(next);
+        try {
+          await showPanel();
+        } finally {
+          setView(next);
+          window.setTimeout(() => {
+            pdfOpenHold.current = false;
+          }, 400);
+        }
         return;
       }
       let places: DropHold["places"] = [];
@@ -550,6 +565,9 @@ export default function App() {
 
       const listeners = [
         await listen("focus-search", () => {
+          if (pdfOpenHold.current) {
+            return;
+          }
           setView({ name: "home" });
           window.setTimeout(() => focusSearchInput(), 30);
         }),
