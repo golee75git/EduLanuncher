@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.200-20261103",
+    note: "사진을 놓으면 제목을 정해 PDF로 저장할 수 있습니다.",
+  },
+  {
     version: "0.1.199-20261103",
     note: "PDF를 하나만 놓으면 합치기·나누기·페이지 정리·회전 메뉴가 열립니다.",
   },

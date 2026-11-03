@@ -35,6 +35,17 @@ export function mergePdf(ids: string[], title: string): Promise<PdfMade> {
   return invoke<PdfMade>("pdf_merge", { ids, title });
 }
 
+export function photosToPdf(ids: string[], title: string): Promise<PdfMade> {
+  return invoke<PdfMade>("photos_to_pdf", { ids, title });
+}
+
+export function photoTitleFromName(name: string): string {
+  const leaf = name.split(/[/\\]/).pop() || "";
+  const stem = leaf.replace(/\.(png|jpe?g)$/i, "").trim();
+  const clipped = Array.from(stem).slice(0, 40).join("");
+  return `${clipped || "사진"}_사진문서`;
+}
+
 export function mergeTitleFromName(name: string): string {
   const leaf = name.split(/[/\\]/).pop() || "";
   const stem = leaf.replace(/\.pdf$/i, "").trim();

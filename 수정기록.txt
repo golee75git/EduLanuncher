@@ -6,6 +6,42 @@
 ---
 
 날짜: 2026-11-03
+버전: 0.1.200-20261103
+설치 파일: AILauncher_0.1.200-20261103_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-03_1535_x64-setup.exe
+작성자: 요청자
+
+요청: PNG·JPEG를 PDF로 저장할 때 제목을 넣을 수 있게 한다. 소개 사이트 다운로드를 이 버전으로 맞춘다.
+
+확인: 사진은 한 장에 한 페이지다. 제목은 저장 파일 이름이고 페이지 안에는 글자를 그리지 않는다. 비우거나 경로 문자가 있으면 첫 사진 이름 뒤에 _사진문서가 붙는다. 원본은 바꾸지 않는다. JPEG는 사진 파일의 압축 데이터를 그대로 넣고, PNG는 기존 png 0.17로 읽는다. 새 패키지 없음. 글꼴은 기존 Windows 시스템 글꼴이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- src-tauri/src/photo_pdf.rs
+- src/pages/PhotoPdfPage.tsx
+
+다시 쓴 파일:
+- src-tauri/src/lib.rs
+- src-tauri/src/pdf_pages.rs
+- src/App.tsx
+- src/components/DropActionPick.tsx
+- src/services/pdfToolService.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- website/src/config.ts
+- website/src/data/releases.ts
+- src-tauri/tauri.conf.json
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 그 외 기존 파일
+
+---
+
+날짜: 2026-11-03
 버전: 0.1.199-20261103
 설치 파일: AILauncher_0.1.199-20261103_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-03_1508_x64-setup.exe

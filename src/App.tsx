@@ -37,6 +37,7 @@ import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
 import { DocShrinkPage } from "./pages/DocShrinkPage";
 import { PdfToolPage } from "./pages/PdfToolPage";
+import { PhotoPdfPage } from "./pages/PhotoPdfPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
 import { SiteListImportPage } from "./pages/SiteListImportPage";
 import { ToolEditPage } from "./pages/ToolEditPage";
@@ -1292,6 +1293,9 @@ export default function App() {
           {view.name === "internal" && isPdfPagesTarget(view.id) ? (
             <PdfToolPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && view.id === "photo-pdf" ? (
+            <PhotoPdfPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" && isFolderFindTarget(view.id) ? (
             <PcFolderFindPage onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -1501,6 +1505,14 @@ export default function App() {
               }
               setDropPick(null);
               setView({ name: "internal", id: "url-mark", title: "QR코드 넣기", startFiles: [file] });
+            }}
+            onPhotoPdf={() => {
+              const files = dropPick.pictures;
+              if (files.length === 0) {
+                return;
+              }
+              setDropPick(null);
+              setView({ name: "internal", id: "photo-pdf", title: "사진 PDF", startFiles: files });
             }}
             onPdf={() => {
               const files = dropPick.pdfs;

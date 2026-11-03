@@ -29,6 +29,7 @@ mod security_judge;
 mod security_read;
 mod securitycheck;
 mod pdf_pages;
+mod photo_pdf;
 mod admin_tools;
 mod org_policy;
 mod index_key;
@@ -50,6 +51,7 @@ use document_search::{
     doc_search_remove_folder, doc_search_start, doc_search_status,
 };
 use pdf_pages::{pdf_arrange, pdf_extract, pdf_glance, pdf_halt, pdf_merge};
+use photo_pdf::photos_to_pdf;
 use privacy_find::{find_privacy_regions, privacy_find_caps, stop_privacy_find};
 use privacy_mask::{read_privacy_picture, write_privacy_picture};
 use url_mark::{build_url_mark, read_picture_file, write_png_file};
@@ -3085,6 +3087,7 @@ pub fn run() {
             pdf_merge,
             pdf_extract,
             pdf_arrange,
+            photos_to_pdf,
             doc_search_folders,
             doc_search_add_folder,
             handover::pick_work_folder,

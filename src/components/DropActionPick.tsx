@@ -17,6 +17,7 @@ interface DropActionPickProps {
   onMosaic: () => void;
   onShrink: () => void;
   onQr: () => void;
+  onPhotoPdf: () => void;
   onPdf: () => void;
   onShortcut: () => void;
   onPlaces: () => void;
@@ -42,6 +43,7 @@ export function DropActionPick({
   onMosaic,
   onShrink,
   onQr,
+  onPhotoPdf,
   onPdf,
   onShortcut,
   onPlaces,
@@ -75,6 +77,11 @@ export function DropActionPick({
           {pictures.length > 0 ? (
             <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onShrink}>
               사진 용량 줄이기
+            </button>
+          ) : null}
+          {pictures.length > 0 ? (
+            <button type="button" className="btn-secondary !bg-zone-recent hover:!bg-zone-recent" onClick={onPhotoPdf}>
+              PDF로 저장
             </button>
           ) : null}
           {pictures.length === 1 ? (

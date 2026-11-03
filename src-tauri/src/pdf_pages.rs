@@ -51,6 +51,19 @@ pub struct PdfMade {
     pub stopped: bool,
 }
 
+pub(crate) fn publish_new(app: &AppHandle, paths: Vec<PathBuf>, pages: u32, bytes: u64) -> Result<PdfMade, String> {
+    publish(
+        app,
+        SavedPdf {
+            paths,
+            pages,
+            bytes,
+            signed: false,
+            stopped: false,
+        },
+    )
+}
+
 fn publish(app: &AppHandle, saved: SavedPdf) -> Result<PdfMade, String> {
     let book = app.state::<path_grant::GrantBook>();
     let mut files = Vec::new();
@@ -445,7 +458,7 @@ fn name_is(object: Option<&Object>, expected: &[u8]) -> bool {
     matches!(object, Some(Object::Name(name)) if name.as_slice() == expected)
 }
 
-fn empty_shell() -> Result<Document, String> {
+pub(crate) fn empty_shell() -> Result<Document, String> {
     let mut doc = Document::new();
     doc.version = "1.7".to_string();
     let pages_id = doc.new_object_id();
@@ -463,7 +476,7 @@ fn empty_shell() -> Result<Document, String> {
     Ok(doc)
 }
 
-fn pages_root(doc: &Document) -> Result<ObjectId, String> {
+pub(crate) fn pages_root(doc: &Document) -> Result<ObjectId, String> {
     let catalog = doc.catalog().map_err(|_| "이 PDF 파일을 정상적으로 읽을 수 없습니다.".to_string())?;
     match catalog.get(b"Pages") {
         Ok(Object::Reference(id)) => Ok(*id),
@@ -617,7 +630,7 @@ fn merge_label(title: &str, first: &Path) -> String {
     format!("{}_합친문서.pdf", file_stem(first))
 }
 
-fn tidy_merge_title(raw: &str) -> String {
+pub(crate) fn tidy_merge_title(raw: &str) -> String {
     if raw.contains(['\\', '/']) || raw.contains("..") {
         return String::new();
     }
@@ -694,7 +707,7 @@ fn page_label(pages: &[u32]) -> String {
     }
 }
 
-fn fresh_pdf(dir: &Path, file_name: &str, sources: &[PathBuf]) -> Result<PathBuf, String> {
+pub(crate) fn fresh_pdf(dir: &Path, file_name: &str, sources: &[PathBuf]) -> Result<PathBuf, String> {
     let stem = Path::new(file_name)
         .file_stem()
         .and_then(|text| text.to_str())
@@ -717,7 +730,7 @@ fn fresh_pdf(dir: &Path, file_name: &str, sources: &[PathBuf]) -> Result<PathBuf
     Err("같은 이름의 파일이 너무 많습니다.".into())
 }
 
-fn save_new(doc: &mut Document, dest: &Path, sources: &[PathBuf]) -> Result<u64, String> {
+pub(crate) fn save_new(doc: &mut Document, dest: &Path, sources: &[PathBuf]) -> Result<u64, String> {
     if dest.exists() {
         return Err("이미 있는 파일은 덮어쓰지 않습니다.".into());
     }
