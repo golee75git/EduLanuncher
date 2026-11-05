@@ -51,6 +51,24 @@ export function IntroPage() {
           <br />
           <span className="text-ink">Windows 업무 런처</span>
         </h1>
+        <div className="relative">
+          <img
+            src="/main-img.png"
+            width={1122}
+            height={1402}
+            alt="AI런처 안내 그림"
+            className="h-auto w-full rounded-lg"
+          />
+          <a
+            className="absolute rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            style={{ left: "30.04%", top: "89.66%", width: "39.75%", height: "4.56%" }}
+            href={SITE_CONFIG.setupDownloadUrl}
+            aria-label="지금 설치하기"
+            rel="noreferrer"
+          >
+            <span className="sr-only">지금 설치하기</span>
+          </a>
+        </div>
         <p className="text-lg leading-relaxed text-desk">
           기능 이름을 몰라도, 하고 싶은 일을 검색하면 됩니다.
         </p>
