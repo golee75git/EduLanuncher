@@ -23,6 +23,7 @@ interface PhotoCaptionPageProps {
 
 export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const shotRef = useRef<PrivacyShot | null>(null);
   const markRef = useRef<CaptionMark>(emptyCaption());
   const boxRef = useRef<CaptionBox | null>(null);
@@ -39,6 +40,22 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
   shotRef.current = shot;
 
   useEffect(() => holdPrivacyDrop((file) => openRef.current(file)), []);
+
+  useEffect(() => {
+    const node = frameRef.current;
+    if (!node) {
+      return;
+    }
+    const onWheel = (event: WheelEvent) => {
+      if (!shotRef.current) {
+        return;
+      }
+      event.preventDefault();
+      setZoom((current) => clampZoom(current * (event.deltaY > 0 ? 0.9 : 1.1)));
+    };
+    node.addEventListener("wheel", onWheel, { passive: false });
+    return () => node.removeEventListener("wheel", onWheel);
+  }, [shot]);
 
   useEffect(() => {
     if (startFile) {
@@ -193,8 +210,8 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          이 PC의 PNG·JPEG에 글을 올립니다. 글자색과 배경색을 고르고, 미리보기에서 위치를 끌어 정합니다. 확대·축소는
-          미리보기만 바꿉니다. 원본은 바꾸지 않습니다.
+          이 PC의 PNG·JPEG에 글을 올립니다. 글자색과 배경색을 고르고, 미리보기에서 위치를 끌어 정합니다. 확대·축소와
+          미리보기 위 마우스 휠은 미리보기만 바꿉니다. 원본은 바꾸지 않습니다.
         </p>
         <p className="text-[11px] leading-5 text-quiet">
           글꼴은 이 PC의 Windows 글꼴(Segoe UI, 맑은 고딕)입니다. 글꼴 파일은 설치본에 없습니다. 새 파일에는
@@ -208,7 +225,7 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
           사진 선택
         </button>
         {shot && fitted ? (
-          <div className="max-h-72 overflow-auto rounded-lg border border-line bg-card">
+          <div ref={frameRef} className="max-h-72 overflow-auto rounded-lg border border-line bg-card">
             <canvas
               ref={canvasRef}
               className="block cursor-move touch-none"

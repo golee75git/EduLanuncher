@@ -20,6 +20,7 @@ interface UrlMarkPageProps {
 
 export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const [url, setUrl] = useState("");
   const [picture, setPicture] = useState<PictureFile | null>(null);
   const [preview, setPreview] = useState("");
@@ -41,6 +42,22 @@ export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
       canvasRef.current.height = 0;
     }
   };
+
+  useEffect(() => {
+    const node = frameRef.current;
+    if (!node) {
+      return;
+    }
+    const onWheel = (event: WheelEvent) => {
+      if (!preview) {
+        return;
+      }
+      event.preventDefault();
+      setZoom((current) => clampZoom(current * (event.deltaY > 0 ? 0.9 : 1.1)));
+    };
+    node.addEventListener("wheel", onWheel, { passive: false });
+    return () => node.removeEventListener("wheel", onWheel);
+  }, [preview]);
 
   useEffect(() => {
     if (!startFile) {
@@ -143,7 +160,7 @@ export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
           이 PC 그림 오른쪽 아래에 주소 QR코드를 넣습니다. http 또는 https만 됩니다. 위치와 색은 바꾸지
-          않습니다. 확대·축소는 미리보기만 바꿉니다.
+          않습니다. 확대·축소와 미리보기 위 마우스 휠은 미리보기만 바꿉니다.
         </p>
         <p className="text-[11px] leading-5 text-quiet">
           QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 이 프로그램은 그 상표를 소유하지 않습니다.
@@ -172,7 +189,7 @@ export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
         </div>
         {message ? <p className="text-sm text-desk">{message}</p> : null}
         {preview ? (
-          <div className="max-h-80 overflow-auto rounded-lg border border-line bg-card">
+          <div ref={frameRef} className="max-h-80 overflow-auto rounded-lg border border-line bg-card">
             <img
               src={preview}
               alt="QR코드 넣기 미리보기"

@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.203-20261105",
+    note: "사진에 글자와 QR코드 넣기 미리보기 위에서 마우스 휠로 확대·축소합니다.",
+  },
+  {
     version: "0.1.202-20261105",
     note: "사진에 글자와 QR코드 넣기 미리보기를 확대·축소할 수 있습니다.",
   },
