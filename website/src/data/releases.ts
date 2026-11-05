@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.201-20261105",
+    note: "사진에 글자색과 배경색을 정해 글을 넣고 새 PNG로 저장합니다.",
+  },
+  {
     version: "0.1.200-20261103",
     note: "사진을 놓으면 제목을 정해 PDF로 저장할 수 있습니다.",
   },

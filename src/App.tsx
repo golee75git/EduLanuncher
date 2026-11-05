@@ -35,6 +35,7 @@ import { WorkHandoverPage } from "./pages/WorkHandoverPage";
 import { ThisPcAddressPage } from "./pages/ThisPcAddressPage";
 import { UrlMarkPage } from "./pages/UrlMarkPage";
 import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
+import { PhotoCaptionPage } from "./pages/PhotoCaptionPage";
 import { DocShrinkPage } from "./pages/DocShrinkPage";
 import { PdfToolPage } from "./pages/PdfToolPage";
 import { PhotoPdfPage } from "./pages/PhotoPdfPage";
@@ -1287,6 +1288,13 @@ export default function App() {
               onBack={() => setView({ name: "home" })}
             />
           ) : null}
+          {view.name === "internal" && (view.id === "photo-caption" || view.id === "tool-photo-caption") ? (
+            <PhotoCaptionPage
+              title={view.title}
+              startFile={view.startFiles?.[0]}
+              onBack={() => setView({ name: "home" })}
+            />
+          ) : null}
           {view.name === "internal" && isDocShrinkTarget(view.id) ? (
             <DocShrinkPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -1348,6 +1356,8 @@ export default function App() {
           view.id !== "tool-url-mark" &&
           view.id !== "privacy-mask" &&
           view.id !== "tool-privacy-mask" &&
+          view.id !== "photo-caption" &&
+          view.id !== "tool-photo-caption" &&
           !isDocShrinkTarget(view.id) &&
           !isPdfPagesTarget(view.id) &&
           !isFolderFindTarget(view.id) &&
@@ -1485,6 +1495,14 @@ export default function App() {
                   ? "Pack"
                   : ""
             }
+            onCaption={() => {
+              const file = dropPick.pictures[0];
+              if (!file) {
+                return;
+              }
+              setDropPick(null);
+              setView({ name: "internal", id: "photo-caption", title: "사진에 글자", startFiles: [file] });
+            }}
             onMosaic={() => {
               const file = dropPick.pictures[0];
               if (!file) {

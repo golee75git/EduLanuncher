@@ -3,11 +3,11 @@ export const SITE_CONFIG = {
   displayName: "AI런처",
   githubRepo: "https://github.com/golee75git/EduLanuncher",
   releasesUrl: "https://github.com/golee75git/EduLanuncher/releases/latest",
-  version: "0.1.200-20261103",
-  setupFile: "AILauncher_0.1.200-20261103_x64-setup.exe",
-  setupFileDated: "AILauncher_2026-11-03_1535_x64-setup.exe",
+  version: "0.1.201-20261105",
+  setupFile: "AILauncher_0.1.201-20261105_x64-setup.exe",
+  setupFileDated: "AILauncher_2026-11-05_1414_x64-setup.exe",
   setupDownloadUrl:
-    "https://github.com/golee75git/EduLanuncher/releases/download/0.1.200-20261103/AILauncher_0.1.200-20261103_x64-setup.exe",
+    "https://github.com/golee75git/EduLanuncher/releases/download/0.1.201-20261105/AILauncher_0.1.201-20261105_x64-setup.exe",
 } as const;
 
 export type SiteView = "intro" | "menu" | "preview" | "download" | "opinion" | "manage";

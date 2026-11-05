@@ -46,6 +46,20 @@ export function isPdfPagesTarget(target: string): boolean {
   return target === PDF_PAGES_TOOL.target || target === PDF_PAGES_TOOL.id;
 }
 
+export const PHOTO_CAPTION_TOOL: ToolItem = {
+  id: "tool-photo-caption",
+  name: "사진에 글자",
+  description: "사진에 글자와 배경색을 넣어 새 파일로 저장합니다",
+  type: "internal",
+  target: "photo-caption",
+  icon: "fileText",
+  category: "전산",
+  favorite: true,
+  keywords: ["사진", "글자", "문구", "배경"],
+  usageCount: 0,
+  enabled: true,
+};
+
 export const PRIVACY_MASK_TOOL: ToolItem = {
   id: "tool-privacy-mask",
   name: "사진 모자이크",
@@ -183,6 +197,7 @@ export const SAMPLE_TOOLS: ToolItem[] = [
 
 export const COMMON_WORK_TOOLS: ToolItem[] = [
   PRIVACY_MASK_TOOL,
+  PHOTO_CAPTION_TOOL,
   DOC_SHRINK_TOOL,
   URL_MARK_TOOL,
   PDF_PAGES_TOOL,
