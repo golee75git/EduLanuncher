@@ -26,11 +26,15 @@ export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [hasMark, setHasMark] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [pixel, setPixel] = useState<{ width: number; height: number } | null>(null);
 
   const openPicture = async (id: string) => {
     const file = await readPictureFile(id);
     setPicture(file);
     setHasMark(false);
+    setZoom(1);
+    setPixel(null);
     setPreview(pictureSrc(file));
     if (canvasRef.current) {
       canvasRef.current.width = 0;
@@ -119,6 +123,15 @@ export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
     }
   };
 
+  const fitted = pixel ? fitBox(pixel.width, pixel.height, 640, 420) : null;
+
+  const showPixels = () => {
+    if (!pixel || !fitted) {
+      return;
+    }
+    setZoom(clampZoom(pixel.width / fitted.width));
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col bg-paper">
       <header className="flex items-center gap-2 px-3 pt-3">
@@ -130,7 +143,7 @@ export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
           이 PC 그림 오른쪽 아래에 주소 QR코드를 넣습니다. http 또는 https만 됩니다. 위치와 색은 바꾸지
-          않습니다.
+          않습니다. 확대·축소는 미리보기만 바꿉니다.
         </p>
         <p className="text-[11px] leading-5 text-quiet">
           QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 이 프로그램은 그 상표를 소유하지 않습니다.
@@ -159,12 +172,53 @@ export function UrlMarkPage({ title, onBack, startFile }: UrlMarkPageProps) {
         </div>
         {message ? <p className="text-sm text-desk">{message}</p> : null}
         {preview ? (
-          <img src={preview} alt="QR코드 넣기 미리보기" className="w-full rounded-lg border border-line bg-card" />
+          <div className="max-h-80 overflow-auto rounded-lg border border-line bg-card">
+            <img
+              src={preview}
+              alt="QR코드 넣기 미리보기"
+              className={fitted ? "block max-w-none" : "block w-full"}
+              style={fitted ? { width: fitted.width * zoom, height: fitted.height * zoom } : undefined}
+              onLoad={(event) => {
+                const image = event.currentTarget;
+                setPixel((prev) =>
+                  prev && prev.width === image.naturalWidth && prev.height === image.naturalHeight
+                    ? prev
+                    : { width: image.naturalWidth, height: image.naturalHeight },
+                );
+              }}
+            />
+          </div>
         ) : null}
+        <div className="grid grid-cols-4 gap-2">
+          <button type="button" className="btn-secondary h-9 px-1 text-xs" onClick={() => setZoom((value) => clampZoom(value * 1.25))} disabled={!pixel}>
+            확대
+          </button>
+          <button type="button" className="btn-secondary h-9 px-1 text-xs" onClick={() => setZoom((value) => clampZoom(value / 1.25))} disabled={!pixel}>
+            축소
+          </button>
+          <button type="button" className="btn-secondary h-9 px-1 text-xs" onClick={showPixels} disabled={!pixel}>
+            100%
+          </button>
+          <button type="button" className="btn-secondary h-9 px-1 text-xs" onClick={() => setZoom(1)} disabled={!pixel}>
+            화면 맞춤
+          </button>
+        </div>
         <canvas ref={canvasRef} className="hidden" />
       </div>
     </div>
   );
+}
+
+function clampZoom(value: number): number {
+  return Math.min(8, Math.max(0.25, value));
+}
+
+function fitBox(width: number, height: number, maxWidth: number, maxHeight: number): { width: number; height: number } {
+  const scale = Math.min(maxWidth / width, maxHeight / height, 1);
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {

@@ -33,6 +33,7 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
   const [sourceName, setSourceName] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   markRef.current = mark;
   shotRef.current = shot;
@@ -65,8 +66,6 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
     const ratio = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.max(1, Math.round(fitted.width * ratio));
     canvas.height = Math.max(1, Math.round(fitted.height * ratio));
-    canvas.style.width = `${fitted.width}px`;
-    canvas.style.height = `${fitted.height}px`;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       return;
@@ -85,6 +84,7 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
       }
       shotRef.current = next;
       setShot(next);
+      setZoom(1);
       setSourceName(file.name);
       const fresh = emptyCaption();
       markRef.current = fresh;
@@ -141,6 +141,21 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
     dragRef.current = null;
   };
 
+  const fitted = shot ? fitBox(shot.width, shot.height, 480, 280) : null;
+
+  const fitPreview = () => {
+    setZoom(1);
+  };
+
+  const showPixels = () => {
+    const current = shotRef.current;
+    if (!current) {
+      return;
+    }
+    const fittedSize = fitBox(current.width, current.height, 480, 280);
+    setZoom(clampZoom(current.width / fittedSize.width));
+  };
+
   const savePng = async () => {
     const current = shotRef.current;
     if (!current) {
@@ -178,8 +193,8 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          이 PC의 PNG·JPEG에 글을 올립니다. 글자색과 배경색을 고르고, 미리보기에서 위치를 끌어 정합니다. 원본은
-          바꾸지 않습니다.
+          이 PC의 PNG·JPEG에 글을 올립니다. 글자색과 배경색을 고르고, 미리보기에서 위치를 끌어 정합니다. 확대·축소는
+          미리보기만 바꿉니다. 원본은 바꾸지 않습니다.
         </p>
         <p className="text-[11px] leading-5 text-quiet">
           글꼴은 이 PC의 Windows 글꼴(Segoe UI, 맑은 고딕)입니다. 글꼴 파일은 설치본에 없습니다. 새 파일에는
@@ -192,11 +207,12 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
         <button type="button" className="btn-primary" onClick={() => void pickPicture()} disabled={busy}>
           사진 선택
         </button>
-        {shot ? (
+        {shot && fitted ? (
           <div className="max-h-72 overflow-auto rounded-lg border border-line bg-card">
             <canvas
               ref={canvasRef}
               className="block cursor-move touch-none"
+              style={{ width: fitted.width * zoom, height: fitted.height * zoom }}
               aria-label="사진 미리보기. 끌어서 글자 위치를 정합니다."
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
@@ -210,6 +226,20 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
             <p className="text-xs text-quiet">PNG, JPEG</p>
           </div>
         )}
+        <div className="grid grid-cols-4 gap-2">
+          <button type="button" className="btn-secondary h-9 px-1 text-xs" onClick={() => setZoom((value) => clampZoom(value * 1.25))} disabled={!shot}>
+            확대
+          </button>
+          <button type="button" className="btn-secondary h-9 px-1 text-xs" onClick={() => setZoom((value) => clampZoom(value / 1.25))} disabled={!shot}>
+            축소
+          </button>
+          <button type="button" className="btn-secondary h-9 px-1 text-xs" onClick={showPixels} disabled={!shot}>
+            100%
+          </button>
+          <button type="button" className="btn-secondary h-9 px-1 text-xs" onClick={fitPreview} disabled={!shot}>
+            화면 맞춤
+          </button>
+        </div>
         <label className="block text-sm text-desk">
           글
           <textarea
@@ -267,6 +297,10 @@ export function PhotoCaptionPage({ title, onBack, startFile }: PhotoCaptionPageP
       </div>
     </div>
   );
+}
+
+function clampZoom(value: number): number {
+  return Math.min(8, Math.max(0.25, value));
 }
 
 function fitBox(width: number, height: number, maxWidth: number, maxHeight: number): { width: number; height: number } {

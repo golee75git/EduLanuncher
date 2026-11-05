@@ -6,6 +6,38 @@
 ---
 
 날짜: 2026-11-05
+버전: 0.1.202-20261105
+설치 파일: AILauncher_0.1.202-20261105_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-05_1622_x64-setup.exe
+작성자: 요청자
+
+요청: 사진에 글자와 QR코드 넣기 패널에서 사진 모자이크와 같이 미리보기를 확대·축소할 수 있게 한다. 다른 기능은 그대로 둔다.
+
+확인: 확대·축소·100%·화면 맞춤은 미리보기 표시만 바꾼다. 배율은 0.25배에서 8배다. 저장 화소, QR 위치와 색, 원본 파일은 그대로다. 옆 창은 만들지 않았다. 새 패키지 없음. 글꼴 파일을 넣지 않음. 쓰는 글꼴은 이 PC Windows 글꼴(Segoe UI, 맑은 고딕)이고 OFL이 아니다. GPL을 추가하지 않음. 검증된 특허 청구항 원문은 보지 않았고 청구항 문장을 옮기지 않음. 미리보기 표시 크기만 바꾸는 구성은 특허 검토 대상으로 별도 표시한다. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/pages/PhotoCaptionPage.tsx
+- src/pages/UrlMarkPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 사진 모자이크, 크게 보기 창, 그 외 기존 파일
+
+---
+
+날짜: 2026-11-05
 버전: 0.1.201-20261105
 설치 파일: AILauncher_0.1.201-20261105_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-05_1414_x64-setup.exe
