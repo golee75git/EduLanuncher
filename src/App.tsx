@@ -553,11 +553,15 @@ export default function App() {
             }
           });
         }
-        if (settings.showWindowOnLaunch || !settings.onboarded) {
-          await showPanel();
-          panelOpened = true;
-        } else {
-          await hidePanel();
+        try {
+          if (settings.showWindowOnLaunch || !settings.onboarded) {
+            await showPanel();
+            panelOpened = true;
+          } else {
+            await hidePanel();
+          }
+        } catch {
+          // 브라우저 미리보기에는 이 명령이 없다.
         }
       } finally {
         if (!cancelled) {
@@ -565,7 +569,9 @@ export default function App() {
         }
       }
 
-      const listeners = [
+      let listeners: Array<() => void> = [];
+      try {
+        listeners = [
         await listen("focus-search", () => {
           if (pdfOpenHold.current) {
             return;
@@ -686,6 +692,9 @@ export default function App() {
           })();
         }),
       ];
+      } catch {
+        // 브라우저 미리보기에는 이 명령이 없다.
+      }
       if (cancelled) {
         listeners.forEach((unlisten) => unlisten());
         return;
@@ -803,6 +812,8 @@ export default function App() {
       } else {
         unlisten = stop;
       }
+    }).catch(() => {
+      // 브라우저 미리보기에는 이 명령이 없다.
     });
     return () => {
       cancelled = true;

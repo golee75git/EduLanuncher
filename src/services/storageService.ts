@@ -17,15 +17,59 @@ import type { RecentTopicItem } from "../types/recentTopic";
 import type { TodoItem } from "../types/todo";
 import type { ToolItem } from "../types/tool";
 
-let toolsStore: Store | null = null;
-let todosStore: Store | null = null;
-let settingsStore: Store | null = null;
-let memoStore: Store | null = null;
-let noticesStore: Store | null = null;
-let recentTopicsStore: Store | null = null;
-let keptSearchStore: Store | null = null;
+interface JsonStore {
+  get<T>(key: string): Promise<T | undefined>;
+  set(key: string, value: unknown): Promise<void>;
+  save(): Promise<void>;
+}
 
-async function getStore(path: string): Promise<Store> {
+let toolsStore: JsonStore | null = null;
+let todosStore: JsonStore | null = null;
+let settingsStore: JsonStore | null = null;
+let memoStore: JsonStore | null = null;
+let noticesStore: JsonStore | null = null;
+let recentTopicsStore: JsonStore | null = null;
+let keptSearchStore: JsonStore | null = null;
+
+function runningInTauri(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+function browserStore(path: string): JsonStore {
+  const storageKey = `edulauncher-preview:${path}`;
+  let data: Record<string, unknown> = {};
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        data = parsed as Record<string, unknown>;
+      }
+    }
+  } catch {
+    data = {};
+  }
+  return {
+    async get<T>(key: string) {
+      return data[key] as T | undefined;
+    },
+    async set(key: string, value: unknown) {
+      data[key] = value;
+    },
+    async save() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      } catch {
+        // 저장 공간이 없으면 이번 탭의 메모리만 유지한다.
+      }
+    },
+  };
+}
+
+async function getStore(path: string): Promise<JsonStore> {
+  if (!runningInTauri()) {
+    return browserStore(path);
+  }
   return Store.load(path);
 }
 

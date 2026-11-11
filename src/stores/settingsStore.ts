@@ -113,17 +113,23 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 export async function hydrateSettings(): Promise<AppSettings> {
   const settings = await loadSettings();
   useSettingsStore.getState().hydrate(settings);
-  await setLauncherPosition(settings.launcherPosition);
   try {
-    await registerShortcut(settings.globalShortcut);
-    useSettingsStore.setState({ shortcutNote: "" });
-  } catch (error) {
-    useSettingsStore.setState({
-      shortcutNote:
-        error instanceof Error
-          ? error.message
-          : "이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.",
-    });
+    await setLauncherPosition(settings.launcherPosition);
+  } catch {
+    // 브라우저 미리보기에는 이 명령이 없다.
+  }
+  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    try {
+      await registerShortcut(settings.globalShortcut);
+      useSettingsStore.setState({ shortcutNote: "" });
+    } catch (error) {
+      useSettingsStore.setState({
+        shortcutNote:
+          error instanceof Error
+            ? error.message
+            : "이 단축키는 쓸 수 없습니다. 수정키와 일반 키를 다시 지정하세요.",
+      });
+    }
   }
   try {
     if (settings.autoStart) {

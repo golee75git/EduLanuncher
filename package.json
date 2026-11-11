@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "site:dev": "npm --prefix website run dev",
-    "site:build": "npm --prefix website run build",
+    "site:build": "vite build --base=/panel/ --outDir website/public/panel && npm --prefix website run build",
     "check:handbook": "node --experimental-strip-types tools/check-handbook-flow.ts",
     "knowledge:build": "node tools/buildKnowledge.mjs",
     "notices": "node scripts/gen-third-party-notices.mjs"

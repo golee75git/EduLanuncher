@@ -127,7 +127,7 @@ Pack 분기 (`src/services/applyNoticePack.ts`):
 프로젝트 이름: `edulanuncher`  
 Root directory: **`website`** (비우면 런처 화면이 웹에 올라감). `/menu` 는 왼쪽에 편람 분류·업무자료·인증서, 오른쪽에 내용을 둔다. `/menu/topic/업무id` 는 한눈에 보기만, `/menu/handbook` 분류·업무는 업무 흐름만 그린다. 편람은 분류 그림의 칸 순서이고, 업무자료 단계는 JSON 순서다. `/menu` 첫 화면과 업무자료 검색에는 런처와 같은 업무 그림이 있다. 크게 보기는 왼쪽 그림과 오른쪽 내용으로 나눈다. 상자 주소는 태그의 문자열로 읽는다. `/menu/pilot` 는 병가·질병휴직 개발용 시범이다. 현행 법령 검증 중이라 실제 업무 기준으로 쓰지 않는다. 단계 글은 `website/tools/copyKnowledge.mjs`가 업무자료 JSON에서 만든다.
 
-루트 `package.json`·`vite.config.ts`에 wrangler나 `@cloudflare/vite-plugin`을 두지 않는다. 앱 `npm run build`는 패널만 묶는다. 사이트는 `npm run site:build`와 `website/wrangler.jsonc`만 쓴다.
+루트 `package.json`·`vite.config.ts`에 wrangler나 `@cloudflare/vite-plugin`을 두지 않는다. 앱 `npm run build`는 패널만 묶는다. 사이트는 `npm run site:build`와 `website/wrangler.jsonc`만 쓴다. `site:build`는 같은 패널을 `website/public/panel`에 만든 뒤 사이트를 빌드한다. `/preview`는 배포본에서 그 패널을 보여주고, 개발 서버에서는 `http://localhost:1420/`을 보여 준다. 트레이·프로그램 실행·이 PC 파일 도구는 그 화면에서 실행되지 않는다. Cloudflare는 `website`만 빌드하므로 `website/public/panel`이 저장소에 있어야 배포된 미리보기에 패널이 나온다.
 
 | 항목 | 값 |
 |---|---|

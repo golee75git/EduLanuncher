@@ -140,7 +140,7 @@
    지금은 로컬 빌드 후 `gh release`로 수동 업로드. GitHub Actions(Windows runner + VS)는 선택.
 
 2. **웹 미리보기**  
-   실제 런처를 브라우저에 이식하지 않음. 목업 유지.
+   `/preview`는 같은 패널이다. 개발 중에는 1420, 배포본은 `/panel/index.html`. Windows 전용 기능은 실행하지 않는다. 사이트 첫 화면은 소개 페이지로 둔다.
 
 ## 하지 말 것
 

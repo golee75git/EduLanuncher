@@ -52,7 +52,7 @@
 
 데스크톱: `src/` + `src-tauri/` (Tauri 패널, 라우터 없음)
 
-웹 소개 (`website/`): `/` 소개, `/preview` 모양만, `/download` GitHub Releases
+웹 소개 (`website/`): `/` 소개, `/preview`는 같은 패널을 브라우저에서 보여 주고 Windows 전용 기능은 실행하지 않음, `/download` GitHub Releases
 
 ## 성공 기준
 
