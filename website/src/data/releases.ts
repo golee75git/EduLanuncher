@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.207-20261119",
+    note: "사진을 두 장 이상 놓으면 한 장용 메뉴 안내가 배경과 함께 진하게 보입니다.",
+  },
+  {
     version: "0.1.206-20261119",
     note: "사진을 두 장 이상 놓으면 한 장용 메뉴는 한 장씩 할 수 있다고 안내합니다.",
   },

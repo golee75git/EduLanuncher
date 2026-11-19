@@ -6,6 +6,38 @@
 ---
 
 날짜: 2026-11-19
+버전: 0.1.207-20261119
+설치 파일: AILauncher_0.1.207-20261119_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-19_1150_x64-setup.exe
+작성자: 요청자
+
+요청: 사진을 두 장 이상 놓으면 나오는 "한 장씩 할 수 있어요" 안내에 배경색을 넣고 글자를 진하게 한다. 다른 것은 그대로 둔다.
+
+확인: 문구와 나오는 조건은 그대로다. 배경은 기존 사진 도구 색이고 글자는 진하다. 한 장일 때의 단추는 그대로다. 사용 방법의 문장은 그대로이고, 설정과 소개 사이트의 설치 파일명과 버전만 이 버전으로 맞춘다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성 라이선스에 GPL 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 색과 글자 두께라 새로운 기술 구성은 없음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- website/public/panel/assets/index-BOfoxNBc.js
+
+다시 쓴 파일:
+- src/components/DropActionPick.tsx
+- website/public/panel/index.html
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- README.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 설정 사용 방법 문장, 한 장일 때의 단추, 그 외 기존 파일
+
+---
+
+날짜: 2026-11-19
 버전: 0.1.206-20261119
 설치 파일: AILauncher_0.1.206-20261119_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-19_1140_x64-setup.exe
