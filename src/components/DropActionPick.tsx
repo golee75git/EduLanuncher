@@ -72,6 +72,12 @@ export function DropActionPick({
         {fileUrlCount > 0 ? <p className="truncate text-xs text-desk">문서에서 주소 {fileUrlCount}개</p> : null}
         {packLabel ? <p className="truncate text-xs text-desk">{packLabel} · Pack</p> : null}
         <div className="flex flex-col gap-2">
+          {pictures.length > 1 ? (
+            <p className="text-xs leading-5 text-quiet">
+              사진 다듬기 · 글자 넣기 · 사진 모자이크 · QR코드 넣기
+              <br />한 장씩 할 수 있어요
+            </p>
+          ) : null}
           {pictures.length === 1 ? (
             <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onEdit}>
               사진 다듬기

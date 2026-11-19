@@ -6,6 +6,39 @@
 ---
 
 날짜: 2026-11-19
+버전: 0.1.206-20261119
+설치 파일: AILauncher_0.1.206-20261119_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-19_1140_x64-setup.exe
+작성자: 요청자
+
+요청: 사진을 두 장 이상 놓으면 사진 다듬기, 글자 넣기, 사진 모자이크, QR코드 넣기가 이유 없이 사라지지 않게 "한 장씩 할 수 있어요"로 안내한다. 다른 것은 그대로 둔다.
+
+확인: 사진이 두 장 이상일 때만 그 네 메뉴 이름과 안내 문장이 나온다. 한 장이면 기존 단추가 그대로다. 사진 용량 줄이기와 PDF로 저장은 여러 장에도 그대로다. 설정 사용 방법에 같은 안내를 넣었다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성 라이선스에 GPL 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 안내 문장이라 새로운 기술 구성은 없음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 파일 경로와 저장 방식은 바꾸지 않음.
+
+새로 쓴 파일:
+- website/public/panel/assets/index-CPEDQVxU.js
+
+다시 쓴 파일:
+- src/components/DropActionPick.tsx
+- website/public/panel/index.html
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- README.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 한 장일 때의 단추, 사진 용량 줄이기, PDF로 저장, 그 외 기존 파일
+
+---
+
+날짜: 2026-11-19
 버전: 0.1.205-20261119
 설치 파일: AILauncher_0.1.205-20261119_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-19_1115_x64-setup.exe
