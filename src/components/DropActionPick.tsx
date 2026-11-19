@@ -73,7 +73,7 @@ export function DropActionPick({
         {packLabel ? <p className="truncate text-xs text-desk">{packLabel} · Pack</p> : null}
         <div className="flex flex-col gap-2">
           {pictures.length > 1 ? (
-            <p className="rounded-lg bg-zone-tools px-3 py-2 text-xs font-semibold leading-5 text-desk">
+            <p className="rounded-lg bg-zone-todo px-3 py-2 text-xs font-semibold leading-5 text-desk">
               사진 다듬기 · 글자 넣기 · 사진 모자이크 · QR코드 넣기
               <br />한 장씩 할 수 있어요
             </p>
