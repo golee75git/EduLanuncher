@@ -5,6 +5,7 @@ description = "교육기관 종사자용 업무 런처"
 authors = ["EduLauncher"]
 edition = "2021"
 autobins = false
+default-run = "AILauncher"
 
 [lib]
 name = "edulauncher_lib"

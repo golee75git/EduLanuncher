@@ -15,6 +15,7 @@ interface DropActionPickProps {
   fileUrlCount: number;
   packLabel: string;
   onMosaic: () => void;
+  onEdit: () => void;
   onCaption: () => void;
   onShrink: () => void;
   onQr: () => void;
@@ -42,6 +43,7 @@ export function DropActionPick({
   fileUrlCount,
   packLabel,
   onMosaic,
+  onEdit,
   onCaption,
   onShrink,
   onQr,
@@ -71,6 +73,11 @@ export function DropActionPick({
         {fileUrlCount > 0 ? <p className="truncate text-xs text-desk">문서에서 주소 {fileUrlCount}개</p> : null}
         {packLabel ? <p className="truncate text-xs text-desk">{packLabel} · Pack</p> : null}
         <div className="flex flex-col gap-2">
+          {pictures.length === 1 ? (
+            <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onEdit}>
+              사진 다듬기
+            </button>
+          ) : null}
           {pictures.length === 1 ? (
             <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onCaption}>
               글자 넣기
