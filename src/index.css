@@ -343,6 +343,79 @@ input[type="checkbox"] {
   }
 }
 
+.drop-tools,
+.drop-tools:hover {
+  background-color: var(--color-zone-tools);
+}
+
+.drop-recent,
+.drop-recent:hover {
+  background-color: var(--color-zone-recent);
+}
+
+.drop-notice,
+.drop-notice:hover {
+  background-color: var(--color-zone-notice);
+}
+
+.drop-todo,
+.drop-todo:hover {
+  background-color: var(--color-zone-todo);
+}
+
+.drop-alert,
+.drop-alert:hover {
+  background-color: var(--color-zone-alert);
+}
+
+.drop-hint {
+  background-color: #efe6f3;
+}
+
+html[data-skin="dusk"] .drop-hint {
+  background-color: #3a3144;
+}
+
+html[data-skin="teal"] .drop-tools,
+html[data-skin="teal"] .drop-tools:hover,
+html[data-skin="teal-dark"] .drop-tools,
+html[data-skin="teal-dark"] .drop-tools:hover {
+  background-color: var(--hue-3-bg);
+}
+
+html[data-skin="teal"] .drop-recent,
+html[data-skin="teal"] .drop-recent:hover,
+html[data-skin="teal-dark"] .drop-recent,
+html[data-skin="teal-dark"] .drop-recent:hover {
+  background-color: var(--hue-1-bg);
+}
+
+html[data-skin="teal"] .drop-notice,
+html[data-skin="teal"] .drop-notice:hover,
+html[data-skin="teal-dark"] .drop-notice,
+html[data-skin="teal-dark"] .drop-notice:hover {
+  background-color: var(--hue-7-bg);
+}
+
+html[data-skin="teal"] .drop-todo,
+html[data-skin="teal"] .drop-todo:hover,
+html[data-skin="teal-dark"] .drop-todo,
+html[data-skin="teal-dark"] .drop-todo:hover {
+  background-color: var(--hue-4-bg);
+}
+
+html[data-skin="teal"] .drop-alert,
+html[data-skin="teal"] .drop-alert:hover,
+html[data-skin="teal-dark"] .drop-alert,
+html[data-skin="teal-dark"] .drop-alert:hover {
+  background-color: var(--hue-2-bg);
+}
+
+html[data-skin="teal"] .drop-hint,
+html[data-skin="teal-dark"] .drop-hint {
+  background-color: var(--hue-5-bg);
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }

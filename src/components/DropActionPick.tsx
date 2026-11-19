@@ -73,72 +73,72 @@ export function DropActionPick({
         {packLabel ? <p className="truncate text-xs text-desk">{packLabel} · Pack</p> : null}
         <div className="flex flex-col gap-2">
           {pictures.length > 1 ? (
-            <p className="rounded-lg bg-zone-todo px-3 py-2 text-xs font-semibold leading-5 text-desk">
+            <p className="drop-hint rounded-lg px-3 py-2 text-xs font-semibold leading-5 text-desk">
               사진 다듬기 · 글자 넣기 · 사진 모자이크 · QR코드 넣기
               <br />한 장씩 할 수 있어요
             </p>
           ) : null}
           {pictures.length === 1 ? (
-            <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onEdit}>
+            <button type="button" className="btn-secondary drop-tools" onClick={onEdit}>
               사진 다듬기
             </button>
           ) : null}
           {pictures.length === 1 ? (
-            <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onCaption}>
+            <button type="button" className="btn-secondary drop-tools" onClick={onCaption}>
               글자 넣기
             </button>
           ) : null}
           {pictures.length === 1 ? (
-            <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onMosaic}>
+            <button type="button" className="btn-secondary drop-tools" onClick={onMosaic}>
               사진 모자이크
             </button>
           ) : null}
           {pictures.length > 0 ? (
-            <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onShrink}>
+            <button type="button" className="btn-secondary drop-tools" onClick={onShrink}>
               사진 용량 줄이기
             </button>
           ) : null}
           {pictures.length > 0 ? (
-            <button type="button" className="btn-secondary !bg-zone-recent hover:!bg-zone-recent" onClick={onPhotoPdf}>
+            <button type="button" className="btn-secondary drop-recent" onClick={onPhotoPdf}>
               PDF로 저장
             </button>
           ) : null}
           {pictures.length === 1 ? (
-            <button type="button" className="btn-secondary !bg-zone-tools hover:!bg-zone-tools" onClick={onQr}>
+            <button type="button" className="btn-secondary drop-tools" onClick={onQr}>
               QR코드 넣기
             </button>
           ) : null}
           {pdfs.length > 0 ? (
-            <button type="button" className="btn-secondary !bg-zone-recent hover:!bg-zone-recent" onClick={onPdf}>
+            <button type="button" className="btn-secondary drop-recent" onClick={onPdf}>
               PDF 도구
             </button>
           ) : null}
           {hasTools ? (
-            <button type="button" className="btn-secondary !bg-zone-notice hover:!bg-zone-notice" onClick={onShortcut}>
+            <button type="button" className="btn-secondary drop-notice" onClick={onShortcut}>
               바로가기로 두기
             </button>
           ) : null}
           {places.length > 0 ? (
-            <button type="button" className="btn-secondary !bg-zone-notice hover:!bg-zone-notice" onClick={onPlaces}>
+            <button type="button" className="btn-secondary drop-notice" onClick={onPlaces}>
               {fileUrlCount > 0 ? "파일로 넣기" : hasTools ? "다른 항목 넣기" : "넣기"}
             </button>
           ) : null}
           {siteLabel ? (
-            <button type="button" className="btn-secondary !bg-zone-notice hover:!bg-zone-notice" onClick={onSite}>
+            <button type="button" className="btn-secondary drop-notice" onClick={onSite}>
               사이트에 넣기
             </button>
           ) : null}
           {fileUrlCount > 0 ? (
-            <button type="button" className="btn-secondary !bg-zone-notice hover:!bg-zone-notice" onClick={onFileUrls}>
+            <button type="button" className="btn-secondary drop-notice" onClick={onFileUrls}>
               사이트로 넣기
             </button>
           ) : null}
           {packLabel ? (
-            <button type="button" className="btn-secondary !bg-zone-todo hover:!bg-zone-todo" onClick={onPack}>
+            <button type="button" className="btn-secondary drop-todo" onClick={onPack}>
               Pack 가져오기
             </button>
           ) : null}
-          <button type="button" className="btn-secondary !bg-zone-alert hover:!bg-zone-alert" onClick={onClose}>
+          <button type="button" className="btn-secondary drop-alert" onClick={onClose}>
             닫기
           </button>
         </div>
