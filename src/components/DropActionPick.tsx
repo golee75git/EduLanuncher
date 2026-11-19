@@ -60,8 +60,7 @@ export function DropActionPick({
   return (
     <div className="absolute inset-0 z-40 flex items-end bg-desk/25 p-3">
       <div className="card-surface max-h-[80%] w-full space-y-2 overflow-y-auto p-3">
-        <p className="text-sm font-semibold text-desk">넣을 곳 확인</p>
-        <p className="text-xs leading-5 text-quiet">넣기를 누르기 전에는 저장하지 않습니다.</p>
+        <p className="text-sm font-semibold text-desk">작업 고르기</p>
         {pictures.length > 0 ? <p className="truncate text-xs text-quiet">사진 {names(pictures)}</p> : null}
         {pdfs.length > 0 ? <p className="truncate text-xs text-quiet">PDF {names(pdfs)}</p> : null}
         {places.map((line) => (

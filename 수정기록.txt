@@ -5,6 +5,40 @@
 
 ---
 
+날짜: 2026-11-19
+버전: 0.1.205-20261119
+설치 파일: AILauncher_0.1.205-20261119_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-19_1115_x64-setup.exe
+작성자: 요청자
+
+요청: 파일을 올려 두면 나오는 제목을 작업 고르기로 바꾸고, "넣기를 누르기 전에는 저장하지 않습니다."를 그 창에서 뺀다. 다른 것은 그대로 둔다.
+
+확인: 제목만 바뀌고 안내 문장 한 줄만 빠진다. 단추와 넣기 전 저장 동작은 그대로다. 설정 사용 방법의 같은 안내만 작업 고르기로 맞춘다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성 라이선스에 GPL 없음. GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 화면 제목 변경이라 새로운 기술 구성은 없음. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 파일 경로와 저장 방식은 바꾸지 않음.
+
+새로 쓴 파일:
+- website/public/panel/assets/index-C9LIYbHc.js
+- website/public/panel/assets/index-B5cifoi4.css
+
+다시 쓴 파일:
+- src/components/DropActionPick.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- website/public/panel/index.html
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- README.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 사이트 목록 화면의 저장 전 안내, 그 외 기존 파일
+
+---
+
 날짜: 2026-11-11
 버전: 설치본 버전은 바꾸지 않음
 설치 파일: 새로 만들지 않음
