@@ -1497,6 +1497,13 @@ export default function App() {
                   최신 설치 파일 받기
                 </button>
               ) : null}
+              <button
+                type="button"
+                className="rounded-full bg-white/15 px-2 py-0.5 font-medium"
+                onClick={() => void launchQuickUrl(APP_CONFIG.manualUrl)}
+              >
+                설치 매뉴얼 받기
+              </button>
               <button type="button" className="rounded-full px-2 py-0.5" onClick={() => setReleaseNotice(null)}>
                 닫기
               </button>

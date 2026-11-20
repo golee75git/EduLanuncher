@@ -3939,3 +3939,28 @@ Difference:
 
 PATENT_REVIEW:
 창을 닫을 때 빈 항목을 목록에서 빼는 일반 동작. 검증된 청구항 원문은 보지 않았다. 청구항 문장을 옮기지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음
+
+---
+
+Feature: 새 버전 안내 옆에 설치 매뉴얼을 연다
+
+Purpose:
+최신 설치 파일을 받는 단추 옆에서 설치 매뉴얼 PDF를 브라우저로 받게 한다.
+
+Design source:
+이 저장소의 새 버전 안내와 소개 사이트가 이미 쓰는 `/install-manual.pdf`. 외부 안내 화면은 보지 않음.
+
+Implementation:
+패널과 설정에서 `https://edulanuncher.zeroorder.kr/install-manual.pdf`만 기존 브라우저 열기로 연다. 새 패키지 없음. 글꼴 파일을 넣지 않음.
+
+External code:
+없음. GPL 구성 요소를 추가하지 않음
+
+Potential similar products:
+설치 안내 문서를 브라우저로 여는 프로그램
+
+Difference:
+다른 제품의 매뉴얼 화면을 가져오지 않는다. 이 저장소의 설치 매뉴얼 주소만 연다.
+
+PATENT_REVIEW:
+고정 https 주소를 브라우저로 여는 일반 안내. 검증된 청구항 원문은 보지 않았다. 청구항 문장을 옮기지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음
