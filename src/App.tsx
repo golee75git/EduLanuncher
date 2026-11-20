@@ -57,7 +57,7 @@ import { isPdfPagesTarget } from "./data/sampleTools";
 import { logEducationValidation } from "./services/mindMapService";
 import { logTroubleshootingValidation } from "./services/troubleshootingService";
 import { LaunchError, launchQuickUrl, launchTool } from "./services/launcherService";
-import { findNewerRelease } from "./services/releaseCheckService";
+import { findNewerRelease, releaseSetupAddress } from "./services/releaseCheckService";
 import { APP_CONFIG } from "./config/app";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { splitDropActions } from "./services/dropActionPick";
@@ -1479,17 +1479,24 @@ export default function App() {
         {releaseNotice ? (
           <div className="absolute bottom-12 left-1/2 z-50 w-[min(100%-1.5rem,22rem)] -translate-x-1/2 rounded-lg bg-desk px-3 py-2 text-xs leading-5 text-white">
             <p>
-              이 PC 버전 {APP_CONFIG.version} · 새 버전 {releaseNotice}가 있습니다. 소개 사이트에서 받아 이
+              이 PC 버전 {APP_CONFIG.version} · 새 버전 {releaseNotice}가 있습니다. 최신 설치 파일을 받아 이
               프로그램을 교체하세요. 자동으로 설치하지는 않습니다.
             </p>
             <div className="mt-1.5 flex flex-wrap gap-1">
-              <button
-                type="button"
-                className="rounded-full bg-white/15 px-2 py-0.5 font-medium"
-                onClick={() => void launchQuickUrl(APP_CONFIG.siteUrl)}
-              >
-                설치 안내 열기
-              </button>
+              {releaseSetupAddress(releaseNotice) ? (
+                <button
+                  type="button"
+                  className="rounded-full bg-white/15 px-2 py-0.5 font-medium"
+                  onClick={() => {
+                    const address = releaseSetupAddress(releaseNotice);
+                    if (address) {
+                      void launchQuickUrl(address);
+                    }
+                  }}
+                >
+                  최신 설치 파일 받기
+                </button>
+              ) : null}
               <button type="button" className="rounded-full px-2 py-0.5" onClick={() => setReleaseNotice(null)}>
                 닫기
               </button>

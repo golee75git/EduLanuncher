@@ -1,8 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { APP_CONFIG } from "../config/app";
 
-const RELEASE_API =
-  "https://api.github.com/repos/golee75git/EduLanuncher/releases/latest";
+const RELEASE_API = "https://api.github.com/repos/golee75git/EduLanuncher/releases/latest";
 
 export function parseReleaseParts(value: string): [number, number, number, number] {
   const match = /^(\d+)\.(\d+)\.(\d+)(?:-(\d+))?/.exec(value.trim());
@@ -59,6 +58,16 @@ export async function readLatestReleaseTag(): Promise<string | null> {
     // Command is unavailable in browser preview.
   }
   return readTagFromSite();
+}
+
+const RELEASE_TAG = /^\d+\.\d+\.\d+-\d{8}$/;
+
+export function releaseSetupAddress(tag: string): string | null {
+  const trimmed = tag.trim();
+  if (!RELEASE_TAG.test(trimmed)) {
+    return null;
+  }
+  return `https://github.com/golee75git/EduLanuncher/releases/download/${trimmed}/AILauncher_${trimmed}_x64-setup.exe`;
 }
 
 export async function findNewerRelease(): Promise<string | null> {

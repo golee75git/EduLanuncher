@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.210-20261120",
+    note: "새 버전이 있으면 패널과 설정에서 그 버전의 설치 파일을 바로 받습니다. 자동으로 설치하지는 않습니다.",
+  },
+  {
     version: "0.1.209-20261119",
     note: "작업 고르기 단추는 스킨마다 다른 배경이고, 한 장 안내는 그 단추와 다른 색입니다.",
   },
