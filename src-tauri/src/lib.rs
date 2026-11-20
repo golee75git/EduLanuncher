@@ -1328,6 +1328,13 @@ async fn open_memo_note(
             (x * scale).round() as i32,
             (y * scale).round() as i32,
         ));
+        let app_for_close = app.clone();
+        let id_for_close = id.clone();
+        created.on_window_event(move |event| {
+            if let WindowEvent::Destroyed = event {
+                notify_note_open(&app_for_close, &id_for_close, false);
+            }
+        });
         let _ = created.show();
         let _ = created.set_focus();
         notify_note_open(&app, &id, true);

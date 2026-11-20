@@ -6,6 +6,37 @@
 ---
 
 날짜: 2026-11-20
+버전: 0.1.211-20261120
+설치 파일: AILauncher_0.1.211-20261120_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-20_1514_x64-setup.exe
+작성자: 요청자
+
+요청: + 추가로 연 메모 창이 보이고, 글이 없는 채로 닫으면 런처 아래 목록에서 빠지게 한다. 다른 것은 그대로 둔다.
+
+확인: 메모 창이 사라지면 패널에 닫힘을 알린다. 글이 없으면 기존 빈 메모 빼기로 목록과 이 PC 저장에서 뺀다. 글이 있으면 남긴다. 창이 열려 있는 빈 메모는 목록에 둔다. 아래쪽 첫 메모 칸은 그대로다. 사용 방법 문장은 이미 그 동작을 적고 있어 문장은 그대로 둔다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 창 닫힘 알림이라 새로운 기술 구성은 없음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src-tauri/src/lib.rs
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- README.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 메모 목록 화면, 설정 사용 방법 문장, 아래쪽 첫 메모 칸, 그 외 기존 파일
+
+---
+
+날짜: 2026-11-20
 버전: 0.1.210-20261120
 설치 파일: AILauncher_0.1.210-20261120_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-20_1452_x64-setup.exe
