@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.215-20261121",
+    note: "홈 검색은 이름 앞의 초성으로도 찾습니다. ㄱㅅㄱ은 계산기입니다.",
+  },
+  {
     version: "0.1.214-20261121",
     note: "홈 검색에서 이 PC에 있는 계산기 등 기본 프로그램만 열어 줍니다.",
   },

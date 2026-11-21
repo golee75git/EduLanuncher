@@ -39,6 +39,44 @@ function leadMark(lead: number): string {
   return code ? String.fromCodePoint(code) : "";
 }
 
+const LEAD_CHAR = new Set(LEAD_MARK.map((code) => String.fromCodePoint(code)));
+
+function marksOf(value: string): string {
+  let out = "";
+  for (const ch of value) {
+    const code = ch.codePointAt(0) ?? 0;
+    if (code < 0xac00 || code > 0xd7a3) {
+      continue;
+    }
+    out += leadMark(Math.floor((code - 0xac00) / 588));
+  }
+  return out;
+}
+
+/** 검색어가 첫소리만이면 이름 앞쪽 첫소리와 맞춘다. 글자 수가 길면 비교하지 않는다. */
+export function leadMarkScore(query: string, text: string): number {
+  const needle = query.trim().replace(/\s+/g, "");
+  if (!needle || needle.length > 40) {
+    return 0;
+  }
+  for (const ch of needle) {
+    if (!LEAD_CHAR.has(ch)) {
+      return 0;
+    }
+  }
+  const marks = marksOf(text);
+  if (!marks) {
+    return 0;
+  }
+  if (marks === needle) {
+    return 90;
+  }
+  if (marks.startsWith(needle)) {
+    return 70;
+  }
+  return 0;
+}
+
 function vowelMark(vowel: number): string {
   return String.fromCodePoint(0x314f + vowel);
 }

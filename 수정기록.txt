@@ -6,6 +6,40 @@
 ---
 
 날짜: 2026-11-21
+버전: 0.1.215-20261121
+설치 파일: AILauncher_0.1.215-20261121_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-21_1548_x64-setup.exe
+작성자: 요청자
+
+요청: 홈 검색에 한글 초성을 치면 그 이름의 앞에서부터 찾게 한다. ㄱㅅㄱ은 계산기이다. 다른 것은 그대로 둔다.
+
+확인: 검색어가 첫소리만이고 40글자 이하일 때만, 이미 있는 이름의 첫소리를 앞에서부터 맞춘다. 이름 중간만 맞는 경우는 제외한다. 파일 내용과 폴더 이름은 바꾸지 않는다. 글자마다 디스크를 읽지 않는다. 사용 방법 맨 위에 설치 파일명과 버전을 두고, 문장에 이 동작을 넣었다. 소개 페이지와 설치 안내에 설치 파일명을 텍스트로 표시한다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 첫소리로 이름을 찾는 구성이라 특허 검토가 필요할 수 있음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/services/keyLine.ts
+- src/services/searchService.ts
+- src/services/manualIndexService.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- README.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 폴더 이름 검색, 문서 내용 검색, 글꼴 파일, 그 외 기존 파일
+
+---
+
+날짜: 2026-11-21
 버전: 0.1.214-20261121
 설치 파일: AILauncher_0.1.214-20261121_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-21_1528_x64-setup.exe

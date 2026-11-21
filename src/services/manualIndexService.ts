@@ -1,5 +1,5 @@
 import { APP_CONFIG } from "../config/app";
-import { searchForms } from "./keyLine";
+import { leadMarkScore, searchForms } from "./keyLine";
 
 export interface ManualIndexTopic {
   id: string;
@@ -37,6 +37,7 @@ export function searchManualIndex(query: string): ManualIndexTopic[] {
       if (title === needle) score = Math.max(score, 100);
       else if (title.includes(needle)) score = Math.max(score, 80);
       else if (body.includes(needle)) score = Math.max(score, 40);
+      score = Math.max(score, leadMarkScore(needle, title));
     }
     if (score > 0) hits.push({ topic, score });
   }

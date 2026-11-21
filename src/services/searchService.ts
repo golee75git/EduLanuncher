@@ -1,4 +1,4 @@
-import { searchForms } from "./keyLine";
+import { leadMarkScore, searchForms } from "./keyLine";
 import type { SchoolItem } from "../types/school";
 import type { Topic } from "../types/topic";
 import type { ToolItem } from "../types/tool";
@@ -45,6 +45,7 @@ function scoreOne(query: string, fields: Array<string | undefined>): number {
     } else if (text.includes(q)) {
       best = Math.max(best, 60);
     }
+    best = Math.max(best, leadMarkScore(q, text));
   }
   return best;
 }
@@ -225,6 +226,9 @@ function topicTitleScore(query: string, title: string): number {
     return TOPIC_SCORE.titleExact;
   }
   if (text.includes(q) || q.includes(text)) {
+    return TOPIC_SCORE.titlePartial;
+  }
+  if (leadMarkScore(q, text) > 0) {
     return TOPIC_SCORE.titlePartial;
   }
   return 0;
