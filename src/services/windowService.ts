@@ -52,6 +52,24 @@ export async function openPcPanel(id: string): Promise<LaunchResult> {
   return invoke<LaunchResult>("open_pc_panel", { id });
 }
 
+export async function presentBasicApps(): Promise<Set<string>> {
+  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
+    return new Set();
+  }
+  try {
+    const ids = await invoke<string[]>("present_system_apps");
+    const found = new Set<string>();
+    for (const id of ids) {
+      if (/^[a-z-]{1,40}$/.test(id)) {
+        found.add(id);
+      }
+    }
+    return found;
+  } catch {
+    return new Set();
+  }
+}
+
 export async function launchResult(id: string): Promise<LaunchResult> {
   return invoke<LaunchResult>("launch_result", { id });
 }

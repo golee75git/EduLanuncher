@@ -2114,6 +2114,45 @@ fn run_shortcut_action(action_id: String) -> Result<(), String> {
     }
 }
 
+fn windows_builtin_path(id: &str) -> Option<PathBuf> {
+    let rel = match id {
+        "calc" => r"System32\calc.exe",
+        "notepad" => r"System32\notepad.exe",
+        "paint" => r"System32\mspaint.exe",
+        "command" => r"System32\cmd.exe",
+        "powershell" => r"System32\WindowsPowerShell\v1.0\powershell.exe",
+        "explorer" => "explorer.exe",
+        "remote-desktop" => r"System32\mstsc.exe",
+        "charmap" => r"System32\charmap.exe",
+        "magnifier" => r"System32\magnify.exe",
+        "onscreen-keyboard" => r"System32\osk.exe",
+        "steps" => r"System32\psr.exe",
+        "disk-cleanup" => r"System32\cleanmgr.exe",
+        "resource-monitor" => r"System32\resmon.exe",
+        _ => return None,
+    };
+    if rel.contains("..") || rel.contains('/') {
+        return None;
+    }
+    Some(PathBuf::from(r"C:\Windows").join(rel))
+}
+
+const BASIC_APP_IDS: &[&str] = &[
+    "calc",
+    "notepad",
+    "paint",
+    "command",
+    "powershell",
+    "explorer",
+    "remote-desktop",
+    "charmap",
+    "magnifier",
+    "onscreen-keyboard",
+    "steps",
+    "disk-cleanup",
+    "resource-monitor",
+];
+
 fn pc_panel_name(id: &str) -> Result<&'static str, &'static str> {
     let id = id.trim();
     if id.is_empty()
@@ -2143,13 +2182,17 @@ fn open_pc_panel(app: AppHandle, window: tauri::WebviewWindow, id: String) -> La
     if !main_window(&window) {
         return launch_err("denied");
     }
-    let name = match pc_panel_name(&id) {
-        Ok(name) => name,
-        Err(code) => return launch_err(code),
+    let path = if let Some(path) = windows_builtin_path(id.trim()) {
+        path
+    } else {
+        let name = match pc_panel_name(&id) {
+            Ok(name) => name,
+            Err(code) => return launch_err(code),
+        };
+        PathBuf::from(r"C:\Windows\System32").join(name)
     };
     #[cfg(windows)]
     {
-        let path = PathBuf::from(r"C:\Windows\System32").join(name);
         if !path.is_file() {
             return launch_err("missing");
         }
@@ -2160,9 +2203,26 @@ fn open_pc_panel(app: AppHandle, window: tauri::WebviewWindow, id: String) -> La
     }
     #[cfg(not(windows))]
     {
-        let _ = (app, name);
+        let _ = (app, path);
         launch_err("unsupported")
     }
+}
+
+#[tauri::command]
+fn present_system_apps(window: tauri::WebviewWindow) -> Result<Vec<String>, String> {
+    if !main_window(&window) {
+        return Err("이 창에서는 볼 수 없습니다.".into());
+    }
+    let mut found = Vec::new();
+    for id in BASIC_APP_IDS {
+        let Some(path) = windows_builtin_path(id) else {
+            continue;
+        };
+        if path.is_file() {
+            found.push((*id).to_string());
+        }
+    }
+    Ok(found)
 }
 
 #[tauri::command]
@@ -3220,6 +3280,7 @@ pub fn run() {
             path_grant::clear_search_grants,
             run_shortcut_action,
             open_pc_panel,
+            present_system_apps,
             open_ie_reset,
             read_open_source_notices,
             read_json_file,
@@ -3332,7 +3393,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod pc_panel_rules {
-    use super::pc_panel_name;
+    use super::{pc_panel_name, windows_builtin_path, BASIC_APP_IDS};
 
     #[test]
     fn only_listed_panel_names_open() {
@@ -3344,6 +3405,13 @@ mod pc_panel_rules {
         assert!(pc_panel_name("pc-sys:display").is_err());
         assert!(pc_panel_name(r"display\..\notepad.exe").is_err());
         assert!(pc_panel_name("desk.cpl").is_err());
+        assert!(windows_builtin_path("calc").unwrap().ends_with("calc.exe"));
+        assert!(windows_builtin_path("powershell").unwrap().ends_with("powershell.exe"));
+        assert!(windows_builtin_path("explorer").unwrap().ends_with("explorer.exe"));
+        assert!(windows_builtin_path("regedit").is_none());
+        assert!(windows_builtin_path("wordpad").is_none());
+        assert!(windows_builtin_path(r"calc\..\notepad").is_none());
+        assert_eq!(BASIC_APP_IDS.len(), 13);
     }
 }
 

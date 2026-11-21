@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.214-20261121",
+    note: "홈 검색에서 이 PC에 있는 계산기 등 기본 프로그램만 열어 줍니다.",
+  },
+  {
     version: "0.1.213-20261121",
     note: "설정에서 이번 실행만 패널을 다른 창보다 앞에 두거나 진하기를 바꿉니다.",
   },

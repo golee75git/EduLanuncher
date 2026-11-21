@@ -298,6 +298,44 @@ export function listComputerTools(): ComputerToolEntry[] {
   return ENTRIES;
 }
 
+/** 검색에만 둔다. 컴퓨터도구 목록에는 넣지 않는다. 파일 경로는 화면으로 넘기지 않는다. */
+const BASIC_APPS: ComputerToolEntry[] = [
+  { id: "calc", name: "계산기", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "notepad", name: "메모장", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "paint", name: "그림판", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "command", name: "명령 프롬프트", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "powershell", name: "PowerShell", hint: "파워셸이 이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "explorer", name: "파일 탐색기", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "remote-desktop", name: "원격 데스크톱", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "charmap", name: "문자표", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "magnifier", name: "돋보기", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "onscreen-keyboard", name: "화상 키보드", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "steps", name: "단계 기록", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "disk-cleanup", name: "디스크 정리", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+  { id: "resource-monitor", name: "리소스 모니터", hint: "이 컴퓨터에 있을 때만 엽니다.", type: "app" },
+];
+
+export function listBasicApps(): ComputerToolEntry[] {
+  return BASIC_APPS;
+}
+
+export function basicAppAsItem(entry: ComputerToolEntry): ToolItem {
+  return {
+    id: `pc-sys:${entry.id}`,
+    name: entry.name,
+    description: entry.hint,
+    type: "app",
+    target: entry.id,
+    icon: "monitor",
+    category: "전산",
+    favorite: false,
+    keywords: entry.id === "powershell" ? [entry.name, "파워셸"] : [entry.name],
+    usageCount: 0,
+    enabled: true,
+    origin: "local",
+  };
+}
+
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
   if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry) || isLinkCheckTool(entry) || isPrintCheckTool(entry) || isSecurityCheckTool(entry) || isPrivacyTool(entry)) {
     const target = isIeResetTool(entry)

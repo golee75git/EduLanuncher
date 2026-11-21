@@ -14,7 +14,8 @@ import { SearchBar } from "../components/SearchBar";
 import { TodoList } from "../components/TodoList";
 import { ToolGlyph } from "../components/ToolGlyph";
 import { APP_CONFIG } from "../config/app";
-import { computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget, listComputerTools, sameLocalPath } from "../data/computerTools";
+import { basicAppAsItem, computerToolAsItem, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget, listBasicApps, listComputerTools, sameLocalPath } from "../data/computerTools";
+import { presentBasicApps } from "../services/windowService";
 import { canRunShortcut, listShortcuts, type ShortcutEntry } from "../data/shortcuts";
 import { HOME_GROUP_PREVIEW, TOOL_GROUPS, favoriteEmptyText, toolGroupLabel } from "../data/toolGroups";
 import { setSearchFocusHandler } from "../services/focusBus";
@@ -132,10 +133,13 @@ function sameListedTool(left: ToolItem, right: ToolItem): boolean {
   return Boolean(left.target) && Boolean(right.target) && sameLocalPath(left.target, right.target);
 }
 
-function catalogComputerTools(): ToolItem[] {
-  return listComputerTools()
-    .map((entry) => computerToolAsItem(entry))
-    .filter((item) => !isSeparateComputerTarget(item.target || item.id));
+function catalogComputerTools(basic: ToolItem[]): ToolItem[] {
+  return [
+    ...listComputerTools()
+      .map((entry) => computerToolAsItem(entry))
+      .filter((item) => !isSeparateComputerTarget(item.target || item.id)),
+    ...basic,
+  ];
 }
 
 function matchingShortcuts(query: string): ShortcutEntry[] {
@@ -271,6 +275,23 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const recentTopicItems = useRecentTopicStore((state) => state.items);
   const [query, setQuery] = useState(search);
+  const [basicApps, setBasicApps] = useState<ToolItem[]>([]);
+  useEffect(() => {
+    let live = true;
+    void presentBasicApps().then((ids) => {
+      if (!live) {
+        return;
+      }
+      setBasicApps(
+        listBasicApps()
+          .filter((entry) => ids.has(entry.id))
+          .map((entry) => basicAppAsItem(entry)),
+      );
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
   const [keptQueries, setKeptQueries] = useState<KeptQuery[]>([]);
   const [folderHits, setFolderHits] = useState<UserFolderHit[]>([]);
   const [folderBusy, setFolderBusy] = useState(false);
@@ -331,7 +352,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const results = useMemo(() => searchAll(query, tools, []), [query, tools]);
   const searchTools = useMemo(() => {
     const needle = query.trim();
-    const catalog = catalogComputerTools();
+    const catalog = catalogComputerTools(basicApps);
     const nameScore = (name: string) => (needle ? scoreText(needle, name) : 0);
     const textScore = (name: string, description?: string) => (needle ? scoreText(needle, name, description) : 0);
     const named = catalog
@@ -367,7 +388,7 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       })
       .map((hit) => hit.item);
     return [...catalogHits, ...storedHits];
-  }, [query, results.tools]);
+  }, [query, results.tools, basicApps]);
   const linkTool = useMemo(() => {
     const entry = listComputerTools().find((item) => item.id === "pc-link");
     return entry ? computerToolAsItem(entry) : null;
