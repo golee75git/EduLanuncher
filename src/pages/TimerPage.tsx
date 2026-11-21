@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   COUNTDOWN_PRESETS,
   MAX_COUNTDOWN_MS,
+  MAX_LAP_NOTE,
   countdownRemaining,
   formatCountdown,
   formatStopwatch,
@@ -241,15 +242,26 @@ export function TimerPage({ onBack }: TimerPageProps) {
               </button>
             </div>
             {stopwatch.laps.length > 0 ? (
-              <ol className="space-y-1 rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk">
+              <ol className="space-y-2 rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk">
                 {stopwatch.laps.map((lap, index) => {
                   const number = stopwatch.laps.length - index;
-                  const prev = stopwatch.laps[index + 1] ?? 0;
+                  const prev = stopwatch.laps[index + 1]?.ms ?? 0;
                   return (
-                    <li key={`${number}-${lap}`} className="flex justify-between tabular-nums">
-                      <span className="text-quiet">{number}번째</span>
-                      <span>{formatStopwatch(lap)}</span>
-                      <span className="text-quiet">+{formatStopwatch(lap - prev)}</span>
+                    <li key={lap.id} className="space-y-1">
+                      <div className="flex justify-between tabular-nums">
+                        <span className="text-quiet">{number}번째</span>
+                        <span>{formatStopwatch(lap.ms)}</span>
+                        <span className="text-quiet">+{formatStopwatch(lap.ms - prev)}</span>
+                      </div>
+                      <input
+                        type="text"
+                        className="w-full rounded-md border border-line bg-paper px-2 py-1 text-sm text-desk"
+                        placeholder="메모 (예: 3모둠 발표)"
+                        maxLength={MAX_LAP_NOTE}
+                        aria-label={`${number}번째 구간 메모`}
+                        value={lap.note}
+                        onChange={(event) => store().setLapNote(lap.id, event.target.value)}
+                      />
                     </li>
                   );
                 })}

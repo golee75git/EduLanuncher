@@ -4,6 +4,7 @@ import {
   EMPTY_COUNTDOWN,
   EMPTY_STOPWATCH,
   MAX_LAPS,
+  cleanLapNote,
   clampDuration,
   countdownRemaining,
   normalizeStored,
@@ -28,12 +29,14 @@ interface TimerState {
   startStopwatch: () => void;
   pauseStopwatch: () => void;
   lapStopwatch: () => void;
+  setLapNote: (id: number, note: string) => void;
   resetStopwatch: () => void;
 }
 
 let audio: AudioContext | null = null;
 let endTimeout: ReturnType<typeof setTimeout> | null = null;
 let guard: ReturnType<typeof setInterval> | null = null;
+let noteSave: ReturnType<typeof setTimeout> | null = null;
 
 /** 사용자가 누른 순간(클릭)에 소리 장치를 깨워 둔다. 숨겨진 창에서도 종료음이 나게 한다. */
 function primeAudio(): void {
@@ -226,11 +229,35 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     if (!stopwatch.running) {
       return;
     }
-    const laps = [stopwatchElapsed(stopwatch, Date.now()), ...stopwatch.laps].slice(0, MAX_LAPS);
+    const now = Date.now();
+    // 번호는 항상 앞선 구간보다 크게 해서 메모를 붙일 구간이 바뀌지 않게 한다.
+    const id = Math.max(now, (stopwatch.laps[0]?.id ?? 0) + 1);
+    const laps = [{ id, ms: stopwatchElapsed(stopwatch, now), note: "" }, ...stopwatch.laps].slice(0, MAX_LAPS);
     set({ stopwatch: { ...stopwatch, laps } });
     persist();
   },
+  setLapNote: (id, note) => {
+    const { stopwatch } = get();
+    if (!stopwatch.laps.some((lap) => lap.id === id)) {
+      return;
+    }
+    const clean = cleanLapNote(note);
+    const laps = stopwatch.laps.map((lap) => (lap.id === id ? { ...lap, note: clean } : lap));
+    set({ stopwatch: { ...stopwatch, laps } });
+    // 글자를 칠 때마다 저장하지 않고 잠깐 멈추면 한 번만 저장한다.
+    if (noteSave) {
+      clearTimeout(noteSave);
+    }
+    noteSave = setTimeout(() => {
+      noteSave = null;
+      persist();
+    }, 400);
+  },
   resetStopwatch: () => {
+    if (noteSave) {
+      clearTimeout(noteSave);
+      noteSave = null;
+    }
     set({ stopwatch: EMPTY_STOPWATCH });
     persist();
   },

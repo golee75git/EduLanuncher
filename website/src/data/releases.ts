@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.217-20261121",
+    note: "스톱워치 구간 기록마다 메모를 적을 수 있습니다.",
+  },
+  {
     version: "0.1.216-20261121",
     note: "타이머와 스톱워치를 넣었습니다. 타이머가 끝나면 소리가 나고 패널이 열립니다.",
   },

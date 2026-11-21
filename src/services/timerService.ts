@@ -16,13 +16,32 @@ export interface CountdownState {
   pausedRemainingMs: number;
 }
 
+export interface Lap {
+  /** 구간을 찍은 순서대로 커지는 번호. 메모를 붙일 구간을 가리킬 때 쓴다. */
+  id: number;
+  /** 스톱워치를 시작한 뒤 누적 경과(ms). */
+  ms: number;
+  note: string;
+}
+
 export interface StopwatchState {
   running: boolean;
   /** running일 때 이번 구간을 시작한 시각(epoch ms). */
   startedAt: number;
   /** 이전 구간까지 누적한 시간(ms). */
   accumulatedMs: number;
-  laps: number[];
+  /** 최신이 앞. */
+  laps: Lap[];
+}
+
+export const MAX_LAP_NOTE = 60;
+
+/** 줄바꿈과 제어문자를 빼고 길이를 자른다. */
+export function cleanLapNote(value: unknown): string {
+  if (typeof value !== "string") {
+    return "";
+  }
+  return value.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, MAX_LAP_NOTE);
 }
 
 export interface StoredTimers {
@@ -141,9 +160,25 @@ export function normalizeStored(raw: unknown, now: number): StoredTimers {
   }
 
   const accumulatedMs = Math.max(0, asNumber(s.accumulatedMs));
-  const laps = Array.isArray(s.laps)
-    ? s.laps.filter((lap): lap is number => typeof lap === "number" && Number.isFinite(lap) && lap >= 0).slice(0, MAX_LAPS)
-    : [];
+  const laps: Lap[] = [];
+  if (Array.isArray(s.laps)) {
+    // 예전 버전은 숫자만 저장했다. 숫자도 받아서 메모 없는 구간으로 바꾼다.
+    const total = Math.min(s.laps.length, MAX_LAPS);
+    for (let i = 0; i < total; i += 1) {
+      const item: unknown = s.laps[i];
+      if (typeof item === "number") {
+        if (Number.isFinite(item) && item >= 0) {
+          laps.push({ id: total - i, ms: item, note: "" });
+        }
+      } else if (item && typeof item === "object") {
+        const entry = item as Record<string, unknown>;
+        const ms = asNumber(entry.ms, -1);
+        if (ms >= 0) {
+          laps.push({ id: asNumber(entry.id, total - i), ms, note: cleanLapNote(entry.note) });
+        }
+      }
+    }
+  }
   let stopwatch: StopwatchState = { ...EMPTY_STOPWATCH, accumulatedMs, laps };
   if (s.running === true) {
     const startedAt = asNumber(s.startedAt);
