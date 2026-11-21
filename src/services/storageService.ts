@@ -30,6 +30,7 @@ let memoStore: JsonStore | null = null;
 let noticesStore: JsonStore | null = null;
 let recentTopicsStore: JsonStore | null = null;
 let keptSearchStore: JsonStore | null = null;
+let timersStore: JsonStore | null = null;
 
 function runningInTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -81,6 +82,22 @@ export async function initStorage(): Promise<void> {
   noticesStore = await getStore("notices.json");
   recentTopicsStore = await getStore("recent-topics.json");
   keptSearchStore = await getStore("kept-search.json");
+  timersStore = await getStore("timers.json");
+}
+
+export async function loadTimers(): Promise<unknown> {
+  if (!timersStore) {
+    await initStorage();
+  }
+  return timersStore?.get<unknown>("value");
+}
+
+export async function saveTimers(value: unknown): Promise<void> {
+  if (!timersStore) {
+    await initStorage();
+  }
+  await timersStore?.set("value", value);
+  await timersStore?.save();
 }
 
 export async function loadTools(): Promise<ToolItem[]> {

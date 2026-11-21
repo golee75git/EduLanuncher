@@ -14,8 +14,10 @@ import {
   Printer,
   School,
   Settings,
+  ShieldCheck,
   Sheet,
   Star,
+  Timer,
   Wallet,
   Wrench,
 } from "lucide-react";
@@ -32,12 +34,14 @@ export const TOOL_ICON_MAP: Record<string, LucideIcon> = {
   mic: Mic,
   globe: Globe,
   eyeOff: EyeOff,
+  shield: ShieldCheck,
   folder: Folder,
   school: School,
   settings: Settings,
   star: Star,
   monitor: Monitor,
   printer: Printer,
+  timer: Timer,
   wrench: Wrench,
 };
 

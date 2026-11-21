@@ -6,6 +6,7 @@ import {
   PDF_PAGES_TOOL,
   PHOTO_CAPTION_TOOL,
   PRIVACY_MASK_TOOL,
+  TIMER_TOOL,
   URL_MARK_TOOL,
 } from "../data/sampleTools";
 import { loadTools, saveTools } from "../services/storageService";
@@ -31,7 +32,7 @@ async function persist(tools: ToolItem[]): Promise<void> {
   await saveTools(tools);
 }
 
-const WORK_TOOL_ORDER = [PRIVACY_MASK_TOOL, PHOTO_CAPTION_TOOL, DOC_SHRINK_TOOL, URL_MARK_TOOL, PDF_PAGES_TOOL];
+const WORK_TOOL_ORDER = [PRIVACY_MASK_TOOL, PHOTO_CAPTION_TOOL, DOC_SHRINK_TOOL, URL_MARK_TOOL, PDF_PAGES_TOOL, TIMER_TOOL];
 
 function relabelBuiltin(tool: ToolItem): ToolItem {
   const known = WORK_TOOL_ORDER.find((item) => tool.id === item.id || tool.target === item.target);

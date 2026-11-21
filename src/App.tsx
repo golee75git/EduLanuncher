@@ -53,7 +53,9 @@ import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
 import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget } from "./data/computerTools";
-import { isPdfPagesTarget } from "./data/sampleTools";
+import { isPdfPagesTarget, isTimerTarget } from "./data/sampleTools";
+import { TimerPage } from "./pages/TimerPage";
+import { hydrateTimers } from "./stores/timerStore";
 import { logEducationValidation } from "./services/mindMapService";
 import { logTroubleshootingValidation } from "./services/troubleshootingService";
 import { LaunchError, launchQuickUrl, launchTool } from "./services/launcherService";
@@ -537,6 +539,7 @@ export default function App() {
         }
         await hydrateNotices();
         await hydrateRecentTopics();
+        await hydrateTimers();
         try {
           await invoke("set_memo_draft", { text: useMemoStore.getState().text, source: "main" });
         } catch {
@@ -1320,6 +1323,9 @@ export default function App() {
           {view.name === "internal" && isPdfPagesTarget(view.id) ? (
             <PdfToolPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && isTimerTarget(view.id) ? (
+            <TimerPage onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" && view.id === "photo-pdf" ? (
             <PhotoPdfPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -1380,6 +1386,7 @@ export default function App() {
           view.id !== "photo-edit" &&
           !isDocShrinkTarget(view.id) &&
           !isPdfPagesTarget(view.id) &&
+          !isTimerTarget(view.id) &&
           !isFolderFindTarget(view.id) &&
           !isLinkCheckTarget(view.id) &&
           !isPrintCheckTarget(view.id) &&

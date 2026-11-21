@@ -46,6 +46,24 @@ export function isPdfPagesTarget(target: string): boolean {
   return target === PDF_PAGES_TOOL.target || target === PDF_PAGES_TOOL.id;
 }
 
+export const TIMER_TOOL: ToolItem = {
+  id: "tool-timer",
+  name: "타이머·스톱워치",
+  description: "카운트다운 타이머와 스톱워치. 끝나면 소리와 함께 패널이 열립니다",
+  type: "internal",
+  target: "timer",
+  icon: "timer",
+  category: "전산",
+  favorite: true,
+  keywords: ["타이머", "스톱워치", "카운트다운", "시간", "알람", "초시계", "timer", "stopwatch"],
+  usageCount: 0,
+  enabled: true,
+};
+
+export function isTimerTarget(target: string): boolean {
+  return target === TIMER_TOOL.target || target === TIMER_TOOL.id;
+}
+
 export const PHOTO_CAPTION_TOOL: ToolItem = {
   id: "tool-photo-caption",
   name: "사진에 글자",
@@ -201,4 +219,5 @@ export const COMMON_WORK_TOOLS: ToolItem[] = [
   DOC_SHRINK_TOOL,
   URL_MARK_TOOL,
   PDF_PAGES_TOOL,
+  TIMER_TOOL,
 ];
