@@ -19,6 +19,12 @@ import { useAdminToolStore } from "../stores/adminToolStore";
 import { useToolStore } from "../stores/toolStore";
 import { DocumentSearchSettings } from "../components/DocumentSearchSettings";
 import { loadOrgPolicy, type OrgPolicy } from "../services/orgPolicy";
+import {
+  desktopShell,
+  placePanelAbove,
+  placePanelShade,
+  readPanelFace,
+} from "../services/windowService";
 import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
 
 function PilotManualToggle() {
@@ -68,10 +74,25 @@ export function SettingsPage({
   const [adminAsk, setAdminAsk] = useState(false);
   const [policy, setPolicy] = useState<OrgPolicy | null>(null);
   const adminOn = useAdminToolStore((state) => state.enabled);
+  const [panelAbove, setPanelAbove] = useState(false);
+  const [panelShade, setPanelShade] = useState(100);
+  const [panelFaceNote, setPanelFaceNote] = useState("");
+  const panelDesktop = desktopShell();
 
   useEffect(() => {
     void loadOrgPolicy().then(setPolicy);
-  }, []);
+    if (!panelDesktop) {
+      return;
+    }
+    void readPanelFace()
+      .then((face) => {
+        setPanelAbove(face.above);
+        setPanelShade(Math.round(face.shade * 100));
+      })
+      .catch(() => {
+        setPanelFaceNote("이 창 상태를 읽지 못했습니다.");
+      });
+  }, [panelDesktop]);
 
   return (
     <div className="flex h-full flex-col bg-paper">
@@ -163,6 +184,52 @@ export function SettingsPage({
             checked={settings.showCompletedTodos}
             onChange={(showCompletedTodos) => void update({ showCompletedTodos })}
           />
+          <Toggle
+            label="다른 창보다 앞에"
+            checked={panelAbove}
+            disabled={!panelDesktop}
+            onChange={(above) => {
+              const previous = panelAbove;
+              setPanelAbove(above);
+              setPanelFaceNote("");
+              void placePanelAbove(above).catch(() => {
+                setPanelAbove(previous);
+                setPanelFaceNote("이 창을 앞에 두지 못했습니다. 이전 상태로 되돌렸습니다.");
+              });
+            }}
+          />
+          <label className="block text-sm text-desk">
+            패널 진하기 {panelShade}
+            <input
+              className="field-input"
+              type="range"
+              min={60}
+              max={100}
+              step={5}
+              value={panelShade}
+              disabled={!panelDesktop}
+              aria-label="패널 진하기"
+              onChange={(event) => {
+                const next = Number(event.target.value);
+                const previous = panelShade;
+                if (!Number.isFinite(next)) {
+                  return;
+                }
+                setPanelShade(next);
+                setPanelFaceNote("");
+                void placePanelShade(next / 100).catch(() => {
+                  setPanelShade(previous);
+                  setPanelFaceNote("패널 진하기를 바꾸지 못했습니다. 이전 상태로 되돌렸습니다.");
+                });
+              }}
+            />
+          </label>
+          <p className="text-xs leading-5 text-quiet">
+            이번 실행 동안만 유지됩니다. 다시 실행하면 원래대로 돌아갑니다. 트레이로 닫으면 패널도 사라집니다.
+            클릭은 이 창이 받습니다. 다른 프로그램과 화면 밝기는 바꾸지 않습니다.
+            {panelDesktop ? "" : " 설치한 프로그램에서만 바뀝니다."}
+          </p>
+          {panelFaceNote ? <p className="text-xs leading-5 text-quiet">{panelFaceNote}</p> : null}
         </SettingsCard>
 
         <SettingsCard title="보기">
@@ -556,6 +623,7 @@ export function SettingsPage({
             <li>개인 사용 PC에만 설치하세요. 공용 PC·실습실·다른 사람 계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다. 런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.</li>
             <li>설치 완료 창에서 마침을 누르면 프로그램이 실행되고, 처음에는 시작 시 자동 실행·시작 시 창 표시·시작할 때 새 버전 확인·시작할 때 업무자료 받기가 켜져 있습니다. 설정에서 끌 수 있습니다. 꺼져 있으면 켤 때 그 통신을 하지 않고, 설정의 지금 확인으로만 받습니다. Pack 연결과 시작 시 자동 실행을 넣을 때 검은 콘솔 창은 띄우지 않습니다.</li>
             <li>설정의 보기에서 서류·밝은 화면·어두운 화면·카드형 홈 배치·청록 모던·청록 모던 (어둡게)와 모두 목록 1열·2열을 고릅니다. 처음 설치의 기본 스킨은 청록 모던입니다. 이미 고른 스킨은 그대로입니다. 카드형 홈 배치의 색은 서류입니다. 청록 모던은 같은 홈에서 색만 바꿉니다. 홈의 자주 사용하는 도구는 모두와 같은 줄입니다. 1열 설정은 유지하고, 2열 설정일 때 가로로 넓히면(약 560px 이상) 3열이 됩니다. 다시 실행하거나 업데이트한 뒤에도 고른 1열·2열은 그대로입니다. 카드형 홈 배치의 홈 목록은 좁으면 2열, 넓으면 3열입니다. 홈 검색 빈 구역 숨김은 기본이 꺼져 있어 지금처럼 빈 안내를 둡니다. 켜면 일치가 없는 구역만 숨기고 순서는 그대로입니다.</li>
+            <li>설정의 런처에서 다른 창보다 앞과 패널 진하기를 바꿉니다. 진하기는 60에서 100까지이고, 100이 원래 창입니다. 이번 실행 동안만 유지되고, 다시 실행하면 원래대로 돌아갑니다. 트레이로 닫으면 패널도 사라집니다. 클릭은 이 창이 받습니다. 다른 프로그램과 화면 밝기는 바꾸지 않습니다. 메모 창과 업무 그림 창은 바꾸지 않습니다.</li>
             <li>트레이, 작업 표시줄 아이콘 또는 Ctrl+Alt+E로 패널을 엽니다. 홈 검색창 안내는 사이트·업무·파일·폴더·컴퓨터도구·PC 문제·매뉴얼입니다. 홈에서 Ctrl+K를 누르면 검색창으로 이동합니다. 검색창에는 그 키 글자를 그리지 않습니다. 창을 닫아도 작업 표시줄 아이콘은 남고, 아이콘을 누르면 설정한 자리(기본은 오른쪽 아래)에 다시 열립니다. 컴퓨터를 켜 두면 아이콘이 있습니다. 완전히 끄려면 트레이에서 종료합니다. 창 모서리를 끌어 크기를 바꿀 수 있고, 바꾼 크기는 이 PC에 남습니다. 처음 설치이거나 창이 520×720이면 이 모니터 작업 영역에 들어가는 최대 높이(상한 900)로 한 번 맞춥니다. 가로는 520이고, 화면이 좁으면 가로만 줄입니다. 그 다음 모서리로 바꾼 크기는 이 PC에 남고, 520×720이 아닌 저장 크기는 유지합니다. 카드형 홈 배치가 아닐 때 검색창은 제목 바로 아래에 있고, 그 아래에는 사이트, 프로그램, 폴더, 단축키, 컴퓨터도구로 가는 아이콘이 있습니다. 검색 중일 때는 이 줄을 숨깁니다.</li>
             <li>설정의 공지·사이트 Pack에서 나눌 공지·사이트를 고른 뒤 한 파일로 저장합니다. 받는 쪽에서 공지와 사이트를 고릅니다. 할 일·메모·설정은 넣지 않으며, 다른 PC로 옮기기(백업)와는 다릅니다.</li>
             <li>처음 설치에는 사이트·프로그램·파일·폴더와 할 일이 비어 있습니다. 그때만 자주 사용하는 도구 아래에 “사이트·프로그램·파일·폴더를 패널에 끌어 놓으면 추가됩니다.”가 나옵니다. 파일·폴더·사이트·Pack을 놓으면 작업 고르기가 열리고, 넣기 전에는 저장하지 않습니다. PNG·JPEG가 한 장이면 사진 다듬기, 글자 넣기, 사진 모자이크, QR코드 넣기를 고릅니다. 두 장 이상이면 그 메뉴는 한 장씩 할 수 있다고 안내합니다. 사진 용량 줄이기와 PDF로 저장은 여러 장에도 고릅니다. PDF로 저장은 제목을 넣을 수 있고, 비우면 첫 사진 이름 뒤에 _사진문서가 붙습니다. PDF 하나만 놓으면 합치기·나누기·페이지 정리·회전 메뉴가 열립니다. PDF를 두 개 이상만 놓으면 합치기 화면이 열리고, 제목을 비우면 첫 파일 이름 뒤에 _합친문서가 붙습니다. 도구를 고르면 그 화면만 열고 나머지 항목은 넣지 않습니다. 그중 하나라도 있으면 이 문장은 숨깁니다. 오른쪽 위 날짜는 9월26일(토)처럼 요일을 붙입니다. 홈의 자주 사용하는 도구에 끌어놓기나 + 안내가 나옵니다. 종류 이름(사이트·프로그램 등)은 구역 제목보다 한 단계 작게 두고, 모두·즐겨찾기 등 단추 글자는 그대로입니다. 종류마다 모두와 같은 줄로 최대 6개까지 보입니다. 아이콘과 이름, 그 아래 경로, 오른쪽 위에 별표와 점 세 개가 있습니다. 더 있으면 모두에서 봅니다. + 또는 끌어놓기로 넣고, 설정에서 Pack으로 나눠 줍니다. 이미 쓰는 PC의 바로가기·할 일 목록은 그대로입니다. 업무도구에는 사진에 글자, 사진 모자이크, 사진 용량 줄이기, QR코드 넣기, PDF 도구가 있고, 컴퓨터도구와 업무자료는 앱에 있습니다. IP 검색·CCTV 검색은 설정의 관리자 도구 사용이 켜진 PC에서만 목록에 보입니다. 기본은 꺼짐입니다.</li>
@@ -630,11 +698,13 @@ function Toggle({
   label,
   checked,
   locked = false,
+  disabled = false,
   onChange,
 }: {
   label: string;
   checked: boolean;
   locked?: boolean;
+  disabled?: boolean;
   onChange: (value: boolean) => void;
 }) {
   return (
@@ -646,7 +716,7 @@ function Toggle({
       <input
         type="checkbox"
         checked={checked}
-        disabled={locked}
+        disabled={locked || disabled}
         onChange={(event) => onChange(event.target.checked)}
         className="h-4 w-4"
       />

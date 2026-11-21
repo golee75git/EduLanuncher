@@ -19,6 +19,27 @@ export async function setLauncherPosition(position: string): Promise<void> {
   await invoke("set_launcher_position", { position });
 }
 
+export interface PanelFace {
+  above: boolean;
+  shade: number;
+}
+
+export function desktopShell(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
+export async function readPanelFace(): Promise<PanelFace> {
+  return invoke<PanelFace>("read_panel_face");
+}
+
+export async function placePanelAbove(above: boolean): Promise<void> {
+  await invoke("place_panel_above", { above });
+}
+
+export async function placePanelShade(shade: number): Promise<void> {
+  await invoke("place_panel_shade", { shade });
+}
+
 export async function registerShortcut(shortcut: string): Promise<void> {
   await invoke("register_shortcut", { shortcut });
 }

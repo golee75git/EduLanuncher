@@ -86,6 +86,8 @@ fn run_reg(args: &[&str]) {
 
 struct PanelState {
     position: Mutex<String>,
+    above: Mutex<bool>,
+    shade: Mutex<f64>,
 }
 
 struct StartupPacks(Mutex<Vec<String>>);
@@ -476,6 +478,7 @@ fn reveal_panel(app: &AppHandle) {
         let _ = window.set_focus();
         let _ = window.emit("focus-search", ());
         let _ = window.emit("panel-shown", ());
+        restore_panel_shade(app, &window);
         show_map_window(app);
         place_map_next_to_panel(app, &window, false);
         show_memo_pad(app);
@@ -780,6 +783,7 @@ fn setup_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(panel) = app_handle.get_webview_window("main") {
                     if !panel.is_minimized().unwrap_or(false) {
                         place_main_panel(&app_handle, &panel);
+                        restore_panel_shade(&app_handle, &panel);
                     }
                 }
             }
@@ -1562,6 +1566,153 @@ fn set_launcher_position(
         place_map_next_to_panel(&app, &panel, false);
     }
     Ok(())
+}
+
+const PANEL_SHADE_FLOOR: f64 = 0.6;
+
+fn panel_shade_held(raw: f64) -> f64 {
+    if !raw.is_finite() {
+        return 1.0;
+    }
+    raw.clamp(PANEL_SHADE_FLOOR, 1.0)
+}
+
+fn panel_shade_byte(raw: f64) -> u8 {
+    let held = panel_shade_held(raw);
+    let byte = (held * 255.0).round();
+    if !byte.is_finite() {
+        return 255;
+    }
+    byte.clamp(153.0, 255.0) as u8
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PanelFace {
+    above: bool,
+    shade: f64,
+}
+
+fn restore_panel_shade(app: &AppHandle, window: &tauri::WebviewWindow) {
+    let shade = app
+        .state::<PanelState>()
+        .shade
+        .lock()
+        .map(|value| *value)
+        .unwrap_or(1.0);
+    if panel_shade_byte(shade) == 255 {
+        return;
+    }
+    let _ = paint_panel_shade(window, shade);
+}
+
+#[cfg(windows)]
+fn panel_hwnd(window: &tauri::WebviewWindow) -> Option<windows::Win32::Foundation::HWND> {
+    use std::ffi::c_void;
+
+    use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    use windows::Win32::Foundation::HWND;
+
+    let handle = window.window_handle().ok()?;
+    match handle.as_raw() {
+        RawWindowHandle::Win32(raw) => Some(HWND(raw.hwnd.get() as *mut c_void)),
+        _ => None,
+    }
+}
+
+fn paint_panel_shade(window: &tauri::WebviewWindow, shade: f64) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::COLORREF;
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetWindowLongPtrW, SetLayeredWindowAttributes, SetWindowLongPtrW, SetWindowPos,
+            GWL_EXSTYLE, LWA_ALPHA, SET_WINDOW_POS_FLAGS, SWP_FRAMECHANGED, SWP_NOACTIVATE,
+            SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER, WS_EX_LAYERED,
+        };
+
+        let hwnd = panel_hwnd(window).ok_or("이 창을 찾지 못했습니다.")?;
+        let byte = panel_shade_byte(shade);
+        unsafe {
+            let current = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
+            let layer = WS_EX_LAYERED.0 as isize;
+            let next = if byte == 255 {
+                current & !layer
+            } else {
+                current | layer
+            };
+            if next != current {
+                SetWindowLongPtrW(hwnd, GWL_EXSTYLE, next);
+            }
+            if byte != 255 {
+                SetLayeredWindowAttributes(hwnd, COLORREF(0), byte, LWA_ALPHA)
+                    .map_err(|_| "패널 진하기를 바꾸지 못했습니다.".to_string())?;
+            }
+            if next != current || byte != 255 {
+                let flags = SET_WINDOW_POS_FLAGS(
+                    SWP_NOMOVE.0 | SWP_NOSIZE.0 | SWP_NOZORDER.0 | SWP_NOACTIVATE.0 | SWP_FRAMECHANGED.0,
+                );
+                SetWindowPos(hwnd, None, 0, 0, 0, 0, flags)
+                    .map_err(|_| "패널 진하기를 바꾸지 못했습니다.".to_string())?;
+            }
+        }
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (window, shade);
+        Err("이 PC에서만 바꿉니다.".into())
+    }
+}
+
+#[tauri::command]
+fn read_panel_face(window: tauri::WebviewWindow, state: tauri::State<PanelState>) -> Result<PanelFace, String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 볼 수 없습니다.".into());
+    }
+    let above = state.above.lock().map(|value| *value).unwrap_or(false);
+    let shade = state.shade.lock().map(|value| *value).unwrap_or(1.0);
+    Ok(PanelFace {
+        above,
+        shade: panel_shade_held(shade),
+    })
+}
+
+#[tauri::command]
+fn place_panel_above(window: tauri::WebviewWindow, state: tauri::State<PanelState>, above: bool) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 바꿀 수 없습니다.".into());
+    }
+    let previous = state.above.lock().map(|value| *value).unwrap_or(false);
+    window
+        .set_always_on_top(above)
+        .map_err(|_| "이 창을 앞에 두지 못했습니다.".to_string())?;
+    if let Ok(mut slot) = state.above.lock() {
+        *slot = above;
+    } else {
+        let _ = window.set_always_on_top(previous);
+        return Err("이 창을 앞에 두지 못했습니다.".into());
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn place_panel_shade(window: tauri::WebviewWindow, state: tauri::State<PanelState>, shade: f64) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 바꿀 수 없습니다.".into());
+    }
+    let held = panel_shade_held(shade);
+    let previous = state.shade.lock().map(|value| *value).unwrap_or(1.0);
+    if let Err(error) = paint_panel_shade(&window, held) {
+        let _ = paint_panel_shade(&window, previous);
+        return Err(error);
+    }
+    if let Ok(mut slot) = state.shade.lock() {
+        *slot = held;
+        Ok(())
+    } else {
+        let _ = paint_panel_shade(&window, previous);
+        Err("패널 진하기를 바꾸지 못했습니다.".into())
+    }
 }
 
 #[tauri::command]
@@ -3005,6 +3156,8 @@ pub fn run() {
         )
         .manage(PanelState {
             position: Mutex::new("bottom-right".to_string()),
+            above: Mutex::new(false),
+            shade: Mutex::new(1.0),
         })
         .manage(StartupPacks(Mutex::new(pack_paths_from(
             std::env::args().skip(1),
@@ -3040,6 +3193,9 @@ pub fn run() {
             show_panel,
             toggle_panel,
             set_launcher_position,
+            read_panel_face,
+            place_panel_above,
+            place_panel_shade,
             register_shortcut,
             open_work_map_window,
             work_map_root_id,
@@ -3205,6 +3361,25 @@ mod shortcut_rules {
         assert!(shortcut_chord("Ctrl+Alt+Del").is_err());
         assert!(shortcut_chord("E").is_err());
         assert!(shortcut_chord("Ctrl+Alt").is_err());
+    }
+}
+
+#[cfg(test)]
+mod panel_shade_rules {
+    use super::{panel_shade_byte, panel_shade_held};
+
+    #[test]
+    fn shade_stays_between_floor_and_solid() {
+        assert_eq!(panel_shade_held(1.0), 1.0);
+        assert_eq!(panel_shade_held(0.6), 0.6);
+        assert_eq!(panel_shade_held(0.0), 0.6);
+        assert_eq!(panel_shade_held(2.0), 1.0);
+        assert_eq!(panel_shade_held(f64::NAN), 1.0);
+        assert_eq!(panel_shade_byte(1.0), 255);
+        assert_eq!(panel_shade_byte(0.6), 153);
+        assert_eq!(panel_shade_byte(0.0), 153);
+        assert_eq!(panel_shade_byte(f64::NAN), 255);
+        assert_eq!(panel_shade_byte(f64::INFINITY), 255);
     }
 }
 

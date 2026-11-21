@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.213-20261121",
+    note: "설정에서 이번 실행만 패널을 다른 창보다 앞에 두거나 진하기를 바꿉니다.",
+  },
+  {
     version: "0.1.212-20261120",
     note: "새 버전 안내에서 최신 설치 파일 옆에 설치 매뉴얼을 받습니다.",
   },
