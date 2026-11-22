@@ -618,6 +618,20 @@ export default {
         return await handleApi(request, env);
       }
       const asset = await readAsset(request, env);
+      if (
+        request.method === "GET" &&
+        request.headers.get("Sec-Fetch-Dest") === "document" &&
+        !hasFileExtension(url.pathname) &&
+        !isKnowledgePath(url.pathname) &&
+        env.OPINION_DB
+      ) {
+        try {
+          await ensureSchema(env.OPINION_DB);
+          await recordVisit(request, env.OPINION_DB);
+        } catch {
+          // 방문 수를 못 써도 화면은 연다.
+        }
+      }
       if (asset.status !== 404) {
         return withShortKnowledgeCache(url.pathname, asset);
       }
@@ -628,14 +642,6 @@ export default {
       const index = await readAsset(new Request(indexUrl, { method: "GET" }), env);
       if (index.status === 404) {
         return plain("없는 파일입니다.", 404);
-      }
-      if (request.method === "GET" && request.headers.get("Sec-Fetch-Dest") === "document" && env.OPINION_DB) {
-        try {
-          await ensureSchema(env.OPINION_DB);
-          await recordVisit(request, env.OPINION_DB);
-        } catch {
-          // 방문 수를 못 써도 화면은 연다.
-        }
       }
       return index;
     } catch {
