@@ -42,6 +42,13 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
     void load().catch(() => setNotice("글을 불러오지 못했습니다."));
   }, []);
 
+  useEffect(() => {
+    if (window.location.hash !== "#opinion") {
+      return;
+    }
+    document.getElementById("opinion")?.scrollIntoView({ block: "start" });
+  }, []);
+
   const submit = async () => {
     setBusy(true);
     setNotice("");
@@ -103,6 +110,7 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
       </section>
 
       <form
+        id="opinion"
         className="card-surface space-y-3 p-5"
         onSubmit={(event) => {
           event.preventDefault();

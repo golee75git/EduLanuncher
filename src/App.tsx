@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DropActionPick } from "./components/DropActionPick";
 import { DropZone } from "./components/DropZone";
-import { StatusBar } from "./components/home/StatusBar";
+import { StatusBar, OpinionLink } from "./components/home/StatusBar";
 import { MemoPad } from "./components/MemoPad";
 import { MissingPathDialog } from "./components/MissingPathDialog";
 import { NoticePackPick } from "./components/NoticePackPick";
@@ -1410,7 +1410,13 @@ export default function App() {
         {view.name === "home" ? (
           <>
             <MemoPad />
-            {priorSkin ? null : <StatusBar />}
+            {priorSkin ? (
+              <div className="mx-auto w-full max-w-[600px] shrink-0 bg-paper px-7 pb-2 text-[10px] text-quiet">
+                <OpinionLink />
+              </div>
+            ) : (
+              <StatusBar />
+            )}
           </>
         ) : null}
         {view.name !== "home" ? (
