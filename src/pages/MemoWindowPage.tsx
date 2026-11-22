@@ -273,7 +273,7 @@ function ExtraMemoWindow({ noteId }: { noteId: string }) {
     <MemoShell
       title={title}
       sheet={extraSheet(title)}
-      hint="제목 줄로 옮기면 그 자리가 화면 안에 남습니다. X로 닫으면 글이 남고, 글이 없으면 목록에서 빠집니다."
+      hint="글이 없으면 목록에서 빠집니다."
     >
       <MemoField
         value={text}

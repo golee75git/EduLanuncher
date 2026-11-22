@@ -6,6 +6,35 @@
 ---
 
 날짜: 2026-11-22
+버전: 0.1.225-20261122
+설치 파일: AILauncher_0.1.225-20261122_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-22_1530_x64-setup.exe
+작성자: 요청자
+
+요청: 추가 메모창 안내를 「글이 없으면 목록에서 빠집니다.」만 표시한다.
+
+확인: 메모 2~5 창에서 제목 줄 이동 문장과 닫으면 글이 남는다는 문장을 뺐다. 빈 메모가 목록에서 빠지는 동작은 그대로다. 글이 있으면 닫아도 목록에 남는다. 사용 방법 맨 위에 설치 파일명과 버전을 두고, 문장에 이 안내를 넣었다. 소개 페이지와 설치 안내에 설치 파일명을 텍스트로 표시한다. OFL 파일을 넣지 않음. 화면 글꼴은 그대로이며 특정 OFL 글꼴이 아니다. OFL은 저작권 라이선스이며 특허를 허용한다는 뜻이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 새 기술 구성은 없음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/pages/MemoWindowPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- README.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+---
+
+날짜: 2026-11-22
 버전: 0.1.224-20261122
 설치 파일: AILauncher_0.1.224-20261122_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-22_1415_x64-setup.exe
