@@ -1,4 +1,4 @@
-import { Briefcase, Folder, Globe, Keyboard, Monitor, Wrench, type LucideIcon } from "lucide-react";
+import { Briefcase, Folder, Globe, Keyboard, Monitor, MoreVertical, Wrench, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import type { ToolType } from "../../types/tool";
 import { HOME_JUMPS, DEFAULT_HOME_JUMPS, type HomeJumpId } from "../../types/settings";
@@ -65,8 +65,14 @@ export function HomeJumpRow({ ids, onChange, onShortcuts, onComputerTools, onGro
         })}
       </nav>
       <div className="mt-1 flex justify-end">
-        <button type="button" className="text-[11px] text-quiet" onClick={() => setEditing((open) => !open)}>
-          {editing ? "닫기" : "바로가기 고치기"}
+        <button
+          type="button"
+          className="icon-btn"
+          aria-label={editing ? "닫기" : "바로가기 고치기"}
+          title={editing ? "닫기" : "바로가기 고치기"}
+          onClick={() => setEditing((open) => !open)}
+        >
+          <MoreVertical className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
       {editing ? (

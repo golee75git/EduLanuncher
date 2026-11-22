@@ -21,6 +21,8 @@ export interface Lap {
   id: number;
   /** 스톱워치를 시작한 뒤 누적 경과(ms). */
   ms: number;
+  /** 비어 있으면 화면의 N번째를 그대로 쓴다. */
+  label: string;
   note: string;
 }
 
@@ -120,8 +122,9 @@ export function lapTable(laps: Lap[]): string[][] {
   const rows: string[][] = [["순서", "누적", "구간", "메모"]];
   for (let i = 0; i < ordered.length; i += 1) {
     const prev = i === 0 ? 0 : ordered[i - 1].ms;
+    const name = cleanLapNote(ordered[i].label);
     rows.push([
-      String(i + 1),
+      name || `${i + 1}번째`,
       formatStopwatch(ordered[i].ms),
       formatStopwatch(Math.max(0, ordered[i].ms - prev)),
       cleanLapNote(ordered[i].note),
@@ -201,13 +204,18 @@ export function normalizeStored(raw: unknown, now: number): StoredTimers {
       const item: unknown = s.laps[i];
       if (typeof item === "number") {
         if (Number.isFinite(item) && item >= 0) {
-          laps.push({ id: total - i, ms: item, note: "" });
+          laps.push({ id: total - i, ms: item, label: "", note: "" });
         }
       } else if (item && typeof item === "object") {
         const entry = item as Record<string, unknown>;
         const ms = asNumber(entry.ms, -1);
         if (ms >= 0) {
-          laps.push({ id: asNumber(entry.id, total - i), ms, note: cleanLapNote(entry.note) });
+          laps.push({
+            id: asNumber(entry.id, total - i),
+            ms,
+            label: cleanLapNote(entry.label),
+            note: cleanLapNote(entry.note),
+          });
         }
       }
     }

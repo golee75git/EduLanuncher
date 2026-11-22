@@ -306,7 +306,15 @@ export function TimerPage({ onBack }: TimerPageProps) {
                   const prev = stopwatch.laps[index + 1]?.ms ?? 0;
                   return (
                     <li key={lap.id} className="flex items-center gap-1.5">
-                      <span className="w-10 shrink-0 text-quiet">{number}번째</span>
+                      <input
+                        type="text"
+                        className="w-[4.5rem] shrink-0 rounded-md border border-line bg-paper px-1 py-1 text-xs text-desk"
+                        placeholder={`${number}번째`}
+                        maxLength={MAX_LAP_NOTE}
+                        aria-label={`${number}번째 이름`}
+                        value={lap.label}
+                        onChange={(event) => store().setLapLabel(lap.id, event.target.value)}
+                      />
                       <span className="w-[4.5rem] shrink-0 text-right tabular-nums">{formatStopwatch(lap.ms)}</span>
                       <span className="w-[4.5rem] shrink-0 text-right text-quiet tabular-nums">+{formatStopwatch(lap.ms - prev)}</span>
                       <input

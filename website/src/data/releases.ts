@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.220-20261122",
+    note: "스톱워치의 1번째 글자를 고칠 수 있습니다. 검색 아래 바로가기는 세로 점 세 개로 고칩니다.",
+  },
+  {
     version: "0.1.219-20261122",
     note: "검색 아래 바로가기를 고치고 업무도구를 넣을 수 있습니다. 화면 캡처 뒤 그림이 있으면 작업 고르기가 열립니다. 스톱워치 메모는 같은 줄에 있습니다.",
   },

@@ -29,6 +29,7 @@ interface TimerState {
   startStopwatch: () => void;
   pauseStopwatch: () => void;
   lapStopwatch: () => void;
+  setLapLabel: (id: number, label: string) => void;
   setLapNote: (id: number, note: string) => void;
   resetStopwatch: () => void;
 }
@@ -232,9 +233,25 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     const now = Date.now();
     // 번호는 항상 앞선 구간보다 크게 해서 메모를 붙일 구간이 바뀌지 않게 한다.
     const id = Math.max(now, (stopwatch.laps[0]?.id ?? 0) + 1);
-    const laps = [{ id, ms: stopwatchElapsed(stopwatch, now), note: "" }, ...stopwatch.laps].slice(0, MAX_LAPS);
+    const laps = [{ id, ms: stopwatchElapsed(stopwatch, now), label: "", note: "" }, ...stopwatch.laps].slice(0, MAX_LAPS);
     set({ stopwatch: { ...stopwatch, laps } });
     persist();
+  },
+  setLapLabel: (id, label) => {
+    const { stopwatch } = get();
+    if (!stopwatch.laps.some((lap) => lap.id === id)) {
+      return;
+    }
+    const clean = cleanLapNote(label);
+    const laps = stopwatch.laps.map((lap) => (lap.id === id ? { ...lap, label: clean } : lap));
+    set({ stopwatch: { ...stopwatch, laps } });
+    if (noteSave) {
+      clearTimeout(noteSave);
+    }
+    noteSave = setTimeout(() => {
+      noteSave = null;
+      persist();
+    }, 400);
   },
   setLapNote: (id, note) => {
     const { stopwatch } = get();
