@@ -576,6 +576,16 @@ export default function App() {
       let listeners: Array<() => void> = [];
       try {
         listeners = [
+        await listen<{ id?: string; name?: string }>("snip-picture", (event) => {
+          const id = event.payload.id?.trim() ?? "";
+          const name = event.payload.name?.trim() || "화면캡처.png";
+          if (!/^[0-9a-f]{8,32}$/i.test(id) || !/\.png$/i.test(name)) {
+            return;
+          }
+          setView({ name: "home" });
+          setDropPick({ ...blankDropHold(), pictures: [{ id, name }] });
+          void showPanel();
+        }),
         await listen("focus-search", () => {
           if (pdfOpenHold.current) {
             return;

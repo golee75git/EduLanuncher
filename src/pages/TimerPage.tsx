@@ -305,16 +305,14 @@ export function TimerPage({ onBack }: TimerPageProps) {
                   const number = stopwatch.laps.length - index;
                   const prev = stopwatch.laps[index + 1]?.ms ?? 0;
                   return (
-                    <li key={lap.id} className="space-y-1">
-                      <div className="flex justify-between tabular-nums">
-                        <span className="text-quiet">{number}번째</span>
-                        <span>{formatStopwatch(lap.ms)}</span>
-                        <span className="text-quiet">+{formatStopwatch(lap.ms - prev)}</span>
-                      </div>
+                    <li key={lap.id} className="flex items-center gap-1.5">
+                      <span className="w-10 shrink-0 text-quiet">{number}번째</span>
+                      <span className="w-[4.5rem] shrink-0 text-right tabular-nums">{formatStopwatch(lap.ms)}</span>
+                      <span className="w-[4.5rem] shrink-0 text-right text-quiet tabular-nums">+{formatStopwatch(lap.ms - prev)}</span>
                       <input
                         type="text"
-                        className="w-full rounded-md border border-line bg-paper px-2 py-1 text-sm text-desk"
-                        placeholder="메모 (예: 3모둠 발표)"
+                        className="min-w-0 flex-1 rounded-md border border-line bg-paper px-2 py-1 text-sm text-desk"
+                        placeholder="메모"
                         maxLength={MAX_LAP_NOTE}
                         aria-label={`${number}번째 구간 메모`}
                         value={lap.note}

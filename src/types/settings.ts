@@ -44,6 +44,28 @@ export interface AppSettings {
   memoHeight: number;
   shortcutOrder: string[];
   computerToolOrder: string[];
+  /** 검색 아래 바로가기. 비어 있으면 기본 다섯 칸. */
+  homeJumps: HomeJumpId[];
+}
+
+export type HomeJumpId = "url" | "app" | "folder" | "shortcuts" | "computer" | "work";
+
+export const HOME_JUMPS: HomeJumpId[] = ["url", "app", "folder", "shortcuts", "computer", "work"];
+
+export const DEFAULT_HOME_JUMPS: HomeJumpId[] = ["url", "app", "folder", "shortcuts", "computer"];
+
+export function asHomeJumps(value: unknown): HomeJumpId[] {
+  if (!Array.isArray(value)) {
+    return [...DEFAULT_HOME_JUMPS];
+  }
+  const out: HomeJumpId[] = [];
+  for (const item of value) {
+    if (typeof item !== "string" || !HOME_JUMPS.includes(item as HomeJumpId) || out.includes(item as HomeJumpId)) {
+      continue;
+    }
+    out.push(item as HomeJumpId);
+  }
+  return out.length > 0 ? out : [...DEFAULT_HOME_JUMPS];
 }
 
 export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: string }> = [
@@ -154,4 +176,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   memoHeight: MEMO_SIZE.defaultHeight,
   shortcutOrder: [],
   computerToolOrder: [],
+  homeJumps: [...DEFAULT_HOME_JUMPS],
 };

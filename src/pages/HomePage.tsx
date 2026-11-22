@@ -785,6 +785,8 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       {prior ? <KeptSearchList items={keptMatches} prior onPick={setQuery} /> : null}
       {prior || searching || activeSchool ? null : (
         <HomeJumpRow
+          ids={settings.homeJumps}
+          onChange={(homeJumps) => void useSettingsStore.getState().update({ homeJumps })}
           onShortcuts={() => onAction({ type: "shortcuts" })}
           onComputerTools={() => onAction({ type: "computer-tools" })}
           onGroup={(groupType) => onAction({ type: "group", groupType })}

@@ -44,6 +44,8 @@ mod file_desk;
 mod path_grant;
 mod site_list;
 mod lap_book;
+#[cfg(windows)]
+mod snip_clip;
 mod url_mark;
 mod user_folder;
 use doc_shrink::{doc_picture_bytes, write_new_picture};
@@ -2040,8 +2042,71 @@ fn open_folder_with_explorer(app: AppHandle, window: tauri::WebviewWindow, id: S
     }
 }
 
+#[derive(Serialize)]
+struct SnipCard {
+    id: String,
+    name: String,
+}
+
+#[cfg(windows)]
+fn watch_snip(app: AppHandle) {
+    let before = snip_clip::clipboard_sequence();
+    let ticket = snip_clip::next_ticket();
+    thread::spawn(move || {
+        for _ in 0..120 {
+            if !snip_clip::ticket_is(ticket) {
+                return;
+            }
+            thread::sleep(Duration::from_millis(400));
+            if snip_clip::clipboard_sequence() == before {
+                continue;
+            }
+            let Some(png) = snip_clip::clipboard_png() else {
+                continue;
+            };
+            if let Some(card) = store_snip(&app, &png) {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.unminimize();
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+                let _ = app.emit_to("main", "snip-picture", &card);
+            }
+            return;
+        }
+    });
+}
+
+#[cfg(windows)]
+fn store_snip(app: &AppHandle, png: &[u8]) -> Option<SnipCard> {
+    if !snip_clip::is_png(png) || png.len() > 8 * 1024 * 1024 {
+        return None;
+    }
+    let dir = app.path().app_data_dir().ok()?;
+    std::fs::create_dir_all(&dir).ok()?;
+    let path = dir.join("snip-capture.png");
+    std::fs::write(&path, png).ok()?;
+    let book = app.state::<path_grant::GrantBook>();
+    let id = book
+        .issue(
+            path_grant::GrantUse::Read,
+            &path,
+            "화면캡처.png",
+            "png",
+            path_grant::GrantOrigin::Drop,
+        )
+        .ok()?;
+    Some(SnipCard {
+        id: path_grant::id_text(id),
+        name: "화면캡처.png".into(),
+    })
+}
+
 #[tauri::command]
-fn run_shortcut_action(action_id: String) -> Result<(), String> {
+fn run_shortcut_action(window: tauri::WebviewWindow, app: AppHandle, action_id: String) -> Result<(), String> {
+    if !main_window(&window) {
+        return Err("실행할 수 없습니다.".into());
+    }
     let id = action_id.trim();
     if id.len() > 40 || !id.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_') {
         return Err("실행할 수 없습니다.".into());
@@ -2075,6 +2140,7 @@ fn run_shortcut_action(action_id: String) -> Result<(), String> {
                     std::process::Command::new(snip)
                         .spawn()
                         .map_err(|err| err.to_string())?;
+                    watch_snip(app);
                     return Ok(());
                 }
                 let explorer = PathBuf::from(r"C:\Windows\explorer.exe");
@@ -2085,6 +2151,7 @@ fn run_shortcut_action(action_id: String) -> Result<(), String> {
                     .arg("ms-screenclip:")
                     .spawn()
                     .map_err(|err| err.to_string())?;
+                watch_snip(app);
                 Ok(())
             }
             "settings" => {
@@ -2110,7 +2177,7 @@ fn run_shortcut_action(action_id: String) -> Result<(), String> {
     }
     #[cfg(not(windows))]
     {
-        let _ = id;
+        let _ = (id, app, window);
         Err("unsupported".into())
     }
 }

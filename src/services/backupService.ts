@@ -15,6 +15,7 @@ import {
   asPanelHeight,
   asPanelSkin,
   asPanelWidth,
+  asHomeJumps,
   asIdList,
   type AppSettings,
   type LauncherPosition,
@@ -219,6 +220,7 @@ function parseSettings(raw: unknown): AppSettings {
     memoHeight: asMemoHeight(source.memoHeight),
     shortcutOrder: asIdList(source.shortcutOrder),
     computerToolOrder: asIdList(source.computerToolOrder),
+    homeJumps: asHomeJumps(source.homeJumps),
   };
 }
 

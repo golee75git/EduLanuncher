@@ -9,6 +9,7 @@ import {
   asPanelHeight,
   asPanelSkin,
   asPanelWidth,
+  asHomeJumps,
   asIdList,
   type AppSettings,
 } from "../types/settings";
@@ -148,6 +149,7 @@ export async function loadSettings(): Promise<AppSettings> {
     memoHeight: asMemoHeight(merged.memoHeight),
     shortcutOrder: asIdList(merged.shortcutOrder),
     computerToolOrder: asIdList(merged.computerToolOrder),
+    homeJumps: asHomeJumps(merged.homeJumps),
     checkUpdatesOnLaunch: merged.checkUpdatesOnLaunch !== false,
     fetchKnowledgeOnLaunch: merged.fetchKnowledgeOnLaunch !== false,
   };

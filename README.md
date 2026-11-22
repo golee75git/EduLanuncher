@@ -7,8 +7,8 @@ Windows용 교육기관 업무 런처입니다. 평소에는 시스템 트레이
 개인 사용 PC에만 설치하세요. 공용 PC, 실습실, 다른 사람의 계정에는 설치하지 않습니다. 설치는 파일과 폴더를 삭제하지 않습니다.
 
 1. 설치 파일을 받습니다.
-   [AILauncher_0.1.218-20261122_x64-setup.exe](https://github.com/golee75git/EduLanuncher/releases/download/0.1.218-20261122/AILauncher_0.1.218-20261122_x64-setup.exe)
-   같은 버전의 날짜 복사본은 `AILauncher_2026-11-22_1139_x64-setup.exe`입니다. 최신 목록은 [GitHub Releases](https://github.com/golee75git/EduLanuncher/releases/latest)에 있습니다.
+   [AILauncher_0.1.219-20261122_x64-setup.exe](https://github.com/golee75git/EduLanuncher/releases/download/0.1.219-20261122/AILauncher_0.1.219-20261122_x64-setup.exe)
+   같은 버전의 날짜 복사본은 `AILauncher_2026-11-22_1235_x64-setup.exe`입니다. 최신 목록은 [GitHub Releases](https://github.com/golee75git/EduLanuncher/releases/latest)에 있습니다.
 2. 받은 파일을 실행하고 설치를 마칩니다. 마침을 누르면 앱이 켜집니다.
 3. 이후에는 시스템 트레이에 있습니다. 트레이를 누르거나 `Ctrl+Alt+E`로 패널을 엽니다.
 

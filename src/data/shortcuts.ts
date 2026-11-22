@@ -53,7 +53,7 @@ const ENTRIES: ShortcutEntry[] = [
     id: "win-shift-s",
     keys: "Win + Shift + S",
     name: "화면 캡처",
-    hint: "화면 일부를 잘라 저장하는 화면을 엽니다.",
+    hint: "화면 일부를 자릅니다. 자른 그림이 있으면 작업 고르기가 열립니다.",
     runId: "snip",
   },
   {
