@@ -370,6 +370,13 @@ async function downloadCount(db: D1Database): Promise<number | null> {
       .run();
     return downloads;
   } catch {
+    if (saved !== null) {
+      await db
+        .prepare("UPDATE release_fetch SET fetched_at = ? WHERE id = 1")
+        .bind(new Date().toISOString())
+        .run()
+        .catch(() => undefined);
+    }
     return saved;
   }
 }
