@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.229-20261122",
+    note: "처음 화면은 스킨 색이다. 바로가기 점은 업무도구 오른쪽에 세로로 둔다.",
+  },
+  {
     version: "0.1.228-20261122",
     note: "이미 설치된 런처는 업그레이드 파일을 설치 폴더에 받아 설치 창을 엽니다.",
   },

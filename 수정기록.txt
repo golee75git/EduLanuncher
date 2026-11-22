@@ -6,6 +6,36 @@
 ---
 
 날짜: 2026-11-22
+버전: 0.1.229-20261122
+설치 파일: AILauncher_0.1.229-20261122_x64-setup.exe, AILauncher_2026-11-22_1835_x64-setup.exe
+작성자: 요청자
+
+요청: 처음 화면 단추에 스킨에 맞는 배경과 굵은 글자를 넣고, 업무도구 위 가로 점을 업무도구 오른쪽의 세로 점으로 옮긴다.
+
+확인: 안쪽 화면 오른쪽 아래 처음 화면만 스킨 강조색과 굵은 흰 글자다. 이전화면과 검색 중 위쪽 처음 화면은 그대로다. 검색 아래 점은 업무도구 아이콘 오른쪽에 세로로 있고, 업무도구가 없으면 마지막 아이콘 오른쪽에 있다. 전체 숨기면 세로 점만 남는다. 설정의 사용 방법에 그 문장이 있고, 맨 위에는 이 설치 파일명과 버전이 있다. 소개 페이지와 설치 안내의 파일명도 이 버전이다. OFL 파일을 넣지 않음. 화면 글꼴은 그대로이며 특정 OFL 글꼴이 아니다. OFL은 저작권 라이선스이며 특허를 허용한다는 뜻이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 단추 색과 점 자리만 바꾼 것이라 새 기술 구성은 없음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/components/HomeJumpButton.tsx
+- src/App.tsx
+- src/components/home/HomeJumpRow.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- README.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+---
+
+날짜: 2026-11-22
 버전: 0.1.228-20261122
 설치 파일: AILauncher_0.1.228-20261122_x64-setup.exe, AILauncher_2026-11-22_1810_x64-setup.exe
 작성자: 요청자

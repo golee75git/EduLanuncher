@@ -1,4 +1,4 @@
-import { Briefcase, Folder, Globe, Keyboard, Monitor, MoreHorizontal, Wrench, type LucideIcon } from "lucide-react";
+import { Briefcase, Folder, Globe, Keyboard, Monitor, MoreVertical, Wrench, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import type { ToolType } from "../../types/tool";
 import { HOME_JUMPS, DEFAULT_HOME_JUMPS, type HomeJumpId } from "../../types/settings";
@@ -32,6 +32,7 @@ const LABELS: Record<HomeJumpId, string> = {
 export function HomeJumpRow({ ids, hidden, onChange, onHidden, onShortcuts, onComputerTools, onGroup }: HomeJumpRowProps) {
   const [editing, setEditing] = useState(false);
   const items = ids.map((id) => jumpItem(id, onShortcuts, onComputerTools, onGroup));
+  const dotId = ids.includes("work") ? "work" : items[items.length - 1]?.id;
 
   const keep = (next: HomeJumpId[]) => {
     onChange(next.length === 0 ? [...DEFAULT_HOME_JUMPS] : next);
@@ -43,7 +44,7 @@ export function HomeJumpRow({ ids, hidden, onChange, onHidden, onShortcuts, onCo
   };
 
   return (
-    <div className={hidden ? "mx-7 mt-1" : "relative mx-7 mt-1 pt-7"}>
+    <div className="relative mx-7 mt-1">
       {hidden ? (
         <div className="flex justify-end">
           <JumpDots editing={editing} onClick={toggle} />
@@ -57,14 +58,8 @@ export function HomeJumpRow({ ids, hidden, onChange, onHidden, onShortcuts, onCo
           {items.map((item, index) => {
             const Icon = item.icon;
             const hue = index + 1;
-            const last = index === items.length - 1;
             return (
               <div key={item.id} className="relative min-w-0">
-                {last ? (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2">
-                    <JumpDots editing={editing} onClick={toggle} />
-                  </div>
-                ) : null}
                 <button
                   type="button"
                   title={item.label}
@@ -79,6 +74,11 @@ export function HomeJumpRow({ ids, hidden, onChange, onHidden, onShortcuts, onCo
                   </span>
                   <span className="w-full truncate text-center text-[11px] font-medium">{item.label}</span>
                 </button>
+                {item.id === dotId ? (
+                  <div className="absolute left-1/2 top-1 z-10 translate-x-[22px]">
+                    <JumpDots editing={editing} onClick={toggle} />
+                  </div>
+                ) : null}
               </div>
             );
           })}
@@ -132,12 +132,12 @@ function JumpDots({ editing, onClick }: { editing: boolean; onClick: () => void 
   return (
     <button
       type="button"
-      className="icon-btn"
+      className="icon-btn p-1"
       aria-label={editing ? "닫기" : "바로가기 고치기"}
       title={editing ? "닫기" : "바로가기 고치기"}
       onClick={onClick}
     >
-      <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+      <MoreVertical className="h-4 w-4" aria-hidden="true" />
     </button>
   );
 }

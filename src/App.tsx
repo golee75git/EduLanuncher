@@ -1427,6 +1427,7 @@ export default function App() {
               <HomeJumpButton label="이전화면" onClick={() => setView(view.backTo)} />
             ) : null}
             <HomeJumpButton
+              solid
               onClick={() => {
                 clearGone();
                 setMissing(null);
