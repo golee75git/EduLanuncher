@@ -95,7 +95,7 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
           <h1 className="text-3xl font-semibold tracking-tight text-desk">의견</h1>
         )}
         <p className="text-sm leading-relaxed text-quiet">
-          계정은 없습니다. 글만 남깁니다. 이름은 사용자1부터 순서대로 붙고, 지운 번호는 다시 쓰지 않습니다.
+          계정 없이 글만 남깁니다. 좋은점이나 개선의견을 남겨주세요.
         </p>
         <p className="rounded-lg border border-line bg-card px-4 py-3 text-sm leading-relaxed text-desk">
           이름, 전화번호, 비밀번호는 적지 마세요.

@@ -37,17 +37,17 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-line/80 py-6 text-center text-xs text-quiet">
       <p>{SITE_CONFIG.displayName} · Windows 데스크톱 앱</p>
+      <p className="mt-2">
+        <a className="underline" href="/third-party-notices.txt">
+          오픈소스 라이선스
+        </a>
+      </p>
       {visits ? (
         <p className="mt-2">
           전체방문 {visits.total.toLocaleString("ko-KR")} · 오늘 방문 {visits.today.toLocaleString("ko-KR")} · 해외방문{" "}
           {visits.overseas.toLocaleString("ko-KR")}
         </p>
       ) : null}
-      <p className="mt-2">
-        <a className="underline" href="/third-party-notices.txt">
-          오픈소스 라이선스
-        </a>
-      </p>
     </footer>
   );
 }
