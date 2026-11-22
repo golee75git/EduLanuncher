@@ -43,6 +43,7 @@ mod privacy_folder;
 mod file_desk;
 mod path_grant;
 mod site_list;
+mod lap_book;
 mod url_mark;
 mod user_folder;
 use doc_shrink::{doc_picture_bytes, write_new_picture};
@@ -2695,6 +2696,24 @@ fn write_csv_file(app: AppHandle, window: tauri::WebviewWindow, id: String, cont
 }
 
 #[tauri::command]
+fn write_xlsx_file(
+    app: AppHandle,
+    window: tauri::WebviewWindow,
+    id: String,
+    rows: Vec<Vec<String>>,
+) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("이 창에서는 저장할 수 없습니다.".into());
+    }
+    let bytes = lap_book::workbook_bytes(&rows).map_err(|text| text.to_string())?;
+    if bytes.len() > 256 * 1024 {
+        return Err("내용이 너무 큽니다.".into());
+    }
+    let book = app.state::<path_grant::GrantBook>();
+    path_grant::write_bytes(&book, &id, &["xlsx"], &bytes, 256 * 1024).map_err(|text| text.to_string())
+}
+
+#[tauri::command]
 fn this_pc_ipv4() -> Vec<netutil::LocalAddress> {
     netutil::this_pc_ipv4()
 }
@@ -3296,6 +3315,7 @@ pub fn run() {
             path_grant::forget_save_folder,
             write_json_file,
             write_csv_file,
+            write_xlsx_file,
             build_url_mark,
             read_picture_file,
             write_png_file,

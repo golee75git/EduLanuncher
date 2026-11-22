@@ -5,6 +5,44 @@
 
 ---
 
+날짜: 2026-11-22
+버전: 0.1.218-20261122
+설치 파일: AILauncher_0.1.218-20261122_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-22_1139_x64-setup.exe
+작성자: 요청자
+
+요청: 스톱워치 1번째, 2번째 메모를 바로 고치고, 메모를 포함한 기록을 CSV와 xlsx로 저장한다. 타이머와 스톱워치 배경을 파스텔로 둔다.
+
+확인: 구간 메모 칸은 이미 있었고 그대로 둔다. 저장 단추는 구간이 있을 때만 켜진다. 1번째가 파일의 첫 줄이다. CSV에서 식처럼 보이는 칸은 글자로 남기고, xlsx 칸도 글자만 넣는다. 고른 파일 번호로만 쓰고 메인 창만 받는다. 타이머는 살구색, 스톱워치는 민트색이다. 어두운 스킨은 같은 색을 어둡게 둔다. 사용 방법 맨 위에 설치 파일명과 버전을 두고, 문장에 이 동작을 넣었다. 소개 페이지와 설치 안내에 설치 파일명을 텍스트로 표시한다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 경과 시각과 메모를 표로 남기는 구성이라 특허 검토가 필요할 수 있음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- src-tauri/src/lap_book.rs
+
+다시 쓴 파일:
+- src/pages/TimerPage.tsx
+- src/services/timerService.ts
+- src/services/savePick.ts
+- src/index.css
+- src/data/sampleTools.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/src/lib.rs
+- src-tauri/src/path_grant.rs
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- README.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 타이머 시간 계산, 구간 메모 저장, 글꼴 파일, 그 외 기존 파일
+
+---
+
 날짜: 2026-11-21
 버전: 0.1.215-20261121
 설치 파일: AILauncher_0.1.215-20261121_x64-setup.exe

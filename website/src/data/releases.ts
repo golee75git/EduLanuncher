@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.218-20261122",
+    note: "스톱워치 메모를 CSV·엑셀로 저장합니다. 타이머는 살구색, 스톱워치는 민트색입니다.",
+  },
+  {
     version: "0.1.217-20261121",
     note: "스톱워치 구간 기록마다 메모를 적을 수 있습니다.",
   },

@@ -114,6 +114,39 @@ export function formatCountdown(ms: number): string {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
+/** 1번째가 첫 줄. 열은 순서, 누적, 구간, 메모. */
+export function lapTable(laps: Lap[]): string[][] {
+  const ordered = [...laps].reverse();
+  const rows: string[][] = [["순서", "누적", "구간", "메모"]];
+  for (let i = 0; i < ordered.length; i += 1) {
+    const prev = i === 0 ? 0 : ordered[i - 1].ms;
+    rows.push([
+      String(i + 1),
+      formatStopwatch(ordered[i].ms),
+      formatStopwatch(Math.max(0, ordered[i].ms - prev)),
+      cleanLapNote(ordered[i].note),
+    ]);
+  }
+  return rows;
+}
+
+/** 엑셀에서 식으로 열리지 않게, 식처럼 보이는 칸 앞에 따옴표를 붙인다. */
+function csvCell(value: string): string {
+  let text = value;
+  const head = text.charAt(0);
+  if (head === "=" || head === "+" || head === "-" || head === "@") {
+    text = `'${text}`;
+  }
+  if (/[",\r\n]/.test(text)) {
+    return `"${text.split("\"").join("\"\"")}"`;
+  }
+  return text;
+}
+
+export function lapTableCsv(laps: Lap[]): string {
+  return lapTable(laps).map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+}
+
 /** 00:12.34 또는 1:02:03.45 꼴. 내림해서 실제 경과보다 앞서 보이지 않게 한다. */
 export function formatStopwatch(ms: number): string {
   const total = Math.max(0, Math.floor(ms));

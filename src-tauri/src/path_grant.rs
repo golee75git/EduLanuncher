@@ -627,6 +627,7 @@ fn kind_rule(kind: &str, picture: Option<&str>) -> Result<(&'static str, &'stati
         "pack" => Ok(("저장", &["edupack", "json"], "edupack")),
         "json" => Ok(("저장", &["json"], "json")),
         "csv" => Ok(("CSV 저장", &["csv"], "csv")),
+        "xlsx" => Ok(("엑셀 저장", &["xlsx"], "xlsx")),
         "png" => Ok(("PNG 저장", &["png"], "png")),
         "picture" => match picture.unwrap_or("") {
             "png" => Ok(("그림 저장", &["png"], "png")),
@@ -916,7 +917,7 @@ mod tests {
     #[test]
     fn bundle_write_signatures_have_no_path_argument() {
         let lib = include_str!("lib.rs");
-        for name in ["fn write_json_file", "fn write_csv_file"] {
+        for name in ["fn write_json_file", "fn write_csv_file", "fn write_xlsx_file"] {
             let start = lib.find(name).expect(name);
             let end = lib[start..].find('{').unwrap() + start;
             let sig = &lib[start..end];

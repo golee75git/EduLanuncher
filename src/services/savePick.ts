@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 
-export type SaveKind = "pack" | "json" | "csv" | "png" | "picture";
+export type SaveKind = "pack" | "json" | "csv" | "xlsx" | "png" | "picture";
 
 export interface SaveCard {
   id: string;

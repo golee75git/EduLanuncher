@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import {
   COUNTDOWN_PRESETS,
   MAX_COUNTDOWN_MS,
@@ -7,8 +8,12 @@ import {
   countdownRemaining,
   formatCountdown,
   formatStopwatch,
+  lapTable,
+  lapTableCsv,
   stopwatchElapsed,
+  type Lap,
 } from "../services/timerService";
+import { pickSaveFile } from "../services/savePick";
 import { useTimerStore } from "../stores/timerStore";
 
 interface TimerPageProps {
@@ -31,6 +36,29 @@ function useNow(active: boolean): number {
   return now;
 }
 
+function saveError(error: unknown): string {
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return "저장하지 못했습니다.";
+}
+
+async function saveLapFile(kind: "csv" | "xlsx", laps: Lap[]): Promise<string> {
+  const picked = await pickSaveFile(kind, kind === "csv" ? "스톱워치.csv" : "스톱워치.xlsx");
+  if (!picked) {
+    return "";
+  }
+  if (kind === "csv") {
+    await invoke("write_csv_file", { id: picked.id, contents: lapTableCsv(laps) });
+    return "CSV로 저장했습니다.";
+  }
+  await invoke("write_xlsx_file", { id: picked.id, rows: lapTable(laps) });
+  return "엑셀 파일로 저장했습니다.";
+}
+
 function clampInput(value: string, max: number): number {
   const n = Math.floor(Number(value));
   if (!Number.isFinite(n) || n < 0) {
@@ -41,6 +69,7 @@ function clampInput(value: string, max: number): number {
 
 export function TimerPage({ onBack }: TimerPageProps) {
   const [tab, setTab] = useState<Tab>("countdown");
+  const [saveNote, setSaveNote] = useState("");
   const countdown = useTimerStore((s) => s.countdown);
   const stopwatch = useTimerStore((s) => s.stopwatch);
   const alarmActive = useTimerStore((s) => s.alarmActive);
@@ -78,7 +107,7 @@ export function TimerPage({ onBack }: TimerPageProps) {
         </button>
         <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">타이머·스톱워치</h1>
       </header>
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+      <div className={`min-h-0 flex-1 space-y-3 overflow-y-auto p-3 ${tab === "countdown" ? "timer-sheet" : "watch-sheet"}`}>
         <div className="grid grid-cols-2 gap-2" role="tablist">
           <button
             type="button"
@@ -110,7 +139,7 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 </button>
               </div>
             ) : null}
-            <div className="rounded-lg border border-line bg-card px-3 py-6 text-center">
+            <div className="timer-face rounded-lg border border-line px-3 py-6 text-center">
               <p
                 className="text-5xl font-semibold tabular-nums text-desk"
                 aria-live="off"
@@ -210,7 +239,7 @@ export function TimerPage({ onBack }: TimerPageProps) {
           </>
         ) : (
           <>
-            <div className="rounded-lg border border-line bg-card px-3 py-6 text-center">
+            <div className="watch-face rounded-lg border border-line px-3 py-6 text-center">
               <p
                 className="text-5xl font-semibold tabular-nums text-desk"
                 aria-live="off"
@@ -241,8 +270,37 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 초기화
               </button>
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={stopwatch.laps.length === 0}
+                onClick={() => {
+                  setSaveNote("");
+                  void saveLapFile("csv", stopwatch.laps)
+                    .then((text) => setSaveNote(text))
+                    .catch((error: unknown) => setSaveNote(saveError(error)));
+                }}
+              >
+                CSV 저장
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={stopwatch.laps.length === 0}
+                onClick={() => {
+                  setSaveNote("");
+                  void saveLapFile("xlsx", stopwatch.laps)
+                    .then((text) => setSaveNote(text))
+                    .catch((error: unknown) => setSaveNote(saveError(error)));
+                }}
+              >
+                엑셀 저장
+              </button>
+            </div>
+            {saveNote ? <p className="text-xs leading-5 text-quiet">{saveNote}</p> : null}
             {stopwatch.laps.length > 0 ? (
-              <ol className="space-y-2 rounded-lg border border-line bg-card px-3 py-2 text-sm text-desk">
+              <ol className="watch-face space-y-2 rounded-lg border border-line px-3 py-2 text-sm text-desk">
                 {stopwatch.laps.map((lap, index) => {
                   const number = stopwatch.laps.length - index;
                   const prev = stopwatch.laps[index + 1]?.ms ?? 0;
