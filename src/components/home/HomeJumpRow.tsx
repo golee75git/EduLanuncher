@@ -1,4 +1,4 @@
-import { Briefcase, Folder, Globe, Keyboard, Monitor, MoreVertical, Wrench, type LucideIcon } from "lucide-react";
+import { Briefcase, Folder, Globe, Keyboard, Monitor, MoreHorizontal, Wrench, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import type { ToolType } from "../../types/tool";
 import { HOME_JUMPS, DEFAULT_HOME_JUMPS, type HomeJumpId } from "../../types/settings";
@@ -12,7 +12,9 @@ interface JumpItem {
 
 interface HomeJumpRowProps {
   ids: HomeJumpId[];
+  hidden: boolean;
   onChange: (ids: HomeJumpId[]) => void;
+  onHidden: (hidden: boolean) => void;
   onShortcuts: () => void;
   onComputerTools: () => void;
   onGroup: (groupType: ToolType) => void;
@@ -27,56 +29,68 @@ const LABELS: Record<HomeJumpId, string> = {
   work: "업무도구",
 };
 
-export function HomeJumpRow({ ids, onChange, onShortcuts, onComputerTools, onGroup }: HomeJumpRowProps) {
+export function HomeJumpRow({ ids, hidden, onChange, onHidden, onShortcuts, onComputerTools, onGroup }: HomeJumpRowProps) {
   const [editing, setEditing] = useState(false);
   const items = ids.map((id) => jumpItem(id, onShortcuts, onComputerTools, onGroup));
 
   const keep = (next: HomeJumpId[]) => {
     onChange(next.length === 0 ? [...DEFAULT_HOME_JUMPS] : next);
   };
+  const toggle = () => setEditing((open) => !open);
+  const fold = (next: boolean) => {
+    onHidden(next);
+    setEditing(false);
+  };
 
   return (
-    <div className="mx-7 mt-3">
-      <nav
-        aria-label="바로 가기"
-        className="grid gap-1"
-        style={{ gridTemplateColumns: `repeat(${Math.max(items.length, 1)}, minmax(0, 1fr))` }}
-      >
-        {items.map((item, index) => {
-          const Icon = item.icon;
-          const hue = index + 1;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              title={item.label}
-              onClick={item.onClick}
-              className="flex min-w-0 flex-col items-center gap-1 rounded-xl px-0.5 py-1 text-desk transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-            >
-              <span
-                className="mark-tile flex h-9 w-9 items-center justify-center rounded-[10px] bg-ink-soft text-ink"
-                style={{ ["--mark-bg" as string]: `var(--hue-${hue}-bg)`, ["--mark-fg" as string]: `var(--hue-${hue}-fg)` }}
-              >
-                <Icon className="h-4 w-4" aria-hidden="true" />
-              </span>
-              <span className="w-full truncate text-center text-[11px] font-medium">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
-      <div className="mt-1 flex justify-end">
-        <button
-          type="button"
-          className="icon-btn"
-          aria-label={editing ? "닫기" : "바로가기 고치기"}
-          title={editing ? "닫기" : "바로가기 고치기"}
-          onClick={() => setEditing((open) => !open)}
+    <div className={hidden ? "mx-7 mt-1" : "relative mx-7 mt-1 pt-7"}>
+      {hidden ? (
+        <div className="flex justify-end">
+          <JumpDots editing={editing} onClick={toggle} />
+        </div>
+      ) : (
+        <nav
+          aria-label="바로 가기"
+          className="grid gap-1"
+          style={{ gridTemplateColumns: `repeat(${Math.max(items.length, 1)}, minmax(0, 1fr))` }}
         >
-          <MoreVertical className="h-4 w-4" aria-hidden="true" />
-        </button>
-      </div>
+          {items.map((item, index) => {
+            const Icon = item.icon;
+            const hue = index + 1;
+            const last = index === items.length - 1;
+            return (
+              <div key={item.id} className="relative min-w-0">
+                {last ? (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2">
+                    <JumpDots editing={editing} onClick={toggle} />
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  title={item.label}
+                  onClick={item.onClick}
+                  className="flex w-full min-w-0 flex-col items-center gap-1 rounded-xl px-0.5 py-1 text-desk transition-colors duration-150 hover:bg-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                >
+                  <span
+                    className="mark-tile flex h-9 w-9 items-center justify-center rounded-[10px] bg-ink-soft text-ink"
+                    style={{ ["--mark-bg" as string]: `var(--hue-${hue}-bg)`, ["--mark-fg" as string]: `var(--hue-${hue}-fg)` }}
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <span className="w-full truncate text-center text-[11px] font-medium">{item.label}</span>
+                </button>
+              </div>
+            );
+          })}
+        </nav>
+      )}
       {editing ? (
         <ul className="mt-1 space-y-1 rounded-lg border border-line bg-card px-2 py-2 text-xs text-desk">
+          <li className="flex justify-end">
+            <button type="button" className="btn-secondary h-7 w-auto px-2" onClick={() => fold(!hidden)}>
+              {hidden ? "전체 보이기" : "전체 숨기기"}
+            </button>
+          </li>
           {HOME_JUMPS.map((id) => {
             const index = ids.indexOf(id);
             const shown = index >= 0;
@@ -111,6 +125,20 @@ export function HomeJumpRow({ ids, onChange, onShortcuts, onComputerTools, onGro
         </ul>
       ) : null}
     </div>
+  );
+}
+
+function JumpDots({ editing, onClick }: { editing: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className="icon-btn"
+      aria-label={editing ? "닫기" : "바로가기 고치기"}
+      title={editing ? "닫기" : "바로가기 고치기"}
+      onClick={onClick}
+    >
+      <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+    </button>
   );
 }
 

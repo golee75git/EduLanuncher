@@ -9,6 +9,7 @@ import {
   asPanelSkin,
   asPanelWidth,
   asHomeJumps,
+  asHomeJumpsHidden,
   asIdList,
   type AppSettings,
   type PanelSkin,
@@ -46,6 +47,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       shortcutOrder: asIdList(settings.shortcutOrder),
       computerToolOrder: asIdList(settings.computerToolOrder),
       homeJumps: asHomeJumps(settings.homeJumps),
+      homeJumpsHidden: asHomeJumpsHidden(settings.homeJumpsHidden),
     };
     paintSkin(next.panelSkin);
     set({ settings: next, loaded: true });
@@ -69,6 +71,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       shortcutOrder: asIdList(patch.shortcutOrder ?? get().settings.shortcutOrder),
       computerToolOrder: asIdList(patch.computerToolOrder ?? get().settings.computerToolOrder),
       homeJumps: asHomeJumps(patch.homeJumps ?? get().settings.homeJumps),
+      homeJumpsHidden: asHomeJumpsHidden(patch.homeJumpsHidden ?? get().settings.homeJumpsHidden),
     };
     set({ settings });
     await saveSettings(settings);

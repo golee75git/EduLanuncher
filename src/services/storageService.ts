@@ -10,6 +10,7 @@ import {
   asPanelSkin,
   asPanelWidth,
   asHomeJumps,
+  asHomeJumpsHidden,
   asIdList,
   type AppSettings,
 } from "../types/settings";
@@ -150,6 +151,7 @@ export async function loadSettings(): Promise<AppSettings> {
     shortcutOrder: asIdList(merged.shortcutOrder),
     computerToolOrder: asIdList(merged.computerToolOrder),
     homeJumps: asHomeJumps(merged.homeJumps),
+    homeJumpsHidden: asHomeJumpsHidden(merged.homeJumpsHidden),
     checkUpdatesOnLaunch: merged.checkUpdatesOnLaunch !== false,
     fetchKnowledgeOnLaunch: merged.fetchKnowledgeOnLaunch !== false,
   };

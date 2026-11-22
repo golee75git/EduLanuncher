@@ -6,6 +6,40 @@
 ---
 
 날짜: 2026-11-22
+버전: 0.1.221-20261122
+설치 파일: AILauncher_0.1.221-20261122_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-22_1310_x64-setup.exe
+작성자: 요청자
+
+요청: 검색 아래 바로가기 점을 마지막 아이콘 위에 가로로 두고, 메뉴에 전체 숨기기를 넣어 숨기면 점만 남게 한다.
+
+확인: 점은 업무도구가 있으면 그 위, 없으면 그때의 마지막 아이콘 위에 있다. 전체 숨기기는 칸 목록을 지우지 않는다. 전체 보이기는 숨기기 전의 순서를 연다. 칸을 모두 빼면 기본 다섯으로 돌아간다. 값은 이 PC 설정에만 남고 검색 중에는 점까지 숨긴다. 사용 방법 맨 위에 설치 파일명과 버전을 두고, 문장에 이 동작을 넣었다. 소개 페이지와 설치 안내에 설치 파일명을 텍스트로 표시한다. 글꼴은 기존 Windows 시스템 글꼴(Segoe UI Variable, Segoe UI, 맑은 고딕)이며 OFL 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 바로가기 줄의 표시 여부를 저장하는 구성이라 특허 검토가 필요할 수 있음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/components/home/HomeJumpRow.tsx
+- src/pages/HomePage.tsx
+- src/pages/SettingsPage.tsx
+- src/types/settings.ts
+- src/stores/settingsStore.ts
+- src/services/storageService.ts
+- src/services/backupService.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- README.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+---
+
+날짜: 2026-11-22
 버전: 0.1.220-20261122
 설치 파일: AILauncher_0.1.220-20261122_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-22_1250_x64-setup.exe

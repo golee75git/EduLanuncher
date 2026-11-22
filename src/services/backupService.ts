@@ -16,6 +16,7 @@ import {
   asPanelSkin,
   asPanelWidth,
   asHomeJumps,
+  asHomeJumpsHidden,
   asIdList,
   type AppSettings,
   type LauncherPosition,
@@ -221,6 +222,7 @@ function parseSettings(raw: unknown): AppSettings {
     shortcutOrder: asIdList(source.shortcutOrder),
     computerToolOrder: asIdList(source.computerToolOrder),
     homeJumps: asHomeJumps(source.homeJumps),
+    homeJumpsHidden: asHomeJumpsHidden(source.homeJumpsHidden),
   };
 }
 

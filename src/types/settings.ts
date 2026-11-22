@@ -46,6 +46,8 @@ export interface AppSettings {
   computerToolOrder: string[];
   /** 검색 아래 바로가기. 비어 있으면 기본 다섯 칸. */
   homeJumps: HomeJumpId[];
+  /** 검색 아래 바로가기를 접어 가로 점만 남긴다. */
+  homeJumpsHidden: boolean;
 }
 
 export type HomeJumpId = "url" | "app" | "folder" | "shortcuts" | "computer" | "work";
@@ -66,6 +68,10 @@ export function asHomeJumps(value: unknown): HomeJumpId[] {
     out.push(item as HomeJumpId);
   }
   return out.length > 0 ? out : [...DEFAULT_HOME_JUMPS];
+}
+
+export function asHomeJumpsHidden(value: unknown): boolean {
+  return value === true;
 }
 
 export const PANEL_SKIN_OPTIONS: Array<{ id: PanelSkin; label: string; hint: string }> = [
@@ -177,4 +183,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   shortcutOrder: [],
   computerToolOrder: [],
   homeJumps: [...DEFAULT_HOME_JUMPS],
+  homeJumpsHidden: false,
 };
