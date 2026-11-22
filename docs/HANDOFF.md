@@ -5,6 +5,8 @@
 브랜치: `main`  
 최신 커밋 시점의 앱 버전: `0.1.229-20261122`
 
+날짜별 넣은 것은 `docs/PLAN.md`, 버전별 한 줄은 `website/src/data/releases.ts`, 색인은 `docs/버전정리.md`다. 이 앱은 Windows 설치 파일이며 APK는 없다.
+
 이미 설치된 런처의 최신 설치 파일 받기는 실행 중인 프로그램이 있는 폴더에 `AILauncher_<버전>_x64-setup.exe`만 저장하고 설치 창을 연 뒤 런처를 닫는다. 주소는 `github.com`의 그 파일만 보고, 이어지는 주소는 `release-assets.githubusercontent.com` 한 번만 허용한다. 다운로드 폴더에는 받지 않는다. 처음 설치는 소개 사이트의 브라우저 받기 그대로다. 새 패키지 없음. 글꼴 파일 없음.
 
 홈 맨 아래 `AI런처 · 준비됨` 뒤의 개선의견은 같은 줄이다. 누르면 브라우저에서 https://edulanuncher.zeroorder.kr/#opinion 을 연다. 소개 사이트는 의견 입력칸까지 내려간다. 이전 홈에는 준비됨 줄이 없어 개선의견만 맨 아래에 있다. 새 패키지 없음. 글꼴 파일 없음.
