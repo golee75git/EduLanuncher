@@ -11,6 +11,7 @@ import {
   asPanelWidth,
   asHomeJumps,
   asHomeJumpsHidden,
+  asUiFont,
   asIdList,
   type AppSettings,
 } from "../types/settings";
@@ -152,6 +153,7 @@ export async function loadSettings(): Promise<AppSettings> {
     computerToolOrder: asIdList(merged.computerToolOrder),
     homeJumps: asHomeJumps(merged.homeJumps),
     homeJumpsHidden: asHomeJumpsHidden(merged.homeJumpsHidden),
+    uiFont: asUiFont(merged.uiFont),
     checkUpdatesOnLaunch: merged.checkUpdatesOnLaunch !== false,
     fetchKnowledgeOnLaunch: merged.fetchKnowledgeOnLaunch !== false,
   };

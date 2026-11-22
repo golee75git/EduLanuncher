@@ -10,6 +10,7 @@ import {
   asPanelWidth,
   asHomeJumps,
   asHomeJumpsHidden,
+  asUiFont,
   asIdList,
   type AppSettings,
   type PanelSkin,
@@ -31,6 +32,15 @@ function paintSkin(skin: PanelSkin): void {
   document.documentElement.dataset.skin = next === "prior" ? "paper" : next;
 }
 
+function paintUiFont(name: string): void {
+  const chosen = asUiFont(name);
+  if (!chosen) {
+    document.documentElement.style.removeProperty("--font-sans");
+    return;
+  }
+  document.documentElement.style.setProperty("--font-sans", `"${chosen}", system-ui, sans-serif`);
+}
+
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   loaded: false,
@@ -48,8 +58,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       computerToolOrder: asIdList(settings.computerToolOrder),
       homeJumps: asHomeJumps(settings.homeJumps),
       homeJumpsHidden: asHomeJumpsHidden(settings.homeJumpsHidden),
+      uiFont: asUiFont(settings.uiFont),
     };
     paintSkin(next.panelSkin);
+    paintUiFont(next.uiFont);
     set({ settings: next, loaded: true });
   },
   update: async (patch) => {
@@ -72,8 +84,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       computerToolOrder: asIdList(patch.computerToolOrder ?? get().settings.computerToolOrder),
       homeJumps: asHomeJumps(patch.homeJumps ?? get().settings.homeJumps),
       homeJumpsHidden: asHomeJumpsHidden(patch.homeJumpsHidden ?? get().settings.homeJumpsHidden),
+      uiFont: asUiFont(patch.uiFont ?? get().settings.uiFont),
     };
     set({ settings });
+    paintUiFont(settings.uiFont);
     await saveSettings(settings);
     if (patch.panelSkin) {
       paintSkin(settings.panelSkin);

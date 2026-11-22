@@ -17,6 +17,7 @@ import {
   asPanelWidth,
   asHomeJumps,
   asHomeJumpsHidden,
+  asUiFont,
   asIdList,
   type AppSettings,
   type LauncherPosition,
@@ -223,6 +224,7 @@ function parseSettings(raw: unknown): AppSettings {
     computerToolOrder: asIdList(source.computerToolOrder),
     homeJumps: asHomeJumps(source.homeJumps),
     homeJumpsHidden: asHomeJumpsHidden(source.homeJumpsHidden),
+    uiFont: asUiFont(source.uiFont),
   };
 }
 

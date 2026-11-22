@@ -1746,6 +1746,75 @@ fn main_window(window: &tauri::WebviewWindow) -> bool {
     window.label() == "main"
 }
 
+#[cfg(windows)]
+unsafe extern "system" fn take_font_name(
+    face: *const windows::Win32::Graphics::Gdi::LOGFONTW,
+    _metric: *const windows::Win32::Graphics::Gdi::TEXTMETRICW,
+    _kind: u32,
+    param: windows::Win32::Foundation::LPARAM,
+) -> i32 {
+    if face.is_null() {
+        return 0;
+    }
+    let Some(list) = (param.0 as *mut Vec<String>).as_mut() else {
+        return 0;
+    };
+    if list.len() >= 160 {
+        return 0;
+    }
+    let raw = unsafe { (*face).lfFaceName };
+    let end = raw.iter().position(|unit| *unit == 0).unwrap_or(raw.len());
+    let name = String::from_utf16_lossy(&raw[..end]);
+    let name = name.trim();
+    if name.is_empty() || name.starts_with('@') || name.chars().count() > 31 {
+        return 1;
+    }
+    if name.chars().any(|ch| ch.is_control() || "\\\"/:*?<>|;{}".contains(ch)) {
+        return 1;
+    }
+    if !list.iter().any(|item| item == name) {
+        list.push(name.to_string());
+    }
+    1
+}
+
+#[tauri::command]
+fn installed_font_names(window: tauri::WebviewWindow) -> Result<Vec<String>, String> {
+    if !main_window(&window) {
+        return Err("이 창에서는 글꼴을 보지 않습니다.".to_string());
+    }
+    #[cfg(not(windows))]
+    {
+        Ok(Vec::new())
+    }
+    #[cfg(windows)]
+    {
+        use windows::Win32::Foundation::LPARAM;
+        use windows::Win32::Graphics::Gdi::{
+            EnumFontFamiliesExW, GetDC, ReleaseDC, DEFAULT_CHARSET, LOGFONTW,
+        };
+        unsafe {
+            let dc = GetDC(None);
+            if dc.is_invalid() {
+                return Err("이 PC의 글꼴을 보지 못했습니다.".to_string());
+            }
+            let mut names = Vec::<String>::new();
+            let mut query = LOGFONTW::default();
+            query.lfCharSet = DEFAULT_CHARSET;
+            let _ = EnumFontFamiliesExW(
+                dc,
+                &query,
+                Some(take_font_name),
+                LPARAM(&mut names as *mut Vec<String> as isize),
+                0,
+            );
+            let _ = ReleaseDC(None, dc);
+            names.sort();
+            Ok(names)
+        }
+    }
+}
+
 pub(crate) struct StoredTool {
     kind: String,
     target: String,
@@ -3340,6 +3409,7 @@ pub fn run() {
             toggle_panel,
             set_launcher_position,
             read_panel_face,
+            installed_font_names,
             place_panel_above,
             place_panel_shade,
             register_shortcut,

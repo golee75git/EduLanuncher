@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Segoe UI Variable", "Segoe UI", "Malgun Gothic", sans-serif;
+  --font-sans: system-ui, sans-serif;
   --color-paper: #eef1f3;
   --color-ink: #146b5e;
   --color-ink-strong: #0f5147;

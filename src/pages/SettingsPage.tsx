@@ -25,7 +25,7 @@ import {
   placePanelShade,
   readPanelFace,
 } from "../services/windowService";
-import { PANEL_SKIN_OPTIONS, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
+import { PANEL_SKIN_OPTIONS, asUiFont, type LauncherPosition, type ListColumns, type PanelSkin } from "../types/settings";
 
 function PilotManualToggle() {
   const enabled = usePilotManualStore((state) => state.enabled);
@@ -77,7 +77,31 @@ export function SettingsPage({
   const [panelAbove, setPanelAbove] = useState(false);
   const [panelShade, setPanelShade] = useState(100);
   const [panelFaceNote, setPanelFaceNote] = useState("");
+  const [installedFonts, setInstalledFonts] = useState<string[]>([]);
   const panelDesktop = desktopShell();
+
+  useEffect(() => {
+    if (!panelDesktop) {
+      return;
+    }
+    let alive = true;
+    void invoke<string[]>("installed_font_names")
+      .then((names) => {
+        if (!alive || !Array.isArray(names)) {
+          return;
+        }
+        const clean = names.filter((name) => asUiFont(name) === name);
+        setInstalledFonts(clean);
+        const chosen = useSettingsStore.getState().settings.uiFont;
+        if (chosen && !clean.includes(chosen)) {
+          void useSettingsStore.getState().update({ uiFont: "" });
+        }
+      })
+      .catch(() => setInstalledFonts([]));
+    return () => {
+      alive = false;
+    };
+  }, [panelDesktop]);
 
   useEffect(() => {
     void loadOrgPolicy().then(setPolicy);
@@ -235,6 +259,26 @@ export function SettingsPage({
         <SettingsCard title="보기">
           <p className="text-xs leading-5 text-quiet">
             서류·밝은 화면·어두운 화면은 패널 안 색만 바꿉니다. 청록 모던과 청록 모던 (어둡게)도 같은 홈 배치에서 색만 바꿉니다. 카드형 홈 배치의 색은 서류입니다. 창 테두리는 Windows가 그립니다.
+          </p>
+          <label className="block text-sm text-desk">
+            화면 글꼴
+            <select
+              className="field-input"
+              value={installedFonts.includes(settings.uiFont) ? settings.uiFont : ""}
+              onChange={(event) => void update({ uiFont: event.target.value })}
+            >
+              <option value="">Windows 기본</option>
+              {installedFonts.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="text-xs leading-5 text-quiet">
+            설치본에는 글꼴 파일이 없습니다. 처음에는 이 PC의 Windows 기본 글꼴을 씁니다. 목록은 이 PC에 설치된
+            글꼴 이름만 보여 주고, 고른 이름은 이 PC에만 남습니다. 그 글꼴이 없으면 다시 Windows 기본 글꼴로
+            돌아갑니다. 사진에 올리는 글자는 이 목록과 따로이며, 글꼴 파일을 넣지 않습니다.
           </p>
           <label className="block text-sm text-desk">
             기본 스킨
@@ -605,8 +649,8 @@ export function SettingsPage({
             </pre>
           ) : null}
           <p className="mt-2 text-xs leading-5 text-quiet">
-            {APP_CONFIG.appName}의 개인 설정과 바로가기 정보는 이 PC에 저장됩니다. 글꼴은 Windows 시스템 글꼴을
-            씁니다. 업무도구 「QR코드 넣기」에 쓰는 QR Code는 DENSO WAVE INCORPORATED의 등록상표이며, 이 프로그램은
+            {APP_CONFIG.appName}의 개인 설정과 바로가기 정보는 이 PC에 저장됩니다. 글꼴 파일은 설치본에 없고, 기본은
+            이 PC의 Windows 기본 글꼴입니다. 업무도구 「QR코드 넣기」에 쓰는 QR Code는 DENSO WAVE INCORPORATED의 등록상표이며, 이 프로그램은
             그 상표를 소유하지 않습니다. 오픈소스 라이선스는 위 단추에서 이 PC에 포함된 고지를 봅니다. 특허
             비침해를 보장하지 않습니다.
           </p>
@@ -623,7 +667,7 @@ export function SettingsPage({
             <li>설치 창과 제거 창은 한글입니다. 이미 설치된 버전 위에 다시 설치하면, 이전 버전을 지운 뒤 닫기 단추 없이 새 설치가 이어집니다. 그 과정에서는 바로가기와 이 PC의 목록을 지우지 않습니다. 설치 완료 창에서 마침을 누르면 런처가 실행됩니다.</li>
             <li>개인 사용 PC에만 설치하세요. 공용 PC·실습실·다른 사람 계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다. 런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.</li>
             <li>설치 완료 창에서 마침을 누르면 프로그램이 실행되고, 처음에는 시작 시 자동 실행·시작 시 창 표시·시작할 때 새 버전 확인·시작할 때 업무자료 받기가 켜져 있습니다. 설정에서 끌 수 있습니다. 꺼져 있으면 켤 때 그 통신을 하지 않고, 설정의 지금 확인으로만 받습니다. Pack 연결과 시작 시 자동 실행을 넣을 때 검은 콘솔 창은 띄우지 않습니다.</li>
-            <li>설정의 보기에서 서류·밝은 화면·어두운 화면·카드형 홈 배치·청록 모던·청록 모던 (어둡게)와 모두 목록 1열·2열을 고릅니다. 처음 설치의 기본 스킨은 청록 모던입니다. 이미 고른 스킨은 그대로입니다. 카드형 홈 배치의 색은 서류입니다. 청록 모던은 같은 홈에서 색만 바꿉니다. 홈의 자주 사용하는 도구는 모두와 같은 줄입니다. 1열 설정은 유지하고, 2열 설정일 때 가로로 넓히면(약 560px 이상) 3열이 됩니다. 다시 실행하거나 업데이트한 뒤에도 고른 1열·2열은 그대로입니다. 카드형 홈 배치의 홈 목록은 좁으면 2열, 넓으면 3열입니다. 홈 검색 빈 구역 숨김은 기본이 꺼져 있어 지금처럼 빈 안내를 둡니다. 켜면 일치가 없는 구역만 숨기고 순서는 그대로입니다.</li>
+            <li>설정의 보기에서 화면 글꼴, 서류·밝은 화면·어두운 화면·카드형 홈 배치·청록 모던·청록 모던 (어둡게)와 모두 목록 1열·2열을 고릅니다. 화면 글꼴의 기본은 이 PC의 Windows 기본 글꼴이고, 목록은 이 PC에 설치된 글꼴 이름만 보여 줍니다. 글꼴 파일은 설치본에 없습니다. 처음 설치의 기본 스킨은 청록 모던입니다. 이미 고른 스킨은 그대로입니다. 카드형 홈 배치의 색은 서류입니다. 청록 모던은 같은 홈에서 색만 바꿉니다. 홈의 자주 사용하는 도구는 모두와 같은 줄입니다. 1열 설정은 유지하고, 2열 설정일 때 가로로 넓히면(약 560px 이상) 3열이 됩니다. 다시 실행하거나 업데이트한 뒤에도 고른 1열·2열은 그대로입니다. 카드형 홈 배치의 홈 목록은 좁으면 2열, 넓으면 3열입니다. 홈 검색 빈 구역 숨김은 기본이 꺼져 있어 지금처럼 빈 안내를 둡니다. 켜면 일치가 없는 구역만 숨기고 순서는 그대로입니다.</li>
             <li>홈 검색에 계산기, 메모장, 그림판, 명령 프롬프트, PowerShell, 파일 탐색기, 원격 데스크톱, 문자표, 돋보기, 화상 키보드, 단계 기록, 디스크 정리, 리소스 모니터를 치면 이 PC에 그 프로그램이 있을 때만 줄이 나옵니다. 없으면 줄을 만들지 않습니다. 누르면 그 프로그램을 엽니다. PowerShell은 파워셸로도 찾습니다.</li>
             <li>홈 검색은 이름의 앞에서부터 초성으로도 찾습니다. ㄱㅅㄱ은 계산기입니다. 이름 중간에 있는 초성만으로는 찾지 않습니다.</li>
             <li>설정의 런처에서 다른 창보다 앞과 패널 진하기를 바꿉니다. 진하기는 60에서 100까지이고, 100이 원래 창입니다. 이번 실행 동안만 유지되고, 다시 실행하면 원래대로 돌아갑니다. 트레이로 닫으면 패널도 사라집니다. 클릭은 이 창이 받습니다. 다른 프로그램과 화면 밝기는 바꾸지 않습니다. 메모 창과 업무 그림 창은 바꾸지 않습니다.</li>
