@@ -113,6 +113,19 @@ function ensureSchema(db: D1Database): Promise<void> {
           )
           .run(),
       )
+      .then(() =>
+        db
+          .prepare(
+            `CREATE TABLE IF NOT EXISTS visit_count (
+              id INTEGER PRIMARY KEY CHECK (id = 1),
+              total INTEGER NOT NULL,
+              overseas INTEGER NOT NULL,
+              today_key TEXT NOT NULL,
+              today_count INTEGER NOT NULL
+            )`,
+          )
+          .run(),
+      )
       .then(() => undefined)
       .catch((error: unknown) => {
         schemaReady = null;
@@ -457,6 +470,60 @@ async function downloadCount(db: D1Database): Promise<number | null> {
   }
 }
 
+function seoulDay(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function counted(value: unknown): number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 2_000_000_000 ? value : 0;
+}
+
+function overseasMark(request: Request): number {
+  const country = request.headers.get("CF-IPCountry") ?? "";
+  if (country.length !== 2 || country === "KR" || country === "XX") {
+    return 0;
+  }
+  return 1;
+}
+
+async function recordVisit(request: Request, db: D1Database): Promise<void> {
+  const day = seoulDay();
+  await db
+    .prepare(
+      `INSERT INTO visit_count (id, total, overseas, today_key, today_count)
+       VALUES (1, 0, 0, '', 0)
+       ON CONFLICT(id) DO NOTHING`,
+    )
+    .run();
+  await db
+    .prepare(
+      `UPDATE visit_count
+       SET total = total + 1,
+           overseas = overseas + ?,
+           today_count = CASE WHEN today_key = ? THEN today_count + 1 ELSE 1 END,
+           today_key = ?
+       WHERE id = 1`,
+    )
+    .bind(overseasMark(request), day, day)
+    .run();
+}
+
+async function visitCounts(db: D1Database): Promise<{ total: number; today: number; overseas: number }> {
+  const row = await db
+    .prepare("SELECT total, overseas, today_key, today_count FROM visit_count WHERE id = 1")
+    .first<{ total?: number; overseas?: number; today_key?: string; today_count?: number }>();
+  return {
+    total: counted(row?.total),
+    today: row?.today_key === seoulDay() ? counted(row?.today_count) : 0,
+    overseas: counted(row?.overseas),
+  };
+}
+
 async function handleApi(request: Request, env: Env): Promise<Response> {
   if (!env.OPINION_DB) {
     return json({ error: "의견 저장소가 아직 연결되지 않았습니다." }, 503);
@@ -465,6 +532,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   try {
     await ensureSchema(db);
+    if (request.method === "GET" && url.pathname === "/api/visits") {
+      return json(await visitCounts(db));
+    }
     if (request.method === "GET" && url.pathname === "/api/downloads") {
       return json({ downloads: await downloadCount(db) });
     }
@@ -538,6 +608,7 @@ export default {
       const url = new URL(request.url);
       if (
         url.pathname === "/api/downloads" ||
+        url.pathname === "/api/visits" ||
         url.pathname === "/api/opinion" ||
         url.pathname === "/api/opinion/hide" ||
         url.pathname === "/api/opinion/show" ||
@@ -557,6 +628,14 @@ export default {
       const index = await readAsset(new Request(indexUrl, { method: "GET" }), env);
       if (index.status === 404) {
         return plain("없는 파일입니다.", 404);
+      }
+      if (request.method === "GET" && request.headers.get("Sec-Fetch-Dest") === "document" && env.OPINION_DB) {
+        try {
+          await ensureSchema(env.OPINION_DB);
+          await recordVisit(request, env.OPINION_DB);
+        } catch {
+          // 방문 수를 못 써도 화면은 연다.
+        }
       }
       return index;
     } catch {

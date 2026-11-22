@@ -155,6 +155,8 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감). `/m
 
 의견 페이지는 `/opinion`이다. 계정은 없다. 글만 남긴다. 이름은 서버가 `사용자1`부터 붙이고, 지운 번호는 다시 쓰지 않는다. `사용자` 번호는 공개 목록에 그대로 보이고, 예전에 직접 적은 이름은 첫 글자만 보인다. 글 저장은 D1 바인딩 `OPINION_DB`, 데이터베이스 `edulanuncher-opinion` (`076c0fba-dabc-48b9-a465-b36a152d3a1a`)이다. 글 관리는 메뉴에 없는 `/manage`이다. 단추는 「숨긴글보기」다. 같은 Worker 비밀 `OPINION_HIDE_KEY`로 숨긴 글을 포함해 보고, 다시 보이게 하거나 지울 수 있다. 삭제는 그 화면에서만 된다. 열쇠 값은 저장소에 넣지 않는다. 요청 수는 Cloudflare 대시보드 링크만 둔다.
 
+사이트 하단은 화면을 연 횟수를 보여 준다. 전체방문은 국내와 해외를 합친 누적이고, 오늘 방문은 한국 시간 자정 이후의 국내와 해외를 합친 횟수다. 해외방문은 한국이 아닌 곳에서 연 누적이다. 접속 주소는 저장하지 않는다. 글자 없는 화면을 브라우저로 열 때만 늘고, 그림·스크립트 요청은 세지 않는다.
+
 `main` 푸시하면 배포. 사이트 다운로드 버튼은 GitHub Releases.
 
 ## 지금까지 한 일 (요약)
@@ -216,7 +218,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감). `/m
 - 확인됨: 개인정보 검사 전후 앱 데이터 폴더(Roaming, Local)에 크기 변화 없음. 가짜 파일 이름, 문구, 폴더명 흔적 없음.
 - 확인됨: `catalog.json`(95바이트)은 목록 파일이며 실제 업무자료는 `pack/`에 약 1MB 있다. 0.1.159 이하 설치본의 `manual-pack.json`이 `{}`였던 원인은 확인하지 못했다(사이트 자료 부족은 아님). 0.1.160부터는 이 파일을 쓰지 않고 앱 데이터의 `knowledge-verified`를 사용한다. 0.1.161 실환경에서 `knowledge-verified` 생성과 파일 크기 일치를 확인했다.
 - 확인됨: 빌드된 업무자료를 프론트 적용 함수에 넣으면 모두 통과한다. `droppedLinks`는 0이다.
-- 소개 사이트 Worker: `run_worker_first`는 두지 않음(끔과 같음). `not_found_handling`은 `none`. `ASSETS` 바인딩은 유지. 없는 파일 경로는 Worker가 404, 확장자 없는 화면 경로는 index.html, `/api/opinion` 계열과 `/api/downloads`는 기존 처리. 운영 사이트의 상태 코드와 `catalog.json`·`manifest.json` Cache-Control은 미확인.
+- 소개 사이트 Worker: `run_worker_first`는 두지 않음(끔과 같음). `not_found_handling`은 `none`. `ASSETS` 바인딩은 유지. 없는 파일 경로는 Worker가 404, 확장자 없는 화면 경로는 index.html, `/api/opinion` 계열과 `/api/downloads`, `/api/visits`는 기존 처리. 운영 사이트의 상태 코드와 `catalog.json`·`manifest.json` Cache-Control은 미확인.
 - 업무자료 서명: 0.1.161부터 공개키 2개(current, next). 실환경에서 `knowledge-verified` 생성 확인. 프론트 적용 함수 5개 통과. `droppedLinks`는 0.
 - IP·CCTV 검색은 기능 팩·별도 빌드 대신 설정의 관리자 도구 사용(기본 꺼짐)으로 켠다. 설치 파일은 하나. `HKLM\SOFTWARE\Policies\EduLauncher`의 DWORD가 1이면 사용자 설정보다 먼저 끈다. 앱은 레지스트리를 쓰지 않는다. 값 설명과 예시 등록 파일 문장은 `docs/admin-policy.md`에만 있다.
 - 미확인: 운영 CSP 콘솔 위반, 가짜 파일별 등급, 개인정보 화면 진입 직후·이탈 후·패널 숨김 후 드롭, 미리보기 파일 변경 감지.
