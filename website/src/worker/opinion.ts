@@ -532,6 +532,12 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   try {
     await ensureSchema(db);
+    if (request.method === "POST" && url.pathname === "/api/visits") {
+      if (sameSite(request)) {
+        await recordVisit(request, db);
+      }
+      return json(await visitCounts(db));
+    }
     if (request.method === "GET" && url.pathname === "/api/visits") {
       return json(await visitCounts(db));
     }
@@ -618,20 +624,6 @@ export default {
         return await handleApi(request, env);
       }
       const asset = await readAsset(request, env);
-      if (
-        request.method === "GET" &&
-        request.headers.get("Sec-Fetch-Dest") === "document" &&
-        !hasFileExtension(url.pathname) &&
-        !isKnowledgePath(url.pathname) &&
-        env.OPINION_DB
-      ) {
-        try {
-          await ensureSchema(env.OPINION_DB);
-          await recordVisit(request, env.OPINION_DB);
-        } catch {
-          // 방문 수를 못 써도 화면은 연다.
-        }
-      }
       if (asset.status !== 404) {
         return withShortKnowledgeCache(url.pathname, asset);
       }

@@ -16,7 +16,7 @@ export function SiteFooter() {
 
   useEffect(() => {
     let alive = true;
-    void fetch("/api/visits")
+    void fetch("/api/visits", { method: "POST" })
       .then((response) => (response.ok ? response.json() : null))
       .then((data: { total?: unknown; today?: unknown; overseas?: unknown } | null) => {
         const total = asCount(data?.total);
