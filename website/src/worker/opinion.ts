@@ -30,6 +30,9 @@ const MANAGE_MAX = 100;
 const WAIT_SECONDS = 60;
 const FLOOD_WINDOW_MS = 10 * 60 * 1000;
 const FLOOD_MAX = 8;
+const RELEASE_FRESH_MS = 6 * 60 * 60 * 1000;
+const RELEASE_PAGE_CAP = 10;
+const RELEASE_BODY_CAP = 1_500_000;
 
 let schemaReady: Promise<void> | null = null;
 
@@ -90,6 +93,17 @@ function ensureSchema(db: D1Database): Promise<void> {
         )`,
       )
       .run()
+      .then(() =>
+        db
+          .prepare(
+            `CREATE TABLE IF NOT EXISTS release_fetch (
+              id INTEGER PRIMARY KEY CHECK (id = 1),
+              downloads INTEGER NOT NULL,
+              fetched_at TEXT NOT NULL
+            )`,
+          )
+          .run(),
+      )
       .then(() => undefined)
       .catch((error: unknown) => {
         schemaReady = null;
@@ -245,6 +259,121 @@ async function managePosts(request: Request, env: Env, db: D1Database): Promise<
   return json({ posts: (listed.results ?? []).map((row) => toPost(row, false)) });
 }
 
+function setupFileName(name: string): boolean {
+  return name.length <= 120 && name.endsWith("x64-setup.exe") && !name.includes("/") && !name.includes("\\");
+}
+
+async function readBounded(response: Response): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error("release");
+  }
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  while (true) {
+    const step = await reader.read();
+    if (step.done) {
+      break;
+    }
+    size += step.value.byteLength;
+    if (size > RELEASE_BODY_CAP) {
+      await reader.cancel();
+      throw new Error("release");
+    }
+    chunks.push(step.value);
+  }
+  const body = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(body);
+}
+
+async function githubSetupDownloads(): Promise<number> {
+  let total = 0;
+  for (let page = 1; page <= RELEASE_PAGE_CAP; page += 1) {
+    const response = await fetch(
+      `https://api.github.com/repos/golee75git/EduLanuncher/releases?per_page=100&page=${page}`,
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+          "User-Agent": "edulanuncher-site",
+        },
+      },
+    );
+    if (!response.ok) {
+      throw new Error("release");
+    }
+    const list = JSON.parse(await readBounded(response)) as unknown;
+    if (!Array.isArray(list)) {
+      throw new Error("release");
+    }
+    for (const release of list) {
+      if (!release || typeof release !== "object") {
+        continue;
+      }
+      const assets = (release as { assets?: unknown }).assets;
+      if (!Array.isArray(assets)) {
+        continue;
+      }
+      for (const asset of assets) {
+        if (!asset || typeof asset !== "object") {
+          continue;
+        }
+        const name = (asset as { name?: unknown }).name;
+        const count = (asset as { download_count?: unknown }).download_count;
+        if (typeof name !== "string" || !setupFileName(name)) {
+          continue;
+        }
+        if (typeof count !== "number" || !Number.isInteger(count) || count < 0 || count > 1_000_000_000) {
+          continue;
+        }
+        total += count;
+      }
+    }
+    if (total > 2_000_000_000) {
+      throw new Error("release");
+    }
+    if (list.length < 100) {
+      break;
+    }
+  }
+  return total;
+}
+
+async function downloadCount(db: D1Database): Promise<number | null> {
+  const row = await db
+    .prepare("SELECT downloads, fetched_at FROM release_fetch WHERE id = 1")
+    .first<{ downloads?: number; fetched_at?: string }>();
+  const saved =
+    row &&
+    typeof row.downloads === "number" &&
+    Number.isInteger(row.downloads) &&
+    row.downloads >= 0 &&
+    row.downloads <= 2_000_000_000
+      ? row.downloads
+      : null;
+  const fetchedAt = row && typeof row.fetched_at === "string" ? Date.parse(row.fetched_at) : Number.NaN;
+  if (saved !== null && Number.isFinite(fetchedAt) && Date.now() - fetchedAt < RELEASE_FRESH_MS) {
+    return saved;
+  }
+  try {
+    const downloads = await githubSetupDownloads();
+    await db
+      .prepare(
+        `INSERT INTO release_fetch (id, downloads, fetched_at) VALUES (1, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET downloads = excluded.downloads, fetched_at = excluded.fetched_at`,
+      )
+      .bind(downloads, new Date().toISOString())
+      .run();
+    return downloads;
+  } catch {
+    return saved;
+  }
+}
+
 async function handleApi(request: Request, env: Env): Promise<Response> {
   if (!env.OPINION_DB) {
     return json({ error: "의견 저장소가 아직 연결되지 않았습니다." }, 503);
@@ -253,6 +382,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   try {
     await ensureSchema(db);
+    if (request.method === "GET" && url.pathname === "/api/downloads") {
+      return json({ downloads: await downloadCount(db) });
+    }
     if (request.method === "GET" && url.pathname === "/api/opinion") {
       return await listPosts(db);
     }
@@ -319,6 +451,7 @@ export default {
     try {
       const url = new URL(request.url);
       if (
+        url.pathname === "/api/downloads" ||
         url.pathname === "/api/opinion" ||
         url.pathname === "/api/opinion/hide" ||
         url.pathname === "/api/opinion/show" ||

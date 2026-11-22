@@ -1,4 +1,5 @@
 import { Download, LayoutPanelTop } from "lucide-react";
+import { useEffect, useState } from "react";
 import { SITE_CONFIG } from "../config";
 import { SITE_RELEASE_NOTES } from "../data/releases";
 import { OpinionPage } from "./OpinionPage";
@@ -41,6 +42,26 @@ const DOES_NOT = [
 ] as const;
 
 export function IntroPage() {
+  const [downloads, setDownloads] = useState<number | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void fetch("/api/downloads")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: { downloads?: unknown } | null) => {
+        const count = data?.downloads;
+        if (alive && typeof count === "number" && Number.isInteger(count) && count >= 0) {
+          setDownloads(count);
+        }
+      })
+      .catch(() => {
+        // 받은 횟수가 없어도 설치 단추는 그대로다.
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   return (
     <div className="space-y-12">
       <section className="space-y-4">
@@ -100,6 +121,12 @@ export function IntroPage() {
           설치 파일 {SITE_CONFIG.setupFile}
           <br />
           날짜 복사본 {SITE_CONFIG.setupFileDated}
+          {downloads !== null ? (
+            <>
+              <br />
+              설치 파일을 받은 횟수 {downloads.toLocaleString("ko-KR")}
+            </>
+          ) : null}
         </p>
         <img
           src="/launchermain.png"

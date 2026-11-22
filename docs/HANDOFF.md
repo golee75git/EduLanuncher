@@ -151,6 +151,8 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감). `/m
 
 `website/wrangler.jsonc`: `main` = `src/worker/opinion.ts`, `assets.directory` = `./dist`, `not_found_handling` = `single-page-application`. `_redirects` 쓰지 않음.
 
+소개 첫 화면은 GitHub 릴리스의 `x64-setup.exe` 받은 횟수 합계를 「설치 파일을 받은 횟수」로 보여 준다. Worker `GET /api/downloads`가 공개 릴리스 목록만 읽고, 같은 D1에 6시간 동안 남긴다. 실패하면 직전 숫자를 쓰고, 한 번도 없으면 그 줄은 보이지 않는다. 설치 단추는 GitHub 주소 그대로다. 받은 횟수이며 설치를 끝낸 횟수는 아니다. 토큰은 두지 않는다.
+
 의견 페이지는 `/opinion`이다. 계정은 없다. 글 저장은 D1 바인딩 `OPINION_DB`, 데이터베이스 `edulanuncher-opinion` (`076c0fba-dabc-48b9-a465-b36a152d3a1a`)이다. 공개 목록의 이름은 첫 글자만 보이고 뒤는 `**`이다. 한 글자는 그대로다. 글 관리는 메뉴에 없는 `/manage`이다. 같은 Worker 비밀 `OPINION_HIDE_KEY`로 숨긴 글을 포함해 입력한 이름을 보고, 다시 보이게 할 수 있다. 열쇠 값은 저장소에 넣지 않는다. 요청 수는 Cloudflare 대시보드 링크만 둔다.
 
 `main` 푸시하면 배포. 사이트 다운로드 버튼은 GitHub Releases.
@@ -214,7 +216,7 @@ Root directory: **`website`** (비우면 런처 화면이 웹에 올라감). `/m
 - 확인됨: 개인정보 검사 전후 앱 데이터 폴더(Roaming, Local)에 크기 변화 없음. 가짜 파일 이름, 문구, 폴더명 흔적 없음.
 - 확인됨: `catalog.json`(95바이트)은 목록 파일이며 실제 업무자료는 `pack/`에 약 1MB 있다. 0.1.159 이하 설치본의 `manual-pack.json`이 `{}`였던 원인은 확인하지 못했다(사이트 자료 부족은 아님). 0.1.160부터는 이 파일을 쓰지 않고 앱 데이터의 `knowledge-verified`를 사용한다. 0.1.161 실환경에서 `knowledge-verified` 생성과 파일 크기 일치를 확인했다.
 - 확인됨: 빌드된 업무자료를 프론트 적용 함수에 넣으면 모두 통과한다. `droppedLinks`는 0이다.
-- 소개 사이트 Worker: `run_worker_first`는 두지 않음(끔과 같음). `not_found_handling`은 `none`. `ASSETS` 바인딩은 유지. 없는 파일 경로는 Worker가 404, 확장자 없는 화면 경로는 index.html, `/api/opinion` 계열은 기존 처리. 운영 사이트의 상태 코드와 `catalog.json`·`manifest.json` Cache-Control은 미확인.
+- 소개 사이트 Worker: `run_worker_first`는 두지 않음(끔과 같음). `not_found_handling`은 `none`. `ASSETS` 바인딩은 유지. 없는 파일 경로는 Worker가 404, 확장자 없는 화면 경로는 index.html, `/api/opinion` 계열과 `/api/downloads`는 기존 처리. 운영 사이트의 상태 코드와 `catalog.json`·`manifest.json` Cache-Control은 미확인.
 - 업무자료 서명: 0.1.161부터 공개키 2개(current, next). 실환경에서 `knowledge-verified` 생성 확인. 프론트 적용 함수 5개 통과. `droppedLinks`는 0.
 - IP·CCTV 검색은 기능 팩·별도 빌드 대신 설정의 관리자 도구 사용(기본 꺼짐)으로 켠다. 설치 파일은 하나. `HKLM\SOFTWARE\Policies\EduLauncher`의 DWORD가 1이면 사용자 설정보다 먼저 끈다. 앱은 레지스트리를 쓰지 않는다. 값 설명과 예시 등록 파일 문장은 `docs/admin-policy.md`에만 있다.
 - 미확인: 운영 CSP 콘솔 위반, 가짜 파일별 등급, 개인정보 화면 진입 직후·이탈 후·패널 숨김 후 드롭, 미리보기 파일 변경 감지.
