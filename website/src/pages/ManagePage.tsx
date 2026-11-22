@@ -69,11 +69,38 @@ export function ManagePage() {
     }
   };
 
+  const remove = async (id: string) => {
+    if (!window.confirm("이 글을 지울까요? 지우면 되돌릴 수 없습니다.")) {
+      return;
+    }
+    setBusy(true);
+    setNotice("");
+    try {
+      const response = await fetch("/api/opinion/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id, key }),
+      });
+      const data = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setNotice(data.error || "지우지 못했습니다.");
+        return;
+      }
+      await load(key);
+    } catch {
+      setNotice("지우지 못했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <section className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight text-desk">글 관리</h1>
-        <p className="text-sm leading-relaxed text-quiet">숨긴 글과 보이는 글을 함께 봅니다. 이름은 입력한 그대로입니다.</p>
+        <p className="text-sm leading-relaxed text-quiet">
+          숨긴 글과 보이는 글을 함께 봅니다. 새 글의 이름은 사용자1부터 이어집니다. 예전에 직접 적은 이름은 그대로입니다.
+        </p>
         <p className="text-sm leading-relaxed text-quiet">
           요청 수는{" "}
           <a
@@ -115,7 +142,7 @@ export function ManagePage() {
           className="h-11 min-w-48 flex-1 rounded-lg border border-line bg-paper px-3 text-desk outline-none focus:border-ink"
         />
         <button type="submit" className="btn-primary h-11 px-4">
-          보기
+          숨긴글보기
         </button>
       </form>
       {notice ? <p className="text-sm text-quiet">{notice}</p> : null}
@@ -143,6 +170,14 @@ export function ManagePage() {
                 onClick={() => void setHidden(post.id, !post.hidden)}
               >
                 {post.hidden ? "다시 보이기" : "숨기기"}
+              </button>
+              <button
+                type="button"
+                className="ml-3 text-xs text-quiet underline"
+                disabled={busy}
+                onClick={() => void remove(post.id)}
+              >
+                삭제
               </button>
             </article>
           ))}

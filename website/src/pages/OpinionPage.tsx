@@ -22,7 +22,6 @@ function formatWhen(value: string): string {
 
 export function OpinionPage({ section = false }: { section?: boolean }) {
   const [posts, setPosts] = useState<OpinionPost[]>([]);
-  const [name, setName] = useState("");
   const [body, setBody] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -50,7 +49,7 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
       const response = await fetch("/api/opinion", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, body }),
+        body: JSON.stringify({ body }),
       });
       const data = (await response.json()) as { error?: string; post?: OpinionPost };
       if (!response.ok || !data.post) {
@@ -58,7 +57,6 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
         return;
       }
       setPosts((current) => [data.post as OpinionPost, ...current].slice(0, 30));
-      setName("");
       setBody("");
     } catch {
       setNotice("남기지 못했습니다.");
@@ -97,7 +95,7 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
           <h1 className="text-3xl font-semibold tracking-tight text-desk">의견</h1>
         )}
         <p className="text-sm leading-relaxed text-quiet">
-          계정은 없습니다. 이름과 글만 남깁니다. 이름은 그 글에만 붙고, 다음 글과 이어지지 않습니다.
+          계정은 없습니다. 글만 남깁니다. 이름은 사용자1부터 순서대로 붙고, 지운 번호는 다시 쓰지 않습니다.
         </p>
         <p className="rounded-lg border border-line bg-card px-4 py-3 text-sm leading-relaxed text-desk">
           이름, 전화번호, 비밀번호는 적지 마세요.
@@ -112,15 +110,6 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
         }}
       >
         <label className="block text-sm">
-          <span className="font-medium">이름</span>
-          <input
-            value={name}
-            maxLength={20}
-            onChange={(event) => setName(event.target.value)}
-            className="mt-1 h-11 w-full rounded-lg border border-line bg-paper px-3 text-desk outline-none focus:border-ink"
-          />
-        </label>
-        <label className="block text-sm">
           <span className="font-medium">글</span>
           <textarea
             value={body}
@@ -133,7 +122,7 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
         <button type="submit" className="btn-primary" disabled={busy}>
           남기기
         </button>
-        {notice ? <p className="text-sm text-quiet">{notice}</p> : null}
+        {notice && !hideId ? <p className="text-sm text-quiet">{notice}</p> : null}
       </form>
 
       <section className="space-y-3">
@@ -166,6 +155,7 @@ export function OpinionPage({ section = false }: { section?: boolean }) {
                 <button type="submit" className="btn-secondary h-9 px-3 text-xs">
                   숨기기
                 </button>
+                {notice && hideId === post.id ? <p className="text-sm text-quiet">{notice}</p> : null}
               </form>
             ) : (
               <button type="button" className="text-xs text-quiet underline" onClick={() => setHideId(post.id)}>

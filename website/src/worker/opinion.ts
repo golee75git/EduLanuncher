@@ -23,8 +23,7 @@ interface D1Database {
   prepare: (query: string) => D1Prepared;
 }
 
-const NAME_MAX = 20;
-const BODY_MAX = 400;
+const BODY_MAX = 400
 const LIST_MAX = 30;
 const MANAGE_MAX = 100;
 const WAIT_SECONDS = 60;
@@ -104,6 +103,16 @@ function ensureSchema(db: D1Database): Promise<void> {
           )
           .run(),
       )
+      .then(() =>
+        db
+          .prepare(
+            `CREATE TABLE IF NOT EXISTS opinion_seq (
+              id INTEGER PRIMARY KEY CHECK (id = 1),
+              next_no INTEGER NOT NULL
+            )`,
+          )
+          .run(),
+      )
       .then(() => undefined)
       .catch((error: unknown) => {
         schemaReady = null;
@@ -130,11 +139,58 @@ async function readJson(request: Request): Promise<Record<string, unknown> | nul
 }
 
 function publicName(name: string): string {
+  if (/^사용자[1-9][0-9]{0,5}$/.test(name)) {
+    return name;
+  }
   const chars = [...name];
   if (chars.length <= 1) {
     return name;
   }
   return `${chars[0]}**`;
+}
+
+async function highestUserNumber(db: D1Database): Promise<number> {
+  const names = await db.prepare("SELECT display_name FROM opinion_post LIMIT 500").all<{ display_name?: string }>();
+  let max = 0;
+  for (const item of names.results ?? []) {
+    const matched = typeof item.display_name === "string" ? /^사용자([1-9][0-9]{0,5})$/.exec(item.display_name) : null;
+    const value = matched ? Number(matched[1]) : 0;
+    if (value > max) {
+      max = value;
+    }
+  }
+  return max;
+}
+
+async function nextDisplayName(db: D1Database): Promise<string | null> {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const current = await db.prepare("SELECT next_no FROM opinion_seq WHERE id = 1").first<{ next_no?: number }>();
+    const stored = current?.next_no;
+    let issued = typeof stored === "number" && Number.isInteger(stored) ? stored : 0;
+    if (issued < 1) {
+      issued = (await highestUserNumber(db)) + 1;
+      if (issued > 999999) {
+        return null;
+      }
+      try {
+        await db.prepare("INSERT INTO opinion_seq (id, next_no) VALUES (1, ?)").bind(issued + 1).run();
+        return `사용자${issued}`;
+      } catch {
+        continue;
+      }
+    }
+    if (issued > 999999) {
+      return null;
+    }
+    const saved = (await db
+      .prepare("UPDATE opinion_seq SET next_no = ? WHERE id = 1 AND next_no = ?")
+      .bind(issued + 1, issued)
+      .run()) as { meta?: { changes?: number } };
+    if ((saved.meta?.changes ?? 0) === 1) {
+      return `사용자${issued}`;
+    }
+  }
+  return null;
 }
 
 function toPost(row: OpinionRow, maskName: boolean) {
@@ -165,10 +221,13 @@ async function addPost(request: Request, db: D1Database): Promise<Response> {
     return json({ error: "잠시 뒤에 다시 남겨 주세요." }, 429);
   }
   const payload = await readJson(request);
-  const name = clip(payload?.name, NAME_MAX);
   const body = clip(payload?.body, BODY_MAX);
-  if (!name || !body) {
-    return json({ error: "이름과 글을 적어 주세요." }, 400);
+  if (!body) {
+    return json({ error: "글을 적어 주세요." }, 400);
+  }
+  const name = await nextDisplayName(db);
+  if (!name) {
+    return json({ error: "남기지 못했습니다." }, 400);
   }
   const hash = await clientHash(request);
   const since = new Date(Date.now() - FLOOD_WINDOW_MS).toISOString();
@@ -238,6 +297,23 @@ async function showPost(request: Request, env: Env, db: D1Database): Promise<Res
     return json({ error: "다시 보이지 못했습니다." }, 403);
   }
   await db.prepare("UPDATE opinion_post SET hidden = 0 WHERE id = ?").bind(id).run();
+  return json({ ok: true });
+}
+
+async function deletePost(request: Request, env: Env, db: D1Database): Promise<Response> {
+  if (!sameSite(request)) {
+    return json({ error: "이 사이트에서만 지울 수 있습니다." }, 403);
+  }
+  const payload = await readJson(request);
+  const rejected = rejectKey(env, givenKey(payload));
+  if (rejected) {
+    return rejected;
+  }
+  const id = clip(payload?.id, 80);
+  if (!id) {
+    return json({ error: "지우지 못했습니다." }, 403);
+  }
+  await db.prepare("DELETE FROM opinion_post WHERE id = ?").bind(id).run();
   return json({ ok: true });
 }
 
@@ -407,6 +483,9 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
     if (request.method === "POST" && url.pathname === "/api/opinion/manage") {
       return await managePosts(request, env, db);
     }
+    if (request.method === "POST" && url.pathname === "/api/opinion/delete") {
+      return await deletePost(request, env, db);
+    }
     return json({ error: "없는 주소입니다." }, 404);
   } catch {
     return json({ error: "의견을 저장하지 못했습니다." }, 500);
@@ -462,7 +541,8 @@ export default {
         url.pathname === "/api/opinion" ||
         url.pathname === "/api/opinion/hide" ||
         url.pathname === "/api/opinion/show" ||
-        url.pathname === "/api/opinion/manage"
+        url.pathname === "/api/opinion/manage" ||
+        url.pathname === "/api/opinion/delete"
       ) {
         return await handleApi(request, env);
       }
