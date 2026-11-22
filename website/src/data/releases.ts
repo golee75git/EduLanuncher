@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.223-20261122",
+    note: "추가 메모 2·3·4·5는 창마다 다른 옅은 배경입니다.",
+  },
+  {
     version: "0.1.222-20261122",
     note: "화면 글꼴은 이 PC의 Windows 기본 글꼴입니다. 설정에서 설치된 글꼴 이름만 고릅니다.",
   },

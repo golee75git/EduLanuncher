@@ -231,6 +231,26 @@ html[data-skin="teal-dark"] {
   background: var(--watch-face);
 }
 
+.memo-sheet-1 {
+  --color-paper: #fde7d6;
+  --color-card: #fff3ea;
+}
+
+.memo-sheet-2 {
+  --color-paper: #d9f0e2;
+  --color-card: #eef8f2;
+}
+
+.memo-sheet-3 {
+  --color-paper: #e6e0f6;
+  --color-card: #f4f0fb;
+}
+
+.memo-sheet-4 {
+  --color-paper: #f8efc8;
+  --color-card: #fbf6e4;
+}
+
 .home-band {
   background: var(--home-band);
   border-radius: var(--home-band-radius);

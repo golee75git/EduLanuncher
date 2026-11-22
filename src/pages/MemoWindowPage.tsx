@@ -13,9 +13,29 @@ function clipMemo(value: string): string {
 const fieldClass =
   "h-full min-h-0 w-full resize-none rounded-xl border border-line bg-card px-3 py-2 text-sm text-desk shadow-card outline-none transition-shadow duration-150 placeholder:text-quiet/70 focus:border-ink focus:ring-2 focus:ring-ink-soft";
 
-function MemoShell({ title, hint, extra, children }: { title: string; hint: string; extra?: ReactNode; children: ReactNode }) {
+function extraSheet(title: string): string {
+  if (title === "메모 2") return "memo-sheet-1";
+  if (title === "메모 3") return "memo-sheet-2";
+  if (title === "메모 4") return "memo-sheet-3";
+  if (title === "메모 5") return "memo-sheet-4";
+  return "";
+}
+
+function MemoShell({
+  title,
+  hint,
+  extra,
+  sheet,
+  children,
+}: {
+  title: string;
+  hint: string;
+  extra?: ReactNode;
+  sheet?: string;
+  children: ReactNode;
+}) {
   return (
-    <div className="flex h-full min-h-0 flex-col bg-paper">
+    <div className={`flex h-full min-h-0 flex-col bg-paper ${sheet ?? ""}`}>
       <header className="flex items-center gap-2 px-3 pt-3">
         <h1 className="min-w-0 flex-1 truncate text-[15px] font-semibold text-desk">{title}</h1>
         {extra}
@@ -143,6 +163,16 @@ function ExtraMemoWindow({ noteId }: { noteId: string }) {
 
   useEffect(() => {
     let alive = true;
+    void getCurrentWindow()
+      .title()
+      .then((value) => {
+        if (alive && value.startsWith("메모 ")) {
+          setTitle(value);
+        }
+      })
+      .catch(() => {
+        // 브라우저 미리보기에는 창 제목이 없다.
+      });
     void invoke<{ text?: string; title?: string }>("memo_note_text", { id: noteId })
       .then((value) => {
         if (!alive || !value) {
@@ -240,7 +270,11 @@ function ExtraMemoWindow({ noteId }: { noteId: string }) {
   }, [noteId]);
 
   return (
-    <MemoShell title={title} hint="제목 줄로 옮기면 그 자리가 화면 안에 남습니다. X로 닫으면 글이 남고, 글이 없으면 목록에서 빠집니다.">
+    <MemoShell
+      title={title}
+      sheet={extraSheet(title)}
+      hint="제목 줄로 옮기면 그 자리가 화면 안에 남습니다. X로 닫으면 글이 남고, 글이 없으면 목록에서 빠집니다."
+    >
       <MemoField
         value={text}
         onEdit={(next) => {
