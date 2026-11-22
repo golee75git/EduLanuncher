@@ -1,4 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
+import { MoreHorizontal } from "lucide-react";
+import { useState } from "react";
 import { MemoField } from "./MemoField";
 import { MemoPanel } from "./home/MemoPanel";
 import { useMemoStore } from "../stores/memoStore";
@@ -81,32 +83,60 @@ function AddMemoButton({ compact = false }: { compact?: boolean }) {
 
 function ExtraMemoList() {
   const notes = useMemoStore((state) => state.notes);
+  const [open, setOpen] = useState(false);
   if (notes.length === 0) {
     return null;
   }
   return (
-    <ul className="mt-1.5 flex flex-col gap-0.5">
-      {notes.map((note, index) => (
-        <li key={note.id} className="flex items-center gap-1">
-          <button
-            type="button"
-            className="min-w-0 flex-1 truncate rounded-lg px-2 py-0.5 text-left text-[12px] text-desk hover:bg-ink-soft"
-            onClick={() => openSaved(note, index)}
-          >
-            {memoWindowTitle(index)}
-            <span className="text-quiet"> · {memoNotePreview(note.text)}</span>
-          </button>
-          <button
-            type="button"
-            className="rounded-lg px-2 py-0.5 text-[12px] text-quiet hover:bg-ink-soft"
-            title="빼기"
-            onClick={() => void removeSaved(note.id)}
-          >
-            -
-          </button>
-        </li>
-      ))}
-    </ul>
+    <div className={`mt-1.5 flex gap-1 ${open ? "items-start" : "items-center"}`}>
+      {open ? (
+        <ul className="flex min-w-0 flex-1 flex-col gap-0.5">
+          {notes.map((note, index) => (
+            <li key={note.id} className="flex items-center gap-1">
+              <button
+                type="button"
+                className="min-w-0 flex-1 truncate rounded-lg px-2 py-0.5 text-left text-[12px] text-desk hover:bg-ink-soft"
+                onClick={() => openSaved(note, index)}
+              >
+                {memoWindowTitle(index)}
+                <span className="text-quiet"> · {memoNotePreview(note.text)}</span>
+              </button>
+              <button
+                type="button"
+                className="rounded-lg px-2 py-0.5 text-[12px] text-quiet hover:bg-ink-soft"
+                title="빼기"
+                onClick={() => void removeSaved(note.id)}
+              >
+                -
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="flex min-w-0 flex-1 items-center gap-1">
+          {notes.map((note, index) => (
+            <li key={note.id} className="min-w-0 flex-1">
+              <button
+                type="button"
+                className="w-full truncate rounded-lg px-1 py-0.5 text-left text-[12px] text-desk hover:bg-ink-soft"
+                onClick={() => openSaved(note, index)}
+              >
+                {memoWindowTitle(index)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <button
+        type="button"
+        className="icon-btn shrink-0"
+        aria-label={open ? "접기" : "펼치기"}
+        title={open ? "접기" : "펼치기"}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 
