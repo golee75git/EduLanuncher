@@ -6,7 +6,7 @@ import type { LauncherPack } from "../data/educationPack";
 import { applyPackFromPath, applyPackFromText, isWorkHandoverPack } from "../services/applyNoticePack";
 import { launchQuickUrl } from "../services/launcherService";
 import { refreshVerifiedKnowledge } from "../services/knowledgeSync";
-import { findNewerRelease, releaseSetupAddress } from "../services/releaseCheckService";
+import { findNewerRelease, installNewerRelease, releaseSetupAddress } from "../services/releaseCheckService";
 import { applyLauncherBackup, buildLauncherBackup, parseLauncherBackup } from "../services/backupService";
 import { buildLauncherPack } from "../services/launcherPackService";
 import { parseNoticePack, readJsonFile, writeJsonFile } from "../services/noticePackService";
@@ -71,6 +71,7 @@ export function SettingsPage({
   const [ossError, setOssError] = useState("");
   const [backupMessage, setBackupMessage] = useState("");
   const [newerRelease, setNewerRelease] = useState<string | null>(null);
+  const [upgradeNote, setUpgradeNote] = useState("");
   const [adminAsk, setAdminAsk] = useState(false);
   const [policy, setPolicy] = useState<OrgPolicy | null>(null);
   const adminOn = useAdminToolStore((state) => state.enabled);
@@ -595,8 +596,8 @@ export function SettingsPage({
           {newerRelease ? (
             <div className="mt-2 space-y-2">
               <p className="text-sm leading-6 text-desk">
-                이 PC 버전 {APP_CONFIG.version} · 새 버전 {newerRelease}가 있습니다. 최신 설치 파일을 받아 이
-                프로그램을 교체하세요. 자동으로 설치하지는 않습니다.
+                이 PC 버전 {APP_CONFIG.version} · 새 버전 {newerRelease}가 있습니다. 최신 설치 파일 받기는 이
+                설치 폴더에 저장하고 설치 창을 엽니다.
               </p>
               <div className="flex flex-wrap gap-2">
                 {releaseSetupAddress(newerRelease) ? (
@@ -604,10 +605,10 @@ export function SettingsPage({
                     type="button"
                     className="btn-secondary"
                     onClick={() => {
-                      const address = releaseSetupAddress(newerRelease);
-                      if (address) {
-                        void launchQuickUrl(address);
-                      }
+                      setUpgradeNote("");
+                      void installNewerRelease(newerRelease).catch((error: unknown) => {
+                        setUpgradeNote(error instanceof Error ? error.message : "설치 파일을 받지 못했습니다.");
+                      });
                     }}
                   >
                     최신 설치 파일 받기
@@ -621,6 +622,7 @@ export function SettingsPage({
                   설치 매뉴얼 받기
                 </button>
               </div>
+              {upgradeNote ? <p className="text-xs text-quiet">{upgradeNote}</p> : null}
             </div>
           ) : null}
           <p className="mt-2 text-sm text-desk">{APP_CONFIG.displayName} © 2026 [저작권자]</p>
@@ -709,7 +711,7 @@ export function SettingsPage({
             <li>최근 사용에는 실행한 바로가기와 열어 본 관련 업무만 남습니다. 홈 검색창에 친 말은 최근 7일만 이 PC에 남고, 다시 칠 때 그 글자로 시작하는 검색어가 검색창 아래에 최대 5개 올라옵니다. 같은 말은 한 번만 남고, 7일이 지나면 지웁니다. 긴 숫자 나열과 메일 주소는 남기지 않습니다. 다른 PC로 보내지 않습니다.</li>
             <li>홈 검색은 영문 자판으로 친 글자도 한글로 읽어 함께 비교합니다. 입력칸의 글자는 바꾸지 않습니다. 한글 음절로 떨어지지 않는 영문은 영문 그대로 찾습니다.</li>
             <li>홈 맨 아래 준비됨 뒤의 개선의견을 누르면 브라우저에서 소개 사이트의 의견 입력칸을 엽니다.</li>
-            <li>설정 맨 아래 소개 사이트에서 https://edulanuncher.zeroorder.kr/ 를 엽니다. 소개 웹은 website 폴더만 올리고, 설치 파일은 GitHub Releases에 있습니다. 시작할 때 새 버전 확인이 켜져 있으면 프로그램을 켤 때 한 번 새 버전을 보고, 설정의 지금 확인으로도 봅니다. 새 설치 파일이 있으면 패널에 안내가 나오고 그 버전의 설치 파일과 설치 매뉴얼을 브라우저로 받습니다. 창을 숨긴 채 켜면 다음에 패널을 열었을 때 보입니다. 받은 파일을 실행해야 설치되고, 자동으로 설치하지는 않습니다.</li>
+            <li>설정 맨 아래 소개 사이트에서 https://edulanuncher.zeroorder.kr/ 를 엽니다. 소개 웹은 website 폴더만 올리고, 설치 파일은 GitHub Releases에 있습니다. 시작할 때 새 버전 확인이 켜져 있으면 프로그램을 켤 때 한 번 새 버전을 보고, 설정의 지금 확인으로도 봅니다. 새 설치 파일이 있으면 패널에 안내가 나옵니다. 최신 설치 파일 받기는 이 설치 폴더에 저장한 뒤 설치 창을 엽니다. 다운로드 폴더에는 받지 않습니다. 설치 매뉴얼은 브라우저로 받습니다. 창을 숨긴 채 켜면 다음에 패널을 열었을 때 보입니다. 설치 창에서 마쳐야 교체됩니다.</li>
             <li>QR Code는 DENSO WAVE INCORPORATED의 등록상표입니다. 이 프로그램은 그 상표를 소유하지 않습니다.</li>
           </ul>
         </SettingsCard>

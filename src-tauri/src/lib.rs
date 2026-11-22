@@ -2868,6 +2868,19 @@ fn latest_release_tag() -> Result<String, String> {
 }
 
 #[tauri::command]
+fn install_newer_release(app: AppHandle, window: tauri::WebviewWindow, tag: String) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err("denied".into());
+    }
+    if org_policy::startup_update_blocked() {
+        return Err("관리자가 설정함".to_string());
+    }
+    netutil::install_release_setup(&tag)?;
+    app.exit(0);
+    Ok(())
+}
+
+#[tauri::command]
 fn org_policy_flags() -> org_policy::OrgFlags {
     org_policy::current()
 }
@@ -3522,6 +3535,7 @@ pub fn run() {
             securitycheck::halt_pc_security,
             securitycheck::open_security_setting,
             latest_release_tag,
+            install_newer_release,
             org_policy_flags,
             knowledge_sign::verified_knowledge,
             knowledge_sign::refresh_verified_knowledge,

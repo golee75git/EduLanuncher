@@ -296,6 +296,30 @@ fn fetch_url_text(url: &str) -> Option<String> {
     }
 }
 
+pub fn install_release_setup(tag: &str) -> Result<(), String> {
+    let bytes = crate::fixed_https::read_release_setup(tag).map_err(|_| "설치 파일을 받지 못했습니다.".to_string())?;
+    let exe = std::env::current_exe().map_err(|_| "설치 폴더를 찾지 못했습니다.".to_string())?;
+    let dir = exe.parent().ok_or_else(|| "설치 폴더를 찾지 못했습니다.".to_string())?;
+    let name = format!("AILauncher_{tag}_x64-setup.exe");
+    if name.contains("..") || name.contains('/') || name.contains('\\') {
+        return Err("설치 파일 주소가 올바르지 않습니다.".into());
+    }
+    let dest = dir.join(&name);
+    let part = dir.join(format!("{name}.part"));
+    std::fs::write(&part, &bytes).map_err(|_| "설치 폴더에 저장하지 못했습니다.".to_string())?;
+    if dest.exists() {
+        std::fs::remove_file(&dest).map_err(|_| "설치 폴더에 저장하지 못했습니다.".to_string())?;
+    }
+    if std::fs::rename(&part, &dest).is_err() {
+        let _ = std::fs::remove_file(&part);
+        return Err("설치 폴더에 저장하지 못했습니다.".into());
+    }
+    std::process::Command::new(&dest)
+        .spawn()
+        .map_err(|_| "설치 파일을 열지 못했습니다.".to_string())?;
+    Ok(())
+}
+
 pub fn latest_release_tag() -> Result<String, String> {
     const URL: &str = "https://api.github.com/repos/golee75git/EduLanuncher/releases/latest";
     let body = fetch_url_text(URL).ok_or_else(|| "최신 버전을 확인하지 못했습니다.".to_string())?;

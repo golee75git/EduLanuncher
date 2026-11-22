@@ -50,8 +50,93 @@ fn split_https(url: &str) -> Option<(String, String)> {
     Some((host.to_string(), path))
 }
 
+const SETUP_BODY_CAP: usize = 16 * 1024 * 1024;
+const SETUP_WAIT_MS: i32 = 60_000;
+
+pub fn read_release_setup(tag: &str) -> Result<Vec<u8>, ReadStop> {
+    let path = setup_path(tag).ok_or(ReadStop::Rejected)?;
+    let first = exchange("github.com", &path, SETUP_BODY_CAP, SETUP_WAIT_MS)?;
+    if http_status_kept(first.status) {
+        return setup_bytes(first.body);
+    }
+    if !matches!(first.status, 301 | 302 | 303 | 307 | 308) {
+        return Err(ReadStop::Failed);
+    }
+    let (host, next) = asset_hop(&first.location).ok_or(ReadStop::Rejected)?;
+    let second = exchange(&host, &next, SETUP_BODY_CAP, SETUP_WAIT_MS)?;
+    if !http_status_kept(second.status) {
+        return Err(ReadStop::Failed);
+    }
+    setup_bytes(second.body)
+}
+
+fn release_tag_ok(tag: &str) -> bool {
+    let Some((ver, day)) = tag.split_once('-') else {
+        return false;
+    };
+    if tag.matches('-').count() != 1 || day.len() != 8 || !day.bytes().all(|byte| byte.is_ascii_digit()) {
+        return false;
+    }
+    let mut parts = ver.split('.');
+    let Some(major) = parts.next() else {
+        return false;
+    };
+    let Some(minor) = parts.next() else {
+        return false;
+    };
+    let Some(patch) = parts.next() else {
+        return false;
+    };
+    parts.next().is_none()
+        && [major, minor, patch].iter().all(|part| {
+            !part.is_empty() && part.len() <= 4 && part.bytes().all(|byte| byte.is_ascii_digit())
+        })
+}
+
+fn setup_path(tag: &str) -> Option<String> {
+    if !release_tag_ok(tag) {
+        return None;
+    }
+    Some(format!(
+        "/golee75git/EduLanuncher/releases/download/{tag}/AILauncher_{tag}_x64-setup.exe"
+    ))
+}
+
+fn asset_hop(location: &str) -> Option<(String, String)> {
+    if location.len() > 2048 || location.contains('\n') || location.contains('\r') {
+        return None;
+    }
+    let (host, path) = split_https(location)?;
+    if !host.eq_ignore_ascii_case("release-assets.githubusercontent.com") || path.contains("..") || path.contains('\\') {
+        return None;
+    }
+    Some((host, path))
+}
+
+fn setup_bytes(body: Vec<u8>) -> Result<Vec<u8>, ReadStop> {
+    if body.len() < 64 * 1024 || body.len() > SETUP_BODY_CAP || body.get(..2) != Some(b"MZ".as_slice()) {
+        return Err(ReadStop::Rejected);
+    }
+    Ok(body)
+}
+
+struct HostReply {
+    status: u32,
+    location: String,
+    body: Vec<u8>,
+}
+
 #[cfg(windows)]
 fn read_host(host: &str, path: &str, body_cap: usize, wait_ms: i32) -> Result<Vec<u8>, ReadStop> {
+    let reply = exchange(host, path, body_cap, wait_ms)?;
+    if !http_status_kept(reply.status) {
+        return Err(ReadStop::Failed);
+    }
+    Ok(reply.body)
+}
+
+#[cfg(windows)]
+fn exchange(host: &str, path: &str, body_cap: usize, wait_ms: i32) -> Result<HostReply, ReadStop> {
     use std::ffi::OsStr;
     use std::os::windows::ffi::OsStrExt;
     use windows::core::PCWSTR;
@@ -59,7 +144,8 @@ fn read_host(host: &str, path: &str, body_cap: usize, wait_ms: i32) -> Result<Ve
         WinHttpCloseHandle, WinHttpConnect, WinHttpOpen, WinHttpOpenRequest, WinHttpQueryHeaders, WinHttpReadData,
         WinHttpReceiveResponse, WinHttpSendRequest, WinHttpSetOption, WinHttpSetTimeouts,
         WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_FLAG_SECURE, WINHTTP_OPTION_REDIRECT_POLICY,
-        WINHTTP_OPTION_REDIRECT_POLICY_NEVER, WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_QUERY_STATUS_CODE,
+        WINHTTP_OPTION_REDIRECT_POLICY_NEVER, WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_QUERY_LOCATION,
+        WINHTTP_QUERY_STATUS_CODE,
     };
 
     struct HandleClose(*mut core::ffi::c_void);
@@ -143,8 +229,13 @@ fn read_host(host: &str, path: &str, body_cap: usize, wait_ms: i32) -> Result<Ve
         {
             return Err(ReadStop::Failed);
         }
+        let location = header_text(request.0, WINHTTP_QUERY_LOCATION);
         if !http_status_kept(status) {
-            return Err(ReadStop::Failed);
+            return Ok(HostReply {
+                status,
+                location,
+                body: Vec::new(),
+            });
         }
         let mut body = Vec::new();
         loop {
@@ -162,12 +253,47 @@ fn read_host(host: &str, path: &str, body_cap: usize, wait_ms: i32) -> Result<Ve
             }
             body.extend_from_slice(&buf[..chunk]);
         }
-        Ok(body)
+        Ok(HostReply {
+            status,
+            location,
+            body,
+        })
     }
+}
+
+#[cfg(windows)]
+fn header_text(request: *mut core::ffi::c_void, query: u32) -> String {
+    use windows::core::PCWSTR;
+    use windows::Win32::Networking::WinHttp::WinHttpQueryHeaders;
+
+    let mut buf = vec![0u16; 2048];
+    let mut len = (buf.len() * 2) as u32;
+    let mut index = 0u32;
+    let ok = unsafe {
+        WinHttpQueryHeaders(
+            request,
+            query,
+            PCWSTR::null(),
+            Some(buf.as_mut_ptr().cast()),
+            &mut len,
+            &mut index,
+        )
+    };
+    if ok.is_err() || len < 2 {
+        return String::new();
+    }
+    let chars = (len as usize) / 2;
+    let end = buf.iter().position(|unit| *unit == 0).unwrap_or(chars.min(buf.len()));
+    String::from_utf16_lossy(&buf[..end]).trim().to_string()
 }
 
 #[cfg(not(windows))]
 fn read_host(_host: &str, _path: &str, _body_cap: usize, _wait_ms: i32) -> Result<Vec<u8>, ReadStop> {
+    Err(ReadStop::Failed)
+}
+
+#[cfg(not(windows))]
+fn exchange(_host: &str, _path: &str, _body_cap: usize, _wait_ms: i32) -> Result<HostReply, ReadStop> {
     Err(ReadStop::Failed)
 }
 
@@ -189,6 +315,20 @@ mod tests {
         assert!(release.is_ok(), "{release:?}");
         let ip = read_https("https://api.ipify.org");
         assert!(ip.is_ok(), "{ip:?}");
+    }
+
+    #[test]
+    fn release_setup_path_stays_on_the_known_file() {
+        assert_eq!(
+            super::setup_path("0.1.227-20261122").as_deref(),
+            Some("/golee75git/EduLanuncher/releases/download/0.1.227-20261122/AILauncher_0.1.227-20261122_x64-setup.exe")
+        );
+        assert!(super::setup_path("0.1.227-20261122/../other").is_none());
+        assert!(super::setup_path("latest").is_none());
+        assert!(super::asset_hop("https://github.com/golee75git/EduLanuncher/releases/download/0.1.227-20261122/file.exe").is_none());
+        assert!(super::asset_hop("http://release-assets.githubusercontent.com/file").is_none());
+        assert!(super::asset_hop("https://release-assets.githubusercontent.com/github-production-release-asset/1?sig=abc").is_some());
+        assert!(super::asset_hop("https://user@release-assets.githubusercontent.com/file").is_none());
     }
 
     #[test]

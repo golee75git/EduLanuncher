@@ -62,6 +62,13 @@ export async function readLatestReleaseTag(): Promise<string | null> {
 
 const RELEASE_TAG = /^\d+\.\d+\.\d+-\d{8}$/;
 
+export async function installNewerRelease(tag: string): Promise<void> {
+  if (!releaseSetupAddress(tag)) {
+    throw new Error("설치 파일 주소가 올바르지 않습니다.");
+  }
+  await invoke("install_newer_release", { tag });
+}
+
 export function releaseSetupAddress(tag: string): string | null {
   const trimmed = tag.trim();
   if (!RELEASE_TAG.test(trimmed)) {
