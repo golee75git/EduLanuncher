@@ -6,6 +6,37 @@
 ---
 
 날짜: 2026-11-22
+버전: 0.1.227-20261122
+설치 파일: AILauncher_0.1.227-20261122_x64-setup.exe, AILauncher_2026-11-22_1740_x64-setup.exe
+작성자: 요청자
+
+요청: 방문 수는 같은 컴퓨터에서 하루 1회로 세고, 게이트웨이 기준으로 묶지 않는다. 개선의견은 준비됨 뒤 같은 줄에 둔다.
+
+확인: 소개 사이트는 브라우저에 서울 날짜 쿠키만 남기고, 그 날짜가 오늘이면 전체·오늘·해외를 올리지 않는다. 쿠키에 접속 주소는 없다. 여러 컴퓨터가 같은 게이트웨이를 써도 브라우저 쿠키가 따로면 각각 1회다. 홈은 AI런처 · 준비됨 뒤에 개선의견이 같은 줄이다. 이전 홈은 개선의견만 맨 아래다. 설정의 사용 방법에 그 문장이 있고, 맨 위에는 이 설치 파일명과 버전이 있다. 소개 페이지와 설치 안내의 파일명도 이 버전이다. OFL 파일을 넣지 않음. 화면 글꼴은 그대로이며 특정 OFL 글꼴이 아니다. OFL은 저작권 라이선스이며 특허를 허용한다는 뜻이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 브라우저 날짜로 하루 1회 방문 수를 세는 구성이라 특허 검토가 필요할 수 있음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- website/src/worker/opinion.ts
+- website/src/components/SiteFooter.tsx
+- src/components/home/StatusBar.tsx
+- src/App.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- README.md
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+---
+
+날짜: 2026-11-22
 버전: 0.1.226-20261122
 설치 파일: AILauncher_0.1.226-20261122_x64-setup.exe, AILauncher_2026-11-22_1735_x64-setup.exe
 작성자: 요청자

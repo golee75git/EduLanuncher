@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.227-20261122",
+    note: "준비됨 뒤의 개선의견은 같은 줄이다. 방문 수는 같은 브라우저에서 하루 1회다.",
+  },
+  {
     version: "0.1.226-20261122",
     note: "홈 맨 아래 개선의견은 소개 사이트의 의견 입력칸을 엽니다.",
   },

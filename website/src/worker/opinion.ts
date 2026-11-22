@@ -491,6 +491,25 @@ function overseasMark(request: Request): number {
   return 1;
 }
 
+function markedVisitDay(request: Request): string {
+  const header = request.headers.get("Cookie") ?? "";
+  for (const part of header.split(";")) {
+    const text = part.trim();
+    if (!text.startsWith("visit_day=")) {
+      continue;
+    }
+    const value = text.slice("visit_day=".length);
+    if (/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(value)) {
+      return value;
+    }
+  }
+  return "";
+}
+
+function visitDayCookie(day: string): string {
+  return `visit_day=${day}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=172800`;
+}
+
 async function recordVisit(request: Request, db: D1Database): Promise<void> {
   const day = seoulDay();
   await db
@@ -533,10 +552,16 @@ async function handleApi(request: Request, env: Env): Promise<Response> {
   try {
     await ensureSchema(db);
     if (request.method === "POST" && url.pathname === "/api/visits") {
-      if (sameSite(request)) {
+      const day = seoulDay();
+      const onSite = sameSite(request);
+      if (onSite && markedVisitDay(request) !== day) {
         await recordVisit(request, db);
       }
-      return json(await visitCounts(db));
+      return json(
+        await visitCounts(db),
+        200,
+        onSite ? { "set-cookie": visitDayCookie(day) } : undefined,
+      );
     }
     if (request.method === "GET" && url.pathname === "/api/visits") {
       return json(await visitCounts(db));

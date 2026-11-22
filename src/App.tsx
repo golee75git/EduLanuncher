@@ -1412,7 +1412,9 @@ export default function App() {
             <MemoPad />
             {priorSkin ? (
               <div className="mx-auto w-full max-w-[600px] shrink-0 bg-paper px-7 pb-2 text-[10px] text-quiet">
-                <OpinionLink />
+                <p className="text-right">
+                  <OpinionLink />
+                </p>
               </div>
             ) : (
               <StatusBar />
