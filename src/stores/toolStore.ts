@@ -3,6 +3,7 @@ import { EDUCATION_PACK, mergePackTools, type LauncherPack } from "../data/educa
 import {
   COMMON_WORK_TOOLS,
   DOC_SHRINK_TOOL,
+  EXCEL_MERGE_TOOL,
   PDF_PAGES_TOOL,
   PHOTO_CAPTION_TOOL,
   PRIVACY_MASK_TOOL,
@@ -32,7 +33,15 @@ async function persist(tools: ToolItem[]): Promise<void> {
   await saveTools(tools);
 }
 
-const WORK_TOOL_ORDER = [PRIVACY_MASK_TOOL, PHOTO_CAPTION_TOOL, DOC_SHRINK_TOOL, URL_MARK_TOOL, PDF_PAGES_TOOL, TIMER_TOOL];
+const WORK_TOOL_ORDER = [
+  PRIVACY_MASK_TOOL,
+  PHOTO_CAPTION_TOOL,
+  DOC_SHRINK_TOOL,
+  URL_MARK_TOOL,
+  PDF_PAGES_TOOL,
+  EXCEL_MERGE_TOOL,
+  TIMER_TOOL,
+];
 
 function relabelBuiltin(tool: ToolItem): ToolItem {
   const known = WORK_TOOL_ORDER.find((item) => tool.id === item.id || tool.target === item.target);

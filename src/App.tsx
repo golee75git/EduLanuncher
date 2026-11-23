@@ -38,6 +38,7 @@ import { PrivacyMaskPage } from "./pages/PrivacyMaskPage";
 import { PhotoCaptionPage } from "./pages/PhotoCaptionPage";
 import { PhotoEditPage } from "./pages/PhotoEditPage";
 import { DocShrinkPage } from "./pages/DocShrinkPage";
+import { ExcelMergePage } from "./pages/ExcelMergePage";
 import { PdfToolPage } from "./pages/PdfToolPage";
 import { PhotoPdfPage } from "./pages/PhotoPdfPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
@@ -53,7 +54,7 @@ import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
 import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget } from "./data/computerTools";
-import { isPdfPagesTarget, isTimerTarget } from "./data/sampleTools";
+import { isExcelMergeTarget, isPdfPagesTarget, isTimerTarget } from "./data/sampleTools";
 import { TimerPage } from "./pages/TimerPage";
 import { hydrateTimers } from "./stores/timerStore";
 import { logEducationValidation } from "./services/mindMapService";
@@ -1333,6 +1334,9 @@ export default function App() {
           {view.name === "internal" && isPdfPagesTarget(view.id) ? (
             <PdfToolPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && isExcelMergeTarget(view.id) ? (
+            <ExcelMergePage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" && isTimerTarget(view.id) ? (
             <TimerPage onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -1396,6 +1400,7 @@ export default function App() {
           view.id !== "photo-edit" &&
           !isDocShrinkTarget(view.id) &&
           !isPdfPagesTarget(view.id) &&
+          !isExcelMergeTarget(view.id) &&
           !isTimerTarget(view.id) &&
           !isFolderFindTarget(view.id) &&
           !isLinkCheckTarget(view.id) &&

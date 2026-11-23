@@ -15,6 +15,7 @@ import {
 import { privacyDropHeld, takePrivacyPicture } from "../services/privacyDropGate";
 import { docDropHeld, isDocPicturePath, takeDocPictures } from "../services/docDropGate";
 import { isPdfPath, pdfDropHeld, takePdfFiles } from "../services/pdfDropGate";
+import { excelDropHeld, isExcelPath, takeExcelFiles } from "../services/excelDropGate";
 
 interface DropZoneProps {
   children: ReactNode;
@@ -112,6 +113,12 @@ export function DropZone({
           return;
         }
       }
+      if (takeExcelFiles(rest)) {
+        rest = rest.filter((file) => !isExcelPath(file.name));
+        if (rest.length === 0) {
+          return;
+        }
+      }
       if (takeDocPictures(rest)) {
         rest = rest.filter((file) => !isDocPicturePath(file.name));
         if (rest.length === 0) {
@@ -186,7 +193,7 @@ export function DropZone({
       }
       event.preventDefault();
       event.dataTransfer.dropEffect = "copy";
-      if (!privacyDropHeld() && !docDropHeld() && !pdfDropHeld()) {
+      if (!privacyDropHeld() && !docDropHeld() && !pdfDropHeld() && !excelDropHeld()) {
         setActive(true);
       }
     };

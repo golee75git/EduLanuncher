@@ -46,6 +46,24 @@ export function isPdfPagesTarget(target: string): boolean {
   return target === PDF_PAGES_TOOL.target || target === PDF_PAGES_TOOL.id;
 }
 
+export const EXCEL_MERGE_TOOL: ToolItem = {
+  id: "tool-excel-merge",
+  name: "엑셀 통합",
+  description: "같은 양식으로 받은 엑셀·csv 여러 개를 하나의 새 엑셀로 합칩니다",
+  type: "internal",
+  target: "excel-merge",
+  icon: "sheet",
+  category: "전산",
+  favorite: true,
+  keywords: ["엑셀", "xlsx", "csv", "통합", "취합", "합치기", "excel"],
+  usageCount: 0,
+  enabled: true,
+};
+
+export function isExcelMergeTarget(target: string): boolean {
+  return target === EXCEL_MERGE_TOOL.target || target === EXCEL_MERGE_TOOL.id;
+}
+
 export const TIMER_TOOL: ToolItem = {
   id: "tool-timer",
   name: "타이머·스톱워치",
@@ -219,5 +237,6 @@ export const COMMON_WORK_TOOLS: ToolItem[] = [
   DOC_SHRINK_TOOL,
   URL_MARK_TOOL,
   PDF_PAGES_TOOL,
+  EXCEL_MERGE_TOOL,
   TIMER_TOOL,
 ];
