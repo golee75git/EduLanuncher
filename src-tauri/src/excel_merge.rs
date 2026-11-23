@@ -1012,6 +1012,23 @@ pub struct MergeOutcome {
     pub unmatched: Vec<(String, String)>,
     pub unmatched_total: usize,
     pub limited: bool,
+    /// 파일마다 어떻게 됐는지. 넣은 순서대로 담는다
+    pub files: Vec<FileReport>,
+}
+
+/// 합친 파일 하나의 결과. 줄 번호는 모두 1부터 센다.
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct FileReport {
+    pub name: String,
+    pub used: bool,
+    pub reason: String,
+    /// 원본에서 제목 줄이 있던 줄
+    pub header_line: usize,
+    pub data_rows: usize,
+    /// 결과 파일에서 이 파일의 데이터가 놓인 첫 줄과 끝 줄
+    pub first_row: usize,
+    pub last_row: usize,
+    pub unmatched_columns: usize,
 }
 
 pub struct MergeInput {
@@ -1037,6 +1054,33 @@ fn note_unmatched(out: &mut MergeOutcome, file: &str, column: &str) {
     }
 }
 
+const MAX_HEADER_SCAN: usize = 60;
+const REASON_EMPTY: &str = "내용이 없습니다.";
+const REASON_NO_DATA: &str = "제목 줄 아래에 합칠 줄이 없습니다.";
+const REASON_ROW_LIMIT: &str = "줄 수 한도에 닿아 여기까지만 담았습니다.";
+const REASON_NOT_REACHED: &str = "줄 수 한도에 닿아 담지 못했습니다.";
+pub const REASON_UNREADABLE: &str = "파일을 읽지 못했습니다.";
+
+fn row_is_blank(row: &[Cell]) -> bool {
+    row.iter().all(Cell::is_blank)
+}
+
+fn first_filled_row(rows: &[Vec<Cell>]) -> Option<usize> {
+    rows.iter().position(|row| !row_is_blank(row))
+}
+
+/// 첫 파일의 제목들을 모두 가진 줄을 앞쪽에서 찾는다. 제목 위에 표 이름이나 결재란이 있어도 찾는다.
+fn find_header_row(rows: &[Vec<Cell>], wanted: &[String]) -> Option<usize> {
+    let wanted: Vec<&String> = wanted.iter().filter(|key| !key.is_empty()).collect();
+    if wanted.is_empty() {
+        return None;
+    }
+    rows.iter().take(MAX_HEADER_SCAN).position(|row| {
+        let keys: Vec<String> = row.iter().map(header_key).collect();
+        wanted.iter().all(|key| keys.contains(*key))
+    })
+}
+
 /// 같은 양식의 표 여러 개를 첫 표의 제목 줄 아래로 잇는다.
 pub fn merge_tables(inputs: Vec<MergeInput>, add_source: bool) -> Result<MergeOutcome, String> {
     let mut out = MergeOutcome::default();
@@ -1044,14 +1088,27 @@ pub fn merge_tables(inputs: Vec<MergeInput>, add_source: bool) -> Result<MergeOu
     let mut width = 0usize;
     let mut has_master = false;
     let offset = usize::from(add_source);
-    'files: for input in inputs {
+    let mut inputs = inputs.into_iter();
+    'files: while let Some(input) = inputs.next() {
         out.limited |= input.table.limited;
-        let mut lines = input.table.rows.into_iter();
-        let Some(header) = lines.next() else {
+        let mut report = FileReport { name: input.name.clone(), ..FileReport::default() };
+        let rows = input.table.rows;
+        let header_at = if has_master {
+            find_header_row(&rows, &master_keys).or_else(|| first_filled_row(&rows))
+        } else {
+            first_filled_row(&rows)
+        };
+        let Some(header_at) = header_at else {
             out.skipped_files.push(input.name);
+            report.reason = REASON_EMPTY.into();
+            out.files.push(report);
             continue;
         };
+        report.header_line = header_at + 1;
+        let mut lines = rows.into_iter().skip(header_at);
+        let header = lines.next().unwrap_or_default();
         let data: Vec<Vec<Cell>> = lines.collect();
+        let unmatched_before = out.unmatched_total;
         let map: Vec<Option<usize>> = if !has_master {
             if header.len() + offset > MAX_COLUMNS {
                 return Err("열이 너무 많아 원본 파일 열을 붙일 수 없습니다.".into());
@@ -1092,6 +1149,8 @@ pub fn merge_tables(inputs: Vec<MergeInput>, add_source: bool) -> Result<MergeOu
             map
         };
         let own_keys: Vec<String> = header.iter().map(header_key).collect();
+        let rows_before = out.rows.len();
+        let mut cut_short = false;
         for row in data {
             let repeats_header = (0..own_keys.len().max(row.len()))
                 .all(|at| header_key(row.get(at).unwrap_or(&EMPTY_CELL)) == own_keys.get(at).cloned().unwrap_or_default());
@@ -1109,7 +1168,8 @@ pub fn merge_tables(inputs: Vec<MergeInput>, add_source: bool) -> Result<MergeOu
             }
             if out.rows.len() >= MAX_WRITE_ROWS {
                 out.limited = true;
-                break 'files;
+                cut_short = true;
+                break;
             }
             if add_source {
                 line[0] = Cell::text(input.name.clone());
@@ -1118,6 +1178,26 @@ pub fn merge_tables(inputs: Vec<MergeInput>, add_source: bool) -> Result<MergeOu
             out.data_rows += 1;
         }
         out.files_used += 1;
+        let added = out.rows.len() - rows_before;
+        report.data_rows = added;
+        report.used = added > 0;
+        if added > 0 {
+            report.first_row = rows_before + 1;
+            report.last_row = out.rows.len();
+        }
+        report.unmatched_columns = out.unmatched_total - unmatched_before;
+        if cut_short {
+            report.reason = REASON_ROW_LIMIT.into();
+        } else if added == 0 {
+            report.reason = REASON_NO_DATA.into();
+        }
+        out.files.push(report);
+        if cut_short {
+            break 'files;
+        }
+    }
+    for rest in inputs {
+        out.files.push(FileReport { name: rest.name, reason: REASON_NOT_REACHED.into(), ..FileReport::default() });
     }
     if !has_master {
         return Err("합칠 내용이 없습니다. 첫 줄에 제목이 있는 엑셀 파일을 넣어 주세요.".into());
@@ -1194,6 +1274,9 @@ fn merge_files(sources: &[PathBuf], title: &str, add_source: bool) -> Result<(Pa
         return Err("읽을 수 있는 엑셀 파일이 없습니다. xlsx 또는 UTF-8 csv 파일을 넣어 주세요.".into());
     }
     let mut outcome = merge_tables(inputs, add_source)?;
+    for name in &unreadable {
+        outcome.files.push(FileReport { name: name.clone(), reason: REASON_UNREADABLE.into(), ..FileReport::default() });
+    }
     outcome.skipped_files.extend(unreadable);
     let dest = fresh_xlsx(dir, &result_file_name(title, first), sources)?;
     write_xlsx_new(&dest, &outcome.rows)?;
@@ -1217,6 +1300,19 @@ pub struct UnmatchedColumn {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ExcelFileResult {
+    pub name: String,
+    pub used: bool,
+    pub reason: String,
+    pub header_line: u32,
+    pub data_rows: u32,
+    pub first_row: u32,
+    pub last_row: u32,
+    pub unmatched_columns: u32,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ExcelMade {
     pub name: String,
     pub reveal_id: String,
@@ -1226,6 +1322,7 @@ pub struct ExcelMade {
     pub unmatched: Vec<UnmatchedColumn>,
     pub unmatched_total: u32,
     pub limited: bool,
+    pub files: Vec<ExcelFileResult>,
 }
 
 fn granted_table(app: &AppHandle, id: &str) -> Result<PathBuf, String> {
@@ -1249,6 +1346,86 @@ pub fn excel_merge_glance(app: AppHandle, id: String) -> Result<ExcelGlance, Str
         header,
         limited: table.limited,
     })
+}
+
+/// 합치기 전에 파일마다 제목 줄이 어디인지, 첫 파일에 없는 열이 무엇인지 미리 본다.
+#[derive(Debug, Default, PartialEq, Eq)]
+struct Review {
+    header_line: usize,
+    data_rows: usize,
+    missing: Vec<String>,
+}
+
+fn review_tables(tables: &[Option<&[Vec<Cell>]>]) -> Vec<Review> {
+    let mut master_keys: Option<Vec<String>> = None;
+    let mut out = Vec::with_capacity(tables.len());
+    for table in tables {
+        let Some(rows) = table else {
+            out.push(Review::default());
+            continue;
+        };
+        let header_at = match &master_keys {
+            Some(keys) => find_header_row(rows, keys).or_else(|| first_filled_row(rows)),
+            None => first_filled_row(rows),
+        };
+        let Some(at) = header_at else {
+            out.push(Review::default());
+            continue;
+        };
+        let header = &rows[at];
+        let data_rows = rows[at + 1..].iter().filter(|row| !row_is_blank(row)).count();
+        let mut missing: Vec<String> = Vec::new();
+        match &master_keys {
+            None => master_keys = Some(header.iter().map(header_key).collect()),
+            Some(keys) => {
+                let mut seen: Vec<String> = Vec::new();
+                for cell in header {
+                    let key = header_key(cell);
+                    if key.is_empty() || keys.contains(&key) || seen.contains(&key) {
+                        continue;
+                    }
+                    seen.push(key);
+                    missing.push(clip_chars(cell_text_of(cell).trim(), MAX_LABEL_CHARS));
+                }
+            }
+        }
+        out.push(Review { header_line: at + 1, data_rows, missing });
+    }
+    out
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExcelReview {
+    pub id: String,
+    pub header_line: u32,
+    pub data_rows: u32,
+    pub missing: Vec<String>,
+}
+
+/// 고른 순서대로 파일마다 제목 줄 위치와 첫 파일에 없는 열을 미리 알려 준다 (원본은 읽기만 한다)
+#[tauri::command(async)]
+pub fn excel_merge_review(app: AppHandle, ids: Vec<String>) -> Result<Vec<ExcelReview>, String> {
+    if ids.len() > MAX_MERGE_FILES {
+        return Err(format!("한 번에 {MAX_MERGE_FILES}개까지 합칠 수 있습니다."));
+    }
+    let mut tables: Vec<Option<SheetTable>> = Vec::with_capacity(ids.len());
+    for id in &ids {
+        let path = granted_table(&app, id)?;
+        tables.push(read_table(&path).ok());
+    }
+    let borrowed: Vec<Option<&[Vec<Cell>]>> = tables.iter().map(|table| table.as_ref().map(|t| t.rows.as_slice())).collect();
+    let reviews = review_tables(&borrowed);
+    Ok(ids
+        .into_iter()
+        .zip(reviews)
+        .map(|(id, review)| ExcelReview {
+            id,
+            header_line: review.header_line as u32,
+            data_rows: review.data_rows as u32,
+            missing: review.missing,
+        })
+        .collect())
 }
 
 /// 고른 파일들을 하나로 합쳐 첫 파일 옆에 새 xlsx로 저장한다
@@ -1289,6 +1466,20 @@ pub fn excel_merge_run(app: AppHandle, ids: Vec<String>, title: String, add_sour
             .collect(),
         unmatched_total: outcome.unmatched_total as u32,
         limited: outcome.limited,
+        files: outcome
+            .files
+            .into_iter()
+            .map(|file| ExcelFileResult {
+                name: file.name,
+                used: file.used,
+                reason: file.reason,
+                header_line: file.header_line as u32,
+                data_rows: file.data_rows as u32,
+                first_row: file.first_row as u32,
+                last_row: file.last_row as u32,
+                unmatched_columns: file.unmatched_columns as u32,
+            })
+            .collect(),
     })
 }
 
@@ -2151,6 +2342,67 @@ mod tests {
         assert_eq!(out.skipped_files, vec!["empty.csv".to_string()]);
         assert_eq!(out.unmatched, vec![("c.csv".to_string(), "(제목 없는 열)".to_string())]);
         assert!(merge_tables(vec![input("x", Vec::new())], true).is_err());
+    }
+
+    #[test]
+    fn merge_finds_the_header_line_below_a_title_and_reports_each_file() {
+        let first = input("1반.xlsx", vec![vec![text("번호"), text("이름")], vec![number("1"), text("가")]]);
+        let second = input(
+            "2반.xlsx",
+            vec![
+                vec![text("2학년 점검표"), Cell::Empty],
+                vec![Cell::Empty, Cell::Empty],
+                vec![text("이름"), text("번호")],
+                vec![text("나"), number("2")],
+                vec![text("다"), number("3")],
+            ],
+        );
+        let third = input("3반.xlsx", vec![vec![text("번호"), text("이름")]]);
+        let out = merge_tables(vec![first, second, third], false).unwrap();
+        assert_eq!(
+            out.rows,
+            vec![
+                vec![text("번호"), text("이름")],
+                vec![number("1"), text("가")],
+                vec![number("2"), text("나")],
+                vec![number("3"), text("다")],
+            ]
+        );
+        assert_eq!(out.files.len(), 3);
+        assert_eq!((out.files[0].header_line, out.files[0].first_row, out.files[0].last_row), (1, 2, 2));
+        assert_eq!((out.files[1].header_line, out.files[1].first_row, out.files[1].last_row), (3, 3, 4));
+        assert!(out.files[1].used && out.files[1].reason.is_empty());
+        assert!(!out.files[2].used && out.files[2].data_rows == 0 && !out.files[2].reason.is_empty());
+    }
+
+    #[test]
+    fn merge_reports_empty_and_unmatched_per_file() {
+        let first = input("a.csv", vec![vec![text("A")], vec![text("1")]]);
+        let empty = input("empty.csv", Vec::new());
+        let extra = input("b.csv", vec![vec![text("A"), text("기타")], vec![text("2"), text("x")]]);
+        let out = merge_tables(vec![first, empty, extra], false).unwrap();
+        assert_eq!(out.files[1].name, "empty.csv");
+        assert!(!out.files[1].used && out.files[1].header_line == 0);
+        assert_eq!(out.files[2].unmatched_columns, 1);
+        assert_eq!((out.files[2].first_row, out.files[2].last_row), (3, 3));
+    }
+
+    #[test]
+    fn review_finds_header_lines_and_missing_columns_like_the_merge_does() {
+        let first = vec![vec![text("번호"), text("이름")], vec![number("1"), text("가")]];
+        let titled = vec![
+            vec![text("점검표"), Cell::Empty, Cell::Empty],
+            vec![text("이름"), text("번호"), text("비고")],
+            vec![text("나"), number("2"), text("x")],
+            vec![Cell::Empty, Cell::Empty, Cell::Empty],
+        ];
+        let empty: Vec<Vec<Cell>> = Vec::new();
+        let tables = [Some(first.as_slice()), Some(titled.as_slice()), Some(empty.as_slice()), None];
+        let reviews = review_tables(&tables);
+        assert_eq!(reviews[0], Review { header_line: 1, data_rows: 1, missing: Vec::new() });
+        assert_eq!(reviews[1], Review { header_line: 2, data_rows: 1, missing: vec!["비고".to_string()] });
+        assert_eq!(reviews[2], Review::default());
+        assert_eq!(reviews[3], Review::default());
     }
 
     #[test]

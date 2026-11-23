@@ -14,6 +14,17 @@ export interface ExcelUnmatched {
   column: string;
 }
 
+export interface ExcelFileResult {
+  name: string;
+  used: boolean;
+  reason: string;
+  headerLine: number;
+  dataRows: number;
+  firstRow: number;
+  lastRow: number;
+  unmatchedColumns: number;
+}
+
 export interface ExcelMade {
   name: string;
   revealId: string;
@@ -23,10 +34,40 @@ export interface ExcelMade {
   unmatched: ExcelUnmatched[];
   unmatchedTotal: number;
   limited: boolean;
+  files: ExcelFileResult[];
+}
+
+/** 파일 하나의 결과를 한 줄로 설명한다. */
+export function describeFileResult(file: ExcelFileResult): string {
+  const parts: string[] = [];
+  if (file.dataRows > 0) {
+    parts.push(`제목 ${file.headerLine}째 줄`);
+    parts.push(`${file.dataRows.toLocaleString("ko-KR")}줄`);
+    parts.push(file.firstRow === file.lastRow ? `결과 ${file.firstRow}째 줄` : `결과 ${file.firstRow}~${file.lastRow}째 줄`);
+  }
+  if (file.unmatchedColumns > 0) {
+    parts.push(`못 담은 열 ${file.unmatchedColumns}개`);
+  }
+  if (file.reason) {
+    parts.push(file.reason);
+  }
+  return parts.join(" · ");
 }
 
 export function glanceExcel(id: string): Promise<ExcelGlance> {
   return invoke<ExcelGlance>("excel_merge_glance", { id });
+}
+
+export interface ExcelReview {
+  id: string;
+  headerLine: number;
+  dataRows: number;
+  missing: string[];
+}
+
+/** 고른 순서대로 파일마다 제목 줄 위치와 첫 파일에 없는 열을 미리 본다 */
+export function reviewExcel(ids: string[]): Promise<ExcelReview[]> {
+  return invoke<ExcelReview[]>("excel_merge_review", { ids });
 }
 
 export function mergeExcel(ids: string[], title: string, addSource: boolean): Promise<ExcelMade> {

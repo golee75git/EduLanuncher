@@ -7,6 +7,10 @@ export interface SiteReleaseNote {
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
     version: "0.1.238-20261123",
+    note: "엑셀 취합에서 다른 파일의 제목 줄이 맨 위가 아니어도 첫 파일의 제목을 찾아 합칩니다. 합친 뒤에는 파일마다 제목 줄, 합친 줄 수, 결과 파일의 줄 범위, 합치지 못한 사유를 보여 줍니다.",
+  },
+  {
+    version: "0.1.238-20261123",
     note: "홈 아래 메모 2부터의 제목은 왼쪽부터 붙고, 칸 너비로 늘어나지 않습니다.",
   },
   {

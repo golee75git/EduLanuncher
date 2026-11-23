@@ -56,7 +56,7 @@ use document_search::{
     doc_search_remove_folder, doc_search_start, doc_search_status,
 };
 use excel_merge::{
-    excel_join_look, excel_join_save, excel_merge_glance, excel_merge_run, pdf_sheet_look, pdf_sheet_save, sheet_glance,
+    excel_join_look, excel_join_save, excel_merge_glance, excel_merge_review, excel_merge_run, pdf_sheet_look, pdf_sheet_save, sheet_glance,
 };
 use pdf_pages::{pdf_arrange, pdf_extract, pdf_glance, pdf_halt, pdf_merge};
 use photo_pdf::photos_to_pdf;
@@ -3482,6 +3482,7 @@ pub fn run() {
             doc_picture_bytes,
             write_new_picture,
             excel_merge_glance,
+            excel_merge_review,
             excel_merge_run,
             excel_join_look,
             excel_join_save,

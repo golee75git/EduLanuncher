@@ -2,12 +2,15 @@ import { ArrowDown, ArrowLeft, ArrowUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { holdExcelDrop } from "../services/excelDropGate";
 import {
+  describeFileResult,
   EXCEL_MERGE_MAX_FILES,
   glanceExcel,
   headersMissingFrom,
   mergeExcel,
   mergeTitleFromName,
+  reviewExcel,
   type ExcelMade,
+  type ExcelReview,
 } from "../services/excelMergeService";
 import type { GrantedFile } from "../services/dropSiteService";
 import { clearMadeReveals, pickOpenFiles, revealMadeFile } from "../services/savePick";
@@ -47,6 +50,34 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [made, setMade] = useState<ExcelMade | null>(null);
+  const [reviews, setReviews] = useState<Record<string, ExcelReview>>({});
+
+  const readyKey = files
+    .filter((file) => !file.note)
+    .map((file) => file.id)
+    .join(",");
+  // 파일을 더하거나 순서를 바꿀 때마다, 합칠 때와 같은 규칙으로 제목 줄과 없는 열을 다시 본다.
+  useEffect(() => {
+    if (!readyKey) {
+      setReviews({});
+      return;
+    }
+    let live = true;
+    void reviewExcel(readyKey.split(","))
+      .then((list) => {
+        if (live) {
+          setReviews(Object.fromEntries(list.map((item) => [item.id, item])));
+        }
+      })
+      .catch(() => {
+        if (live) {
+          setReviews({});
+        }
+      });
+    return () => {
+      live = false;
+    };
+  }, [readyKey]);
 
   useEffect(() => holdExcelDrop((incoming) => addRef.current(incoming)), []);
 
@@ -140,7 +171,7 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
 
   const ready = files.filter((file) => !file.note);
   const master = ready[0];
-  const totalRows = ready.reduce((sum, file) => sum + file.dataRows, 0);
+  const totalRows = ready.reduce((sum, file) => sum + (reviews[file.id]?.dataRows ?? file.dataRows), 0);
 
   const run = async () => {
     if (busy) {
@@ -202,13 +233,17 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
                 줄 수나 열 수가 너무 많아 일부만 담았습니다. 파일을 나눠서 다시 합쳐 주세요.
               </p>
             ) : null}
-            {made.skippedFiles.length > 0 ? (
+            {made.files.length > 0 ? (
               <div className="space-y-1">
-                <p className="text-xs leading-5 text-desk">합치지 못한 파일 {made.skippedFiles.length}개</p>
+                <p className="text-xs leading-5 text-desk">
+                  파일별 결과
+                  {made.files.some((file) => !file.used) ? ` · 합치지 못한 파일 ${made.files.filter((file) => !file.used).length}개` : ""}
+                </p>
                 <ul className="card-surface divide-y divide-line/70">
-                  {made.skippedFiles.map((name, index) => (
-                    <li key={`${name}-${index}`} className="truncate px-3 py-1.5 text-xs text-quiet">
-                      {name}
+                  {made.files.map((file, index) => (
+                    <li key={`${file.name}-${index}`} className="px-3 py-1.5">
+                      <p className={`truncate text-xs ${file.used ? "text-desk" : "text-quiet line-through"}`}>{file.name}</p>
+                      <p className="text-[11px] leading-5 text-quiet">{describeFileResult(file)}</p>
                     </li>
                   ))}
                 </ul>
@@ -249,8 +284,8 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
         ) : (
           <>
             <p className="text-xs leading-5 text-quiet">
-              같은 양식으로 받은 엑셀(xlsx, 첫 시트)과 UTF-8 csv를 하나로 합칩니다. 첫 파일의 첫 줄을 제목 줄로 보고, 다른 파일은 제목이
-              같은 열끼리 모읍니다. xls 파일은 엑셀에서 xlsx로 저장해 주세요.
+              같은 양식으로 받은 엑셀(xlsx, 첫 시트)과 UTF-8 csv를 하나로 합칩니다. 첫 파일의 첫 줄을 제목 줄로 보고, 다른 파일은 그 제목이
+              모두 있는 줄을 앞쪽에서 찾아 그 아래부터 같은 제목의 열끼리 모읍니다. xls 파일은 엑셀에서 xlsx로 저장해 주세요.
             </p>
             <button type="button" className="btn-secondary" disabled={busy} onClick={() => void pickFiles()}>
               엑셀 파일 추가
@@ -258,7 +293,14 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
             {files.length > 0 ? (
               <ul className="card-surface divide-y divide-line/70">
                 {files.map((file, index) => {
-                  const missing = master && file.id !== master.id && !file.note ? headersMissingFrom(master.header, file.header) : [];
+                  const review = reviews[file.id];
+                  const missing =
+                    master && file.id !== master.id && !file.note
+                      ? review
+                        ? review.missing
+                        : headersMissingFrom(master.header, file.header)
+                      : [];
+                  const titleLine = review && review.headerLine > 1 ? ` · 제목 ${review.headerLine}째 줄` : "";
                   return (
                     <li
                       key={file.id}
@@ -285,7 +327,8 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
                           {index + 1}. {file.name}
                         </p>
                         <p className="text-[11px] text-quiet">
-                          {file.note || `${file.dataRows.toLocaleString("ko-KR")}줄 · ${file.columns}열${file.limited ? " · 일부만 읽음" : ""}`}
+                          {file.note ||
+                            `${(review?.dataRows ?? file.dataRows).toLocaleString("ko-KR")}줄${titleLine || ` · ${file.columns}열`}${file.limited ? " · 일부만 읽음" : ""}`}
                         </p>
                         {missing.length > 0 ? (
                           <p className="text-[11px] leading-4 text-desk">
