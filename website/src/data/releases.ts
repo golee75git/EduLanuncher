@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.230-20261123",
+    note: "엑셀 통합 도구를 넣었습니다. 같은 양식의 엑셀·csv 여러 개를 제목 이름으로 맞춰 새 엑셀 하나로 합칩니다. 원본은 바꾸지 않습니다.",
+  },
+  {
     version: "0.1.229-20261122",
     note: "처음 화면은 스킨 색이다. 바로가기 점은 업무도구 오른쪽에 세로로 둔다.",
   },
