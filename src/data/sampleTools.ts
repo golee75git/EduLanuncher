@@ -64,6 +64,24 @@ export function isExcelMergeTarget(target: string): boolean {
   return target === EXCEL_MERGE_TOOL.target || target === EXCEL_MERGE_TOOL.id;
 }
 
+export const EXCEL_JOIN_TOOL: ToolItem = {
+  id: "tool-excel-join",
+  name: "엑셀 병합",
+  description: "같은 키의 빈 칸에 다른 엑셀 열 값을 넣어 새 파일로 저장합니다",
+  type: "internal",
+  target: "excel-join",
+  icon: "sheet",
+  category: "전산",
+  favorite: true,
+  keywords: ["엑셀", "xlsx", "csv", "병합", "학교명", "맞추기", "excel"],
+  usageCount: 0,
+  enabled: true,
+};
+
+export function isExcelJoinTarget(target: string): boolean {
+  return target === EXCEL_JOIN_TOOL.target || target === EXCEL_JOIN_TOOL.id;
+}
+
 export const TIMER_TOOL: ToolItem = {
   id: "tool-timer",
   name: "타이머·스톱워치",
@@ -238,5 +256,6 @@ export const COMMON_WORK_TOOLS: ToolItem[] = [
   URL_MARK_TOOL,
   PDF_PAGES_TOOL,
   EXCEL_MERGE_TOOL,
+  EXCEL_JOIN_TOOL,
   TIMER_TOOL,
 ];

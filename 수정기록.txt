@@ -6,6 +6,40 @@
 ---
 
 날짜: 2026-11-23
+버전: 0.1.232-20261123
+설치 파일: AILauncher_0.1.232-20261123_x64-setup.exe, AILauncher_2026-11-23_1445_x64-setup.exe
+작성자: 요청자
+
+요청: 엑셀 파일을 두 개 이상 놓으면 엑셀 통합 다음에 엑셀 병합을 두고, 맞출 열을 확인한 뒤 적용할 값을 보여 주게 한다.
+
+확인: xlsx·csv만 두 개 이상이면 작업 고르기에 엑셀 통합, 엑셀 병합이 그 순서로 나온다. 한 개이거나 다른 파일과 섞이면 기존 고르기가 그대로다. 엑셀 병합은 첫 파일을 기준으로 맞출 열을 고르고, 다른 파일의 가져올 열과 넣을 열을 고른 뒤 빈 칸에 들어갈 값을 최대 40줄 보여 준다. 이미 있는 값은 바꾸지 않는다. 저장은 첫 파일 옆에 새 xlsx를 만들며 원본은 읽기만 한다. 경로는 화면에 넘기지 않고 파일 번호만 쓴다. 오류 문구에 경로와 셀 내용을 넣지 않는다. 식처럼 보이는 글자도 글자 칸으로 저장한다. 시스템 폴더에는 저장하지 않고, 같은 이름은 덮어쓰지 않는다. `excel_merge` 단위 테스트 26개가 통과했다. 프론트 타입 검사도 통과했다. OFL 파일을 넣지 않음. 화면 글꼴은 그대로 system-ui이며 글꼴 파일은 없다. OFL은 저작권 라이선스이며 특허를 허용한다는 뜻이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않음. 키로 줄을 맞추고 빈 칸에 값을 넣는 구성은 특허 검토가 필요할 수 있다. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- src/pages/ExcelJoinPage.tsx
+- src/services/excelJoinService.ts
+
+다시 쓴 파일:
+- src-tauri/src/excel_merge.rs
+- src-tauri/src/lib.rs
+- src/App.tsx
+- src/components/DropActionPick.tsx
+- src/data/sampleTools.ts
+- src/stores/toolStore.ts
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- docs/버전정리.md
+- 수정기록.txt
+
+---
+
+날짜: 2026-11-23
 버전: 0.1.231-20261123
 설치 파일: AILauncher_0.1.231-20261123_x64-setup.exe, AILauncher_2026-11-23_1117_x64-setup.exe
 작성자: 요청자

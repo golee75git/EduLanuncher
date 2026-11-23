@@ -54,7 +54,7 @@ use document_search::{
     doc_search_add_folder, doc_search_clear, doc_search_folders, doc_search_halt, doc_search_query,
     doc_search_remove_folder, doc_search_start, doc_search_status,
 };
-use excel_merge::{excel_merge_glance, excel_merge_run};
+use excel_merge::{excel_join_look, excel_join_save, excel_merge_glance, excel_merge_run};
 use pdf_pages::{pdf_arrange, pdf_extract, pdf_glance, pdf_halt, pdf_merge};
 use photo_pdf::photos_to_pdf;
 use privacy_find::{find_privacy_regions, privacy_find_caps, stop_privacy_find};
@@ -3480,6 +3480,8 @@ pub fn run() {
             write_new_picture,
             excel_merge_glance,
             excel_merge_run,
+            excel_join_look,
+            excel_join_save,
             pdf_glance,
             pdf_halt,
             pdf_merge,

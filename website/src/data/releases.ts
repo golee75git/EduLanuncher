@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.232-20261123",
+    note: "엑셀만 두 개 이상 놓으면 엑셀 통합 다음에 엑셀 병합이 나옵니다. 맞출 열을 확인하고, 빈 칸에 넣을 값을 보여 준 뒤 새 파일로 저장합니다.",
+  },
+  {
     version: "0.1.231-20261123",
     note: "엑셀만 두 개 이상 놓으면 엑셀 통합이 열립니다. 검색 안내는 5초마다 바뀌고, 빈 공지는 팩 저장을 안내합니다. 웹 미리보기에는 설치 파일 안내가 없습니다.",
   },

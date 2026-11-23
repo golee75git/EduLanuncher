@@ -10,6 +10,7 @@ export interface DropPlaceLine {
 interface DropActionPickProps {
   pictures: GrantedFile[];
   pdfs: GrantedFile[];
+  excels: GrantedFile[];
   places: DropPlaceLine[];
   siteLabel: string;
   fileUrlCount: number;
@@ -21,6 +22,8 @@ interface DropActionPickProps {
   onQr: () => void;
   onPhotoPdf: () => void;
   onPdf: () => void;
+  onExcelMerge: () => void;
+  onExcelJoin: () => void;
   onShortcut: () => void;
   onPlaces: () => void;
   onSite: () => void;
@@ -38,6 +41,7 @@ function names(files: GrantedFile[]): string {
 export function DropActionPick({
   pictures,
   pdfs,
+  excels,
   places,
   siteLabel,
   fileUrlCount,
@@ -49,6 +53,8 @@ export function DropActionPick({
   onQr,
   onPhotoPdf,
   onPdf,
+  onExcelMerge,
+  onExcelJoin,
   onShortcut,
   onPlaces,
   onSite,
@@ -63,6 +69,7 @@ export function DropActionPick({
         <p className="text-sm font-semibold text-desk">작업 고르기</p>
         {pictures.length > 0 ? <p className="truncate text-xs text-quiet">사진 {names(pictures)}</p> : null}
         {pdfs.length > 0 ? <p className="truncate text-xs text-quiet">PDF {names(pdfs)}</p> : null}
+        {excels.length > 0 ? <p className="truncate text-xs text-quiet">엑셀 {names(excels)}</p> : null}
         {places.map((line) => (
           <p key={line.id} className="truncate text-xs text-desk">
             {line.name} · {line.place}
@@ -111,6 +118,16 @@ export function DropActionPick({
           {pdfs.length > 0 ? (
             <button type="button" className="btn-secondary drop-recent" onClick={onPdf}>
               PDF 도구
+            </button>
+          ) : null}
+          {excels.length >= 2 ? (
+            <button type="button" className="btn-secondary drop-recent" onClick={onExcelMerge}>
+              엑셀 통합
+            </button>
+          ) : null}
+          {excels.length >= 2 ? (
+            <button type="button" className="btn-secondary drop-recent" onClick={onExcelJoin}>
+              엑셀 병합
             </button>
           ) : null}
           {hasTools ? (

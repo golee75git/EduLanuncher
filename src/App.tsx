@@ -39,6 +39,7 @@ import { PhotoCaptionPage } from "./pages/PhotoCaptionPage";
 import { PhotoEditPage } from "./pages/PhotoEditPage";
 import { DocShrinkPage } from "./pages/DocShrinkPage";
 import { ExcelMergePage } from "./pages/ExcelMergePage";
+import { ExcelJoinPage } from "./pages/ExcelJoinPage";
 import { PdfToolPage } from "./pages/PdfToolPage";
 import { PhotoPdfPage } from "./pages/PhotoPdfPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
@@ -54,7 +55,7 @@ import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
 import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget } from "./data/computerTools";
-import { isExcelMergeTarget, isPdfPagesTarget, isTimerTarget } from "./data/sampleTools";
+import { isExcelJoinTarget, isExcelMergeTarget, isPdfPagesTarget, isTimerTarget } from "./data/sampleTools";
 import { TimerPage } from "./pages/TimerPage";
 import { hydrateTimers } from "./stores/timerStore";
 import { logEducationValidation } from "./services/mindMapService";
@@ -144,6 +145,7 @@ interface MissingState {
 interface DropHold {
   pictures: GrantedFile[];
   pdfs: GrantedFile[];
+  excels: GrantedFile[];
   places: { id: string; name: string; place: string }[];
   site: { url: string; name?: string; iconImage?: string } | null;
   urlFile: GrantedFile | null;
@@ -156,6 +158,7 @@ function blankDropHold(): DropHold {
   return {
     pictures: [],
     pdfs: [],
+    excels: [],
     places: [],
     site: null,
     urlFile: null,
@@ -169,6 +172,7 @@ function dropHoldOpen(hold: DropHold): boolean {
   return (
     hold.pictures.length > 0 ||
     hold.pdfs.length > 0 ||
+    hold.excels.length > 0 ||
     hold.places.length > 0 ||
     hold.site !== null ||
     hold.urlFile !== null ||
@@ -342,23 +346,8 @@ export default function App() {
       const excelOnly = files.filter((file) => file.id && isExcelPath(file.name));
       const otherDrop = files.some((file) => file.id && !isExcelPath(file.name));
       if (!otherDrop && excelOnly.length >= 2) {
-        const next: View = {
-          name: "internal",
-          id: "excel-merge",
-          title: "엑셀 통합",
-          startFiles: excelOnly,
-        };
-        pdfOpenHold.current = true;
-        setDropPick(null);
-        setView(next);
-        try {
-          await showPanel();
-        } finally {
-          setView(next);
-          window.setTimeout(() => {
-            pdfOpenHold.current = false;
-          }, 400);
-        }
+        setDropPick({ ...blankDropHold(), excels: excelOnly });
+        await showPanel();
         return;
       }
       const split = splitDropActions(files);
@@ -1364,6 +1353,9 @@ export default function App() {
           {view.name === "internal" && isExcelMergeTarget(view.id) ? (
             <ExcelMergePage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
+          {view.name === "internal" && isExcelJoinTarget(view.id) ? (
+            <ExcelJoinPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
+          ) : null}
           {view.name === "internal" && isTimerTarget(view.id) ? (
             <TimerPage onBack={() => setView({ name: "home" })} />
           ) : null}
@@ -1428,6 +1420,7 @@ export default function App() {
           !isDocShrinkTarget(view.id) &&
           !isPdfPagesTarget(view.id) &&
           !isExcelMergeTarget(view.id) &&
+          !isExcelJoinTarget(view.id) &&
           !isTimerTarget(view.id) &&
           !isFolderFindTarget(view.id) &&
           !isLinkCheckTarget(view.id) &&
@@ -1571,6 +1564,7 @@ export default function App() {
           <DropActionPick
             pictures={dropPick.pictures}
             pdfs={dropPick.pdfs}
+            excels={dropPick.excels}
             places={dropPick.places}
             siteLabel={[
               dropPick.site ? dropPick.site.name || dropPick.site.url : "",
@@ -1635,6 +1629,16 @@ export default function App() {
               const files = dropPick.pdfs;
               setDropPick(null);
               setView({ name: "internal", id: "pdf-pages", title: "PDF 도구", startFiles: files });
+            }}
+            onExcelMerge={() => {
+              const files = dropPick.excels;
+              setDropPick(null);
+              setView({ name: "internal", id: "excel-merge", title: "엑셀 통합", startFiles: files });
+            }}
+            onExcelJoin={() => {
+              const files = dropPick.excels;
+              setDropPick(null);
+              setView({ name: "internal", id: "excel-join", title: "엑셀 병합", startFiles: files });
             }}
             onShortcut={() => {
               const files = [...dropPick.pictures, ...dropPick.pdfs];

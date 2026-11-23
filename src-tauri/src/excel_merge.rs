@@ -12,16 +12,20 @@
 //! 세로로 잇는다(`merge_tables`). 커맨드는 `excel_merge_glance`(파일 하나 미리 보기)와
 //! `excel_merge_run`(통합 실행)이며, 파일은 path_grant 번호로만 받고 결과는 첫 파일 옆에 새 파일로 만든다.
 //!
+//! 병합: 기준 파일의 키 열로 다른 파일의 줄을 찾고, 고른 열의 빈 칸에만 값을 넣는다(`join_tables`).
+//! 미리보기는 `excel_join_look`, 저장은 `excel_join_save`다. 보여줄 값은 40줄까지만 돌려준다.
+//!
 //! 오류 문구에는 경로나 셀 내용을 넣지 않는다.
 //! 설계: docs/excel-merge-design-2026-11-23.md
 
+use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 use quick_xml::events::Event;
 use quick_xml::Reader;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipArchive, ZipWriter};
@@ -1246,6 +1250,361 @@ pub fn excel_merge_run(app: AppHandle, ids: Vec<String>, title: String, add_sour
     })
 }
 
+// ---------------------------------------------------------------- 병합
+
+const MAX_JOIN_PAIRS: usize = 40;
+const MAX_JOIN_SHOWN: usize = 40;
+const MAX_JOIN_NOTES: usize = 8;
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JoinPair {
+    pub file_index: u32,
+    pub source: String,
+    pub target: String,
+}
+
+struct Slot {
+    name: String,
+    table: Option<SheetTable>,
+}
+
+struct JoinBuilt {
+    rows: Vec<Vec<Cell>>,
+    shown: Vec<JoinShown>,
+    fill_count: usize,
+    keep_count: usize,
+    miss_count: usize,
+    notes: Vec<String>,
+    limited: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JoinShown {
+    pub key: String,
+    pub column: String,
+    pub value: String,
+    pub kind: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JoinLook {
+    pub shown: Vec<JoinShown>,
+    pub fill_count: u32,
+    pub keep_count: u32,
+    pub miss_count: u32,
+    pub notes: Vec<String>,
+    pub limited: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct JoinMade {
+    pub name: String,
+    pub reveal_id: String,
+    pub fill_count: u32,
+    pub keep_count: u32,
+    pub miss_count: u32,
+    pub notes: Vec<String>,
+    pub limited: bool,
+}
+
+fn name_key(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase()
+}
+
+fn clip_label(text: &str) -> String {
+    clip_chars(text.trim(), MAX_LABEL_CHARS)
+}
+
+fn column_at(header: &[Cell], name: &str) -> Option<usize> {
+    let want = name_key(name);
+    if want.is_empty() {
+        return None;
+    }
+    header.iter().position(|cell| header_key(cell) == want)
+}
+
+fn repeats_header(header: &[Cell], row: &[Cell]) -> bool {
+    let width = header.len().max(row.len());
+    (0..width).all(|at| header_key(row.get(at).unwrap_or(&EMPTY_CELL)) == header_key(header.get(at).unwrap_or(&EMPTY_CELL)))
+}
+
+fn pad_row(row: &mut Vec<Cell>, len: usize) {
+    if row.len() < len {
+        row.resize(len, Cell::Empty);
+    }
+}
+
+fn push_note(notes: &mut Vec<String>, text: String) {
+    if notes.len() < MAX_JOIN_NOTES && notes.iter().all(|item| item != &text) {
+        notes.push(text);
+    }
+}
+
+fn slots_from(paths: &[PathBuf]) -> Vec<Slot> {
+    paths
+        .iter()
+        .map(|path| Slot {
+            name: file_label(path),
+            table: read_table(path).ok(),
+        })
+        .collect()
+}
+
+/// 기준 표의 키와 같은 줄에서, 다른 표의 열 값을 빈 칸에만 넣는다.
+fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair]) -> Result<JoinBuilt, String> {
+    let key_name = clip_label(key_name);
+    if name_key(&key_name).is_empty() {
+        return Err("맞출 열을 골라 주세요.".into());
+    }
+    if pairs.is_empty() {
+        return Err("가져올 열과 넣을 열을 골라 주세요.".into());
+    }
+    if pairs.len() > MAX_JOIN_PAIRS {
+        return Err(format!("한 번에 {MAX_JOIN_PAIRS}개 열까지 넣을 수 있습니다."));
+    }
+    let base = slots
+        .first_mut()
+        .and_then(|slot| slot.table.take())
+        .ok_or_else(|| "기준 파일을 읽지 못했습니다.".to_string())?;
+    if base.rows.len() < 2 {
+        return Err("기준 파일의 첫 줄에 제목이 있고, 그 아래 내용이 있어야 합니다.".into());
+    }
+    let mut limited = base.limited;
+    let mut rows = base.rows;
+    let header = rows.first().cloned().unwrap_or_default();
+    if column_at(&header, &key_name).is_none() {
+        return Err("기준 파일에 고른 맞출 열이 없습니다.".into());
+    }
+    let base_key_at = column_at(&header, &key_name).unwrap_or(0);
+    let mut notes = Vec::new();
+    let mut fills = Vec::new();
+    let mut keeps = Vec::new();
+    let mut fill_count = 0usize;
+    let mut keep_count = 0usize;
+    let mut miss_count = 0usize;
+
+    for pair in pairs {
+        let index = pair.file_index as usize;
+        if index == 0 || index >= slots.len() {
+            push_note(&mut notes, "가져올 파일을 다시 골라 주세요.".into());
+            continue;
+        }
+        let source_name = clip_label(&pair.source);
+        let target_name = clip_label(&pair.target);
+        if name_key(&source_name).is_empty() || name_key(&target_name).is_empty() {
+            push_note(&mut notes, "가져올 열과 넣을 열을 모두 골라 주세요.".into());
+            continue;
+        }
+        let file_name = clip_label(&slots[index].name);
+        let Some(table) = slots[index].table.as_ref() else {
+            push_note(&mut notes, format!("{file_name} 파일을 읽지 못했습니다."));
+            continue;
+        };
+        limited |= table.limited;
+        let Some(source_header) = table.rows.first() else {
+            push_note(&mut notes, format!("{file_name} 파일에 제목 줄이 없습니다."));
+            continue;
+        };
+        let Some(source_key_at) = column_at(source_header, &key_name) else {
+            push_note(&mut notes, format!("{file_name} 파일에 맞출 열이 없습니다."));
+            continue;
+        };
+        let Some(source_col) = column_at(source_header, &source_name) else {
+            push_note(&mut notes, format!("{file_name} 파일에 가져올 열이 없습니다."));
+            continue;
+        };
+        if source_key_at == source_col {
+            push_note(&mut notes, "맞출 열과 가져올 열은 서로 달라야 합니다.".into());
+            continue;
+        }
+        let source_header = source_header.clone();
+        let mut bag: HashMap<String, Cell> = HashMap::new();
+        let mut repeated = false;
+        for row in table.rows.iter().skip(1) {
+            if repeats_header(&source_header, row) {
+                continue;
+            }
+            let key = header_key(row.get(source_key_at).unwrap_or(&EMPTY_CELL));
+            if key.is_empty() {
+                continue;
+            }
+            let cell = row.get(source_col).cloned().unwrap_or(Cell::Empty);
+            if cell.is_blank() {
+                continue;
+            }
+            match bag.get(&key) {
+                None => {
+                    bag.insert(key, cell);
+                }
+                Some(prev) if cell_text_of(prev) != cell_text_of(&cell) => repeated = true,
+                _ => {}
+            }
+        }
+        if repeated {
+            push_note(&mut notes, format!("{file_name} 파일은 같은 키가 여러 줄이라 먼저 나온 값을 씁니다."));
+        }
+        let target_at = if let Some(found) = column_at(rows.first().unwrap_or(&Vec::new()), &target_name) {
+            if found == base_key_at {
+                push_note(&mut notes, "넣을 열은 맞출 열과 달라야 합니다.".into());
+                continue;
+            }
+            found
+        } else {
+            let width = rows.first().map(|row| row.len()).unwrap_or(0);
+            if width >= MAX_COLUMNS {
+                limited = true;
+                push_note(&mut notes, "열이 너무 많아 더 붙이지 못했습니다.".into());
+                continue;
+            }
+            if let Some(head) = rows.first_mut() {
+                head.push(Cell::text(target_name.clone()));
+            }
+            width
+        };
+        for row in rows.iter_mut().skip(1) {
+            if repeats_header(&header, row) {
+                continue;
+            }
+            pad_row(row, target_at + 1);
+            let raw_key = cell_text_of(row.get(base_key_at).unwrap_or(&EMPTY_CELL)).to_string();
+            let key = name_key(&raw_key);
+            if key.is_empty() {
+                continue;
+            }
+            let Some(incoming) = bag.get(&key).cloned() else {
+                miss_count += 1;
+                continue;
+            };
+            let shown_key = clip_label(&raw_key);
+            let shown_column = clip_label(&target_name);
+            let shown_value = clip_label(cell_text_of(&incoming));
+            if row.get(target_at).is_some_and(|cell| !cell.is_blank()) {
+                keep_count += 1;
+                if keeps.len() < MAX_JOIN_SHOWN {
+                    keeps.push(JoinShown {
+                        key: shown_key,
+                        column: shown_column,
+                        value: shown_value,
+                        kind: "그대로".into(),
+                    });
+                }
+                continue;
+            }
+            row[target_at] = incoming;
+            fill_count += 1;
+            if fills.len() < MAX_JOIN_SHOWN {
+                fills.push(JoinShown {
+                    key: shown_key,
+                    column: shown_column,
+                    value: shown_value,
+                    kind: "넣음".into(),
+                });
+            }
+        }
+    }
+
+    if miss_count > 0 {
+        push_note(&mut notes, format!("다른 파일에 없는 키 {miss_count}건"));
+    }
+    let mut shown = fills;
+    for line in keeps {
+        if shown.len() >= MAX_JOIN_SHOWN {
+            break;
+        }
+        shown.push(line);
+    }
+    Ok(JoinBuilt { rows, shown, fill_count, keep_count, miss_count, notes, limited })
+}
+
+fn join_file_name(title: &str, first: &Path) -> String {
+    let trimmed = title.trim();
+    let bare = match trimmed.get(trimmed.len().saturating_sub(5)..) {
+        Some(tail) if tail.eq_ignore_ascii_case(".xlsx") => trimmed[..trimmed.len() - 5].trim(),
+        _ => trimmed,
+    };
+    let custom = crate::pdf_pages::tidy_merge_title(bare);
+    if custom.is_empty() {
+        format!("{}_병합.xlsx", stem_label(first))
+    } else {
+        format!("{custom}.xlsx")
+    }
+}
+
+fn look_from(built: JoinBuilt) -> JoinLook {
+    JoinLook {
+        shown: built.shown,
+        fill_count: built.fill_count as u32,
+        keep_count: built.keep_count as u32,
+        miss_count: built.miss_count as u32,
+        notes: built.notes,
+        limited: built.limited,
+    }
+}
+
+fn granted_paths(app: &AppHandle, ids: &[String]) -> Result<Vec<PathBuf>, String> {
+    if ids.len() < 2 {
+        return Err("엑셀 파일을 두 개 이상 넣어 주세요.".into());
+    }
+    if ids.len() > MAX_MERGE_FILES {
+        return Err(format!("한 번에 {MAX_MERGE_FILES}개까지 넣을 수 있습니다."));
+    }
+    ids.iter().map(|id| granted_table(app, id)).collect()
+}
+
+/// 맞출 키와 넣을 값을 미리 본다. 원본은 읽기만 하고 파일을 만들지 않는다.
+#[tauri::command(async)]
+pub fn excel_join_look(app: AppHandle, ids: Vec<String>, key: String, pairs: Vec<JoinPair>) -> Result<JoinLook, String> {
+    let paths = granted_paths(&app, &ids)?;
+    let built = join_tables(slots_from(&paths), &key, &pairs)?;
+    Ok(look_from(built))
+}
+
+/// 빈 칸에 값을 넣은 새 xlsx를 첫 파일 옆에 만든다. 원본은 바꾸지 않는다.
+#[tauri::command(async)]
+pub fn excel_join_save(
+    app: AppHandle,
+    ids: Vec<String>,
+    title: String,
+    key: String,
+    pairs: Vec<JoinPair>,
+) -> Result<JoinMade, String> {
+    let paths = granted_paths(&app, &ids)?;
+    let dir = paths
+        .first()
+        .and_then(|path| path.parent())
+        .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
+    path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
+    let built = join_tables(slots_from(&paths), &key, &pairs)?;
+    if built.fill_count == 0 {
+        return Err("넣을 값이 없습니다. 비어 있는 칸이 있는 열을 골라 주세요.".into());
+    }
+    let first = paths.first().ok_or_else(|| "엑셀 파일을 넣어 주세요.".to_string())?;
+    let dest = fresh_xlsx(dir, &join_file_name(&title, first), &paths)?;
+    write_xlsx_new(&dest, &built.rows)?;
+    let book = app.state::<path_grant::GrantBook>();
+    let write_id = path_grant::begin_derived_write(&book, &dest).map_err(|text| text.to_string())?;
+    let card = match path_grant::finish_made(&book, write_id) {
+        Ok(card) => card,
+        Err(text) => {
+            path_grant::drop_grant(&book, write_id);
+            return Err(text.to_string());
+        }
+    };
+    Ok(JoinMade {
+        name: card.name,
+        reveal_id: card.reveal_id,
+        fill_count: built.fill_count as u32,
+        keep_count: built.keep_count as u32,
+        miss_count: built.miss_count as u32,
+        notes: built.notes,
+        limited: built.limited,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1659,5 +2018,77 @@ mod tests {
         assert!(merge_files(&[broken], "", true).is_err());
         assert!(merge_files(&[], "", true).is_err());
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    fn slot(name: &str, rows: Vec<Vec<Cell>>) -> Slot {
+        Slot { name: name.into(), table: Some(SheetTable { rows, limited: false }) }
+    }
+
+    #[test]
+    fn join_fills_blank_cells_for_the_same_key_and_keeps_existing_values() {
+        let base = slot(
+            "기준.xlsx",
+            vec![
+                vec![text("학교명"), text("점검날짜")],
+                vec![text("A학교"), Cell::Empty],
+                vec![text("B학교"), text("2026-01-01")],
+                vec![text("C학교"), Cell::Empty],
+            ],
+        );
+        let other = slot(
+            "시행.xlsx",
+            vec![
+                vec![text("학교명"), text("시행일자")],
+                vec![text(" A학교 "), text("2026-03-01")],
+                vec![text("B학교"), text("2026-04-01")],
+                vec![text("A학교"), text("2099-01-01")],
+            ],
+        );
+        let pairs = vec![JoinPair { file_index: 1, source: "시행일자".into(), target: "점검날짜".into() }];
+        let built = join_tables(vec![base, other], " 학교명 ", &pairs).unwrap();
+        assert_eq!(
+            built.rows,
+            vec![
+                vec![text("학교명"), text("점검날짜")],
+                vec![text("A학교"), text("2026-03-01")],
+                vec![text("B학교"), text("2026-01-01")],
+                vec![text("C학교"), Cell::Empty],
+            ]
+        );
+        assert_eq!(built.fill_count, 1);
+        assert_eq!(built.keep_count, 1);
+        assert_eq!(built.miss_count, 1);
+        assert_eq!(built.shown[0].kind, "넣음");
+        assert_eq!(built.shown[0].key, "A학교");
+        assert_eq!(built.shown[0].value, "2026-03-01");
+        assert!(built.notes.iter().any(|note| note.contains("여러 줄")));
+        assert!(built.notes.iter().any(|note| note.contains("없는 키")));
+    }
+
+    #[test]
+    fn join_adds_a_column_when_the_target_name_is_new_and_skips_a_file_without_the_key() {
+        let base = slot("기준.xlsx", vec![vec![text("학교명")], vec![text("A학교")]]);
+        let other = slot("시행.xlsx", vec![vec![text("학교명"), text("시행일자")], vec![text("A학교"), text("2026-03-01")]]);
+        let missing = slot("없음.xlsx", vec![vec![text("이름")], vec![text("A학교")]]);
+        let pairs = vec![
+            JoinPair { file_index: 1, source: "시행일자".into(), target: "시행일자".into() },
+            JoinPair { file_index: 2, source: "이름".into(), target: "이름".into() },
+        ];
+        let built = join_tables(vec![base, other, missing], "학교명", &pairs).unwrap();
+        assert_eq!(
+            built.rows,
+            vec![vec![text("학교명"), text("시행일자")], vec![text("A학교"), text("2026-03-01")]]
+        );
+        assert_eq!(built.fill_count, 1);
+        assert!(built.notes.iter().any(|note| note.contains("맞출 열")));
+        assert!(join_tables(vec![slot("a", vec![vec![text("학교명")], vec![text("A")]])], "", &pairs).is_err());
+    }
+
+    #[test]
+    fn join_file_name_uses_merge_suffix_only_when_a_title_is_given() {
+        let first = Path::new("C:/문서/점검.xlsx");
+        assert_eq!(join_file_name("", first), "점검_병합.xlsx");
+        assert_eq!(join_file_name("3월 맞춤", first), "3월 맞춤.xlsx");
+        assert_eq!(join_file_name("..\\evil", first), "점검_병합.xlsx");
     }
 }

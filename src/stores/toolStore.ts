@@ -3,6 +3,7 @@ import { EDUCATION_PACK, mergePackTools, type LauncherPack } from "../data/educa
 import {
   COMMON_WORK_TOOLS,
   DOC_SHRINK_TOOL,
+  EXCEL_JOIN_TOOL,
   EXCEL_MERGE_TOOL,
   PDF_PAGES_TOOL,
   PHOTO_CAPTION_TOOL,
@@ -40,6 +41,7 @@ const WORK_TOOL_ORDER = [
   URL_MARK_TOOL,
   PDF_PAGES_TOOL,
   EXCEL_MERGE_TOOL,
+  EXCEL_JOIN_TOOL,
   TIMER_TOOL,
 ];
 
