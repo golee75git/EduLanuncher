@@ -88,6 +88,48 @@ pub fn read_table(path: &Path) -> Result<SheetTable, String> {
     }
 }
 
+fn read_slot(path: &Path) -> Result<SheetTable, String> {
+    if path_ext(path) == "pdf" {
+        let parsed = crate::pdf_sheet::read_rows(path)?;
+        return Ok(labels_to_table(parsed.rows, parsed.limited));
+    }
+    read_table(path)
+}
+
+fn labels_to_table(rows: Vec<Vec<String>>, mut limited: bool) -> SheetTable {
+    let mut out = Vec::new();
+    for row in rows {
+        if out.len() >= MAX_ROWS {
+            limited = true;
+            break;
+        }
+        let mut cells = Vec::new();
+        for label in row {
+            if cells.len() >= MAX_COLUMNS {
+                limited = true;
+                break;
+            }
+            cells.push(Cell::text(label));
+        }
+        if cells.iter().all(|cell| cell.is_blank()) {
+            continue;
+        }
+        out.push(cells);
+    }
+    SheetTable { rows: out, limited }
+}
+
+fn path_ext(path: &Path) -> String {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.to_ascii_lowercase())
+        .unwrap_or_default()
+}
+
+fn spreadsheet_base(path: &Path) -> bool {
+    matches!(path_ext(path).as_str(), "xlsx" | "csv")
+}
+
 // ---------------------------------------------------------------- xlsx
 
 pub fn read_xlsx(path: &Path) -> Result<SheetTable, String> {
@@ -1349,7 +1391,7 @@ fn slots_from(paths: &[PathBuf]) -> Vec<Slot> {
         .iter()
         .map(|path| Slot {
             name: file_label(path),
-            table: read_table(path).ok(),
+            table: read_slot(path).ok(),
         })
         .collect()
 }
@@ -1547,12 +1589,16 @@ fn look_from(built: JoinBuilt) -> JoinLook {
 
 fn granted_paths(app: &AppHandle, ids: &[String]) -> Result<Vec<PathBuf>, String> {
     if ids.len() < 2 {
-        return Err("엑셀 파일을 두 개 이상 넣어 주세요.".into());
+        return Err("기준 파일과 값을 가져올 파일을 넣어 주세요.".into());
     }
     if ids.len() > MAX_MERGE_FILES {
         return Err(format!("한 번에 {MAX_MERGE_FILES}개까지 넣을 수 있습니다."));
     }
-    ids.iter().map(|id| granted_table(app, id)).collect()
+    let paths = ids.iter().map(|id| granted_table(app, id)).collect::<Result<Vec<_>, _>>()?;
+    if !paths.first().is_some_and(|path| spreadsheet_base(path)) {
+        return Err("기준 파일은 xlsx 또는 csv입니다.".into());
+    }
+    Ok(paths)
 }
 
 /// 맞출 키와 넣을 값을 미리 본다. 원본은 읽기만 하고 파일을 만들지 않는다.
@@ -1602,6 +1648,137 @@ pub fn excel_join_save(
         miss_count: built.miss_count as u32,
         notes: built.notes,
         limited: built.limited,
+    })
+}
+
+const PREVIEW_ROWS: usize = 8;
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PdfSheetLook {
+    pub data_rows: u32,
+    pub columns: u32,
+    pub header: Vec<String>,
+    pub preview: Vec<Vec<String>>,
+    pub limited: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PdfSheetMade {
+    pub name: String,
+    pub reveal_id: String,
+    pub data_rows: u32,
+    pub limited: bool,
+}
+
+fn header_of(table: &SheetTable) -> Vec<String> {
+    table
+        .rows
+        .first()
+        .map(|row| row.iter().map(|cell| clip_chars(cell_text_of(cell).trim(), MAX_LABEL_CHARS)).collect())
+        .unwrap_or_default()
+}
+
+fn preview_of(table: &SheetTable) -> Vec<Vec<String>> {
+    table
+        .rows
+        .iter()
+        .take(PREVIEW_ROWS)
+        .map(|row| row.iter().map(|cell| clip_chars(cell_text_of(cell).trim(), MAX_LABEL_CHARS)).collect())
+        .collect()
+}
+
+fn sheet_stem(path: &Path) -> String {
+    let stem: String = path
+        .file_stem()
+        .and_then(|text| text.to_str())
+        .unwrap_or("문서")
+        .chars()
+        .take(MAX_LABEL_CHARS)
+        .collect();
+    if stem.is_empty() { "문서".into() } else { stem }
+}
+
+fn sheet_file_name(title: &str, first: &Path) -> String {
+    let trimmed = title.trim();
+    let bare = match trimmed.get(trimmed.len().saturating_sub(5)..) {
+        Some(tail) if tail.eq_ignore_ascii_case(".xlsx") => trimmed[..trimmed.len() - 5].trim(),
+        _ => trimmed,
+    };
+    let custom = crate::pdf_pages::tidy_merge_title(bare);
+    if custom.is_empty() {
+        format!("{}_엑셀.xlsx", sheet_stem(first))
+    } else {
+        format!("{custom}.xlsx")
+    }
+}
+
+fn finish_made_file(app: &AppHandle, dest: &Path) -> Result<(String, String), String> {
+    let book = app.state::<path_grant::GrantBook>();
+    let write_id = path_grant::begin_derived_write(&book, dest).map_err(|text| text.to_string())?;
+    match path_grant::finish_made(&book, write_id) {
+        Ok(card) => Ok((card.name, card.reveal_id)),
+        Err(text) => {
+            path_grant::drop_grant(&book, write_id);
+            Err(text.to_string())
+        }
+    }
+}
+
+/// xlsx·csv·글자 PDF의 제목 줄을 본다. 값 채우기에서 PDF를 추가 파일로 고를 때 쓴다.
+#[tauri::command(async)]
+pub fn sheet_glance(app: AppHandle, id: String) -> Result<ExcelGlance, String> {
+    let path = granted_table(&app, &id)?;
+    let table = read_slot(&path)?;
+    let header = header_of(&table);
+    Ok(ExcelGlance {
+        data_rows: table.rows.len().saturating_sub(1) as u32,
+        columns: header.len() as u32,
+        header,
+        limited: table.limited,
+    })
+}
+
+/// PDF 글자 표의 앞부분을 본다. 파일은 만들지 않는다.
+#[tauri::command(async)]
+pub fn pdf_sheet_look(app: AppHandle, id: String) -> Result<PdfSheetLook, String> {
+    let path = granted_table(&app, &id)?;
+    if path_ext(&path) != "pdf" {
+        return Err("PDF 파일을 골라 주세요.".into());
+    }
+    let table = read_slot(&path)?;
+    let header = header_of(&table);
+    Ok(PdfSheetLook {
+        data_rows: table.rows.len().saturating_sub(1) as u32,
+        columns: header.len() as u32,
+        header,
+        preview: preview_of(&table),
+        limited: table.limited,
+    })
+}
+
+/// 글자가 있는 PDF를 새 xlsx로 저장한다. 원본은 바꾸지 않는다.
+#[tauri::command(async)]
+pub fn pdf_sheet_save(app: AppHandle, id: String, title: String) -> Result<PdfSheetMade, String> {
+    let path = granted_table(&app, &id)?;
+    if path_ext(&path) != "pdf" {
+        return Err("PDF 파일을 골라 주세요.".into());
+    }
+    let dir = path.parent().ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
+    path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
+    let table = read_slot(&path)?;
+    if table.rows.is_empty() {
+        return Err("글자가 없는 PDF는 엑셀로 바꾸지 않습니다.".into());
+    }
+    let dest = fresh_xlsx(dir, &sheet_file_name(&title, &path), &[path.clone()])?;
+    write_xlsx_new(&dest, &table.rows)?;
+    let (name, reveal_id) = finish_made_file(&app, &dest)?;
+    Ok(PdfSheetMade {
+        name,
+        reveal_id,
+        data_rows: table.rows.len().saturating_sub(1) as u32,
+        limited: table.limited,
     })
 }
 
@@ -2090,5 +2267,16 @@ mod tests {
         assert_eq!(join_file_name("", first), "점검_병합.xlsx");
         assert_eq!(join_file_name("3월 맞춤", first), "3월 맞춤.xlsx");
         assert_eq!(join_file_name("..\\evil", first), "점검_병합.xlsx");
+    }
+
+    #[test]
+    fn sheet_file_name_uses_excel_suffix_and_keeps_a_spreadsheet_base() {
+        let first = Path::new("C:/문서/점검표.pdf");
+        assert_eq!(sheet_file_name("", first), "점검표_엑셀.xlsx");
+        assert_eq!(sheet_file_name("3월 표", first), "3월 표.xlsx");
+        assert_eq!(sheet_file_name("..\\evil", first), "점검표_엑셀.xlsx");
+        assert!(spreadsheet_base(Path::new("a.xlsx")));
+        assert!(spreadsheet_base(Path::new("a.CSV")));
+        assert!(!spreadsheet_base(Path::new("a.pdf")));
     }
 }

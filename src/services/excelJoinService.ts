@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { headerKey } from "./excelMergeService";
+import { headerKey, type ExcelGlance } from "./excelMergeService";
 
 const KEY_CANDIDATES = ["학교명", "학교이름", "학교"];
 
@@ -68,6 +68,10 @@ export function preferredKey(headerRows: string[][]): string {
       return Boolean(key) && sets.every((set) => set.has(key));
     }) ?? ""
   );
+}
+
+export function glanceSheet(id: string): Promise<ExcelGlance> {
+  return invoke<ExcelGlance>("sheet_glance", { id });
 }
 
 export function joinTitleFromName(name: string): string {

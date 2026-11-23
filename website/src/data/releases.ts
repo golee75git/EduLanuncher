@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.234-20261123",
+    note: "글자가 있는 PDF를 새 엑셀로 저장합니다. 업무도구는 PDF를 엑셀로이고, 이름을 비우면 뒤에 _엑셀이 붙습니다. 값 채우기는 xlsx·csv를 기준으로 PDF 글자 표를 추가로 읽을 수 있습니다.",
+  },
+  {
     version: "0.1.233-20261123",
     note: "엑셀 취합과 값 채우기로 이름이 바뀝니다. 업무도구에는 엑셀 값 채우기가 있고, 취합 파일 이름을 비우면 뒤에 _취합이 붙습니다.",
   },

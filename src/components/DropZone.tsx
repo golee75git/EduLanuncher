@@ -15,7 +15,7 @@ import {
 import { privacyDropHeld, takePrivacyPicture } from "../services/privacyDropGate";
 import { docDropHeld, isDocPicturePath, takeDocPictures } from "../services/docDropGate";
 import { isPdfPath, pdfDropHeld, takePdfFiles } from "../services/pdfDropGate";
-import { excelDropHeld, isExcelPath, takeExcelFiles } from "../services/excelDropGate";
+import { excelDropHeld, isExcelPath, isJoinPath, takeExcelFiles, takeJoinFiles } from "../services/excelDropGate";
 
 interface DropZoneProps {
   children: ReactNode;
@@ -107,6 +107,12 @@ export function DropZone({
 
     const applyNativeFiles = (files: GrantedFile[]) => {
       let rest = files;
+      if (takeJoinFiles(rest)) {
+        rest = rest.filter((file) => !isJoinPath(file.name));
+        if (rest.length === 0) {
+          return;
+        }
+      }
       if (takePdfFiles(rest)) {
         rest = rest.filter((file) => !isPdfPath(file.name));
         if (rest.length === 0) {

@@ -40,6 +40,7 @@ import { PhotoEditPage } from "./pages/PhotoEditPage";
 import { DocShrinkPage } from "./pages/DocShrinkPage";
 import { ExcelMergePage } from "./pages/ExcelMergePage";
 import { ExcelJoinPage } from "./pages/ExcelJoinPage";
+import { PdfSheetPage } from "./pages/PdfSheetPage";
 import { PdfToolPage } from "./pages/PdfToolPage";
 import { PhotoPdfPage } from "./pages/PhotoPdfPage";
 import { PcUrlListPage } from "./pages/PcUrlListPage";
@@ -55,7 +56,7 @@ import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
 import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget } from "./data/computerTools";
-import { isExcelJoinTarget, isExcelMergeTarget, isPdfPagesTarget, isTimerTarget } from "./data/sampleTools";
+import { isExcelJoinTarget, isExcelMergeTarget, isPdfPagesTarget, isPdfSheetTarget, isTimerTarget } from "./data/sampleTools";
 import { TimerPage } from "./pages/TimerPage";
 import { hydrateTimers } from "./stores/timerStore";
 import { logEducationValidation } from "./services/mindMapService";
@@ -409,6 +410,7 @@ export default function App() {
           pdfs: split.pdfs,
           places,
           fileUrls,
+          excels: split.rest.filter((file) => file.id && isExcelPath(file.name)),
         };
         return dropHoldOpen(next) ? next : null;
       });
@@ -1348,7 +1350,21 @@ export default function App() {
             <DocShrinkPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && isPdfPagesTarget(view.id) ? (
-            <PdfToolPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
+            <PdfToolPage
+              startFiles={view.startFiles}
+              onBack={() => setView({ name: "home" })}
+              onSheet={(files) =>
+                setView({
+                  name: "internal",
+                  id: "pdf-sheet",
+                  title: "엑셀로 저장",
+                  startFiles: files.filter((file) => file.id).slice(0, 1),
+                })
+              }
+            />
+          ) : null}
+          {view.name === "internal" && isPdfSheetTarget(view.id) ? (
+            <PdfSheetPage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
           ) : null}
           {view.name === "internal" && isExcelMergeTarget(view.id) ? (
             <ExcelMergePage startFiles={view.startFiles} onBack={() => setView({ name: "home" })} />
@@ -1419,6 +1435,7 @@ export default function App() {
           view.id !== "photo-edit" &&
           !isDocShrinkTarget(view.id) &&
           !isPdfPagesTarget(view.id) &&
+          !isPdfSheetTarget(view.id) &&
           !isExcelMergeTarget(view.id) &&
           !isExcelJoinTarget(view.id) &&
           !isTimerTarget(view.id) &&
@@ -1630,13 +1647,21 @@ export default function App() {
               setDropPick(null);
               setView({ name: "internal", id: "pdf-pages", title: "PDF 도구", startFiles: files });
             }}
+            onPdfSheet={() => {
+              const file = dropPick.pdfs[0];
+              if (!file) {
+                return;
+              }
+              setDropPick(null);
+              setView({ name: "internal", id: "pdf-sheet", title: "엑셀로 저장", startFiles: [file] });
+            }}
             onExcelMerge={() => {
               const files = dropPick.excels;
               setDropPick(null);
               setView({ name: "internal", id: "excel-merge", title: "엑셀 취합", startFiles: files });
             }}
             onExcelJoin={() => {
-              const files = dropPick.excels;
+              const files = [...dropPick.excels, ...dropPick.pdfs];
               setDropPick(null);
               setView({ name: "internal", id: "excel-join", title: "값 채우기", startFiles: files });
             }}

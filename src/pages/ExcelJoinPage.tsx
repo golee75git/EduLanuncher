@@ -1,8 +1,9 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { holdExcelDrop } from "../services/excelDropGate";
-import { EXCEL_MERGE_MAX_FILES, glanceExcel, headerKey } from "../services/excelMergeService";
+import { holdJoinDrop } from "../services/excelDropGate";
+import { EXCEL_MERGE_MAX_FILES, headerKey } from "../services/excelMergeService";
 import {
+  glanceSheet,
   joinTitleFromName,
   lookExcelJoin,
   preferredKey,
@@ -43,6 +44,23 @@ function asMessage(error: unknown): string {
   return "엑셀 파일을 처리하지 못했습니다.";
 }
 
+function isPdfName(name: string): boolean {
+  return /\.pdf$/i.test(name.trim());
+}
+
+function spreadsheetFirst(files: SheetFile[]): SheetFile[] {
+  const sheets: SheetFile[] = [];
+  const pdfs: SheetFile[] = [];
+  for (const file of files) {
+    if (isPdfName(file.name)) {
+      pdfs.push(file);
+    } else {
+      sheets.push(file);
+    }
+  }
+  return [...sheets, ...pdfs];
+}
+
 export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
   const addRef = useRef<(files: GrantedFile[]) => void>(() => {});
   const pairSeq = useRef(1);
@@ -57,7 +75,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
   const [look, setLook] = useState<JoinLook | null>(null);
   const [made, setMade] = useState<JoinMade | null>(null);
 
-  useEffect(() => holdExcelDrop((incoming) => addRef.current(incoming)), []);
+  useEffect(() => holdJoinDrop((incoming) => addRef.current(incoming)), []);
 
   useEffect(() => {
     return () => {
@@ -72,8 +90,9 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
   }, [startFiles]);
 
   const ready = files.filter((file) => !file.note);
+  const baseFile = ready.find((file) => !isPdfName(file.name));
   const readyMark = ready.map((file) => `${file.id}:${file.header.join("\t")}`).join("|");
-  const baseName = ready[0]?.name ?? "";
+  const baseName = baseFile?.name ?? "";
 
   useEffect(() => {
     const current = files.filter((file) => !file.note);
@@ -111,7 +130,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
     const loaded: SheetFile[] = [];
     for (const file of room) {
       try {
-        const glance = await glanceExcel(file.id);
+        const glance = await glanceSheet(file.id);
         loaded.push({
           id: file.id,
           name: file.name || "엑셀",
@@ -128,7 +147,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
       }
     }
     if (loaded.length > 0) {
-      setFiles((current) => [...current, ...loaded]);
+      setFiles((current) => spreadsheetFirst([...current, ...loaded]));
     }
   };
   addRef.current = (picked) => {
@@ -137,7 +156,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
 
   const pickFiles = async () => {
     try {
-      const selected = await pickOpenFiles("excels");
+      const selected = await pickOpenFiles("sheets");
       if (selected.length > 0) {
         await addFiles(selected);
       }
@@ -146,7 +165,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
     }
   };
 
-  const base = ready[0];
+  const base = baseFile;
   const baseHeaders = uniqueHeaders(base?.header ?? []);
   const listedKey = keyName && !baseHeaders.some((name) => headerKey(name) === headerKey(keyName)) ? [keyName] : [];
 
@@ -262,11 +281,11 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
         ) : (
           <>
             <p className="text-xs leading-5 text-quiet">
-              첫 파일을 기준으로, 같은 키의 빈 칸에 다른 파일 열 값을 넣습니다. 맞출 열을 확인한 뒤 적용할 값을 먼저 보여 줍니다. 이미 있는
-              값은 바꾸지 않고, 원본도 바꾸지 않습니다.
+              첫 파일은 xlsx 또는 csv입니다. 같은 키의 빈 칸에 다른 파일 열 값을 넣습니다. PDF는 글자가 있는 표만 추가로 읽습니다. 맞출 열을
+              확인한 뒤 적용할 값을 먼저 보여 줍니다. 이미 있는 값은 바꾸지 않고, 원본도 바꾸지 않습니다.
             </p>
             <button type="button" className="btn-secondary" disabled={busy} onClick={() => void pickFiles()}>
-              엑셀 파일 추가
+              파일 추가
             </button>
             {files.length > 0 ? (
               <ul className="card-surface divide-y divide-line/70">
@@ -281,8 +300,9 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                 ))}
               </ul>
             ) : (
-              <p className="card-surface px-3 py-4 text-center text-xs text-quiet">엑셀 파일을 여기로 끌어 놓거나 위 버튼으로 골라 주세요.</p>
+              <p className="card-surface px-3 py-4 text-center text-xs text-quiet">xlsx, csv, PDF를 여기로 끌어 놓거나 위 버튼으로 골라 주세요.</p>
             )}
+            {files.length > 0 && !base ? <p className="text-xs text-desk">기준 파일은 xlsx 또는 csv입니다.</p> : null}
             {base ? (
               <>
                 <label className="block text-xs text-quiet" htmlFor="excel-join-key">
@@ -310,7 +330,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                     </option>
                   ))}
                 </select>
-                {ready.slice(1).map((file) => {
+                {ready.filter((file) => file.id !== base?.id).map((file) => {
                   const hasKey = uniqueHeaders(file.header).some((name) => headerKey(name) === headerKey(keyName));
                   const filePairs = pairs.filter((pair) => pair.fileId === file.id);
                   const sources = uniqueHeaders(file.header).filter((name) => headerKey(name) !== headerKey(keyName));

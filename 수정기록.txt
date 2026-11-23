@@ -6,6 +6,48 @@
 ---
 
 날짜: 2026-11-23
+버전: 0.1.234-20261123
+설치 파일: AILauncher_0.1.234-20261123_x64-setup.exe, AILauncher_2026-11-23_1532_x64-setup.exe
+작성자: 요청자
+
+요청: 엑셀 병합(값 채우기)에서 PDF도 읽고, PDF를 엑셀 파일로 저장한다. 저작권·특허·의존성·라이선스에 문제 없게.
+
+확인: 글자가 있는 PDF만 읽는다. 칸은 탭이나 띄어쓰기 두 칸 이상에서 나눈다. 그 문자가 없으면 한 줄이 한 칸이다. 암호 PDF와 글자 없는 PDF는 거절한다. 새 엑셀은 PDF 옆에 두고, 이름을 비우면 뒤에 _엑셀이 붙는다. 값 채우기의 기준은 xlsx 또는 csv이고, PDF는 추가 파일이다. 원본은 바꾸지 않는다. 경로는 번호만 쓴다. 오류에 경로와 본문을 넣지 않는다. pdf_sheet 테스트 3개와 저장 이름 테스트를 실행했다. 프론트 타입 검사를 통과했다. OFL 파일을 넣지 않음. 화면 글꼴은 그대로 system-ui이며 글꼴 파일은 없다. 새 패키지 없음. lopdf 0.45.0 MIT, zip, quick-xml은 기존 의존이다. 직접 의존성에 GPL을 추가하지 않음. THIRD_PARTY_NOTICES에 GPL 라이선스 줄이 없다. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않았고 청구항과 구성을 대조하지 않음. PDF 글자 줄을 칸으로 나누어 저장하고 값 채우기에 더하는 구성은 특허 검토가 필요할 수 있다. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- src-tauri/src/pdf_sheet.rs
+- src/pages/PdfSheetPage.tsx
+- src/services/pdfSheetService.ts
+
+다시 쓴 파일:
+- src-tauri/src/excel_merge.rs
+- src-tauri/src/lib.rs
+- src-tauri/src/path_grant.rs
+- src/data/sampleTools.ts
+- src/stores/toolStore.ts
+- src/App.tsx
+- src/components/DropActionPick.tsx
+- src/components/DropZone.tsx
+- src/pages/ExcelJoinPage.tsx
+- src/pages/PdfToolPage.tsx
+- src/pages/SettingsPage.tsx
+- src/services/excelDropGate.ts
+- src/services/excelJoinService.ts
+- src/services/savePick.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- docs/버전정리.md
+- 수정기록.txt
+
+---
+
+날짜: 2026-11-23
 버전: 0.1.233-20261123
 설치 파일: AILauncher_0.1.233-20261123_x64-setup.exe, AILauncher_2026-11-23_1507_x64-setup.exe
 작성자: 요청자

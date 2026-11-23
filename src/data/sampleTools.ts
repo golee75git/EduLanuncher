@@ -67,19 +67,37 @@ export function isExcelMergeTarget(target: string): boolean {
 export const EXCEL_JOIN_TOOL: ToolItem = {
   id: "tool-excel-join",
   name: "엑셀 값 채우기",
-  description: "같은 키의 빈 칸에 다른 엑셀 열 값을 넣어 새 파일로 저장합니다",
+  description: "같은 키의 빈 칸에 다른 엑셀이나 글자 PDF의 열 값을 넣어 새 파일로 저장합니다",
   type: "internal",
   target: "excel-join",
   icon: "sheet",
   category: "전산",
   favorite: true,
-  keywords: ["엑셀", "xlsx", "csv", "값 채우기", "학교명", "맞추기", "excel"],
+  keywords: ["엑셀", "xlsx", "csv", "pdf", "값 채우기", "학교명", "맞추기", "excel"],
   usageCount: 0,
   enabled: true,
 };
 
 export function isExcelJoinTarget(target: string): boolean {
   return target === EXCEL_JOIN_TOOL.target || target === EXCEL_JOIN_TOOL.id;
+}
+
+export const PDF_SHEET_TOOL: ToolItem = {
+  id: "tool-pdf-sheet",
+  name: "PDF를 엑셀로",
+  description: "글자가 있는 PDF를 표로 읽어 새 엑셀로 저장합니다",
+  type: "internal",
+  target: "pdf-sheet",
+  icon: "fileText",
+  category: "전산",
+  favorite: true,
+  keywords: ["pdf", "PDF", "엑셀", "xlsx", "엑셀로 저장"],
+  usageCount: 0,
+  enabled: true,
+};
+
+export function isPdfSheetTarget(target: string): boolean {
+  return target === PDF_SHEET_TOOL.target || target === PDF_SHEET_TOOL.id;
 }
 
 export const TIMER_TOOL: ToolItem = {
@@ -255,6 +273,7 @@ export const COMMON_WORK_TOOLS: ToolItem[] = [
   DOC_SHRINK_TOOL,
   URL_MARK_TOOL,
   PDF_PAGES_TOOL,
+  PDF_SHEET_TOOL,
   EXCEL_MERGE_TOOL,
   EXCEL_JOIN_TOOL,
   TIMER_TOOL,

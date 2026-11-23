@@ -22,6 +22,7 @@ interface DropActionPickProps {
   onQr: () => void;
   onPhotoPdf: () => void;
   onPdf: () => void;
+  onPdfSheet: () => void;
   onExcelMerge: () => void;
   onExcelJoin: () => void;
   onShortcut: () => void;
@@ -53,6 +54,7 @@ export function DropActionPick({
   onQr,
   onPhotoPdf,
   onPdf,
+  onPdfSheet,
   onExcelMerge,
   onExcelJoin,
   onShortcut,
@@ -120,12 +122,17 @@ export function DropActionPick({
               PDF 도구
             </button>
           ) : null}
+          {pdfs.length > 0 ? (
+            <button type="button" className="btn-secondary drop-recent" onClick={onPdfSheet}>
+              엑셀로 저장
+            </button>
+          ) : null}
           {excels.length >= 2 ? (
             <button type="button" className="btn-secondary drop-recent" onClick={onExcelMerge}>
               엑셀 취합
             </button>
           ) : null}
-          {excels.length >= 2 ? (
+          {excels.length >= 2 || (excels.length >= 1 && pdfs.length >= 1) ? (
             <button type="button" className="btn-secondary drop-recent" onClick={onExcelJoin}>
               값 채우기
             </button>

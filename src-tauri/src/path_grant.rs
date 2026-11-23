@@ -723,6 +723,7 @@ fn open_rule(kind: &str) -> Result<(&'static str, &'static [&'static str], bool)
         "pdf" => Ok(("PDF", &["pdf"], false)),
         "pdfs" => Ok(("PDF", &["pdf"], true)),
         "excels" => Ok(("엑셀", &["xlsx", "csv"], true)),
+        "sheets" => Ok(("표", &["xlsx", "csv", "pdf"], true)),
         _ => Err("열 형식이 올바르지 않습니다."),
     }
 }

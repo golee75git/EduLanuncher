@@ -18,6 +18,7 @@ import {
 
 interface PdfToolPageProps {
   onBack: () => void;
+  onSheet: (files: GrantedFile[]) => void;
   startFiles?: GrantedFile[];
 }
 
@@ -34,7 +35,7 @@ type Mode = "menu" | "merge" | "split" | "arrange" | "turn" | "done";
 const SIGNED_NOTE =
   "전자서명이 포함된 PDF일 수 있습니다. 페이지를 합치거나 삭제·회전하면 기존 전자서명의 유효성에 영향을 줄 수 있습니다.";
 
-export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
+export function PdfToolPage({ onBack, onSheet, startFiles }: PdfToolPageProps) {
   const addRef = useRef<(files: GrantedFile[]) => void>(() => {});
   const [mode, setMode] = useState<Mode>("menu");
   const [files, setFiles] = useState<PdfFile[]>([]);
@@ -359,6 +360,9 @@ export function PdfToolPage({ onBack, startFiles }: PdfToolPageProps) {
                 페이지 회전
               </button>
             </div>
+            <button type="button" className="btn-secondary w-full" onClick={() => onSheet(files)}>
+              엑셀로 저장
+            </button>
           </>
         ) : null}
 
