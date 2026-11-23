@@ -92,12 +92,34 @@ pub fn read_rows(path: &Path) -> Result<PdfRows, String> {
     Ok(PdfRows { rows, limited })
 }
 
+type Matrix = [f32; 6];
+
+const IDENTITY: Matrix = [1.0, 0.0, 0.0, 1.0, 0.0, 0.0];
+
+/// 행렬 `left`를 먼저, `right`를 나중에 적용한 합성 행렬(PDF의 행 벡터 규칙).
+fn multiply(left: &Matrix, right: &Matrix) -> Matrix {
+    [
+        left[0] * right[0] + left[1] * right[2],
+        left[0] * right[1] + left[1] * right[3],
+        left[2] * right[0] + left[3] * right[2],
+        left[2] * right[1] + left[3] * right[3],
+        left[4] * right[0] + left[5] * right[2] + right[4],
+        left[4] * right[1] + left[5] * right[3] + right[5],
+    ]
+}
+
+fn shifted(tx: f32, ty: f32, base: &Matrix) -> Matrix {
+    multiply(&[1.0, 0.0, 0.0, 1.0, tx, ty], base)
+}
+
 #[derive(Clone)]
 struct Pen {
-    x: f32,
-    y: f32,
-    line_x: f32,
-    line_y: f32,
+    /// 글자 공간 → 쪽 공간 변환(`cm`).
+    ctm: Matrix,
+    /// 글자 행렬과 줄 시작 행렬(`Tm`, `Td`로 바뀐다).
+    text: Matrix,
+    line: Matrix,
+    /// `Tf` 글꼴 크기. 실제 크기는 행렬 배율을 곱해야 한다.
     size: f32,
     leading: f32,
     font: Vec<u8>,
@@ -105,7 +127,25 @@ struct Pen {
 
 impl Default for Pen {
     fn default() -> Self {
-        Self { x: 0.0, y: 0.0, line_x: 0.0, line_y: 0.0, size: 12.0, leading: 12.0, font: Vec::new() }
+        Self { ctm: IDENTITY, text: IDENTITY, line: IDENTITY, size: 12.0, leading: 12.0, font: Vec::new() }
+    }
+}
+
+impl Pen {
+    fn page_matrix(&self) -> Matrix {
+        multiply(&self.text, &self.ctm)
+    }
+
+    /// 쪽 공간에서 본 글꼴 크기.
+    fn page_size(&self) -> f32 {
+        let m = self.page_matrix();
+        let scale = (m[0] * m[0] + m[1] * m[1]).sqrt();
+        let size = self.size * scale;
+        if size.is_finite() && size > 0.1 {
+            size
+        } else {
+            self.size.max(0.1)
+        }
     }
 }
 
@@ -114,6 +154,7 @@ struct Mark {
     y: f32,
     text: String,
     width: f32,
+    size: f32,
 }
 
 struct Placed {
@@ -156,20 +197,22 @@ fn marks_on_page(doc: &Document, page_id: ObjectId) -> Vec<Mark> {
                     pen = prev;
                 }
             }
+            "cm" => {
+                if let Some(m) = matrix_of(&op.operands) {
+                    pen.ctm = multiply(&m, &pen.ctm);
+                }
+            }
             "BT" => {
-                pen.x = 0.0;
-                pen.y = 0.0;
-                pen.line_x = 0.0;
-                pen.line_y = 0.0;
+                pen.text = IDENTITY;
+                pen.line = IDENTITY;
             }
             "Tf" => {
                 if let Some(name) = op.operands.first().and_then(|item| item.as_name().ok()) {
                     pen.font = name.to_vec();
                 }
                 if let Some(size) = op.operands.get(1).and_then(number_of) {
-                    if size.abs() > 0.1 {
+                    if size.abs() > 0.0001 {
                         pen.size = size.abs();
-                        pen.leading = pen.size;
                     }
                 }
             }
@@ -202,35 +245,42 @@ fn number_of(obj: &Object) -> Option<f32> {
     obj.as_float().ok()
 }
 
+fn matrix_of(operands: &[Object]) -> Option<Matrix> {
+    if operands.len() < 6 {
+        return None;
+    }
+    let mut m = IDENTITY;
+    for (slot, item) in m.iter_mut().zip(operands.iter()) {
+        let value = number_of(item)?;
+        if !value.is_finite() {
+            return None;
+        }
+        *slot = value;
+    }
+    Some(m)
+}
+
 fn move_line(pen: &mut Pen, operands: &[Object], set_leading: bool) {
     let tx = operands.first().and_then(number_of).unwrap_or(0.0);
     let ty = operands.get(1).and_then(number_of).unwrap_or(0.0);
     if set_leading {
         pen.leading = -ty;
     }
-    pen.line_x += tx;
-    pen.line_y += ty;
-    pen.x = pen.line_x;
-    pen.y = pen.line_y;
+    pen.line = shifted(tx, ty, &pen.line);
+    pen.text = pen.line;
 }
 
 fn place_line(pen: &mut Pen, operands: &[Object]) {
-    if operands.len() < 6 {
-        return;
+    if let Some(m) = matrix_of(operands) {
+        pen.line = m;
+        pen.text = m;
     }
-    let x = number_of(&operands[4]).unwrap_or(pen.x);
-    let y = number_of(&operands[5]).unwrap_or(pen.y);
-    pen.line_x = x;
-    pen.line_y = y;
-    pen.x = x;
-    pen.y = y;
 }
 
 fn carriage(pen: &mut Pen) {
-    let lead = if pen.leading.abs() < 0.1 { pen.size } else { pen.leading };
-    pen.line_y -= lead;
-    pen.y = pen.line_y;
-    pen.x = pen.line_x;
+    let lead = if pen.leading.abs() < 0.0001 { pen.size } else { pen.leading };
+    pen.line = shifted(0.0, -lead, &pen.line);
+    pen.text = pen.line;
 }
 
 fn show_text(pen: &mut Pen, operand: Option<&Object>, encodings: &BTreeMap<Vec<u8>, Encoding>, marks: &mut Vec<Mark>) {
@@ -253,7 +303,7 @@ fn show_items(pen: &mut Pen, operand: Option<&Object>, encodings: &BTreeMap<Vec<
         if item.as_str().is_ok() {
             show_text(pen, Some(item), encodings, marks);
         } else if let Some(adjust) = number_of(item) {
-            pen.x -= adjust / 1000.0 * pen.size;
+            pen.text = shifted(-adjust / 1000.0 * pen.size, 0.0, &pen.text);
         }
     }
 }
@@ -267,9 +317,11 @@ fn paint(pen: &mut Pen, text: &str, marks: &mut Vec<Mark>) {
         if part.is_empty() {
             continue;
         }
-        let width = text_width(part, pen.size);
-        marks.push(Mark { x: pen.x, y: pen.y, text: part.to_string(), width });
-        pen.x += width;
+        let size = pen.page_size();
+        let width = text_width(part, size);
+        let at = pen.page_matrix();
+        marks.push(Mark { x: at[4], y: at[5], text: part.to_string(), width, size });
+        pen.text = shifted(text_width(part, pen.size), 0.0, &pen.text);
     }
 }
 
@@ -308,7 +360,7 @@ fn rows_from_marks(marks: Vec<Mark>, limited: &mut bool) -> Vec<Vec<String>> {
             if piece.is_empty() {
                 continue;
             }
-            let width = text_width(&piece, 12.0);
+            let width = text_width(&piece, mark.size);
             spots.push((x, mark.y, piece, width));
             x += width + COLUMN_SLACK + 6.0;
         }
@@ -316,38 +368,42 @@ fn rows_from_marks(marks: Vec<Mark>, limited: &mut bool) -> Vec<Vec<String>> {
     if spots.is_empty() {
         return Vec::new();
     }
-    spots.sort_by(|left, right| {
-        right
-            .1
-            .partial_cmp(&left.1)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then(left.0.partial_cmp(&right.0).unwrap_or(std::cmp::Ordering::Equal))
-    });
-    let mut lines: Vec<Vec<Placed>> = Vec::new();
+    // 먼저 높이(y)로 줄을 묶고, 줄 안에서 왼쪽부터 정렬한다.
+    // y가 조금씩 다른 글자가 한 줄에 섞여도 순서가 뒤엉키지 않게 한다.
+    spots.sort_by(|left, right| right.1.partial_cmp(&left.1).unwrap_or(std::cmp::Ordering::Equal));
+    let mut grouped: Vec<Vec<(f32, f32, String, f32)>> = Vec::new();
     let mut line_y = f32::NAN;
-    for (x, y, text, width) in spots {
-        if lines.len() >= MAX_ROWS {
+    for spot in spots {
+        if grouped.len() >= MAX_ROWS {
             *limited = true;
             break;
         }
-        if lines.is_empty() || (line_y - y).abs() > ROW_SLACK {
-            lines.push(Vec::new());
-            line_y = y;
+        if grouped.is_empty() || (line_y - spot.1).abs() > ROW_SLACK {
+            line_y = spot.1;
+            grouped.push(Vec::new());
         }
-        let line = lines.last_mut().unwrap();
-        if let Some(prev) = line.last_mut() {
-            let gap = x - (prev.x + prev.width);
-            if gap < COLUMN_SLACK {
-                if gap > 1.5 && !prev.text.ends_with(' ') && !text.starts_with(' ') {
-                    prev.text.push(' ');
+        grouped.last_mut().unwrap().push(spot);
+    }
+    let mut lines: Vec<Vec<Placed>> = Vec::new();
+    for mut group in grouped {
+        group.sort_by(|left, right| left.0.partial_cmp(&right.0).unwrap_or(std::cmp::Ordering::Equal));
+        let mut line: Vec<Placed> = Vec::new();
+        for (x, _y, text, width) in group {
+            if let Some(prev) = line.last_mut() {
+                let gap = x - (prev.x + prev.width);
+                if gap < COLUMN_SLACK {
+                    if gap > 1.5 && !prev.text.ends_with(' ') && !text.starts_with(' ') {
+                        prev.text.push(' ');
+                    }
+                    let room = MAX_CELL_CHARS.saturating_sub(prev.text.chars().count());
+                    prev.text.extend(text.chars().take(room));
+                    prev.width += width.max(0.0);
+                    continue;
                 }
-                let room = MAX_CELL_CHARS.saturating_sub(prev.text.chars().count());
-                prev.text.extend(text.chars().take(room));
-                prev.width += width.max(0.0);
-                continue;
             }
+            line.push(Placed { x, text, width });
         }
-        line.push(Placed { x, text, width });
+        lines.push(line);
     }
     let mut samples = Vec::new();
     for line in &lines {
@@ -527,6 +583,28 @@ mod tests {
         let _ = std::fs::remove_file(&path);
         assert!(!error.contains('\\') && !error.contains('/'));
         assert!(error.contains("PDF"));
+    }
+
+    #[test]
+    fn scaled_text_matrix_keeps_rows_and_columns() {
+        let path = std::env::temp_dir().join(format!("edulauncher-pdf-scaled-{}.pdf", std::process::id()));
+        let body = text_pdf(
+            "BT /F1 1 Tf 12 0 0 12 40 100 Tm (SchoolA) Tj 10 0 Td (2026-03-01) Tj ET
+             BT /F1 1 Tf 12 0 0 12 40 80 Tm (SchoolB) Tj 10 0 Td (kept) Tj ET
+             q 2 0 0 2 0 0 cm BT /F1 6 Tf 20 20 Td (SchoolC) Tj 60 0 Td (viaCm) Tj ET Q
+",
+        );
+        std::fs::write(&path, body).unwrap();
+        let parsed = read_rows(&path).unwrap();
+        let _ = std::fs::remove_file(&path);
+        assert_eq!(
+            parsed.rows,
+            vec![
+                vec!["SchoolA".to_string(), "2026-03-01".to_string()],
+                vec!["SchoolB".to_string(), "kept".to_string()],
+                vec!["SchoolC".to_string(), "viaCm".to_string()],
+            ]
+        );
     }
 
     fn text_pdf(stream: &str) -> Vec<u8> {
