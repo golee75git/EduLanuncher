@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.238-20261123",
+    note: "홈 아래 메모 2부터의 제목은 왼쪽부터 붙고, 칸 너비로 늘어나지 않습니다.",
+  },
+  {
     version: "0.1.237-20261123",
     note: "엑셀 값 채우기에서 OO초와 OO초등학교, OO중과 OO중학교, OO고와 OO고등학교, OO유와 OO유치원을 같은 학교로 맞춥니다.",
   },

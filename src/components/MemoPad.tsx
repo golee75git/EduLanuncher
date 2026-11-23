@@ -113,12 +113,12 @@ function ExtraMemoList() {
           ))}
         </ul>
       ) : (
-        <ul className="flex min-w-0 flex-1 items-center gap-1">
+        <ul className="flex min-w-0 flex-1 items-center justify-start gap-1">
           {notes.map((note, index) => (
-            <li key={note.id} className="min-w-0 flex-1">
+            <li key={note.id} className="min-w-0 shrink">
               <button
                 type="button"
-                className="w-full truncate rounded-lg px-1 py-0.5 text-left text-[12px] text-desk hover:bg-ink-soft"
+                className="max-w-full truncate rounded-lg px-1 py-0.5 text-left text-[12px] text-desk hover:bg-ink-soft"
                 onClick={() => openSaved(note, index)}
               >
                 {memoWindowTitle(index)}
