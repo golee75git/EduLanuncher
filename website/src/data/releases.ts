@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.237-20261123",
+    note: "엑셀 값 채우기에서 OO초와 OO초등학교, OO중과 OO중학교, OO고와 OO고등학교, OO유와 OO유치원을 같은 학교로 맞춥니다.",
+  },
+  {
     version: "0.1.236-20261123",
     note: "한글 PDF를 엑셀로 저장할 때 학교별 줄과 칸이 뒤엉키던 문제를 고칩니다. 글자 크기와 위치 변환을 반영해 줄·칸을 나눕니다.",
   },

@@ -1357,6 +1357,17 @@ fn name_key(text: &str) -> String {
     text.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase()
 }
 
+/// 값 채우기에서 같은 줄을 찾는 키. 띄어쓰기를 무시하고, 학교 이름의 긴 끝말과 짧은 끝말을 같게 본다.
+/// OO초 = OO초등학교, OO중 = OO중학교, OO고 = OO고등학교, OO유 = OO유치원.
+fn value_key(text: &str) -> String {
+    let squeezed: String = name_key(text).split_whitespace().collect();
+    squeezed
+        .replace("초등학교", "초")
+        .replace("중학교", "중")
+        .replace("고등학교", "고")
+        .replace("유치원", "유")
+}
+
 fn clip_label(text: &str) -> String {
     clip_chars(text.trim(), MAX_LABEL_CHARS)
 }
@@ -1470,7 +1481,7 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair]) -> Resu
             if repeats_header(&source_header, row) {
                 continue;
             }
-            let key = header_key(row.get(source_key_at).unwrap_or(&EMPTY_CELL));
+            let key = value_key(&cell_text_of(row.get(source_key_at).unwrap_or(&EMPTY_CELL)));
             if key.is_empty() {
                 continue;
             }
@@ -1513,7 +1524,7 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair]) -> Resu
             }
             pad_row(row, target_at + 1);
             let raw_key = cell_text_of(row.get(base_key_at).unwrap_or(&EMPTY_CELL)).to_string();
-            let key = name_key(&raw_key);
+            let key = value_key(&raw_key);
             if key.is_empty() {
                 continue;
             }
@@ -2240,6 +2251,42 @@ mod tests {
         assert_eq!(built.shown[0].value, "2026-03-01");
         assert!(built.notes.iter().any(|note| note.contains("여러 줄")));
         assert!(built.notes.iter().any(|note| note.contains("없는 키")));
+    }
+
+    #[test]
+    fn join_treats_short_and_long_school_names_as_the_same_key() {
+        assert_eq!(value_key("강릉초"), value_key("강릉초등학교"));
+        assert_eq!(value_key("주문진 중"), value_key("주문진중학교"));
+        assert_eq!(value_key("강릉고"), value_key("강릉고등학교"));
+        assert_eq!(value_key("솔향유"), value_key("솔향유치원"));
+        assert_ne!(value_key("강릉초"), value_key("강릉중"));
+
+        let base = slot(
+            "기준.xlsx",
+            vec![
+                vec![text("학교명"), text("점검날짜")],
+                vec![text("강릉초"), Cell::Empty],
+                vec![text("주문진중학교"), Cell::Empty],
+                vec![text("강릉고"), Cell::Empty],
+                vec![text("솔향유치원"), Cell::Empty],
+            ],
+        );
+        let other = slot(
+            "시행.xlsx",
+            vec![
+                vec![text("학교명"), text("시행일자")],
+                vec![text("강릉초등학교"), text("1")],
+                vec![text("주문진중"), text("2")],
+                vec![text("강릉고등학교"), text("3")],
+                vec![text("솔향유"), text("4")],
+            ],
+        );
+        let pairs = vec![JoinPair { file_index: 1, source: "시행일자".into(), target: "점검날짜".into() }];
+        let built = join_tables(vec![base, other], "학교명", &pairs).unwrap();
+        assert_eq!(built.fill_count, 4);
+        assert_eq!(built.miss_count, 0);
+        assert_eq!(built.rows[1][1], text("1"));
+        assert_eq!(built.rows[4][1], text("4"));
     }
 
     #[test]
