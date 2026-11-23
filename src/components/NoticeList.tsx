@@ -94,8 +94,8 @@ export function NoticeList({ onAll, onAdd, onOpen, variant = "card" }: NoticeLis
       />
       {visible.length === 0 ? (
         <NoticeCard
-          title="공지가 없습니다"
-          description="‘+ 추가’로 새로운 공지를 등록해 보세요."
+          title="공지를 등록하고"
+          description="팩으로 저장 및 공유하세요"
           onClick={onAdd}
         />
       ) : (

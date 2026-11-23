@@ -265,6 +265,11 @@ function WorkToolMark({ icon: Icon }: { icon: LucideIcon }) {
   return <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />;
 }
 
+const SEARCH_HINTS = [
+  "사이트·업무·파일·폴더·컴퓨터도구·PC 문제·매뉴얼",
+  "사진 줄이기·모자이크·엑셀 통합·PDF 병합·계산기·IP확인",
+] as const;
+
 export function HomePage({ onAction, search = "" }: HomePageProps) {
   const storedTools = useToolStore((state) => state.tools);
   const adminOn = useAdminToolStore((state) => state.enabled);
@@ -275,7 +280,17 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
   const settings = useSettingsStore((state) => state.settings);
   const recentTopicItems = useRecentTopicStore((state) => state.items);
   const [query, setQuery] = useState(search);
+  const [searchHint, setSearchHint] = useState(0);
   const [basicApps, setBasicApps] = useState<ToolItem[]>([]);
+  useEffect(() => {
+    if (query.trim()) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setSearchHint((current) => (current + 1) % SEARCH_HINTS.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [query]);
   useEffect(() => {
     let live = true;
     void presentBasicApps().then((ids) => {
@@ -775,12 +790,24 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
       ) : (
         <div className="home-band">
           <AppHeader dateLabel={todayLabel()} extra={homeJump} onSettings={() => onAction({ type: "settings" })} onAdd={() => onAction({ type: "edit" })} />
-          <GlobalSearch ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} />
+          <GlobalSearch
+            ref={inputRef}
+            value={query}
+            onChange={setQuery}
+            onKeyDown={onKeyDown}
+            placeholder={SEARCH_HINTS[searchHint]}
+          />
           <KeptSearchList items={keptMatches} prior={false} onPick={setQuery} />
         </div>
       )}
       {prior ? (
-        <SearchBar ref={inputRef} value={query} onChange={setQuery} onKeyDown={onKeyDown} placeholder="사이트·업무·파일·폴더·컴퓨터도구·PC 문제·매뉴얼" />
+        <SearchBar
+          ref={inputRef}
+          value={query}
+          onChange={setQuery}
+          onKeyDown={onKeyDown}
+          placeholder={SEARCH_HINTS[searchHint]}
+        />
       ) : null}
       {prior ? <KeptSearchList items={keptMatches} prior onPick={setQuery} /> : null}
       {prior || searching || activeSchool ? null : (

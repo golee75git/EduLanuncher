@@ -64,10 +64,11 @@ import { findNewerRelease, installNewerRelease, releaseSetupAddress } from "./se
 import { APP_CONFIG } from "./config/app";
 import { applyNoticePackFromPath, applyPackFromText } from "./services/applyNoticePack";
 import { splitDropActions } from "./services/dropActionPick";
+import { isExcelPath } from "./services/excelDropGate";
 import { addDroppedPaths, addDroppedSite, previewDroppedPaths, readUrlShortcut, sameHttpUrl, type GrantedFile } from "./services/dropSiteService";
 import { readFileUrls, type SiteNameUrl } from "./services/siteListService";
 import { focusSearchInput } from "./services/focusBus";
-import { dismissMemoNote, hidePanel, openMemoNote, showPanel } from "./services/windowService";
+import { desktopShell, dismissMemoNote, hidePanel, openMemoNote, showPanel } from "./services/windowService";
 import { initStorage, loadSettings } from "./services/storageService";
 import { startupKnowledge } from "./services/knowledgeSync";
 import { wantsLaunchUpdates } from "./services/startupNetwork";
@@ -338,6 +339,28 @@ export default function App() {
 
   const addLocalPaths = useCallback(
     async (files: GrantedFile[]) => {
+      const excelOnly = files.filter((file) => file.id && isExcelPath(file.name));
+      const otherDrop = files.some((file) => file.id && !isExcelPath(file.name));
+      if (!otherDrop && excelOnly.length >= 2) {
+        const next: View = {
+          name: "internal",
+          id: "excel-merge",
+          title: "엑셀 통합",
+          startFiles: excelOnly,
+        };
+        pdfOpenHold.current = true;
+        setDropPick(null);
+        setView(next);
+        try {
+          await showPanel();
+        } finally {
+          setView(next);
+          window.setTimeout(() => {
+            pdfOpenHold.current = false;
+          }, 400);
+        }
+        return;
+      }
       const split = splitDropActions(files);
       if (split.pdfs.length >= 1 && split.pictures.length === 0 && split.rest.length === 0) {
         const next: View = {
@@ -551,7 +574,11 @@ export default function App() {
         if (cancelled) {
           return;
         }
-        if (wantsLaunchUpdates(settings.checkUpdatesOnLaunch) && !policy.disableStartupUpdate) {
+        if (
+          desktopShell() &&
+          wantsLaunchUpdates(settings.checkUpdatesOnLaunch) &&
+          !policy.disableStartupUpdate
+        ) {
           void findNewerRelease().then((tag) => {
             if (!cancelled && tag) {
               setReleaseNotice(tag);
@@ -1507,7 +1534,7 @@ export default function App() {
             }}
           />
         ) : null}
-        {releaseNotice ? (
+        {releaseNotice && desktopShell() ? (
           <div className="absolute bottom-12 left-1/2 z-50 w-[min(100%-1.5rem,22rem)] -translate-x-1/2 rounded-lg bg-desk px-3 py-2 text-xs leading-5 text-white">
             <p>
               이 PC 버전 {APP_CONFIG.version} · 새 버전 {releaseNotice}가 있습니다. 최신 설치 파일 받기는 이
