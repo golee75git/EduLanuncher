@@ -281,7 +281,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
         ) : (
           <>
             <p className="text-xs leading-5 text-quiet">
-              첫 파일은 xlsx 또는 csv입니다. 같은 키의 빈 칸에 다른 파일 열 값을 넣습니다. PDF는 글자가 있는 표만 추가로 읽습니다. 맞출 열을
+              첫 파일은 xlsx 또는 csv입니다. 같은 키의 빈 칸에 다른 파일 열 값을 넣습니다. PDF는 글자 위치로 칸을 나눈 표만 추가로 읽습니다. 맞출 열을
               확인한 뒤 적용할 값을 먼저 보여 줍니다. 이미 있는 값은 바꾸지 않고, 원본도 바꾸지 않습니다.
             </p>
             <button type="button" className="btn-secondary" disabled={busy} onClick={() => void pickFiles()}>

@@ -150,7 +150,7 @@ export function PdfSheetPage({ onBack, startFiles }: PdfSheetPageProps) {
         ) : (
           <>
             <p className="text-xs leading-5 text-quiet">
-              글자가 있는 PDF를 줄로 읽어 새 엑셀로 저장합니다. 칸은 탭이나 띄어쓰기가 넓은 자리에서 나눕니다. 원본은 바꾸지 않습니다.
+              글자가 있는 PDF를 줄로 읽어 새 엑셀로 저장합니다. 같은 높이의 글자는 한 줄로, 가로로 떨어진 글자는 다른 칸으로 둡니다. 원본은 바꾸지 않습니다.
             </p>
             <button type="button" className="btn-secondary" disabled={busy} onClick={() => void pickFile()}>
               PDF 고르기
