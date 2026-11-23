@@ -47,6 +47,7 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
   const [title, setTitle] = useState("");
   const [titleTouched, setTitleTouched] = useState(false);
   const [addSource, setAddSource] = useState(true);
+  const [skipTotals, setSkipTotals] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [made, setMade] = useState<ExcelMade | null>(null);
@@ -185,7 +186,7 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
     setMessage("");
     try {
       await clearMadeReveals();
-      setMade(await mergeExcel(ready.map((file) => file.id), title.trim(), addSource));
+      setMade(await mergeExcel(ready.map((file) => file.id), title.trim(), addSource, skipTotals));
     } catch (error) {
       setMessage(asMessage(error));
     } finally {
@@ -284,7 +285,7 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
         ) : (
           <>
             <p className="text-xs leading-5 text-quiet">
-              같은 양식으로 받은 엑셀(xlsx, 첫 시트)과 UTF-8 csv를 하나로 합칩니다. 첫 파일의 첫 줄을 제목 줄로 보고, 다른 파일은 그 제목이
+              같은 양식으로 받은 엑셀(xlsx, 첫 시트)과 csv(UTF-8, 한글 엑셀 CSV)를 하나로 합칩니다. 첫 파일의 첫 줄을 제목 줄로 보고, 다른 파일은 그 제목이
               모두 있는 줄을 앞쪽에서 찾아 그 아래부터 같은 제목의 열끼리 모읍니다. xls 파일은 엑셀에서 xlsx로 저장해 주세요.
             </p>
             <button type="button" className="btn-secondary" disabled={busy} onClick={() => void pickFiles()}>
@@ -363,6 +364,10 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
             <label className="flex items-center gap-2 text-sm text-desk">
               <input type="checkbox" checked={addSource} onChange={(event) => setAddSource(event.target.checked)} />
               맨 앞 열에 원본 파일 이름 넣기
+            </label>
+            <label className="flex items-center gap-2 text-sm text-desk">
+              <input type="checkbox" checked={skipTotals} onChange={(event) => setSkipTotals(event.target.checked)} />
+              합계·소계 줄은 빼기 (칸이 ‘계’, ‘합계’, ‘소계’ 등인 줄)
             </label>
             <label className="block text-xs text-quiet" htmlFor="excel-merge-title">
               새 파일 이름

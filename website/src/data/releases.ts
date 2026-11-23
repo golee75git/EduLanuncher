@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.240-20261123",
+    note: "엑셀 취합에서 합계·소계 줄을 뺄 수 있고, 한글 엑셀이 저장한 CP949 CSV도 읽습니다. 합친 뒤 파일별 결과에 뺀 줄 수가 나옵니다.",
+  },
+  {
     version: "0.1.239-20261123",
     note: "엑셀 취합에서 다른 파일의 제목 줄이 맨 위가 아니어도 첫 파일의 제목을 찾아 합칩니다. 합친 뒤에는 파일마다 제목 줄, 합친 줄 수, 결과 파일의 줄 범위, 합치지 못한 사유를 보여 줍니다.",
   },

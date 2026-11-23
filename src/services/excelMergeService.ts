@@ -23,6 +23,7 @@ export interface ExcelFileResult {
   firstRow: number;
   lastRow: number;
   unmatchedColumns: number;
+  totalsSkipped: number;
 }
 
 export interface ExcelMade {
@@ -48,6 +49,9 @@ export function describeFileResult(file: ExcelFileResult): string {
   if (file.unmatchedColumns > 0) {
     parts.push(`못 담은 열 ${file.unmatchedColumns}개`);
   }
+  if (file.totalsSkipped > 0) {
+    parts.push(`합계·소계 줄 ${file.totalsSkipped}개 뺌`);
+  }
   if (file.reason) {
     parts.push(file.reason);
   }
@@ -70,8 +74,8 @@ export function reviewExcel(ids: string[]): Promise<ExcelReview[]> {
   return invoke<ExcelReview[]>("excel_merge_review", { ids });
 }
 
-export function mergeExcel(ids: string[], title: string, addSource: boolean): Promise<ExcelMade> {
-  return invoke<ExcelMade>("excel_merge_run", { ids, title, addSource });
+export function mergeExcel(ids: string[], title: string, addSource: boolean, skipTotals: boolean): Promise<ExcelMade> {
+  return invoke<ExcelMade>("excel_merge_run", { ids, title, addSource, skipTotals });
 }
 
 export function mergeTitleFromName(name: string): string {

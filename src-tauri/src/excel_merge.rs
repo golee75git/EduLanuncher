@@ -1,6 +1,6 @@
 //! 엑셀 통합용 표 읽기·저장.
 //!
-//! 읽기: `.xlsx`(첫 시트)와 UTF-8 `.csv`를 표로 읽는다. 공개 표준 ECMA-376(Office Open XML)만 보고
+//! 읽기: `.xlsx`(첫 시트)와 `.csv`(UTF-8, 한글 엑셀의 CP949)를 표로 읽는다. 공개 표준 ECMA-376(Office Open XML)만 보고
 //! `zip` + `quick-xml`로 직접 읽으며, 원본은 읽기 전용으로만 연다.
 //! 수식은 계산하지 않고 저장된 캐시값(`<v>`)만 읽는다. 외부 링크·매크로는 따라가지 않는다.
 //!
@@ -738,15 +738,17 @@ fn clip_chars(text: &str, max_chars: usize) -> String {
 
 // ---------------------------------------------------------------- csv
 
+const CSV_ENCODING_FAIL: &str = "CSV 글자 형식을 읽지 못했습니다. UTF-8 또는 한글 엑셀(CP949)로 저장한 CSV만 읽을 수 있습니다.";
+
 pub fn read_csv(path: &Path) -> Result<SheetTable, String> {
     let meta = std::fs::metadata(path).map_err(|_| "CSV 파일을 읽지 못했습니다.".to_string())?;
     if !meta.is_file() || meta.len() > MAX_FILE_BYTES {
         return Err("CSV 파일을 읽지 못했습니다.".into());
     }
     let bytes = std::fs::read(path).map_err(|_| "CSV 파일을 읽지 못했습니다.".to_string())?;
-    let body = bytes.strip_prefix(&[0xEF, 0xBB, 0xBF]).unwrap_or(&bytes);
-    let text = std::str::from_utf8(body).map_err(|_| "CSV는 UTF-8로 저장한 파일만 읽을 수 있습니다.".to_string())?;
-    Ok(parse_csv(text))
+    // UTF-8이면 그대로, 아니면 한글 엑셀이 저장하는 CP949로 읽는다(이미 있는 변환 함수를 쓴다).
+    let text = crate::privacy_scan::read::decode::decode_bytes(&bytes).map_err(|_| CSV_ENCODING_FAIL.to_string())?;
+    Ok(parse_csv(&text))
 }
 
 fn parse_csv(text: &str) -> SheetTable {
@@ -1029,6 +1031,8 @@ pub struct FileReport {
     pub first_row: usize,
     pub last_row: usize,
     pub unmatched_columns: usize,
+    /// 합계·소계 줄이라 빼 둔 줄 수
+    pub totals_skipped: usize,
 }
 
 pub struct MergeInput {
@@ -1061,6 +1065,16 @@ const REASON_ROW_LIMIT: &str = "줄 수 한도에 닿아 여기까지만 담았�
 const REASON_NOT_REACHED: &str = "줄 수 한도에 닿아 담지 못했습니다.";
 pub const REASON_UNREADABLE: &str = "파일을 읽지 못했습니다.";
 
+/// 합계 줄에 흔히 적는 말. 칸 전체가 이 말과 같을 때만 합계 줄로 본다(띄어쓰기는 무시).
+const TOTAL_WORDS: [&str; 6] = ["계", "합계", "소계", "총계", "총합계", "누계"];
+
+fn is_total_row(row: &[Cell]) -> bool {
+    row.iter().any(|cell| {
+        let text: String = cell_text_of(cell).split_whitespace().collect();
+        TOTAL_WORDS.contains(&text.as_str())
+    })
+}
+
 fn row_is_blank(row: &[Cell]) -> bool {
     row.iter().all(Cell::is_blank)
 }
@@ -1082,7 +1096,7 @@ fn find_header_row(rows: &[Vec<Cell>], wanted: &[String]) -> Option<usize> {
 }
 
 /// 같은 양식의 표 여러 개를 첫 표의 제목 줄 아래로 잇는다.
-pub fn merge_tables(inputs: Vec<MergeInput>, add_source: bool) -> Result<MergeOutcome, String> {
+pub fn merge_tables(inputs: Vec<MergeInput>, add_source: bool, skip_totals: bool) -> Result<MergeOutcome, String> {
     let mut out = MergeOutcome::default();
     let mut master_keys: Vec<String> = Vec::new();
     let mut width = 0usize;
@@ -1155,6 +1169,10 @@ pub fn merge_tables(inputs: Vec<MergeInput>, add_source: bool) -> Result<MergeOu
             let repeats_header = (0..own_keys.len().max(row.len()))
                 .all(|at| header_key(row.get(at).unwrap_or(&EMPTY_CELL)) == own_keys.get(at).cloned().unwrap_or_default());
             if repeats_header {
+                continue;
+            }
+            if skip_totals && is_total_row(&row) {
+                report.totals_skipped += 1;
                 continue;
             }
             let mut line = vec![Cell::Empty; width + offset];
@@ -1259,7 +1277,7 @@ fn fresh_xlsx(dir: &Path, file_name: &str, sources: &[PathBuf]) -> Result<PathBu
 }
 
 /// 원본들을 읽어 합치고, 첫 파일 옆에 새 xlsx로 저장한다. 원본은 바꾸지 않는다.
-fn merge_files(sources: &[PathBuf], title: &str, add_source: bool) -> Result<(PathBuf, MergeOutcome), String> {
+fn merge_files(sources: &[PathBuf], title: &str, add_source: bool, skip_totals: bool) -> Result<(PathBuf, MergeOutcome), String> {
     let first = sources.first().ok_or_else(|| "엑셀 파일을 넣어 주세요.".to_string())?;
     let dir = first.parent().ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
     let mut inputs = Vec::new();
@@ -1271,9 +1289,9 @@ fn merge_files(sources: &[PathBuf], title: &str, add_source: bool) -> Result<(Pa
         }
     }
     if inputs.is_empty() {
-        return Err("읽을 수 있는 엑셀 파일이 없습니다. xlsx 또는 UTF-8 csv 파일을 넣어 주세요.".into());
+        return Err("읽을 수 있는 엑셀 파일이 없습니다. xlsx 또는 csv 파일을 넣어 주세요.".into());
     }
-    let mut outcome = merge_tables(inputs, add_source)?;
+    let mut outcome = merge_tables(inputs, add_source, skip_totals)?;
     for name in &unreadable {
         outcome.files.push(FileReport { name: name.clone(), reason: REASON_UNREADABLE.into(), ..FileReport::default() });
     }
@@ -1309,6 +1327,7 @@ pub struct ExcelFileResult {
     pub first_row: u32,
     pub last_row: u32,
     pub unmatched_columns: u32,
+    pub totals_skipped: u32,
 }
 
 #[derive(Serialize)]
@@ -1430,7 +1449,7 @@ pub fn excel_merge_review(app: AppHandle, ids: Vec<String>) -> Result<Vec<ExcelR
 
 /// 고른 파일들을 하나로 합쳐 첫 파일 옆에 새 xlsx로 저장한다
 #[tauri::command(async)]
-pub fn excel_merge_run(app: AppHandle, ids: Vec<String>, title: String, add_source: bool) -> Result<ExcelMade, String> {
+pub fn excel_merge_run(app: AppHandle, ids: Vec<String>, title: String, add_source: bool, skip_totals: bool) -> Result<ExcelMade, String> {
     if ids.is_empty() {
         return Err("엑셀 파일을 넣어 주세요.".into());
     }
@@ -1443,7 +1462,7 @@ pub fn excel_merge_run(app: AppHandle, ids: Vec<String>, title: String, add_sour
         .and_then(|path| path.parent())
         .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
     path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
-    let (dest, outcome) = merge_files(&sources, &title, add_source)?;
+    let (dest, outcome) = merge_files(&sources, &title, add_source, skip_totals)?;
     let book = app.state::<path_grant::GrantBook>();
     let write_id = path_grant::begin_derived_write(&book, &dest).map_err(|text| text.to_string())?;
     let card = match path_grant::finish_made(&book, write_id) {
@@ -1478,6 +1497,7 @@ pub fn excel_merge_run(app: AppHandle, ids: Vec<String>, title: String, add_sour
                 first_row: file.first_row as u32,
                 last_row: file.last_row as u32,
                 unmatched_columns: file.unmatched_columns as u32,
+                totals_skipped: file.totals_skipped as u32,
             })
             .collect(),
     })
@@ -2198,12 +2218,14 @@ mod tests {
         );
     }
 
+    #[cfg(windows)]
     #[test]
-    fn csv_rejects_non_utf8() {
+    fn csv_that_is_not_utf8_is_read_as_cp949() {
         let path = temp_file("csv");
         std::fs::write(&path, [0xC8u8, 0xAB, 0xB1, 0xE6]).unwrap();
-        assert!(read_table(&path).is_err());
+        let table = read_table(&path).unwrap();
         let _ = std::fs::remove_file(&path);
+        assert_eq!(table.rows, vec![vec![text("홍길")]]);
     }
 
     fn fresh_output() -> std::path::PathBuf {
@@ -2305,7 +2327,7 @@ mod tests {
                 vec![Cell::Empty, Cell::Empty, text("   ")],
             ],
         );
-        let out = merge_tables(vec![first, second], true).unwrap();
+        let out = merge_tables(vec![first, second], true, false).unwrap();
         assert_eq!(
             out.rows,
             vec![
@@ -2324,7 +2346,7 @@ mod tests {
     fn merge_without_source_column_and_with_missing_columns() {
         let first = input("a.csv", vec![vec![text("A"), text("B")], vec![text("x"), text("y")]]);
         let second = input("b.csv", vec![vec![text("a")], vec![text("z")]]);
-        let out = merge_tables(vec![first, second], false).unwrap();
+        let out = merge_tables(vec![first, second], false, false).unwrap();
         assert_eq!(
             out.rows,
             vec![vec![text("A"), text("B")], vec![text("x"), text("y")], vec![text("z"), Cell::Empty]]
@@ -2337,11 +2359,11 @@ mod tests {
         let first = input("a.csv", vec![vec![text("A")], vec![text("1")]]);
         let empty = input("empty.csv", Vec::new());
         let unnamed = input("c.csv", vec![vec![text("A"), Cell::Empty], vec![text("2"), text("버려짐")]]);
-        let out = merge_tables(vec![empty, first, unnamed], false).unwrap();
+        let out = merge_tables(vec![empty, first, unnamed], false, false).unwrap();
         assert_eq!(out.rows, vec![vec![text("A")], vec![text("1")], vec![text("2")]]);
         assert_eq!(out.skipped_files, vec!["empty.csv".to_string()]);
         assert_eq!(out.unmatched, vec![("c.csv".to_string(), "(제목 없는 열)".to_string())]);
-        assert!(merge_tables(vec![input("x", Vec::new())], true).is_err());
+        assert!(merge_tables(vec![input("x", Vec::new())], true, false).is_err());
     }
 
     #[test]
@@ -2358,7 +2380,7 @@ mod tests {
             ],
         );
         let third = input("3반.xlsx", vec![vec![text("번호"), text("이름")]]);
-        let out = merge_tables(vec![first, second, third], false).unwrap();
+        let out = merge_tables(vec![first, second, third], false, false).unwrap();
         assert_eq!(
             out.rows,
             vec![
@@ -2380,7 +2402,7 @@ mod tests {
         let first = input("a.csv", vec![vec![text("A")], vec![text("1")]]);
         let empty = input("empty.csv", Vec::new());
         let extra = input("b.csv", vec![vec![text("A"), text("기타")], vec![text("2"), text("x")]]);
-        let out = merge_tables(vec![first, empty, extra], false).unwrap();
+        let out = merge_tables(vec![first, empty, extra], false, false).unwrap();
         assert_eq!(out.files[1].name, "empty.csv");
         assert!(!out.files[1].used && out.files[1].header_line == 0);
         assert_eq!(out.files[2].unmatched_columns, 1);
@@ -2406,12 +2428,65 @@ mod tests {
     }
 
     #[test]
+    fn merge_can_leave_out_total_rows_and_reports_how_many() {
+        let rows = || {
+            vec![
+                vec![text("학교"), text("수")],
+                vec![text("강릉초"), number("3")],
+                vec![text("소계"), number("3")],
+                vec![text("강릉중"), number("4")],
+                vec![text(" 합 계 "), number("7")],
+                vec![text("계"), number("7")],
+                vec![text("계열고"), number("1")],
+            ]
+        };
+        let out = merge_tables(vec![input("a.xlsx", rows())], false, true).unwrap();
+        assert_eq!(
+            out.rows,
+            vec![
+                vec![text("학교"), text("수")],
+                vec![text("강릉초"), number("3")],
+                vec![text("강릉중"), number("4")],
+                vec![text("계열고"), number("1")],
+            ]
+        );
+        assert_eq!(out.files[0].totals_skipped, 3);
+        let kept = merge_tables(vec![input("a.xlsx", rows())], false, false).unwrap();
+        assert_eq!(kept.rows.len(), 7);
+        assert_eq!(kept.files[0].totals_skipped, 0);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn csv_saved_as_cp949_is_read_like_utf8() {
+        let cp949 = temp_file("csv");
+        std::fs::write(&cp949, [0xC7u8, 0xD0, 0xB1, 0xB3, 0xB8, 0xED, 0x2C, 0xC1, 0xA1, 0xBC, 0xF6, 0x0A, 0xB0, 0xAD, 0xB8, 0xAA, 0xC3, 0xCA, 0x2C, 0x31, 0x0A]).unwrap();
+        let utf8 = temp_file("csv");
+        std::fs::write(&utf8, "\u{feff}학교명,점수\n강릉초,1\n").unwrap();
+        let from_cp949 = read_csv(&cp949).unwrap();
+        let from_utf8 = read_csv(&utf8).unwrap();
+        let _ = std::fs::remove_file(&cp949);
+        let _ = std::fs::remove_file(&utf8);
+        assert_eq!(from_cp949.rows, vec![vec![text("학교명"), text("점수")], vec![text("강릉초"), number("1")]]);
+        assert_eq!(from_cp949.rows, from_utf8.rows);
+    }
+
+    #[test]
+    fn csv_that_is_neither_utf8_nor_cp949_is_refused_without_paths() {
+        let bad = temp_file("csv");
+        std::fs::write(&bad, [0xFFu8, 0xFE, 0xFF, 0xFE]).unwrap();
+        let error = read_csv(&bad).unwrap_err();
+        let _ = std::fs::remove_file(&bad);
+        assert!(error.contains("CSV") && !error.contains('\\') && !error.contains('/'));
+    }
+
+    #[test]
     fn merge_keeps_the_limited_flag_and_refuses_too_many_columns() {
         let mut limited = input("a.csv", vec![vec![text("A")], vec![text("1")]]);
         limited.table.limited = true;
-        assert!(merge_tables(vec![limited], false).unwrap().limited);
+        assert!(merge_tables(vec![limited], false, false).unwrap().limited);
         let wide = input("w.csv", vec![vec![text("x"); MAX_COLUMNS], vec![text("1")]]);
-        assert!(merge_tables(vec![wide], true).is_err());
+        assert!(merge_tables(vec![wide], true, false).is_err());
     }
 
     #[test]
@@ -2434,10 +2509,10 @@ mod tests {
         let broken = dir.join("깨짐.csv");
         std::fs::write(&first, "번호,이름\n1,가\n").unwrap();
         std::fs::write(&second, "이름,번호\n나,2\n").unwrap();
-        std::fs::write(&broken, [0xC8u8, 0xAB, 0xB1]).unwrap();
+        std::fs::write(&broken, [0xFFu8, 0xFE, 0xFF]).unwrap();
         let sources = vec![first.clone(), second.clone(), broken.clone()];
 
-        let (dest, outcome) = merge_files(&sources, "", true).unwrap();
+        let (dest, outcome) = merge_files(&sources, "", true, false).unwrap();
         assert_eq!(dest, dir.join("1반_취합.xlsx"));
         assert_eq!(outcome.skipped_files, vec!["깨짐.csv".to_string()]);
         let back = read_table(&dest).unwrap();
@@ -2450,13 +2525,13 @@ mod tests {
             ]
         );
 
-        let (again, _) = merge_files(&sources, "", true).unwrap();
+        let (again, _) = merge_files(&sources, "", true, false).unwrap();
         assert_eq!(again, dir.join("1반_취합_2.xlsx"));
         assert_eq!(std::fs::read_to_string(&first).unwrap(), "번호,이름\n1,가\n");
         assert_eq!(std::fs::read_to_string(&second).unwrap(), "이름,번호\n나,2\n");
 
-        assert!(merge_files(&[broken], "", true).is_err());
-        assert!(merge_files(&[], "", true).is_err());
+        assert!(merge_files(&[broken], "", true, false).is_err());
+        assert!(merge_files(&[], "", true, false).is_err());
         let _ = std::fs::remove_dir_all(&dir);
     }
 
