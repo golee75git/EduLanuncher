@@ -1110,7 +1110,7 @@ fn result_file_name(title: &str, first: &Path) -> String {
     };
     let custom = crate::pdf_pages::tidy_merge_title(bare);
     if custom.is_empty() {
-        format!("{}_통합.xlsx", stem_label(first))
+        format!("{}_취합.xlsx", stem_label(first))
     } else {
         format!("{custom}.xlsx")
     }
@@ -1977,11 +1977,11 @@ mod tests {
     #[test]
     fn result_file_names_are_tidy() {
         let first = Path::new("C:/문서/1반 출석.xlsx");
-        assert_eq!(result_file_name("", first), "1반 출석_통합.xlsx");
+        assert_eq!(result_file_name("", first), "1반 출석_취합.xlsx");
         assert_eq!(result_file_name("  3월 취합.XLSX ", first), "3월 취합.xlsx");
-        assert_eq!(result_file_name("..\\evil", first), "1반 출석_통합.xlsx");
-        assert_eq!(result_file_name("a/b", first), "1반 출석_통합.xlsx");
-        assert_eq!(result_file_name("CON", first), "1반 출석_통합.xlsx");
+        assert_eq!(result_file_name("..\\evil", first), "1반 출석_취합.xlsx");
+        assert_eq!(result_file_name("a/b", first), "1반 출석_취합.xlsx");
+        assert_eq!(result_file_name("CON", first), "1반 출석_취합.xlsx");
     }
 
     #[test]
@@ -1998,7 +1998,7 @@ mod tests {
         let sources = vec![first.clone(), second.clone(), broken.clone()];
 
         let (dest, outcome) = merge_files(&sources, "", true).unwrap();
-        assert_eq!(dest, dir.join("1반_통합.xlsx"));
+        assert_eq!(dest, dir.join("1반_취합.xlsx"));
         assert_eq!(outcome.skipped_files, vec!["깨짐.csv".to_string()]);
         let back = read_table(&dest).unwrap();
         assert_eq!(
@@ -2011,7 +2011,7 @@ mod tests {
         );
 
         let (again, _) = merge_files(&sources, "", true).unwrap();
-        assert_eq!(again, dir.join("1반_통합_2.xlsx"));
+        assert_eq!(again, dir.join("1반_취합_2.xlsx"));
         assert_eq!(std::fs::read_to_string(&first).unwrap(), "번호,이름\n1,가\n");
         assert_eq!(std::fs::read_to_string(&second).unwrap(), "이름,번호\n나,2\n");
 

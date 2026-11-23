@@ -48,7 +48,7 @@ export function isPdfPagesTarget(target: string): boolean {
 
 export const EXCEL_MERGE_TOOL: ToolItem = {
   id: "tool-excel-merge",
-  name: "엑셀 통합",
+  name: "엑셀 취합",
   description: "같은 양식으로 받은 엑셀·csv 여러 개를 하나의 새 엑셀로 합칩니다",
   type: "internal",
   target: "excel-merge",
@@ -66,14 +66,14 @@ export function isExcelMergeTarget(target: string): boolean {
 
 export const EXCEL_JOIN_TOOL: ToolItem = {
   id: "tool-excel-join",
-  name: "엑셀 병합",
+  name: "엑셀 값 채우기",
   description: "같은 키의 빈 칸에 다른 엑셀 열 값을 넣어 새 파일로 저장합니다",
   type: "internal",
   target: "excel-join",
   icon: "sheet",
   category: "전산",
   favorite: true,
-  keywords: ["엑셀", "xlsx", "csv", "병합", "학교명", "맞추기", "excel"],
+  keywords: ["엑셀", "xlsx", "csv", "값 채우기", "학교명", "맞추기", "excel"],
   usageCount: 0,
   enabled: true,
 };

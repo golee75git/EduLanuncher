@@ -1633,12 +1633,12 @@ export default function App() {
             onExcelMerge={() => {
               const files = dropPick.excels;
               setDropPick(null);
-              setView({ name: "internal", id: "excel-merge", title: "엑셀 통합", startFiles: files });
+              setView({ name: "internal", id: "excel-merge", title: "엑셀 취합", startFiles: files });
             }}
             onExcelJoin={() => {
               const files = dropPick.excels;
               setDropPick(null);
-              setView({ name: "internal", id: "excel-join", title: "엑셀 병합", startFiles: files });
+              setView({ name: "internal", id: "excel-join", title: "값 채우기", startFiles: files });
             }}
             onShortcut={() => {
               const files = [...dropPick.pictures, ...dropPick.pdfs];

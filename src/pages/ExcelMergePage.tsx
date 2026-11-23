@@ -188,12 +188,12 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">엑셀 통합</h1>
+        <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">엑셀 취합</h1>
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {made ? (
           <>
-            <p className="text-sm text-desk">엑셀 통합이 끝났습니다.</p>
+            <p className="text-sm text-desk">엑셀 취합이 끝났습니다.</p>
             <p className="text-xs leading-5 text-quiet">
               {made.name} · 파일 {made.filesUsed}개 · {made.dataRows.toLocaleString("ko-KR")}줄
             </p>
@@ -243,7 +243,7 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
             </button>
             {message ? <p className="text-sm text-desk">{message}</p> : null}
             <button type="button" className="btn-primary w-full" onClick={startOver}>
-              다른 엑셀 통합
+              다른 엑셀 취합
             </button>
           </>
         ) : (
@@ -334,7 +334,7 @@ export function ExcelMergePage({ onBack, startFiles }: ExcelMergePageProps) {
                 setTitle(event.target.value);
               }}
             />
-            <p className="text-[11px] leading-5 text-quiet">비우면 첫 파일 이름 뒤에 _통합이 붙습니다. 같은 이름이 있으면 번호가 붙습니다.</p>
+            <p className="text-[11px] leading-5 text-quiet">비우면 첫 파일 이름 뒤에 _취합이 붙습니다. 같은 이름이 있으면 번호가 붙습니다.</p>
             {message ? <p className="text-sm text-desk">{message}</p> : null}
             <button type="button" className="btn-primary w-full" disabled={busy || ready.length < 2} onClick={() => void run()}>
               {busy ? "합치는 중입니다." : "하나의 엑셀로 합치기"}

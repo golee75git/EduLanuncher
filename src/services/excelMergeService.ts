@@ -37,7 +37,7 @@ export function mergeTitleFromName(name: string): string {
   const leaf = name.split(/[/\\]/).pop() || "";
   const stem = leaf.replace(/\.(xlsx|csv)$/i, "").trim();
   const clipped = Array.from(stem).slice(0, 40).join("");
-  return `${clipped || "엑셀"}_통합`;
+  return `${clipped || "엑셀"}_취합`;
 }
 
 /** 제목 칸을 맞출 때 쓰는 키. 공백을 하나로 줄이고 대소문자를 무시한다 (Rust 쪽 `header_key`와 같은 규칙) */

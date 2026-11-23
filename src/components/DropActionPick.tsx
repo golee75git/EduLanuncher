@@ -122,12 +122,12 @@ export function DropActionPick({
           ) : null}
           {excels.length >= 2 ? (
             <button type="button" className="btn-secondary drop-recent" onClick={onExcelMerge}>
-              엑셀 통합
+              엑셀 취합
             </button>
           ) : null}
           {excels.length >= 2 ? (
             <button type="button" className="btn-secondary drop-recent" onClick={onExcelJoin}>
-              엑셀 병합
+              값 채우기
             </button>
           ) : null}
           {hasTools ? (

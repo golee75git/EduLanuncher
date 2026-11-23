@@ -228,12 +228,12 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">엑셀 병합</h1>
+        <h1 className="min-w-0 flex-1 text-[15px] font-semibold text-desk">값 채우기</h1>
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {made ? (
           <>
-            <p className="text-sm text-desk">엑셀 병합이 끝났습니다.</p>
+            <p className="text-sm text-desk">값 채우기가 끝났습니다.</p>
             <p className="text-xs leading-5 text-quiet">
               {made.name} · 넣은 칸 {made.fillCount.toLocaleString("ko-KR")}개 · 그대로 둔 칸{" "}
               {made.keepCount.toLocaleString("ko-KR")}개
@@ -256,7 +256,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
             </button>
             {message ? <p className="text-sm text-desk">{message}</p> : null}
             <button type="button" className="btn-primary w-full" onClick={startOver}>
-              다른 엑셀 병합
+              다른 값 채우기
             </button>
           </>
         ) : (

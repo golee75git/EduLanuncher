@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.233-20261123",
+    note: "엑셀 취합과 값 채우기로 이름이 바뀝니다. 업무도구에는 엑셀 값 채우기가 있고, 취합 파일 이름을 비우면 뒤에 _취합이 붙습니다.",
+  },
+  {
     version: "0.1.232-20261123",
     note: "엑셀만 두 개 이상 놓으면 엑셀 통합 다음에 엑셀 병합이 나옵니다. 맞출 열을 확인하고, 빈 칸에 넣을 값을 보여 준 뒤 새 파일로 저장합니다.",
   },
