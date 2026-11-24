@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.244-20261124",
+    note: "값 채우기에서 가져올 열마다 처음 줄과 끝 줄을 따로 정할 수 있고, 미리보기 표에 줄 번호가 보입니다.",
+  },
+  {
     version: "0.1.243-20261124",
     note: "값 채우기에서 첫 줄이 제목 한 줄인 파일도 가져올 열·넣을 열을 고를 수 있습니다. 값이 시작하는 줄을 누르면 그 위 줄의 제목으로 목록을 만들고, 목록에 첫 값도 함께 보여 줍니다.",
   },

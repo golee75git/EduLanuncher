@@ -37,6 +37,16 @@ interface PairRow {
   fileId: string;
   source: string;
   target: string;
+  /** 이 열에서 가져올 첫 줄·끝 줄(1부터). 비우면 파일에서 고른 범위를 쓴다. */
+  from: string;
+  to: string;
+}
+
+/** 화면에 적은 줄 번호(1부터)를 0부터 센 줄 번호로 바꾼다. 비었거나 숫자가 아니면 null이다. */
+function rowNumber(raw: string): number | null {
+  const trimmed = raw.trim();
+  const parsed = Number(trimmed);
+  return trimmed && Number.isInteger(parsed) && parsed > 0 ? parsed - 1 : null;
 }
 
 function asMessage(error: unknown): string {
@@ -146,7 +156,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
       const next: PairRow[] = [];
       for (const file of current.slice(1)) {
         const kept = prev.filter((pair) => pair.fileId === file.id);
-        next.push(...(kept.length > 0 ? kept : [{ id: `${file.id}:0`, fileId: file.id, source: "", target: "" }]));
+        next.push(...(kept.length > 0 ? kept : [{ id: `${file.id}:0`, fileId: file.id, source: "", target: "", from: "", to: "" }]));
       }
       return next;
     });
@@ -233,15 +243,24 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
   const chosenPairs = pairs
     .map((pair) => {
       const file = ready.find((item) => item.id === pair.fileId);
+      const from = rowNumber(pair.from);
+      const to = rowNumber(pair.to);
+      const ranged = from != null || to != null;
+      // 줄 범위를 열 쌍마다 따로 주면 서버가 제목 줄을 알 수 없으므로, 열 번호로 넘긴다.
+      const head = file ? headerRow(file) : [];
+      const indexOf = (name: string): number | null => {
+        const at = name ? head.findIndex((item) => headerKey(item) === headerKey(name)) : -1;
+        return at >= 0 ? at : null;
+      };
       return {
         fileIndex: ready.findIndex((item) => item.id === pair.fileId),
         source: pair.source,
         target: pair.target,
-        keyAt: file?.keyAt ?? null,
-        sourceAt: file?.valueAt ?? null,
+        keyAt: file?.keyAt ?? (ranged ? indexOf(keyName) : null),
+        sourceAt: file?.valueAt ?? (ranged ? indexOf(pair.source) : null),
         targetAt: baseFile?.valueAt ?? null,
-        dataFrom: file?.dataFrom ?? null,
-        dataTo: file?.dataTo ?? null,
+        dataFrom: from ?? file?.dataFrom ?? null,
+        dataTo: to ?? file?.dataTo ?? null,
       };
     })
     .filter((pair) => pair.fileIndex > 0 && (pair.source || pair.sourceAt != null) && (pair.target || pair.targetAt != null));
@@ -430,6 +449,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                             <tbody>
                               {file.grid.map((row, rowIndex) => (
                                 <tr key={rowIndex}>
+                                  <td className="px-1 text-right text-[10px] text-quiet">{rowIndex + 1}</td>
                                   {row.map((cell, columnIndex) => {
                                     const inBand =
                                       file.keyAt === columnIndex &&
@@ -510,7 +530,8 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                       <p className="truncate text-xs text-desk">{file.name}</p>
                       {keyName && !hasKey ? <p className="text-[11px] text-desk">이 파일에는 맞출 열이 없습니다.</p> : null}
                       {filePairs.map((pair) => (
-                        <div key={pair.id} className="grid grid-cols-2 gap-2">
+                        <div key={pair.id} className="space-y-1">
+                        <div className="grid grid-cols-2 gap-2">
                           <label className="block text-[11px] text-quiet">
                             가져올 열
                             <select
@@ -557,6 +578,27 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                             </select>
                           </label>
                         </div>
+                        <div className="flex items-center gap-2 text-[11px] text-quiet">
+                          <span>가져올 줄</span>
+                          {(["from", "to"] as const).map((edge) => (
+                            <label key={edge} className="flex items-center gap-1">
+                              <input
+                                className="w-14 rounded border border-line bg-card px-1 py-0.5 text-xs text-desk"
+                                inputMode="numeric"
+                                aria-label={edge === "from" ? "가져올 첫 줄" : "가져올 끝 줄"}
+                                placeholder={edge === "from" ? "처음" : "끝"}
+                                value={pair[edge]}
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  setPairs((current) => current.map((item) => (item.id === pair.id ? { ...item, [edge]: value } : item)));
+                                  setLook(null);
+                                }}
+                              />
+                              {edge === "from" ? "줄부터" : "줄까지"}
+                            </label>
+                          ))}
+                        </div>
+                        </div>
                       ))}
                       {filePairs.length < 6 ? (
                         <button
@@ -566,7 +608,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                             pairSeq.current += 1;
                             setPairs((current) => [
                               ...current,
-                              { id: `${file.id}:${pairSeq.current}`, fileId: file.id, source: "", target: "" },
+                              { id: `${file.id}:${pairSeq.current}`, fileId: file.id, source: "", target: "", from: "", to: "" },
                             ]);
                             setLook(null);
                           }}
