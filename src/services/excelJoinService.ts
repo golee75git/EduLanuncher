@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { headerKey, type ExcelGlance } from "./excelMergeService";
 
-const KEY_CANDIDATES = ["학교명", "학교이름", "학교"];
+export const KEY_CANDIDATES = ["대상학교", "학교명", "학교이름", "학교"];
 
 export interface JoinShown {
   key: string;
@@ -23,6 +23,8 @@ export interface JoinPair {
   fileIndex: number;
   source: string;
   target: string;
+  /** 이 파일에서 맞출 열 이름. 비우면 기준 파일의 맞출 열 이름을 쓴다. */
+  key?: string;
   keyAt?: number | null;
   sourceAt?: number | null;
   targetAt?: number | null;
@@ -81,8 +83,9 @@ export function preferredKey(headerRows: string[][]): string {
   );
 }
 
-export function glanceSheet(id: string): Promise<ExcelGlance> {
-  return invoke<ExcelGlance>("sheet_glance", { id });
+/** 파일의 앞부분을 본다. xlsx에 시트가 여럿이면 `sheet` 이름의 시트를 본다. */
+export function glanceSheet(id: string, sheet?: string): Promise<ExcelGlance> {
+  return invoke<ExcelGlance>("sheet_glance", { id, sheet: sheet || null });
 }
 
 export function joinTitleFromName(name: string): string {
@@ -92,10 +95,18 @@ export function joinTitleFromName(name: string): string {
   return `${clipped || "엑셀"}_병합`;
 }
 
-export function lookExcelJoin(ids: string[], key: string, pairs: JoinPair[], anchor: JoinAnchor): Promise<JoinLook> {
-  return invoke<JoinLook>("excel_join_look", { ids, key, pairs, anchor });
+/** `sheets`는 `ids`와 같은 차례로 파일마다 읽을 시트 이름이다. 빈 글자는 첫 시트다. */
+export function lookExcelJoin(ids: string[], key: string, pairs: JoinPair[], anchor: JoinAnchor, sheets: string[]): Promise<JoinLook> {
+  return invoke<JoinLook>("excel_join_look", { ids, key, pairs, anchor, sheets });
 }
 
-export function saveExcelJoin(ids: string[], title: string, key: string, pairs: JoinPair[], anchor: JoinAnchor): Promise<JoinMade> {
-  return invoke<JoinMade>("excel_join_save", { ids, title, key, pairs, anchor });
+export function saveExcelJoin(
+  ids: string[],
+  title: string,
+  key: string,
+  pairs: JoinPair[],
+  anchor: JoinAnchor,
+  sheets: string[],
+): Promise<JoinMade> {
+  return invoke<JoinMade>("excel_join_save", { ids, title, key, pairs, anchor, sheets });
 }

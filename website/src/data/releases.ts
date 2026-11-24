@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.246-20261124",
+    note: "값 채우기에서 시트가 여러 개인 엑셀은 시트를 골라 읽고, 파일마다 맞출 열을 따로 고를 수 있습니다. 표 맨 위의 표제와 두 줄짜리 제목도 건너뛰고 제목을 찾습니다.",
+  },
+  {
     version: "0.1.245-20261124",
     note: "값 채우기에서 가져올 열을 제목 글자가 아니라 값이 있는 열로 고릅니다. 제목이 없거나 겹치는 열도 열 글자와 첫 값을 보고 고를 수 있습니다.",
   },

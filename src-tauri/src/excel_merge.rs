@@ -89,11 +89,19 @@ pub fn read_table(path: &Path) -> Result<SheetTable, String> {
 }
 
 fn read_slot(path: &Path) -> Result<SheetTable, String> {
-    if path_ext(path) == "pdf" {
-        let parsed = crate::pdf_sheet::read_rows(path)?;
-        return Ok(labels_to_table(parsed.rows, parsed.limited));
+    read_slot_sheet(path, None)
+}
+
+/// xlsx는 `sheet` 이름의 시트를 읽고, 다른 형식은 시트 이름을 쓰지 않는다.
+fn read_slot_sheet(path: &Path, sheet: Option<&str>) -> Result<SheetTable, String> {
+    match path_ext(path).as_str() {
+        "pdf" => {
+            let parsed = crate::pdf_sheet::read_rows(path)?;
+            Ok(labels_to_table(parsed.rows, parsed.limited))
+        }
+        "xlsx" => read_xlsx_sheet(path, sheet),
+        _ => read_table(path),
     }
-    read_table(path)
 }
 
 fn labels_to_table(rows: Vec<Vec<String>>, mut limited: bool) -> SheetTable {
@@ -133,6 +141,31 @@ fn spreadsheet_base(path: &Path) -> bool {
 // ---------------------------------------------------------------- xlsx
 
 pub fn read_xlsx(path: &Path) -> Result<SheetTable, String> {
+    read_xlsx_sheet(path, None)
+}
+
+/// 통합 문서에서 보이는 시트 이름을 차례대로 돌려준다. 숨긴 시트는 뺀다.
+pub fn xlsx_sheet_names(path: &Path) -> Result<Vec<String>, String> {
+    let meta = std::fs::metadata(path).map_err(|_| READ_FAIL.to_string())?;
+    if !meta.is_file() || meta.len() > MAX_FILE_BYTES {
+        return Err(READ_FAIL.into());
+    }
+    let file = File::open(path).map_err(|_| READ_FAIL.to_string())?;
+    let mut archive = ZipArchive::new(file).map_err(|_| READ_FAIL.to_string())?;
+    if archive.len() > MAX_ENTRIES {
+        return Err(READ_FAIL.into());
+    }
+    let mut budget = 0u64;
+    let workbook = read_part(&mut archive, "xl/workbook.xml", &mut budget)?.unwrap_or_default();
+    Ok(workbook_sheets(&workbook)
+        .into_iter()
+        .filter(|sheet| !sheet.hidden)
+        .map(|sheet| sheet.name)
+        .collect())
+}
+
+/// `sheet`가 있으면 그 이름의 시트를, 없거나 못 찾으면 첫 시트를 읽는다.
+pub fn read_xlsx_sheet(path: &Path, sheet: Option<&str>) -> Result<SheetTable, String> {
     let meta = std::fs::metadata(path).map_err(|_| READ_FAIL.to_string())?;
     if !meta.is_file() || meta.len() > MAX_FILE_BYTES {
         return Err(READ_FAIL.into());
@@ -156,7 +189,10 @@ pub fn read_xlsx(path: &Path) -> Result<SheetTable, String> {
     let mut budget = 0u64;
     let workbook = read_part(&mut archive, "xl/workbook.xml", &mut budget)?.unwrap_or_default();
     let rels = read_part(&mut archive, "xl/_rels/workbook.xml.rels", &mut budget)?.unwrap_or_default();
-    let sheet_name = first_sheet_path(&names, &workbook, &rels)?;
+    let sheet_name = match sheet.map(str::trim).filter(|wanted| !wanted.is_empty()) {
+        Some(wanted) => named_sheet_path(&workbook, &rels, wanted).ok_or_else(|| READ_FAIL.to_string())?,
+        None => first_sheet_path(&names, &workbook, &rels)?,
+    };
     let shared_xml = read_part(&mut archive, "xl/sharedStrings.xml", &mut budget)?.unwrap_or_default();
     let styles_xml = read_part(&mut archive, "xl/styles.xml", &mut budget)?.unwrap_or_default();
     let sheet_xml = read_part(&mut archive, &sheet_name, &mut budget)?.ok_or_else(|| READ_FAIL.to_string())?;
@@ -207,6 +243,47 @@ fn first_sheet_path(names: &[String], workbook: &str, rels: &str) -> Result<Stri
         .min()
         .cloned()
         .ok_or_else(|| READ_FAIL.to_string())
+}
+
+struct SheetRef {
+    name: String,
+    rel_id: String,
+    hidden: bool,
+}
+
+fn workbook_sheets(xml: &str) -> Vec<SheetRef> {
+    let mut reader = Reader::from_str(xml);
+    let mut buf = Vec::new();
+    let mut sheets = Vec::new();
+    loop {
+        match reader.read_event_into(&mut buf) {
+            Ok(Event::Start(element) | Event::Empty(element)) if local_name(element.name().as_ref()) == "sheet" => {
+                let mut sheet = SheetRef { name: String::new(), rel_id: String::new(), hidden: false };
+                for attr in element.attributes().flatten() {
+                    let value = attr.value.as_ref();
+                    match local_name(attr.key.as_ref()) {
+                        "name" => sheet.name = unescape_attr(value),
+                        "id" => sheet.rel_id = value.trim().to_string(),
+                        "state" => sheet.hidden = value != "visible",
+                        _ => {}
+                    }
+                }
+                if !sheet.name.trim().is_empty() && !sheet.rel_id.is_empty() {
+                    sheets.push(sheet);
+                }
+            }
+            Ok(Event::Eof) | Err(_) => break,
+            _ => {}
+        }
+        buf.clear();
+    }
+    sheets
+}
+
+fn named_sheet_path(workbook: &str, rels: &str, wanted: &str) -> Option<String> {
+    let sheet = workbook_sheets(workbook).into_iter().find(|sheet| sheet.name.trim() == wanted)?;
+    let target = rel_target(rels, &sheet.rel_id)?;
+    safe_sheet_path(&target)
 }
 
 fn first_sheet_rel_id(xml: &str) -> Option<String> {
@@ -1304,6 +1381,8 @@ fn merge_files(sources: &[PathBuf], title: &str, add_source: bool, skip_totals: 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExcelGlance {
+    /// 통합 문서에서 보이는 시트 이름. 시트가 하나뿐이거나 xlsx가 아니면 비어 있다.
+    pub sheets: Vec<String>,
     pub data_rows: u32,
     pub columns: u32,
     pub header: Vec<String>,
@@ -1361,6 +1440,7 @@ pub fn excel_merge_glance(app: AppHandle, id: String) -> Result<ExcelGlance, Str
         .map(|row| row.iter().map(|cell| clip_chars(cell_text_of(cell).trim(), MAX_LABEL_CHARS)).collect())
         .unwrap_or_default();
     Ok(ExcelGlance {
+        sheets: Vec::new(),
         data_rows: table.rows.len().saturating_sub(1) as u32,
         columns: header.len() as u32,
         header,
@@ -1517,6 +1597,9 @@ pub struct JoinPair {
     pub file_index: u32,
     pub source: String,
     pub target: String,
+    /// 이 파일에서 맞출 열 이름. 비어 있으면 기준 파일의 맞출 열 이름을 쓴다.
+    #[serde(default)]
+    pub key: String,
     /// 비어 있으면 제목 글자로 칸을 찾는다. 번호는 0부터다.
     #[serde(default)]
     pub key_at: Option<u32>,
@@ -1633,12 +1716,13 @@ fn push_note(notes: &mut Vec<String>, text: String) {
     }
 }
 
-fn slots_from(paths: &[PathBuf]) -> Vec<Slot> {
+fn slots_from(paths: &[PathBuf], sheets: &[String]) -> Vec<Slot> {
     paths
         .iter()
-        .map(|path| Slot {
+        .enumerate()
+        .map(|(at, path)| Slot {
             name: file_label(path),
-            table: read_slot(path).ok(),
+            table: read_slot_sheet(path, sheets.get(at).map(String::as_str)).ok(),
         })
         .collect()
 }
@@ -1767,7 +1851,9 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
                 }
             }
         } else {
-            match column_at(&source_header, &key_name) {
+            let own_key = clip_label(&pair.key);
+            let wanted_key = if name_key(&own_key).is_empty() { &key_name } else { &own_key };
+            match column_at(&source_header, wanted_key) {
                 Some(found) => found,
                 None => {
                     push_note(&mut notes, format!("{file_name} 파일에 맞출 열이 없습니다."));
@@ -1949,9 +2035,16 @@ fn granted_paths(app: &AppHandle, ids: &[String]) -> Result<Vec<PathBuf>, String
 
 /// 맞출 키와 넣을 값을 미리 본다. 원본은 읽기만 하고 파일을 만들지 않는다.
 #[tauri::command(async)]
-pub fn excel_join_look(app: AppHandle, ids: Vec<String>, key: String, pairs: Vec<JoinPair>, anchor: Option<JoinAnchor>) -> Result<JoinLook, String> {
+pub fn excel_join_look(
+    app: AppHandle,
+    ids: Vec<String>,
+    key: String,
+    pairs: Vec<JoinPair>,
+    anchor: Option<JoinAnchor>,
+    sheets: Option<Vec<String>>,
+) -> Result<JoinLook, String> {
     let paths = granted_paths(&app, &ids)?;
-    let built = join_tables(slots_from(&paths), &key, &pairs, anchor.unwrap_or_default())?;
+    let built = join_tables(slots_from(&paths, &sheets.unwrap_or_default()), &key, &pairs, anchor.unwrap_or_default())?;
     Ok(look_from(built))
 }
 
@@ -1964,6 +2057,7 @@ pub fn excel_join_save(
     key: String,
     pairs: Vec<JoinPair>,
     anchor: Option<JoinAnchor>,
+    sheets: Option<Vec<String>>,
 ) -> Result<JoinMade, String> {
     let paths = granted_paths(&app, &ids)?;
     let dir = paths
@@ -1971,7 +2065,7 @@ pub fn excel_join_save(
         .and_then(|path| path.parent())
         .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
     path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
-    let built = join_tables(slots_from(&paths), &key, &pairs, anchor.unwrap_or_default())?;
+    let built = join_tables(slots_from(&paths, &sheets.unwrap_or_default()), &key, &pairs, anchor.unwrap_or_default())?;
     if built.fill_count == 0 {
         return Err("넣을 값이 없습니다. 비어 있는 칸이 있는 열을 골라 주세요.".into());
     }
@@ -2075,11 +2169,13 @@ fn finish_made_file(app: &AppHandle, dest: &Path) -> Result<(String, String), St
 
 /// xlsx·csv·글자 PDF의 제목 줄을 본다. 값 채우기에서 PDF를 추가 파일로 고를 때 쓴다.
 #[tauri::command(async)]
-pub fn sheet_glance(app: AppHandle, id: String) -> Result<ExcelGlance, String> {
+pub fn sheet_glance(app: AppHandle, id: String, sheet: Option<String>) -> Result<ExcelGlance, String> {
     let path = granted_table(&app, &id)?;
-    let table = read_slot(&path)?;
+    let table = read_slot_sheet(&path, sheet.as_deref())?;
     let header = header_of(&table);
+    let sheets = if path_ext(&path) == "xlsx" { xlsx_sheet_names(&path).unwrap_or_default() } else { Vec::new() };
     Ok(ExcelGlance {
+        sheets,
         data_rows: table.rows.len().saturating_sub(1) as u32,
         columns: header.len() as u32,
         header,
@@ -2666,6 +2762,7 @@ mod tests {
             file_index,
             source: source.into(),
             target: target.into(),
+            key: String::new(),
             key_at: None,
             source_at: None,
             target_at: None,
@@ -2795,6 +2892,111 @@ mod tests {
         assert!(built.notes.iter().any(|note| note == "다른 파일에 없는 키 1건"));
     }
 
+    const TWO_SHEETS: &str = r#"<workbook xmlns:r="r"><sheets><sheet name="총괄" sheetId="1" r:id="rId1"/><sheet name="먹는물 &amp; 수질" sheetId="2" r:id="rId2"/><sheet name="숨김" sheetId="3" state="hidden" r:id="rId3"/></sheets></workbook>"#;
+    const TWO_RELS: &str = r#"<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Target="worksheets/sheet3.xml"/></Relationships>"#;
+
+    fn two_sheet_book() -> std::path::PathBuf {
+        let first = sheet(r#"<row r="1"><c r="A1" t="inlineStr"><is><t>첫 시트</t></is></c></row>"#);
+        let second = sheet(r#"<row r="1"><c r="A1" t="inlineStr"><is><t>둘째 시트</t></is></c></row>"#);
+        let third = sheet(r#"<row r="1"><c r="A1" t="inlineStr"><is><t>숨긴 시트</t></is></c></row>"#);
+        write_xlsx(&[
+            ("xl/workbook.xml", TWO_SHEETS),
+            ("xl/_rels/workbook.xml.rels", TWO_RELS),
+            ("xl/worksheets/sheet1.xml", &first),
+            ("xl/worksheets/sheet2.xml", &second),
+            ("xl/worksheets/sheet3.xml", &third),
+        ])
+    }
+
+    #[test]
+    fn reads_the_sheet_by_name_and_lists_only_visible_sheets() {
+        let path = two_sheet_book();
+        let names = xlsx_sheet_names(&path).unwrap();
+        assert_eq!(names, vec!["총괄".to_string(), "먹는물 & 수질".to_string()]);
+        let first = read_xlsx_sheet(&path, None).unwrap();
+        assert_eq!(first.rows, vec![vec![text("첫 시트")]]);
+        let named = read_xlsx_sheet(&path, Some("먹는물 & 수질")).unwrap();
+        assert_eq!(named.rows, vec![vec![text("둘째 시트")]]);
+        assert!(read_xlsx_sheet(&path, Some("없는 시트")).is_err());
+        assert_eq!(read_xlsx_sheet(&path, Some("  ")).unwrap().rows, first.rows);
+        let slots = slots_from(&[path.clone()], &["먹는물 & 수질".to_string()]);
+        assert_eq!(slots[0].table.as_ref().unwrap().rows, named.rows);
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn join_matches_each_file_by_its_own_key_name() {
+        let base = slot(
+            "기준.xlsx",
+            vec![
+                vec![text("급별"), text("대상학교"), text("점검일자")],
+                vec![text("초"), text("강릉초등학교"), Cell::Empty],
+                vec![text("초"), text("신영초"), Cell::Empty],
+            ],
+        );
+        let other = slot(
+            "계획표.pdf",
+            vec![
+                vec![text("번호"), text("학교명"), text("채수일자")],
+                vec![text("1"), text("강릉초"), text("2026-10-26")],
+                vec![text("2"), text("신영초등학교"), text("2026-10-27")],
+            ],
+        );
+        let mut pair = named_pair(1, "채수일자", "점검일자");
+        pair.key = "학교명".into();
+        let built = join_tables(vec![base, other], "대상학교", &[pair], JoinAnchor::default()).unwrap();
+        assert_eq!(built.fill_count, 2);
+        assert_eq!(built.rows[1][2], text("2026-10-26"));
+        assert_eq!(built.rows[2][2], text("2026-10-27"));
+
+        // 이 파일의 맞출 열 이름이 비어 있으면 기준 파일의 맞출 열 이름을 쓴다.
+        let base = slot("기준.xlsx", vec![vec![text("학교명"), text("점검일자")], vec![text("강릉초"), Cell::Empty]]);
+        let other = slot("값.xlsx", vec![vec![text("학교명"), text("채수일자")], vec![text("강릉초"), text("1")]]);
+        let built = join_tables(vec![base, other], "학교명", &[named_pair(1, "채수일자", "점검일자")], JoinAnchor::default()).unwrap();
+        assert_eq!(built.fill_count, 1);
+    }
+
+    #[test]
+    fn join_reads_columns_by_number_when_the_header_spans_two_rows() {
+        // 기준 파일은 표제 아래 제목 줄, 값 파일은 두 줄짜리 제목이라 이름 대신 열 번호로 맞춘다.
+        let base = slot(
+            "기준.xlsx",
+            vec![
+                vec![text("순회점검 결과")],
+                vec![text("급별"), text("번호"), text("대상학교"), text("점검일자")],
+                vec![text("초"), text("1"), text("강릉초"), Cell::Empty],
+                vec![Cell::Empty, text("2"), text("신영초"), text("2026-01-01")],
+            ],
+        );
+        let other = slot(
+            "계획표.pdf",
+            vec![
+                vec![text("채수 일정")],
+                vec![text("연"), text("급"), text("학교명"), text("채수일자")],
+                vec![text("번"), text("별"), Cell::Empty, Cell::Empty],
+                vec![text("1"), text("초"), text("강릉초등학교"), text("2026-10-26")],
+                vec![text("2"), text("초"), text("신영초"), text("2026-10-27")],
+            ],
+        );
+        let pair = JoinPair {
+            file_index: 1,
+            source: "채수일자".into(),
+            target: "점검일자".into(),
+            key: "학교명".into(),
+            key_at: Some(2),
+            source_at: Some(3),
+            target_at: Some(3),
+            data_from: Some(3),
+            data_to: None,
+        };
+        let anchor = JoinAnchor { key_at: Some(2), data_from: Some(2), data_to: None };
+        let built = join_tables(vec![base, other], "", &[pair], anchor).unwrap();
+        assert_eq!(built.fill_count, 1);
+        assert_eq!(built.keep_count, 1);
+        assert_eq!(built.rows[2][3], text("2026-10-26"));
+        assert_eq!(built.rows[3][3], text("2026-01-01"));
+    }
+
     #[test]
     fn join_file_name_uses_merge_suffix_only_when_a_title_is_given() {
         let first = Path::new("C:/문서/점검.xlsx");
@@ -2838,6 +3040,7 @@ mod tests {
             file_index: 1,
             source: String::new(),
             target: String::new(),
+            key: String::new(),
             key_at: Some(0),
             source_at: Some(1),
             target_at: Some(1),
@@ -2855,6 +3058,7 @@ mod tests {
             file_index: 1,
             source: String::new(),
             target: String::new(),
+            key: String::new(),
             key_at: Some(40),
             source_at: Some(1),
             target_at: Some(1),

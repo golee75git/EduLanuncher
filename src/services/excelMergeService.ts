@@ -3,6 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 export const EXCEL_MERGE_MAX_FILES = 20;
 
 export interface ExcelGlance {
+  /** 통합 문서에서 보이는 시트 이름. xlsx가 아니면 비어 있다. */
+  sheets?: string[];
   dataRows: number;
   columns: number;
   header: string[];
