@@ -73,6 +73,8 @@ pub struct SheetTable {
     pub rows: Vec<Vec<Cell>>,
     /// 행·열 상한 때문에 일부를 잘랐으면 true
     pub limited: bool,
+    /// `rows`의 각 줄이 원본 시트에서 몇 번째 줄이었는지(1부터). xlsx에서만 채운다
+    pub lines: Vec<u32>,
 }
 
 pub fn read_table(path: &Path) -> Result<SheetTable, String> {
@@ -124,7 +126,7 @@ fn labels_to_table(rows: Vec<Vec<String>>, mut limited: bool) -> SheetTable {
         }
         out.push(cells);
     }
-    SheetTable { rows: out, limited }
+    SheetTable { rows: out, limited, lines: Vec::new() }
 }
 
 fn path_ext(path: &Path) -> String {
@@ -564,6 +566,7 @@ fn parse_sheet(xml: &str, shared: &[String], date_styles: &[bool], date1904: boo
     let mut date_cell = false;
     let mut out_of_range = false;
     let mut text = String::new();
+    let mut line_no = 0u32;
     loop {
         match reader.read_event_into(&mut buf) {
             Ok(Event::Start(element)) => match local_name(element.name().as_ref()) {
@@ -571,6 +574,7 @@ fn parse_sheet(xml: &str, shared: &[String], date_styles: &[bool], date1904: boo
                     in_row = true;
                     row.clear();
                     column = 0;
+                    line_no = row_number_of(&element, line_no);
                 }
                 "c" => {
                     in_cell = true;
@@ -591,12 +595,14 @@ fn parse_sheet(xml: &str, shared: &[String], date_styles: &[bool], date1904: boo
                 "t" if in_inline && phonetic == 0 => in_text = true,
                 _ => {}
             },
-            Ok(Event::Empty(element)) => {
-                if local_name(element.name().as_ref()) == "c" {
+            Ok(Event::Empty(element)) => match local_name(element.name().as_ref()) {
+                "c" => {
                     let start = cell_start(&element, column);
                     column = start.column.saturating_add(1);
                 }
-            }
+                "row" => line_no = row_number_of(&element, line_no),
+                _ => {}
+            },
             Ok(Event::End(element)) => match local_name(element.name().as_ref()) {
                 "row" => {
                     if in_row {
@@ -609,6 +615,7 @@ fn parse_sheet(xml: &str, shared: &[String], date_styles: &[bool], date1904: boo
                                 break;
                             }
                             table.rows.push(std::mem::take(&mut row));
+                            table.lines.push(line_no);
                         }
                     }
                     in_row = false;
@@ -651,6 +658,20 @@ fn parse_sheet(xml: &str, shared: &[String], date_styles: &[bool], date1904: boo
         buf.clear();
     }
     table
+}
+
+/// `<row r="N">`의 줄 번호. `r`이 없으면 앞 줄의 다음 줄이다.
+fn row_number_of(element: &quick_xml::events::BytesStart<'_>, previous: u32) -> u32 {
+    for attr in element.attributes().flatten() {
+        if local_name(attr.key.as_ref()) == "r" {
+            if let Ok(number) = attr.value.as_ref().trim().parse::<u32>() {
+                if number > 0 {
+                    return number;
+                }
+            }
+        }
+    }
+    previous.saturating_add(1)
 }
 
 struct CellStart {
@@ -1068,6 +1089,248 @@ fn xml_escape(text: &str) -> String {
         }
     }
     out
+}
+
+/// 원본 xlsx를 그대로 복사하고 고른 시트의 바뀐 칸만 고쳐 새 파일로 쓴다.
+/// 칸 서식·열 너비·병합·다른 시트가 그대로 남는다. 기준 파일이 xlsx가 아니거나 고치지 못하면 false.
+fn save_with_original_format(source: &Path, dest: &Path, sheet: Option<&str>, built: &JoinBuilt) -> bool {
+    if path_ext(source) != "xlsx" || built.lines.len() != built.rows.len() {
+        return false;
+    }
+    let mut edits = Vec::new();
+    for (row_at, column, cell) in &built.edits {
+        let Some(line) = built.lines.get(*row_at) else {
+            return false;
+        };
+        edits.push((*line, *column, cell.clone()));
+    }
+    write_xlsx_patched(source, dest, sheet, &edits).is_ok()
+}
+
+fn sheet_part_of(archive: &mut ZipArchive<File>, sheet: Option<&str>) -> Result<String, String> {
+    let mut names = Vec::new();
+    for index in 0..archive.len() {
+        let entry = archive.by_index_raw(index).map_err(|_| WRITE_FAIL.to_string())?;
+        if entry.is_file() {
+            names.push(entry.name().replace('\\', "/"));
+        }
+    }
+    let mut budget = 0u64;
+    let workbook = read_part(archive, "xl/workbook.xml", &mut budget)?.unwrap_or_default();
+    let rels = read_part(archive, "xl/_rels/workbook.xml.rels", &mut budget)?.unwrap_or_default();
+    match sheet.map(str::trim).filter(|wanted| !wanted.is_empty()) {
+        Some(wanted) => named_sheet_path(&workbook, &rels, wanted).ok_or_else(|| WRITE_FAIL.to_string()),
+        None => first_sheet_path(&names, &workbook, &rels),
+    }
+}
+
+/// `edits`는 (원본 시트의 줄 번호 1부터, 열 위치 0부터, 새 값)이다.
+/// 이미 있는 파일은 덮어쓰지 않는다. 원본은 읽기만 한다.
+pub fn write_xlsx_patched(source: &Path, dest: &Path, sheet: Option<&str>, edits: &[(u32, usize, Cell)]) -> Result<(), String> {
+    let is_xlsx = dest
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(|ext| ext.eq_ignore_ascii_case("xlsx"))
+        .unwrap_or(false);
+    if !is_xlsx {
+        return Err(WRITE_FAIL.into());
+    }
+    let meta = std::fs::metadata(source).map_err(|_| WRITE_FAIL.to_string())?;
+    if !meta.is_file() || meta.len() > MAX_FILE_BYTES {
+        return Err(WRITE_FAIL.into());
+    }
+    let mut archive = ZipArchive::new(File::open(source).map_err(|_| WRITE_FAIL.to_string())?).map_err(|_| WRITE_FAIL.to_string())?;
+    if archive.len() > MAX_ENTRIES {
+        return Err(WRITE_FAIL.into());
+    }
+    let part = sheet_part_of(&mut archive, sheet)?;
+    let mut budget = 0u64;
+    let xml = read_part(&mut archive, &part, &mut budget)?.ok_or_else(|| WRITE_FAIL.to_string())?;
+    let patched = patch_sheet_xml(&xml, edits)?;
+    let file = OpenOptions::new().write(true).create_new(true).open(dest).map_err(|error| {
+        if error.kind() == std::io::ErrorKind::AlreadyExists {
+            "같은 이름의 파일이 이미 있습니다.".to_string()
+        } else {
+            WRITE_FAIL.to_string()
+        }
+    })?;
+    let result = (|| -> Result<(), String> {
+        let mut writer = ZipWriter::new(file);
+        let options = SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
+        for index in 0..archive.len() {
+            let entry = archive.by_index_raw(index).map_err(|_| WRITE_FAIL.to_string())?;
+            if entry.is_file() && entry.name().replace('\\', "/") == part {
+                writer.start_file(part.as_str(), options).map_err(|_| WRITE_FAIL.to_string())?;
+                writer.write_all(patched.as_bytes()).map_err(|_| WRITE_FAIL.to_string())?;
+            } else {
+                writer.raw_copy_file(entry).map_err(|_| WRITE_FAIL.to_string())?;
+            }
+        }
+        writer.finish().map_err(|_| WRITE_FAIL.to_string())?;
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = std::fs::remove_file(dest);
+    }
+    result
+}
+
+/// 여는 태그를 글자로 다시 만든다. `skip`에 든 속성은 뺀다.
+fn open_tag_text(element: &quick_xml::events::BytesStart<'_>, skip: &[&str], extra: &str) -> String {
+    let mut out = format!("<{}", element.name().as_ref());
+    for attr in element.attributes().flatten() {
+        let key: &str = attr.key.as_ref();
+        if skip.contains(&key) {
+            continue;
+        }
+        let value: &str = attr.value.as_ref();
+        out.push_str(&format!(" {key}=\"{}\"", value.replace('"', "&quot;")));
+    }
+    out.push_str(extra);
+    out.push('>');
+    out
+}
+
+/// 칸 하나의 `t` 속성 글자와 안쪽 글자
+fn cell_parts(cell: &Cell) -> (&'static str, String) {
+    match cell {
+        Cell::Empty => ("", String::new()),
+        Cell::Number(value) if writable_number(value) => ("", format!("<v>{}</v>", value.trim())),
+        Cell::Number(value) | Cell::Text(value) => (
+            r#" t="inlineStr""#,
+            format!(r#"<is><t xml:space="preserve">{}</t></is>"#, xml_escape(&clip_chars(value, MAX_CELL_CHARS))),
+        ),
+    }
+}
+
+fn new_cell_text(line: u32, column: usize, cell: &Cell) -> String {
+    let (kind, body) = cell_parts(cell);
+    format!(r#"<c r="{}{line}"{kind}>{body}</c>"#, column_letters(column))
+}
+
+fn cell_element<'a, 'b>(event: &'b Event<'a>) -> Option<&'b quick_xml::events::BytesStart<'a>> {
+    match event {
+        Event::Start(element) | Event::Empty(element) if local_name(element.name().as_ref()) == "c" => Some(element),
+        _ => None,
+    }
+}
+
+fn row_element<'a, 'b>(event: &'b Event<'a>) -> Option<&'b quick_xml::events::BytesStart<'a>> {
+    match event {
+        Event::Start(element) | Event::Empty(element) if local_name(element.name().as_ref()) == "row" => Some(element),
+        _ => None,
+    }
+}
+
+/// 시트 XML에서 `edits`가 가리키는 칸만 바꾼다. 나머지 글자는 그대로 둔다.
+/// 이미 있는 칸은 `s`(서식) 같은 속성을 두고 값만 바꾸고, 없는 칸은 열 순서에 맞게 끼워 넣는다.
+fn patch_sheet_xml(xml: &str, edits: &[(u32, usize, Cell)]) -> Result<String, String> {
+    use std::collections::BTreeMap;
+    let mut by_row: HashMap<u32, BTreeMap<usize, Cell>> = HashMap::new();
+    for (line, column, cell) in edits {
+        if *line == 0 || *column >= MAX_COLUMNS {
+            return Err(WRITE_FAIL.into());
+        }
+        by_row.entry(*line).or_default().insert(*column, cell.clone());
+    }
+    let fail = || WRITE_FAIL.to_string();
+    let mut reader = Reader::from_str(xml);
+    let mut writer = quick_xml::Writer::new(Vec::new());
+    let mut buf = Vec::new();
+    let mut line_no = 0u32;
+    let mut pending: Option<BTreeMap<usize, Cell>> = None;
+    let mut column = 0usize;
+    let mut cell_column = 0usize;
+    let mut skipping = false;
+    fn put(writer: &mut quick_xml::Writer<Vec<u8>>, text: &str) {
+        writer.get_mut().extend_from_slice(text.as_bytes());
+    }
+    loop {
+        let event = reader.read_event_into(&mut buf).map_err(|_| fail())?;
+        if skipping {
+            if let Event::End(element) = &event {
+                if local_name(element.name().as_ref()) == "c" {
+                    skipping = false;
+                    column = cell_column.saturating_add(1);
+                }
+            }
+            buf.clear();
+            continue;
+        }
+        if matches!(event, Event::Eof) {
+            break;
+        }
+        if let Some(element) = row_element(&event) {
+            let is_start = matches!(event, Event::Start(_));
+            line_no = row_number_of(element, line_no);
+            column = 0;
+            match by_row.remove(&line_no) {
+                Some(cells) if is_start => {
+                    put(&mut writer, &open_tag_text(element, &["spans"], ""));
+                    pending = Some(cells);
+                }
+                Some(cells) => {
+                    put(&mut writer, &open_tag_text(element, &["spans"], ""));
+                    for (at, cell) in &cells {
+                        put(&mut writer, &new_cell_text(line_no, *at, cell));
+                    }
+                    put(&mut writer, "</row>");
+                }
+                None => writer.write_event(event).map_err(|_| fail())?,
+            }
+        } else if let Event::End(element) = &event {
+            match local_name(element.name().as_ref()) {
+                "row" => {
+                    if let Some(rest) = pending.take() {
+                        for (at, cell) in &rest {
+                            put(&mut writer, &new_cell_text(line_no, *at, cell));
+                        }
+                    }
+                }
+                "c" => column = cell_column.saturating_add(1),
+                _ => {}
+            }
+            writer.write_event(event).map_err(|_| fail())?;
+        } else if let (Some(element), Some(cells)) = (cell_element(&event), pending.as_mut()) {
+            let is_start = matches!(event, Event::Start(_));
+            let start = cell_start(element, column);
+            cell_column = start.column;
+            let before: Vec<usize> = cells.keys().copied().filter(|at| *at < start.column).collect();
+            for at in before {
+                if let Some(cell) = cells.remove(&at) {
+                    put(&mut writer, &new_cell_text(line_no, at, &cell));
+                }
+            }
+            if let Some(cell) = cells.remove(&start.column) {
+                let (kind, body) = cell_parts(&cell);
+                put(&mut writer, &format!("{}{body}</c>", open_tag_text(element, &["t"], kind)));
+                if is_start {
+                    skipping = true;
+                } else {
+                    column = start.column.saturating_add(1);
+                }
+            } else {
+                if !is_start {
+                    column = start.column.saturating_add(1);
+                }
+                writer.write_event(event).map_err(|_| fail())?;
+            }
+        } else if let Some(element) = cell_element(&event) {
+            if matches!(event, Event::Empty(_)) {
+                column = cell_start(element, column).column.saturating_add(1);
+            } else {
+                cell_column = cell_start(element, column).column;
+            }
+            writer.write_event(event).map_err(|_| fail())?;
+        } else {
+            writer.write_event(event).map_err(|_| fail())?;
+        }
+        buf.clear();
+    }
+    if !by_row.is_empty() || pending.is_some() {
+        return Err(fail());
+    }
+    String::from_utf8(writer.into_inner()).map_err(|_| fail())
 }
 
 // ---------------------------------------------------------------- 통합
@@ -1632,6 +1895,10 @@ struct Slot {
 
 struct JoinBuilt {
     rows: Vec<Vec<Cell>>,
+    /// 표의 줄이 원본 시트에서 몇 번째 줄이었는지(xlsx일 때만)
+    lines: Vec<u32>,
+    /// 바뀐 칸: (표의 줄 위치, 열 위치, 새 값)
+    edits: Vec<(usize, usize, Cell)>,
     shown: Vec<JoinShown>,
     fill_count: usize,
     keep_count: usize,
@@ -1794,6 +2061,8 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
     }
     let mut limited = base.limited;
     let mut rows = base.rows;
+    let lines = base.lines;
+    let mut edits: Vec<(usize, usize, Cell)> = Vec::new();
     let Some((data_start, data_end)) = row_band(rows.len(), anchor.data_from, anchor.data_to) else {
         return Err("값으로 쓸 줄이 없습니다.".into());
     };
@@ -1934,6 +2203,7 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
             }
             if let Some(head) = rows.get_mut(label_at) {
                 head.push(Cell::text(target_name.clone()));
+                edits.push((label_at, width, Cell::text(target_name.clone())));
             }
             width
         };
@@ -1967,6 +2237,7 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
                 }
                 continue;
             }
+            edits.push((row_at, target_at, incoming.clone()));
             row[target_at] = incoming;
             fill_count += 1;
             if fills.len() < MAX_JOIN_SHOWN {
@@ -1991,7 +2262,7 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
         }
         shown.push(line);
     }
-    Ok(JoinBuilt { rows, shown, fill_count, keep_count, miss_count, notes, limited })
+    Ok(JoinBuilt { rows, lines, edits, shown, fill_count, keep_count, miss_count, notes, limited })
 }
 
 fn join_file_name(title: &str, first: &Path) -> String {
@@ -2065,13 +2336,20 @@ pub fn excel_join_save(
         .and_then(|path| path.parent())
         .ok_or_else(|| "저장 폴더를 찾지 못했습니다.".to_string())?;
     path_grant::output_dir_allowed(dir).map_err(|text| text.to_string())?;
-    let built = join_tables(slots_from(&paths, &sheets.unwrap_or_default()), &key, &pairs, anchor.unwrap_or_default())?;
+    let sheets_given = sheets.unwrap_or_default();
+    let built = join_tables(slots_from(&paths, &sheets_given), &key, &pairs, anchor.unwrap_or_default())?;
     if built.fill_count == 0 {
         return Err("넣을 값이 없습니다. 비어 있는 칸이 있는 열을 골라 주세요.".into());
     }
     let first = paths.first().ok_or_else(|| "엑셀 파일을 넣어 주세요.".to_string())?;
     let dest = fresh_xlsx(dir, &join_file_name(&title, first), &paths)?;
-    write_xlsx_new(&dest, &built.rows)?;
+    let mut notes = built.notes.clone();
+    if !save_with_original_format(first, &dest, sheets_given.first().map(String::as_str), &built) {
+        write_xlsx_new(&dest, &built.rows)?;
+        if path_ext(first) == "xlsx" {
+            push_note(&mut notes, "원본의 서식을 그대로 두지 못해 값만 담은 새 파일로 만들었습니다.".into());
+        }
+    }
     let book = app.state::<path_grant::GrantBook>();
     let write_id = path_grant::begin_derived_write(&book, &dest).map_err(|text| text.to_string())?;
     let card = match path_grant::finish_made(&book, write_id) {
@@ -2087,7 +2365,7 @@ pub fn excel_join_save(
         fill_count: built.fill_count as u32,
         keep_count: built.keep_count as u32,
         miss_count: built.miss_count as u32,
-        notes: built.notes,
+        notes,
         limited: built.limited,
     })
 }
@@ -2531,7 +2809,7 @@ mod tests {
     }
 
     fn input(name: &str, rows: Vec<Vec<Cell>>) -> MergeInput {
-        MergeInput { name: name.to_string(), table: SheetTable { rows, limited: false } }
+        MergeInput { name: name.to_string(), table: SheetTable { rows, limited: false, lines: Vec::new() } }
     }
 
     #[test]
@@ -2772,7 +3050,7 @@ mod tests {
     }
 
     fn slot(name: &str, rows: Vec<Vec<Cell>>) -> Slot {
-        Slot { name: name.into(), table: Some(SheetTable { rows, limited: false }) }
+        Slot { name: name.into(), table: Some(SheetTable { rows, limited: false, lines: Vec::new() }) }
     }
 
     #[test]
@@ -3081,5 +3359,70 @@ mod tests {
         assert_eq!(missed.fill_count, 0);
         assert!(missed.notes.iter().any(|note| note.contains("칸")));
         assert!(missed.notes.iter().all(|note| !note.contains("강릉") && !note.contains('\\')));
+    }
+
+    fn part_of(path: &std::path::Path, name: &str) -> String {
+        let mut archive = ZipArchive::new(File::open(path).unwrap()).unwrap();
+        let mut budget = 0u64;
+        read_part(&mut archive, name, &mut budget).unwrap().unwrap_or_default()
+    }
+
+    #[test]
+    fn saving_keeps_the_original_cell_styles_and_other_sheets() {
+        let other = sheet(r#"<row r="1"><c r="A1" t="inlineStr"><is><t>다른 시트</t></is></c></row>"#);
+        let target = sheet(concat!(
+            r#"<row r="1" spans="1:2"><c r="A1" t="inlineStr"><is><t>학교명</t></is></c><c r="B1" t="inlineStr"><is><t>점검일자</t></is></c></row>"#,
+            r#"<row r="2" spans="1:2"><c r="A2" s="1" t="inlineStr"><is><t>강릉초등학교</t></is></c><c r="B2" s="2"/></row>"#,
+            r#"<row r="4"><c r="A4" t="inlineStr"><is><t>신영초</t></is></c><c r="B4" s="2"><v></v></c></row>"#,
+            r#"<row r="5"><c r="A5" t="inlineStr"><is><t>한솔초</t></is></c></row>"#,
+            r#"<row r="6"><c r="A6" t="inlineStr"><is><t>남산초</t></is></c><c r="B6" s="2" t="inlineStr"><is><t>이미 있음</t></is></c></row>"#,
+        ));
+        let styles = r#"<styleSheet><cellXfs count="3"><xf numFmtId="0"/><xf numFmtId="0"/><xf numFmtId="14"/></cellXfs></styleSheet>"#;
+        let path = write_xlsx(&[
+            ("xl/workbook.xml", TWO_SHEETS),
+            ("xl/_rels/workbook.xml.rels", TWO_RELS),
+            ("xl/styles.xml", styles),
+            ("xl/worksheets/sheet1.xml", &other),
+            ("xl/worksheets/sheet2.xml", &target),
+        ]);
+        let table = read_xlsx_sheet(&path, Some("먹는물 & 수질")).unwrap();
+        assert_eq!(table.lines, vec![1, 2, 4, 5, 6]);
+        let base = Slot { name: "기준.xlsx".into(), table: Some(table) };
+        let values = slot(
+            "값.csv",
+            vec![
+                vec![text("학교명"), text("채수일자")],
+                vec![text("강릉초"), text("2026-10-26")],
+                vec![text("신영초"), text("2026-10-27")],
+                vec![text("한솔초"), text("2026-10-28")],
+                vec![text("남산초"), text("2026-10-29")],
+            ],
+        );
+        let built = join_tables(vec![base, values], "학교명", &[named_pair(1, "채수일자", "점검일자")], JoinAnchor::default()).unwrap();
+        assert_eq!((built.fill_count, built.keep_count), (3, 1));
+
+        let dest = temp_file("xlsx");
+        assert!(save_with_original_format(&path, &dest, Some("먹는물 & 수질"), &built));
+        let saved = part_of(&dest, "xl/worksheets/sheet2.xml");
+        // 서식 번호(s)는 그대로이고, 값만 들어간다. 줄의 spans는 고친 줄에서만 뺀다.
+        assert!(saved.contains(r#"<c r="B2" s="2" t="inlineStr"><is><t xml:space="preserve">2026-10-26</t></is></c>"#), "{saved}");
+        assert!(saved.contains(r#"<c r="B4" s="2" t="inlineStr"><is><t xml:space="preserve">2026-10-27</t></is></c>"#), "{saved}");
+        assert!(saved.contains(r#"<c r="B5" t="inlineStr"><is><t xml:space="preserve">2026-10-28</t></is></c></row>"#), "{saved}");
+        assert!(saved.contains(r#"<c r="A2" s="1" t="inlineStr">"#));
+        assert!(saved.contains("이미 있음") && !saved.contains("2026-10-29"));
+        // 다른 시트와 서식 파일은 글자 그대로
+        assert_eq!(part_of(&dest, "xl/worksheets/sheet1.xml"), other);
+        assert_eq!(part_of(&dest, "xl/styles.xml"), styles);
+        assert_eq!(part_of(&dest, "xl/workbook.xml"), TWO_SHEETS);
+        // 다시 읽으면 값이 들어 있고, 원본은 바뀌지 않았다
+        let again = read_xlsx_sheet(&dest, Some("먹는물 & 수질")).unwrap();
+        assert_eq!(again.rows[1][1], text("2026-10-26"));
+        assert_eq!(again.rows[2][1], text("2026-10-27"));
+        assert_eq!(again.rows[3][1], text("2026-10-28"));
+        assert_eq!(read_xlsx_sheet(&path, Some("먹는물 & 수질")).unwrap().rows[1].get(1), None);
+        // 이미 있는 파일 위에는 쓰지 않는다
+        assert!(!save_with_original_format(&path, &dest, Some("먹는물 & 수질"), &built));
+        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_file(&dest);
     }
 }
