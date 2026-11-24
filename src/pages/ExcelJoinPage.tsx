@@ -70,6 +70,29 @@ function bandLabel(file: SheetFile): string {
   return parts.join(" · ");
 }
 
+/** 사용자가 고른 데이터 줄 바로 위 줄을 제목으로 본다. 고르지 않았으면 첫 줄이다. */
+function headerRow(file: SheetFile): string[] {
+  if (file.dataFrom != null && file.dataFrom > 0) {
+    const row = file.grid[file.dataFrom - 1];
+    if (row) {
+      return row;
+    }
+  }
+  return file.header;
+}
+
+/** 목록에서 열을 알아보도록 제목 아래 첫 값을 덧붙여 보여 준다. */
+function columnLabel(file: SheetFile, name: string): string {
+  const at = headerRow(file).findIndex((item) => headerKey(item) === headerKey(name));
+  const sample = at >= 0 ? (file.grid[file.dataFrom ?? 1]?.[at] ?? "").trim() : "";
+  return sample ? `${name} · ${sample.length > 12 ? `${sample.slice(0, 12)}…` : sample}` : name;
+}
+
+/** 첫 줄에 글자가 한 칸뿐이면 제목 줄일 가능성이 크다. */
+function looksLikeTitleRow(file: SheetFile): boolean {
+  return file.dataFrom == null && file.header.filter((cell) => cell.trim()).length === 1 && file.grid.length > 1;
+}
+
 function spreadsheetFirst(files: SheetFile[]): SheetFile[] {
   const sheets: SheetFile[] = [];
   const pdfs: SheetFile[] = [];
@@ -114,7 +137,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
 
   const ready = files.filter((file) => !file.note);
   const baseFile = ready.find((file) => !isPdfName(file.name));
-  const readyMark = ready.map((file) => `${file.id}:${file.header.join("\t")}`).join("|");
+  const readyMark = ready.map((file) => `${file.id}:${headerRow(file).join("\t")}`).join("|");
   const baseName = baseFile?.name ?? "";
 
   useEffect(() => {
@@ -128,7 +151,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
       return next;
     });
     if (!keyTouched) {
-      setKeyName(preferredKey(current.map((file) => file.header)));
+      setKeyName(preferredKey(current.map((file) => headerRow(file))));
     }
     setLook(null);
   }, [readyMark, keyTouched, files]);
@@ -199,7 +222,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
   };
 
   const base = baseFile;
-  const baseHeaders = uniqueHeaders(base?.header ?? []);
+  const baseHeaders = uniqueHeaders(base ? headerRow(base) : []);
   const listedKey = keyName && !baseHeaders.some((name) => headerKey(name) === headerKey(keyName)) ? [keyName] : [];
 
   const anchor = {
@@ -235,6 +258,18 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
         return { ...item, keyAt: column, dataFrom: row };
       }),
     );
+    if (pickMode === "key") {
+      // 제목 줄이 바뀌면 이전에 고른 열 이름은 더 이상 목록에 없을 수 있어 비운다.
+      const isBase = baseFile?.id === fileId;
+      setPairs((current) =>
+        current.map((pair) => {
+          if (isBase) {
+            return { ...pair, target: "" };
+          }
+          return pair.fileId === fileId ? { ...pair, source: "" } : pair;
+        }),
+      );
+    }
     if (pickMode === "key" && baseFile?.id === fileId) {
       const above = files.find((item) => item.id === fileId)?.grid[row - 1]?.[column]?.trim() ?? "";
       if (above) {
@@ -386,6 +421,9 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                         {file.id === base?.id ? " · 기준" : ""}
                       </p>
                       <p className="text-[11px] text-quiet">{file.note || marked || `${file.header.length}열`}</p>
+                      {looksLikeTitleRow(file) ? (
+                        <p className="text-[11px] text-desk">첫 줄이 제목 한 칸뿐입니다. 맞출 칸을 눌러 값이 시작하는 줄을 알려 주세요.</p>
+                      ) : null}
                       {file.grid.length > 0 ? (
                         <div className="max-w-full overflow-x-auto">
                           <table className="border-collapse">
@@ -462,9 +500,10 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                   ))}
                 </select>
                 {ready.filter((file) => file.id !== base?.id).map((file) => {
-                  const hasKey = uniqueHeaders(file.header).some((name) => headerKey(name) === headerKey(keyName));
+                  const fileHeaders = uniqueHeaders(headerRow(file));
+                  const hasKey = file.keyAt != null || fileHeaders.some((name) => headerKey(name) === headerKey(keyName));
                   const filePairs = pairs.filter((pair) => pair.fileId === file.id);
-                  const sources = uniqueHeaders(file.header).filter((name) => headerKey(name) !== headerKey(keyName));
+                  const sources = fileHeaders.filter((name) => headerKey(name) !== headerKey(keyName));
                   const targets = baseHeaders.filter((name) => headerKey(name) !== headerKey(keyName));
                   return (
                     <div key={file.id} className="space-y-2">
@@ -486,7 +525,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                               <option value="">고르기</option>
                               {sources.map((name) => (
                                 <option key={name} value={name}>
-                                  {name}
+                                  {columnLabel(file, name)}
                                 </option>
                               ))}
                             </select>
@@ -505,7 +544,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                               <option value="">고르기</option>
                               {targets.map((name) => (
                                 <option key={name} value={name}>
-                                  {name}
+                                  {base ? columnLabel(base, name) : name}
                                 </option>
                               ))}
                               {sources
