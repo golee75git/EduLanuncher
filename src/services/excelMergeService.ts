@@ -6,6 +6,7 @@ export interface ExcelGlance {
   dataRows: number;
   columns: number;
   header: string[];
+  grid: string[][];
   limited: boolean;
 }
 

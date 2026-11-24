@@ -23,6 +23,17 @@ export interface JoinPair {
   fileIndex: number;
   source: string;
   target: string;
+  keyAt?: number | null;
+  sourceAt?: number | null;
+  targetAt?: number | null;
+  dataFrom?: number | null;
+  dataTo?: number | null;
+}
+
+export interface JoinAnchor {
+  keyAt: number | null;
+  dataFrom: number | null;
+  dataTo: number | null;
 }
 
 export interface JoinMade {
@@ -81,10 +92,10 @@ export function joinTitleFromName(name: string): string {
   return `${clipped || "엑셀"}_병합`;
 }
 
-export function lookExcelJoin(ids: string[], key: string, pairs: JoinPair[]): Promise<JoinLook> {
-  return invoke<JoinLook>("excel_join_look", { ids, key, pairs });
+export function lookExcelJoin(ids: string[], key: string, pairs: JoinPair[], anchor: JoinAnchor): Promise<JoinLook> {
+  return invoke<JoinLook>("excel_join_look", { ids, key, pairs, anchor });
 }
 
-export function saveExcelJoin(ids: string[], title: string, key: string, pairs: JoinPair[]): Promise<JoinMade> {
-  return invoke<JoinMade>("excel_join_save", { ids, title, key, pairs });
+export function saveExcelJoin(ids: string[], title: string, key: string, pairs: JoinPair[], anchor: JoinAnchor): Promise<JoinMade> {
+  return invoke<JoinMade>("excel_join_save", { ids, title, key, pairs, anchor });
 }

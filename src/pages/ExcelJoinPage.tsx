@@ -25,6 +25,11 @@ interface SheetFile {
   name: string;
   header: string[];
   note: string;
+  grid: string[][];
+  keyAt: number | null;
+  dataFrom: number | null;
+  dataTo: number | null;
+  valueAt: number | null;
 }
 
 interface PairRow {
@@ -46,6 +51,23 @@ function asMessage(error: unknown): string {
 
 function isPdfName(name: string): boolean {
   return /\.pdf$/i.test(name.trim());
+}
+
+function bandLabel(file: SheetFile): string {
+  const parts: string[] = [];
+  if (file.keyAt != null) {
+    parts.push(`맞출 칸 ${file.keyAt + 1}`);
+  }
+  if (file.dataFrom != null) {
+    parts.push(`${file.dataFrom + 1}째 줄부터`);
+  }
+  if (file.dataTo != null) {
+    parts.push(`${file.dataTo + 1}째 줄까지`);
+  }
+  if (file.valueAt != null) {
+    parts.push(`값 칸 ${file.valueAt + 1}`);
+  }
+  return parts.join(" · ");
 }
 
 function spreadsheetFirst(files: SheetFile[]): SheetFile[] {
@@ -74,6 +96,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
   const [message, setMessage] = useState("");
   const [look, setLook] = useState<JoinLook | null>(null);
   const [made, setMade] = useState<JoinMade | null>(null);
+  const [pickMode, setPickMode] = useState<"key" | "value">("key");
 
   useEffect(() => holdJoinDrop((incoming) => addRef.current(incoming)), []);
 
@@ -135,7 +158,12 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
           id: file.id,
           name: file.name || "엑셀",
           header: glance.header,
-          note: glance.columns === 0 ? "내용이 없습니다." : "",
+          note: glance.columns === 0 && glance.grid.length === 0 ? "내용이 없습니다." : "",
+          grid: glance.grid ?? [],
+          keyAt: null,
+          dataFrom: null,
+          dataTo: null,
+          valueAt: null,
         });
       } catch (error) {
         loaded.push({
@@ -143,6 +171,11 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
           name: file.name || "엑셀",
           header: [],
           note: asMessage(error),
+          grid: [],
+          keyAt: null,
+          dataFrom: null,
+          dataTo: null,
+          valueAt: null,
         });
       }
     }
@@ -169,13 +202,56 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
   const baseHeaders = uniqueHeaders(base?.header ?? []);
   const listedKey = keyName && !baseHeaders.some((name) => headerKey(name) === headerKey(keyName)) ? [keyName] : [];
 
+  const anchor = {
+    keyAt: baseFile?.keyAt ?? null,
+    dataFrom: baseFile?.dataFrom ?? null,
+    dataTo: baseFile?.dataTo ?? null,
+  };
   const chosenPairs = pairs
-    .map((pair) => ({
-      fileIndex: ready.findIndex((file) => file.id === pair.fileId),
-      source: pair.source,
-      target: pair.target,
-    }))
-    .filter((pair) => pair.fileIndex > 0 && pair.source && pair.target);
+    .map((pair) => {
+      const file = ready.find((item) => item.id === pair.fileId);
+      return {
+        fileIndex: ready.findIndex((item) => item.id === pair.fileId),
+        source: pair.source,
+        target: pair.target,
+        keyAt: file?.keyAt ?? null,
+        sourceAt: file?.valueAt ?? null,
+        targetAt: baseFile?.valueAt ?? null,
+        dataFrom: file?.dataFrom ?? null,
+        dataTo: file?.dataTo ?? null,
+      };
+    })
+    .filter((pair) => pair.fileIndex > 0 && (pair.source || pair.sourceAt != null) && (pair.target || pair.targetAt != null));
+
+  const markCell = (fileId: string, row: number, column: number) => {
+    setFiles((current) =>
+      current.map((item) => {
+        if (item.id !== fileId) {
+          return item;
+        }
+        if (pickMode === "value") {
+          return { ...item, valueAt: column };
+        }
+        return { ...item, keyAt: column, dataFrom: row };
+      }),
+    );
+    if (pickMode === "key" && baseFile?.id === fileId) {
+      const above = files.find((item) => item.id === fileId)?.grid[row - 1]?.[column]?.trim() ?? "";
+      if (above) {
+        setKeyTouched(true);
+        setKeyName(above);
+      }
+    }
+    setLook(null);
+  };
+
+  const setEndRow = (fileId: string, raw: string) => {
+    const trimmed = raw.trim();
+    const parsed = Number(trimmed);
+    const dataTo = trimmed && Number.isInteger(parsed) && parsed > 0 ? parsed - 1 : null;
+    setFiles((current) => current.map((item) => (item.id === fileId ? { ...item, dataTo } : item)));
+    setLook(null);
+  };
 
   const showValues = async () => {
     if (busy) {
@@ -185,15 +261,15 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
       setMessage("엑셀 파일을 두 개 이상 넣어 주세요.");
       return;
     }
-    if (!keyName.trim() || chosenPairs.length === 0) {
-      setMessage("맞출 열, 가져올 열, 넣을 열을 골라 주세요.");
+    if ((!keyName.trim() && anchor.keyAt == null) || chosenPairs.length === 0) {
+      setMessage("맞출 칸, 가져올 칸, 넣을 칸을 골라 주세요.");
       return;
     }
     setBusy(true);
     setMessage("");
     setLook(null);
     try {
-      setLook(await lookExcelJoin(ready.map((file) => file.id), keyName.trim(), chosenPairs));
+      setLook(await lookExcelJoin(ready.map((file) => file.id), keyName.trim(), chosenPairs, anchor));
     } catch (error) {
       setMessage(asMessage(error));
     } finally {
@@ -209,7 +285,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
     setMessage("");
     try {
       await clearMadeReveals();
-      setMade(await saveExcelJoin(ready.map((file) => file.id), title.trim(), keyName.trim(), chosenPairs));
+      setMade(await saveExcelJoin(ready.map((file) => file.id), title.trim(), keyName.trim(), chosenPairs, anchor));
     } catch (error) {
       setMessage(asMessage(error));
     } finally {
@@ -281,24 +357,78 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
         ) : (
           <>
             <p className="text-xs leading-5 text-quiet">
-              첫 파일은 xlsx 또는 csv입니다. 같은 키의 빈 칸에 다른 파일 열 값을 넣습니다. PDF는 글자 위치로 칸을 나눈 표만 추가로 읽습니다. 맞출 열을
-              확인한 뒤 적용할 값을 먼저 보여 줍니다. 이미 있는 값은 바꾸지 않고, 원본도 바꾸지 않습니다.
+              첫 파일은 xlsx 또는 csv입니다. 같은 키의 빈 칸에 다른 파일 열 값을 넣습니다. xlsx·csv·PDF는 앞부분 칸을 보여 줍니다. 맞출 칸을 누르면 그 줄부터
+              데이터로 쓰고, 값 칸은 기준 파일에서는 넣을 칸, 다른 파일에서는 가져올 칸입니다. 칸을 누르지 않으면 첫 줄을 제목으로 봅니다. 적용할 값을
+              먼저 보여 줍니다. 이미 있는 값은 바꾸지 않고, 원본도 바꾸지 않습니다.
               학교 이름은 OO초=OO초등학교, OO중=OO중학교, OO고=OO고등학교, OO유=OO유치원을 같게 봅니다.
             </p>
             <button type="button" className="btn-secondary" disabled={busy} onClick={() => void pickFiles()}>
               파일 추가
             </button>
             {files.length > 0 ? (
+              <div className="flex gap-2">
+                <button type="button" className={pickMode === "key" ? "btn-primary" : "btn-secondary"} onClick={() => setPickMode("key")}>
+                  맞출 칸
+                </button>
+                <button type="button" className={pickMode === "value" ? "btn-primary" : "btn-secondary"} onClick={() => setPickMode("value")}>
+                  값 칸
+                </button>
+              </div>
+            ) : null}
+            {files.length > 0 ? (
               <ul className="card-surface divide-y divide-line/70">
-                {files.map((file, index) => (
-                  <li key={file.id} className="px-3 py-1.5">
-                    <p className="truncate text-sm text-desk">
-                      {index + 1}. {file.name}
-                      {file.id === base?.id ? " · 기준" : ""}
-                    </p>
-                    <p className="text-[11px] text-quiet">{file.note || `${file.header.length}열`}</p>
-                  </li>
-                ))}
+                {files.map((file, index) => {
+                  const marked = bandLabel(file);
+                  return (
+                    <li key={file.id} className="space-y-1 px-3 py-1.5">
+                      <p className="truncate text-sm text-desk">
+                        {index + 1}. {file.name}
+                        {file.id === base?.id ? " · 기준" : ""}
+                      </p>
+                      <p className="text-[11px] text-quiet">{file.note || marked || `${file.header.length}열`}</p>
+                      {file.grid.length > 0 ? (
+                        <div className="max-w-full overflow-x-auto">
+                          <table className="border-collapse">
+                            <tbody>
+                              {file.grid.map((row, rowIndex) => (
+                                <tr key={rowIndex}>
+                                  {row.map((cell, columnIndex) => {
+                                    const inBand =
+                                      file.keyAt === columnIndex &&
+                                      file.dataFrom != null &&
+                                      rowIndex >= file.dataFrom &&
+                                      (file.dataTo == null || rowIndex <= file.dataTo);
+                                    const valueHere = file.valueAt === columnIndex;
+                                    return (
+                                      <td key={columnIndex} className="p-0">
+                                        <button
+                                          type="button"
+                                          className={`max-w-24 truncate border px-1 py-0.5 text-left text-[10px] text-desk ${inBand || valueHere ? "border-desk bg-card font-semibold" : "border-line"}`}
+                                          onClick={() => markCell(file.id, rowIndex, columnIndex)}
+                                        >
+                                          {cell || "·"}
+                                        </button>
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : null}
+                      <label className="block text-[11px] text-quiet">
+                        끝 줄
+                        <input
+                          className="ml-2 w-16 rounded border border-line bg-card px-1 py-0.5 text-xs text-desk"
+                          inputMode="numeric"
+                          value={file.dataTo == null ? "" : String(file.dataTo + 1)}
+                          onChange={(event) => setEndRow(file.id, event.target.value)}
+                        />
+                      </label>
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="card-surface px-3 py-4 text-center text-xs text-quiet">xlsx, csv, PDF를 여기로 끌어 놓거나 위 버튼으로 골라 주세요.</p>

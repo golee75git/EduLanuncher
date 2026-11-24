@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.241-20261124",
+    note: "값 채우기에서 xlsx·csv·PDF마다 앞부분 칸을 보여 줍니다. 맞출 칸과 값 칸, 끝 줄을 고르면 그 범위만 읽고, 칸을 고르지 않으면 첫 줄을 제목으로 봅니다.",
+  },
+  {
     version: "0.1.240-20261123",
     note: "엑셀 취합에서 합계·소계 줄을 뺄 수 있고, 한글 엑셀이 저장한 CP949 CSV도 읽습니다. 합친 뒤 파일별 결과에 뺀 줄 수가 나옵니다.",
   },
