@@ -11,6 +11,8 @@ const APPROVED_EXCEPTIONS = [
   { name: "unic-common", version: "0.9.0", license: "MIT/Apache-2.0", reason: "라이선스 파일 없음. 소스 주석의 MIT 또는 Apache-2.0 표기를 따름" },
   { name: "unic-char-property", version: "0.9.0", license: "MIT/Apache-2.0", reason: "라이선스 파일 없음. 소스 주석의 MIT 또는 Apache-2.0 표기를 따름" },
   { name: "unic-char-range", version: "0.9.0", license: "MIT/Apache-2.0", reason: "라이선스 파일 없음. 소스 주석의 MIT 또는 Apache-2.0 표기를 따름" },
+  { name: "elkjs", version: "0.9.3", license: "EPL-2.0", reason: "소개 사이트 mermaid 의존성, 수정 없이 사용" },
+  { name: "khroma", version: "2.1.0", license: "MIT", reason: "package.json에 license 필드 없음. 패키지의 license 파일이 MIT 원문" },
 ];
 
 import { execFileSync, spawnSync } from "node:child_process";

@@ -39,3 +39,6 @@ knowledge-signing*.pem
 knowledge-signing*.key
 knowledge-signing*.p8
 
+
+# 시연·실제 기관 자료 (저장소에 올리지 않음)
+/demo/

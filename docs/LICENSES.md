@@ -42,6 +42,8 @@ npm run notices -- --site
 | unic-common | 0.9.0 | MIT/Apache-2.0 | 라이선스 파일이 없어 소스 주석을 따름. 선택: MIT |
 | unic-char-property | 0.9.0 | MIT/Apache-2.0 | 라이선스 파일이 없어 소스 주석을 따름. 선택: MIT |
 | unic-char-range | 0.9.0 | MIT/Apache-2.0 | 라이선스 파일이 없어 소스 주석을 따름. 선택: MIT |
+| elkjs | 0.9.3 | EPL-2.0 | 소개 사이트 mermaid 의존성, 수정 없이 사용. 수정하거나 복사하면 해당 파일 소스를 EPL-2.0으로 제공 |
+| khroma | 2.1.0 | MIT | package.json에 license 필드가 없고 패키지의 license 파일이 MIT 원문 |
 
 ### MPL-2.0
 
