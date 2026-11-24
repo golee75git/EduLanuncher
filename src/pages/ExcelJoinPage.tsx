@@ -36,6 +36,8 @@ interface PairRow {
   id: string;
   fileId: string;
   source: string;
+  /** 가져올 열의 번호(0부터). 제목이 없거나 겹쳐도 열 자체를 고를 수 있다. */
+  sourceCol: number | null;
   target: string;
   /** 이 열에서 가져올 첫 줄·끝 줄(1부터). 비우면 파일에서 고른 범위를 쓴다. */
   from: string;
@@ -103,6 +105,57 @@ function looksLikeTitleRow(file: SheetFile): boolean {
   return file.dataFrom == null && file.header.filter((cell) => cell.trim()).length === 1 && file.grid.length > 1;
 }
 
+interface DataColumn {
+  index: number;
+  name: string;
+  label: string;
+}
+
+function columnLetter(index: number): string {
+  let rest = index + 1;
+  let letters = "";
+  while (rest > 0) {
+    const at = (rest - 1) % 26;
+    letters = String.fromCharCode(65 + at) + letters;
+    rest = Math.floor((rest - 1) / 26);
+  }
+  return letters;
+}
+
+function clipText(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+
+/**
+ * 가져올 수 있는 데이터 열. 제목 줄 글자와 상관없이 값이 있는 열을 열 글자(A, B…)로 보여 준다.
+ * 맞출 열은 뺀다. 미리보기 범위 밖의 열은 값을 알 수 없어 그대로 둔다.
+ */
+function dataColumns(file: SheetFile, keyName: string): DataColumn[] {
+  const head = headerRow(file);
+  const gridWidth = file.grid.reduce((most, row) => Math.max(most, row.length), 0);
+  const width = Math.max(head.length, gridWidth);
+  const start = file.dataFrom ?? 1;
+  const keyAt = file.keyAt ?? (keyName ? head.findIndex((item) => headerKey(item) === headerKey(keyName)) : -1);
+  const columns: DataColumn[] = [];
+  for (let index = 0; index < width; index += 1) {
+    if (index === keyAt) {
+      continue;
+    }
+    const sample = file.grid.slice(start).map((row) => (row[index] ?? "").trim()).find(Boolean) ?? "";
+    if (!sample && index < gridWidth) {
+      continue;
+    }
+    const title = (head[index] ?? "").trim();
+    const letter = `${columnLetter(index)}열`;
+    columns.push({
+      index,
+      name: title || letter,
+      label: `${letter} · ${title ? clipText(title, 10) : "제목 없음"}${sample ? ` · ${clipText(sample, 12)}` : ""}`,
+    });
+  }
+  return columns;
+}
+
 function spreadsheetFirst(files: SheetFile[]): SheetFile[] {
   const sheets: SheetFile[] = [];
   const pdfs: SheetFile[] = [];
@@ -156,7 +209,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
       const next: PairRow[] = [];
       for (const file of current.slice(1)) {
         const kept = prev.filter((pair) => pair.fileId === file.id);
-        next.push(...(kept.length > 0 ? kept : [{ id: `${file.id}:0`, fileId: file.id, source: "", target: "", from: "", to: "" }]));
+        next.push(...(kept.length > 0 ? kept : [{ id: `${file.id}:0`, fileId: file.id, source: "", sourceCol: null, target: "", from: "", to: "" }]));
       }
       return next;
     });
@@ -256,8 +309,8 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
         fileIndex: ready.findIndex((item) => item.id === pair.fileId),
         source: pair.source,
         target: pair.target,
-        keyAt: file?.keyAt ?? (ranged ? indexOf(keyName) : null),
-        sourceAt: file?.valueAt ?? (ranged ? indexOf(pair.source) : null),
+        keyAt: file?.keyAt ?? (ranged || pair.sourceCol != null ? indexOf(keyName) : null),
+        sourceAt: file?.valueAt ?? pair.sourceCol ?? (ranged ? indexOf(pair.source) : null),
         targetAt: baseFile?.valueAt ?? null,
         dataFrom: from ?? file?.dataFrom ?? null,
         dataTo: to ?? file?.dataTo ?? null,
@@ -285,7 +338,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
           if (isBase) {
             return { ...pair, target: "" };
           }
-          return pair.fileId === fileId ? { ...pair, source: "" } : pair;
+          return pair.fileId === fileId ? { ...pair, source: "", sourceCol: null } : pair;
         }),
       );
     }
@@ -523,7 +576,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                   const fileHeaders = uniqueHeaders(headerRow(file));
                   const hasKey = file.keyAt != null || fileHeaders.some((name) => headerKey(name) === headerKey(keyName));
                   const filePairs = pairs.filter((pair) => pair.fileId === file.id);
-                  const sources = fileHeaders.filter((name) => headerKey(name) !== headerKey(keyName));
+                  const sources = dataColumns(file, keyName);
                   const targets = baseHeaders.filter((name) => headerKey(name) !== headerKey(keyName));
                   return (
                     <div key={file.id} className="space-y-2">
@@ -536,17 +589,23 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                             가져올 열
                             <select
                               className="mt-1 w-full rounded-lg border border-line bg-card px-2 py-1.5 text-sm text-desk"
-                              value={pair.source}
+                              value={pair.sourceCol == null ? "" : String(pair.sourceCol)}
                               onChange={(event) => {
-                                const source = event.target.value;
-                                setPairs((current) => current.map((item) => (item.id === pair.id ? { ...item, source } : item)));
+                                const picked = sources.find((column) => String(column.index) === event.target.value);
+                                setPairs((current) =>
+                                  current.map((item) =>
+                                    item.id === pair.id
+                                      ? { ...item, source: picked?.name ?? "", sourceCol: picked?.index ?? null }
+                                      : item,
+                                  ),
+                                );
                                 setLook(null);
                               }}
                             >
                               <option value="">고르기</option>
-                              {sources.map((name) => (
-                                <option key={name} value={name}>
-                                  {columnLabel(file, name)}
+                              {sources.map((column) => (
+                                <option key={column.index} value={String(column.index)}>
+                                  {column.label}
                                 </option>
                               ))}
                             </select>
@@ -569,10 +628,10 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                                 </option>
                               ))}
                               {sources
-                                .filter((name) => !targets.some((target) => headerKey(target) === headerKey(name)))
-                                .map((name) => (
-                                  <option key={`new-${name}`} value={name}>
-                                    새 열 {name}
+                                .filter((column) => !targets.some((target) => headerKey(target) === headerKey(column.name)))
+                                .map((column) => (
+                                  <option key={`new-${column.index}`} value={column.name}>
+                                    새 열 {column.name}
                                   </option>
                                 ))}
                             </select>
@@ -608,7 +667,7 @@ export function ExcelJoinPage({ onBack, startFiles }: ExcelJoinPageProps) {
                             pairSeq.current += 1;
                             setPairs((current) => [
                               ...current,
-                              { id: `${file.id}:${pairSeq.current}`, fileId: file.id, source: "", target: "", from: "", to: "" },
+                              { id: `${file.id}:${pairSeq.current}`, fileId: file.id, source: "", sourceCol: null, target: "", from: "", to: "" },
                             ]);
                             setLook(null);
                           }}
