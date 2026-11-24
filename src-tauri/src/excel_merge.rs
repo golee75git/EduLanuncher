@@ -18,7 +18,7 @@
 //! 오류 문구에는 경로나 셀 내용을 넣지 않는다.
 //! 설계: docs/excel-merge-design-2026-11-23.md
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
@@ -1725,7 +1725,8 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
     let mut keeps = Vec::new();
     let mut fill_count = 0usize;
     let mut keep_count = 0usize;
-    let mut miss_count = 0usize;
+    // 열 쌍이 여러 개여도 같은 줄은 한 번만 세도록 줄 번호를 모은다.
+    let mut missed_rows: HashSet<usize> = HashSet::new();
     let skip_repeat = !marked;
 
     for pair in pairs {
@@ -1851,7 +1852,7 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
             width
         };
         let shown_name = if target_name.is_empty() { "고른 칸".to_string() } else { target_name.clone() };
-        for row in rows.iter_mut().take(data_end).skip(data_start) {
+        for (row_at, row) in rows.iter_mut().enumerate().take(data_end).skip(data_start) {
             if skip_repeat && repeats_header(&header, row) {
                 continue;
             }
@@ -1862,7 +1863,7 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
                 continue;
             }
             let Some(incoming) = bag.get(&key).cloned() else {
-                miss_count += 1;
+                missed_rows.insert(row_at);
                 continue;
             };
             let shown_key = clip_label(&raw_key);
@@ -1893,6 +1894,7 @@ fn join_tables(mut slots: Vec<Slot>, key_name: &str, pairs: &[JoinPair], anchor:
         }
     }
 
+    let miss_count = missed_rows.len();
     if miss_count > 0 {
         push_note(&mut notes, format!("다른 파일에 없는 키 {miss_count}건"));
     }
@@ -2767,6 +2769,30 @@ mod tests {
         assert_eq!(built.fill_count, 1);
         assert!(built.notes.iter().any(|note| note.contains("맞출 열")));
         assert!(join_tables(vec![slot("a", vec![vec![text("학교명")], vec![text("A")]])], "", &pairs, JoinAnchor::default()).is_err());
+    }
+
+    #[test]
+    fn join_counts_a_missing_key_once_even_with_several_column_pairs() {
+        let base = slot(
+            "기준.xlsx",
+            vec![
+                vec![text("학교명"), text("연락처"), text("담당")],
+                vec![text("A학교"), Cell::Empty, Cell::Empty],
+                vec![text("없는학교"), Cell::Empty, Cell::Empty],
+            ],
+        );
+        let other = slot(
+            "값.xlsx",
+            vec![
+                vec![text("학교명"), text("전화"), text("이름")],
+                vec![text("A학교"), text("111"), text("김")],
+            ],
+        );
+        let pairs = vec![named_pair(1, "전화", "연락처"), named_pair(1, "이름", "담당")];
+        let built = join_tables(vec![base, other], "학교명", &pairs, JoinAnchor::default()).unwrap();
+        assert_eq!(built.fill_count, 2);
+        assert_eq!(built.miss_count, 1);
+        assert!(built.notes.iter().any(|note| note == "다른 파일에 없는 키 1건"));
     }
 
     #[test]
