@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.247-20261124",
+    note: "값 채우기 화면과 오픈소스 고지를 정리한 새 설치 파일입니다.",
+  },
+  {
     version: "0.1.246-20261124",
     note: "값 채우기에서 시트가 여러 개인 엑셀은 시트를 골라 읽고, 파일마다 맞출 열을 따로 고를 수 있습니다. 표 맨 위의 표제와 두 줄짜리 제목도 건너뛰고 제목을 찾습니다.",
   },
