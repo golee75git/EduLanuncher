@@ -199,6 +199,8 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [dropPick, setDropPick] = useState<DropHold | null>(null);
   const [releaseNotice, setReleaseNotice] = useState<string | null>(null);
+  const [releasePress, setReleasePress] = useState<"" | "setup" | "manual">("");
+  const releaseDownloadLock = useRef(false);
   const onboarded = useSettingsStore((state) => state.settings.onboarded);
   const pilotOn = usePilotManualStore((state) => state.enabled);
   const priorSkin = useSettingsStore((state) => isPriorSkin(state.settings.panelSkin));
@@ -1554,24 +1556,39 @@ export default function App() {
               {releaseSetupAddress(releaseNotice) ? (
                 <button
                   type="button"
-                  className="rounded-full bg-white/15 px-2 py-0.5 font-medium"
+                  className={`rounded-full px-2 py-0.5 font-medium transition-colors active:bg-white/40 disabled:opacity-100 ${releasePress === "setup" ? "bg-white/40" : "bg-white/15"}`}
+                  disabled={releasePress === "setup"}
                   onClick={() => {
+                    if (releaseDownloadLock.current) {
+                      return;
+                    }
+                    releaseDownloadLock.current = true;
+                    setReleasePress("setup");
                     void installNewerRelease(releaseNotice).catch((error: unknown) => {
+                      releaseDownloadLock.current = false;
+                      setReleasePress("");
                       toast(error instanceof Error ? error.message : "설치 파일을 받지 못했습니다.");
                     });
                   }}
                 >
-                  최신 설치 파일 받기
+                  {releasePress === "setup" ? "다운로드 중입니다" : "최신 설치 파일 받기"}
                 </button>
               ) : null}
               <button
                 type="button"
-                className="rounded-full bg-white/15 px-2 py-0.5 font-medium"
-                onClick={() => void launchQuickUrl(APP_CONFIG.manualUrl)}
+                className={`rounded-full px-2 py-0.5 font-medium transition-colors active:bg-white/40 ${releasePress === "manual" ? "bg-white/40" : "bg-white/15"}`}
+                onClick={() => {
+                  setReleasePress("manual");
+                  void launchQuickUrl(APP_CONFIG.manualUrl).finally(() => setReleasePress(""));
+                }}
               >
                 설치 매뉴얼 받기
               </button>
-              <button type="button" className="rounded-full px-2 py-0.5" onClick={() => setReleaseNotice(null)}>
+              <button
+                type="button"
+                className="rounded-full px-2 py-0.5 transition-colors active:bg-white/30"
+                onClick={() => setReleaseNotice(null)}
+              >
                 닫기
               </button>
             </div>

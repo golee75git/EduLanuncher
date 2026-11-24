@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.248-20261124",
+    note: "런처 하단의 최신 설치 파일 받기를 누르면 단추 글자가 다운로드 중입니다로 바뀌고, 받는 동안 다시 누르지 않습니다. 받기에 실패하면 원래 글자로 돌아갑니다.",
+  },
+  {
     version: "0.1.247-20261124",
     note: "값 채우기 화면과 오픈소스 고지를 정리한 새 설치 파일입니다.",
   },

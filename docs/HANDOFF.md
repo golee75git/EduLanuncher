@@ -3,7 +3,7 @@
 기준일: 2026-09-24  
 저장소: https://github.com/golee75git/EduLanuncher  
 브랜치: `main`  
-최신 커밋 시점의 앱 버전: `0.1.241-20261124`
+최신 커밋 시점의 앱 버전: `0.1.248-20261124`
 
 날짜별 넣은 것은 `docs/PLAN.md`, 버전별 한 줄은 `website/src/data/releases.ts`, 색인은 `docs/버전정리.md`다. 이 앱은 Windows 설치 파일이며 APK는 없다.
 
