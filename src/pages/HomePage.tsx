@@ -268,6 +268,7 @@ function WorkToolMark({ icon: Icon }: { icon: LucideIcon }) {
 const SEARCH_HINTS = [
   "사이트·업무·파일·폴더·컴퓨터도구·PC 문제·매뉴얼",
   "사진 줄이기·모자이크·엑셀 취합·PDF 병합·계산기·IP확인",
+  "강의 창을 맨 앞에 고정해보세요",
 ] as const;
 
 export function HomePage({ onAction, search = "" }: HomePageProps) {
