@@ -16,6 +16,11 @@ const FEATURES = [
 ] as const;
 
 const HOLDS = [
+  "열려 있는 강의 창이나 파일 탐색기를 골라 다른 창보다 앞에 두기. 런처를 종료하면 그 고정은 해제",
+  "엑셀 취합, 엑셀 값 채우기. 값 채우기는 고른 칸만 기준 파일의 빈 칸에 넣고 원본은 그대로",
+  "글자가 있는 PDF를 엑셀로 저장, PDF 합치기·나누기·페이지 정리",
+  "사진에 글자, 사진 모자이크, 사진 용량 줄이기",
+  "타이머·스톱워치",
   "사이트, 프로그램, 파일, 폴더 바로가기",
   "기관 공지 Pack",
   "공지·사이트 Pack (공지+사이트 한 파일)",
@@ -149,7 +154,7 @@ export function IntroPage() {
 
       <section className="grid gap-4 sm:grid-cols-2">
         <article className="card-surface p-5">
-          <h2 className="text-sm font-semibold">넣는 것</h2>
+          <h2 className="text-sm font-semibold">주요 기능</h2>
           <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-quiet">
             {HOLDS.map((line) => (
               <li key={line}>{line}</li>
