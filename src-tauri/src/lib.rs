@@ -2939,10 +2939,11 @@ fn admin_tools_enable(app: AppHandle, window: tauri::WebviewWindow) -> Result<()
     if window.label() != "main" {
         return Err("denied".into());
     }
+    let _ = app;
     if org_policy::admin_tools_blocked() {
         return Err("관리자가 설정함".into());
     }
-    admin_tools::write_enabled(&admin_dir(&app)?, true)
+    Err("사용하려면 개발자에게 문의".into())
 }
 
 #[tauri::command]

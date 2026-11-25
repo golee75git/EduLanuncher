@@ -25,6 +25,8 @@ export function DownloadPage() {
           <strong className="font-semibold">개인 사용 PC에만 설치하세요.</strong> 공용 PC·실습실·다른 사람
           계정에는 설치하지 않습니다. 목록은 설치한 컴퓨터에만 남습니다.
           <br />
+          개발중인 버전으로 오류가 있을 수 있습니다.
+          <br />
           런처는 컴퓨터에 있는 파일이나 폴더를 삭제하지는 않습니다.
         </p>
         <p className="text-sm leading-relaxed text-quiet">

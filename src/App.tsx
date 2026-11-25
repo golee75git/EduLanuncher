@@ -1560,7 +1560,7 @@ export default function App() {
           <div className="absolute bottom-12 left-1/2 z-50 w-[min(100%-1.5rem,22rem)] -translate-x-1/2 rounded-lg bg-desk px-3 py-2 text-xs leading-5 text-white">
             <p>
               이 PC 버전 {APP_CONFIG.version} · 새 버전 {releaseNotice}가 있습니다. 최신 설치 파일 받기는 이
-              설치 폴더에 저장하고 설치 창을 엽니다.
+              설치 폴더에 저장하고 설치 창을 엽니다. 설치 창은 다른 창보다 앞에 둡니다.
             </p>
             <div className="mt-1.5 flex flex-wrap gap-1">
               {releaseSetupAddress(releaseNotice) ? (

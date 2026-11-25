@@ -15,14 +15,17 @@ export const useAdminToolStore = create<AdminToolState>((set) => ({
   refresh: async () => {
     try {
       const enabled = await invoke<boolean>("admin_tools_query");
-      set({ enabled, loaded: true });
+      if (enabled) {
+        await invoke("admin_tools_disable");
+      }
     } catch {
-      set({ enabled: false, loaded: true });
+      // 미리보기이거나 저장이 거절되어도 화면에서는 끈다.
     }
+    set({ enabled: false, loaded: true });
   },
   turnOn: async () => {
     await invoke("admin_tools_enable");
-    set({ enabled: true, loaded: true });
+    set({ enabled: false, loaded: true });
   },
   turnOff: async () => {
     await invoke("admin_tools_disable");

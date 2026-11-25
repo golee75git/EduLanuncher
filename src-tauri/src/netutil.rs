@@ -314,10 +314,135 @@ pub fn install_release_setup(tag: &str) -> Result<(), String> {
         let _ = std::fs::remove_file(&part);
         return Err("설치 폴더에 저장하지 못했습니다.".into());
     }
-    std::process::Command::new(&dest)
+    let child = std::process::Command::new(&dest)
         .spawn()
         .map_err(|_| "설치 파일을 열지 못했습니다.".to_string())?;
+    // 방금 연 설치 파일의 창만 앞으로 둔다. 다른 프로세스 번호는 보지 않는다.
+    place_setup_in_front(child.id(), &dest);
     Ok(())
+}
+
+/// 이 함수가 끝나기 전에는 설치 프로세스 핸들을 붙잡고 있어 번호가 다른 프로세스에 넘어가지 않는다.
+fn place_setup_in_front(pid: u32, exe: &std::path::Path) {
+    #[cfg(windows)]
+    {
+        if pid == 0 || !setup_image_matches(pid, exe) {
+            return;
+        }
+        let deadline = Instant::now() + Duration::from_millis(3000);
+        while Instant::now() < deadline {
+            if !setup_image_matches(pid, exe) {
+                return;
+            }
+            let rows = setup_windows(pid);
+            if rows.is_empty() {
+                thread::sleep(Duration::from_millis(40));
+                continue;
+            }
+            raise_setup_rows(&rows);
+            return;
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = (pid, exe);
+    }
+}
+
+#[cfg(windows)]
+fn setup_image_matches(pid: u32, exe: &std::path::Path) -> bool {
+    use std::os::windows::ffi::OsStringExt;
+    use std::ffi::OsString;
+
+    use windows::core::PWSTR;
+    use windows::Win32::Foundation::CloseHandle;
+    use windows::Win32::System::Threading::{
+        OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
+    };
+
+    let process = match unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid) } {
+        Ok(process) => process,
+        Err(_) => return false,
+    };
+    let mut buffer = [0_u16; 1024];
+    let mut length = buffer.len() as u32;
+    let asked = unsafe {
+        QueryFullProcessImageNameW(
+            process,
+            PROCESS_NAME_WIN32,
+            PWSTR(buffer.as_mut_ptr()),
+            &mut length,
+        )
+    };
+    let _ = unsafe { CloseHandle(process) };
+    if asked.is_err() || length == 0 || length as usize > buffer.len() {
+        return false;
+    }
+    let image = std::path::PathBuf::from(OsString::from_wide(&buffer[..length as usize]));
+    match (std::fs::canonicalize(&image), std::fs::canonicalize(exe)) {
+        (Ok(left), Ok(right)) => left == right,
+        _ => false,
+    }
+}
+
+#[cfg(windows)]
+fn setup_windows(pid: u32) -> Vec<isize> {
+    use windows::core::BOOL;
+    use windows::Win32::Foundation::{HWND, LPARAM};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        EnumWindows, GetWindowThreadProcessId, IsWindowVisible,
+    };
+
+    struct Seek {
+        pid: u32,
+        rows: Vec<isize>,
+    }
+
+    unsafe extern "system" fn take(hwnd: HWND, param: LPARAM) -> BOOL {
+        let seek = &mut *(param.0 as *mut Seek);
+        if seek.rows.len() >= 8 {
+            return BOOL(1);
+        }
+        if !IsWindowVisible(hwnd).as_bool() {
+            return BOOL(1);
+        }
+        let mut owner = 0_u32;
+        GetWindowThreadProcessId(hwnd, Some(&mut owner));
+        if owner == seek.pid {
+            seek.rows.push(hwnd.0 as isize);
+        }
+        BOOL(1)
+    }
+
+    let mut seek = Seek { pid, rows: Vec::new() };
+    let _ = unsafe { EnumWindows(Some(take), LPARAM(&mut seek as *mut Seek as isize)) };
+    seek.rows
+}
+
+#[cfg(windows)]
+fn raise_setup_rows(rows: &[isize]) {
+    use std::ffi::c_void;
+
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        IsIconic, SetForegroundWindow, SetWindowPos, ShowWindow, HWND_TOPMOST, SWP_NOMOVE, SWP_NOSIZE,
+        SW_RESTORE,
+    };
+
+    let mut lead: Option<HWND> = None;
+    for raw in rows {
+        let hwnd = HWND(*raw as *mut c_void);
+        unsafe {
+            if IsIconic(hwnd).as_bool() {
+                let _ = ShowWindow(hwnd, SW_RESTORE);
+            }
+            let _ = SetWindowPos(hwnd, Some(HWND_TOPMOST), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        }
+        lead = Some(hwnd);
+    }
+    if let Some(hwnd) = lead {
+        let _ = unsafe { SetForegroundWindow(hwnd) };
+    }
 }
 
 pub fn latest_release_tag() -> Result<String, String> {

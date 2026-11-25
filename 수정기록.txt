@@ -5,6 +5,39 @@
 
 ---
 
+날짜: 2026-11-25
+버전: 0.1.251-20261125
+설치 파일: AILauncher_0.1.251-20261125_x64-setup.exe, AILauncher_2026-11-25_1030_x64-setup.exe
+작성자: 요청자
+
+요청: 설정의 관리자 도구 사용 체크를 끄고, 바로 아래에 정보화기기검색, IP사용 검색과 사용하려면 개발자에게 문의를 둔다. 안내 상자에 개발중인 버전으로 오류가 있을 수 있습니다를 넣는다. 최신 설치 파일 받기로 연 설치 창을 다른 창보다 앞에 둔다.
+
+확인: 체크는 누를 수 없고, 이미 켜 둔 값은 패널을 열 때 끈다. 다시 켜는 명령은 저장하지 않는다. 설치 창은 방금 실행한 그 파일의 보이는 창만 앞에 두고, 실행 파일 경로가 다르면 올리지 않는다. 화면 글꼴은 system-ui이며 OFL 글꼴 파일을 넣지 않음. 이 PC의 Windows 글꼴 이름은 기존 설정 그대로이고 글꼴 파일을 추가하지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않았고 청구항과 구성을 대조하지 않음. 설치 창을 앞에 두는 구성과 체크를 잠그는 표시는 특허 검토 대상으로 별도 적음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/pages/SettingsPage.tsx
+- src/App.tsx
+- src/stores/adminToolStore.ts
+- src/config/app.ts
+- src-tauri/src/lib.rs
+- src-tauri/src/netutil.rs
+- src-tauri/tauri.conf.json
+- website/src/pages/IntroPage.tsx
+- website/src/pages/DownloadPage.tsx
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/IP_DESIGN_LOG.md
+- docs/버전정리.md
+- 수정기록.txt
+
+---
+
 날짜: 2026-11-24
 버전: 0.1.248-20261124
 설치 파일: AILauncher_0.1.248-20261124_x64-setup.exe, AILauncher_2026-11-24_1558_x64-setup.exe
