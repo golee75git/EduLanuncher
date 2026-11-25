@@ -55,7 +55,8 @@ import { TopicListPage } from "./pages/TopicListPage";
 import { TopicReviewPage } from "./pages/TopicReviewPage";
 import { WorkMapWindowPage } from "./pages/WorkMapWindowPage";
 import { MemoWindowPage } from "./pages/MemoWindowPage";
-import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget } from "./data/computerTools";
+import { isDocShrinkTarget, isFolderFindTarget, isLinkCheckTarget, isPrintCheckTarget, isPrivacyTarget, isSecurityCheckTarget, isWindowPinTarget } from "./data/computerTools";
+import { WindowPinPage } from "./pages/WindowPinPage";
 import { isExcelJoinTarget, isExcelMergeTarget, isPdfPagesTarget, isPdfSheetTarget, isTimerTarget } from "./data/sampleTools";
 import { TimerPage } from "./pages/TimerPage";
 import { hydrateTimers } from "./stores/timerStore";
@@ -114,6 +115,7 @@ type View =
   | { name: "pc-print"; backTo?: View }
   | { name: "pc-security"; backTo?: View }
   | { name: "privacy-scan"; backTo?: View }
+  | { name: "window-pin"; backTo?: View }
   | { name: "work-handover"; backTo?: View; box?: import("./services/workHandoverService").HandoverBox | null }
   | { name: "pc-folder-find"; query?: string; backTo?: View }
   | { name: "doc-search"; query?: string; backTo?: View }
@@ -874,6 +876,10 @@ export default function App() {
         setView({ name: "pc-security", backTo: { name: "home" } });
         return;
       }
+      if (tool.type === "internal" && isWindowPinTarget(tool.target || tool.id)) {
+        setView({ name: "window-pin", backTo: { name: "home" } });
+        return;
+      }
       if (tool.type === "internal" && isPrivacyTarget(tool.target || tool.id)) {
         await invoke("privacy_enter");
         setView({ name: "privacy-scan", backTo: { name: "home" } });
@@ -1125,10 +1131,14 @@ export default function App() {
                   setView({ name: "privacy-scan", backTo: { name: "computer-tools" } });
                 });
               }}
+              onShowWindowPin={() => setView({ name: "window-pin", backTo: { name: "computer-tools" } })}
               onShowTroubleshoot={() =>
                 setView({ name: "troubleshoot", backTo: { name: "computer-tools" } })
               }
             />
+          ) : null}
+          {view.name === "window-pin" ? (
+            <WindowPinPage onBack={() => setView(view.backTo ?? { name: "computer-tools" })} />
           ) : null}
           {view.name === "troubleshoot" ? (
             <TroubleshootListPage

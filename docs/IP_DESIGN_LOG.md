@@ -4665,3 +4665,28 @@ Difference:
 
 PATENT_REVIEW:
 단추 글자를 바꾸고 다시 누르지 못하게 하는 표시이다. 새 기술 구성은 없다. 검증된 청구항 원문은 보지 않았고 청구항과 구성을 대조하지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음
+
+---
+
+Feature: 창 앞에 고정
+
+Purpose:
+강의 창이나 파일 탐색기처럼 이 PC에 열려 있는 창을 골라 다른 창보다 앞에 두기 위함
+
+Design source:
+내부 요구. docs/superpowers/specs/2026-11-25-window-pin-design.md
+
+Implementation:
+독립 구현. Windows 공개 API(EnumWindows, SetWindowPos의 HWND_TOPMOST, DwmGetWindowAttribute 등)로 창 목록을 읽고 항상 위 값만 바꾼다. 화면에는 임의 id, 창 제목, 프로그램 이름, 아이콘만 넘기고 저장하지 않는다. 런처가 고정한 창은 종료할 때 해제한다. 새 라이브러리 없음. 기존 windows crate의 Win32_Graphics_Dwm 기능만 켬
+
+External code:
+없음
+
+Potential similar products:
+창을 항상 위로 두는 유틸리티 일반 (예: PowerToys의 Always On Top). 그 제품의 코드와 화면은 보지 않았다
+
+Difference:
+별도 프로그램이나 상주 단축키가 아니라 업무 런처의 컴퓨터도구 안에서 목록으로 고르고 해제한다
+
+PATENT_REVIEW:
+운영체제가 제공하는 항상 위 설정을 목록에서 켜고 끄는 일반 구성이다. 검증된 청구항 원문은 보지 않았고 청구항과 구성을 대조하지 않았다. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 라이선스 준수를 보장하지 않음

@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.250-20261125",
+    note: "컴퓨터도구에 창 앞에 고정을 넣었습니다. 열려 있는 강의 창이나 파일 탐색기를 골라 다른 창보다 앞에 두고 해제합니다. 런처를 종료하면 런처가 고정한 창은 해제됩니다.",
+  },
+  {
     version: "0.1.249-20261124",
     note: "값 채우기로 만든 엑셀 파일이 기준 파일의 칸 서식·열 너비·병합·다른 시트를 그대로 유지합니다. 값을 넣는 칸만 바뀌고 원본은 바뀌지 않습니다.",
   },

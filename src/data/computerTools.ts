@@ -8,7 +8,7 @@ export interface ComputerToolEntry {
   hint: string;
   type: Extract<ToolType, "app" | "file" | "internal">;
   fileName?: string;
-  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink" | "pc-link" | "pc-print" | "pc-security" | "privacy-scan";
+  view?: "pc-address" | "ie-reset" | "pc-folder-find" | "doc-shrink" | "pc-link" | "pc-print" | "pc-security" | "privacy-scan" | "window-pin";
 }
 
 const ENTRIES: ComputerToolEntry[] = [
@@ -67,6 +67,13 @@ const ENTRIES: ComputerToolEntry[] = [
     hint: "이 PC의 업데이트, 백신, 방화벽 등 기본 보안 상태를 확인합니다.",
     type: "internal",
     view: "pc-security",
+  },
+  {
+    id: "window-pin",
+    name: "창 앞에 고정",
+    hint: "열린 강의 창·탐색기를 골라 맨 앞(항상 위)에 두는 창 고정 도구입니다.",
+    type: "internal",
+    view: "window-pin",
   },
   {
     id: "pc-address",
@@ -294,6 +301,14 @@ export function isPrivacyTarget(target: string): boolean {
   return target === "privacy-scan" || target === "pc-sys:privacy-scan";
 }
 
+export function isWindowPinTool(entry: ComputerToolEntry): boolean {
+  return entry.view === "window-pin";
+}
+
+export function isWindowPinTarget(target: string): boolean {
+  return target === "window-pin" || target === "pc-sys:window-pin";
+}
+
 export function listComputerTools(): ComputerToolEntry[] {
   return ENTRIES;
 }
@@ -337,6 +352,22 @@ export function basicAppAsItem(entry: ComputerToolEntry): ToolItem {
 }
 
 export function computerToolAsItem(entry: ComputerToolEntry): ToolItem {
+  if (isWindowPinTool(entry)) {
+    return {
+      id: `pc-sys:${entry.id}`,
+      name: entry.name,
+      description: entry.hint,
+      type: "internal",
+      target: "window-pin",
+      icon: "monitor",
+      category: "전산",
+      favorite: true,
+      keywords: [entry.name, "컴퓨터도구", "창 고정", "항상 위", "맨 앞"],
+      usageCount: 0,
+      enabled: true,
+      origin: "local",
+    };
+  }
   if (isAddressTool(entry) || isIeResetTool(entry) || isFolderFindTool(entry) || isDocShrinkTool(entry) || isLinkCheckTool(entry) || isPrintCheckTool(entry) || isSecurityCheckTool(entry) || isPrivacyTool(entry)) {
     const target = isIeResetTool(entry)
       ? "ie-reset"

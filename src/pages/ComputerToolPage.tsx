@@ -13,6 +13,7 @@ import {
   isPrintCheckTool,
   isSecurityCheckTool,
   isPrivacyTool,
+  isWindowPinTool,
   listComputerTools,
   sameLocalPath,
 } from "../data/computerTools";
@@ -29,6 +30,7 @@ interface ComputerToolPageProps {
   onShowPrintCheck: () => void;
   onShowSecurityCheck: () => void;
   onShowPrivacy: () => void;
+  onShowWindowPin: () => void;
   onShowTroubleshoot: () => void;
 }
 
@@ -42,6 +44,7 @@ export function ComputerToolPage({
   onShowPrintCheck,
   onShowSecurityCheck,
   onShowPrivacy,
+  onShowWindowPin,
   onShowTroubleshoot,
 }: ComputerToolPageProps) {
   const tools = useToolStore((state) => state.tools);
@@ -118,7 +121,9 @@ export function ComputerToolPage({
                   type="button"
                   className="min-w-0 flex-1 rounded-md px-1 py-1 text-left transition-colors duration-150 hover:bg-paper"
                   onClick={() =>
-                      isAddressTool(entry)
+                      isWindowPinTool(entry)
+                      ? onShowWindowPin()
+                      : isAddressTool(entry)
                       ? onShowAddress()
                       : isFolderFindTool(entry)
                         ? onShowFolderFind()

@@ -50,6 +50,7 @@ mod lap_book;
 mod snip_clip;
 mod url_mark;
 mod user_folder;
+mod window_pin;
 use doc_shrink::{doc_picture_bytes, write_new_picture};
 use document_search::{
     doc_search_add_folder, doc_search_clear, doc_search_folders, doc_search_halt, doc_search_query,
@@ -486,6 +487,7 @@ fn reveal_panel(app: &AppHandle) {
         let _ = window.set_focus();
         let _ = window.emit("focus-search", ());
         let _ = window.emit("panel-shown", ());
+        hold_panel_above(app);
         restore_panel_shade(app, &window);
         show_map_window(app);
         place_map_next_to_panel(app, &window, false);
@@ -791,6 +793,7 @@ fn setup_window(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(panel) = app_handle.get_webview_window("main") {
                     if !panel.is_minimized().unwrap_or(false) {
                         place_main_panel(&app_handle, &panel);
+                        hold_panel_above(&app_handle);
                         restore_panel_shade(&app_handle, &panel);
                     }
                 }
@@ -1686,21 +1689,48 @@ fn read_panel_face(window: tauri::WebviewWindow, state: tauri::State<PanelState>
 }
 
 #[tauri::command]
-fn place_panel_above(window: tauri::WebviewWindow, state: tauri::State<PanelState>, above: bool) -> Result<(), String> {
+fn place_panel_above(
+    window: tauri::WebviewWindow,
+    state: tauri::State<PanelState>,
+    book: tauri::State<window_pin::PinBook>,
+    above: bool,
+) -> Result<(), String> {
     if window.label() != "main" {
         return Err("이 창에서는 바꿀 수 없습니다.".into());
     }
     let previous = state.above.lock().map(|value| *value).unwrap_or(false);
+    let held = book.holding();
     window
-        .set_always_on_top(above)
+        .set_always_on_top(above || held)
         .map_err(|_| "이 창을 앞에 두지 못했습니다.".to_string())?;
     if let Ok(mut slot) = state.above.lock() {
         *slot = above;
     } else {
-        let _ = window.set_always_on_top(previous);
+        let _ = window.set_always_on_top(previous || held);
         return Err("이 창을 앞에 두지 못했습니다.".into());
     }
     Ok(())
+}
+
+/// 다른 창을 고정한 동안에는 패널이 그 창에 가리지 않게 항상 위로 둔다. 설정값은 바꾸지 않는다.
+pub(crate) fn hold_panel_above(app: &AppHandle) {
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+    let wanted = app
+        .state::<PanelState>()
+        .above
+        .lock()
+        .map(|value| *value)
+        .unwrap_or(false);
+    let holding = app.state::<window_pin::PinBook>().holding();
+    let _ = window.set_always_on_top(wanted || holding);
+    #[cfg(windows)]
+    if holding {
+        if let Some(hwnd) = panel_hwnd(&window) {
+            window_pin::raise(hwnd.0 as isize);
+        }
+    }
 }
 
 #[tauri::command]
@@ -3410,7 +3440,11 @@ pub fn run() {
         .manage(NoteDrafts(Mutex::new(HashMap::new())))
         .manage(file_desk::FileDesk::new())
         .manage(path_grant::GrantBook::new())
+        .manage(window_pin::PinBook::new())
         .invoke_handler(tauri::generate_handler![
+            window_pin::list_pin_windows,
+            window_pin::set_window_pin,
+            window_pin::release_window_pins,
             file_desk::privacy_enter,
             file_desk::privacy_leave,
             file_desk::privacy_reset,
@@ -3571,8 +3605,14 @@ pub fn run() {
             }
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            // 트레이 종료와 업데이트 설치 모두 여기를 지난다.
+            if let tauri::RunEvent::Exit = event {
+                window_pin::release_all_on_exit(&app.state::<window_pin::PinBook>());
+            }
+        });
 }
 
 #[cfg(test)]
