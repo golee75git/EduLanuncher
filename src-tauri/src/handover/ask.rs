@@ -297,8 +297,9 @@ fn has_evidence_number(text: &str) -> bool {
 
 fn model_text(body: &[u8]) -> Option<String> {
     let value: Value = serde_json::from_slice(body).ok()?;
-    let text = value.get("choices")?.get(0)?.get("message")?.get("content")?.as_str()?.trim();
-    if text.is_empty() { None } else { Some(text.to_string()) }
+    let raw = value.get("choices")?.get(0)?.get("message")?.get("content")?.as_str()?;
+    let text = super::strip_think(raw);
+    if text.is_empty() { None } else { Some(text) }
 }
 
 fn model_ok(name: &str) -> bool {
@@ -369,6 +370,9 @@ pub fn answer_from(
     let Some(text) = model_text(&reply) else {
         return AskReply { kind: "search".to_string(), text: FOUND.to_string(), pieces: shown, warning: String::new() };
     };
+    if text == super::THINK_FAIL {
+        return AskReply { kind: "model".to_string(), text, pieces: shown, warning: String::new() };
+    }
     let warning = if has_evidence_number(&text) { String::new() } else { UNCHECKED.to_string() };
     AskReply { kind: "model".to_string(), text, pieces: shown, warning }
 }
@@ -420,6 +424,14 @@ mod tests {
 
     use super::super::handover_box::{build_box, BoxLink, ExportDraft};
     use super::super::{build_card, CardBatch, Deadline, WorkFile};
+
+    #[test]
+    fn model_text_drops_think_before_the_answer() {
+        let body = serde_json::json!({"choices":[{"message":{"content": "  <think>추론</think> 근거 [1]  "}}]}).to_string();
+        assert_eq!(model_text(body.as_bytes()).as_deref(), Some("근거 [1]"));
+        let open = serde_json::json!({"choices":[{"message":{"content": "앞 <think>없음"}}]}).to_string();
+        assert_eq!(model_text(open.as_bytes()).as_deref(), Some("답을 정리하지 못했습니다"));
+    }
 
     fn read_request(sock: &mut TcpStream) -> String {
         let _ = sock.set_read_timeout(Some(Duration::from_secs(2)));

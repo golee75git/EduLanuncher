@@ -250,15 +250,68 @@ mod tests {
     use std::thread;
     use std::time::Duration;
 
+    fn http_request_complete(buf: &[u8]) -> bool {
+        let Some(end) = buf.windows(4).position(|mark| mark == b"\r\n\r\n") else {
+            return false;
+        };
+        let head = String::from_utf8_lossy(&buf[..end]);
+        let mut length = 0usize;
+        for line in head.split("\r\n") {
+            let lower = line.to_ascii_lowercase();
+            if let Some(rest) = lower.strip_prefix("content-length:") {
+                length = rest.trim().parse().unwrap_or(0);
+            }
+        }
+        buf.len() >= end + 4 + length
+    }
+
+    fn read_http(sock: &mut std::net::TcpStream) {
+        use std::io::ErrorKind;
+        let _ = sock.set_read_timeout(Some(Duration::from_secs(5)));
+        let mut got = Vec::new();
+        let mut buf = [0u8; 2048];
+        let start = std::time::Instant::now();
+        while start.elapsed() < Duration::from_secs(5) {
+            match sock.read(&mut buf) {
+                Ok(0) => break,
+                Ok(n) => {
+                    got.extend_from_slice(&buf[..n]);
+                    if http_request_complete(&got) {
+                        break;
+                    }
+                }
+                Err(err) if err.kind() == ErrorKind::WouldBlock || err.kind() == ErrorKind::TimedOut => break,
+                Err(_) => break,
+            }
+        }
+    }
+
+    fn hold_until_client_closes(sock: &mut std::net::TcpStream) {
+        use std::net::Shutdown;
+        let _ = sock.flush();
+        let _ = sock.shutdown(Shutdown::Write);
+        let _ = sock.set_read_timeout(Some(Duration::from_secs(2)));
+        let mut buf = [0u8; 256];
+        loop {
+            match sock.read(&mut buf) {
+                Ok(0) | Err(_) => break,
+                Ok(_) => {}
+            }
+        }
+    }
+
     fn serve(reply: &'static [u8]) -> u16 {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let port = listener.local_addr().unwrap().port();
+        let (ready_tx, ready_rx) = std::sync::mpsc::channel();
         thread::spawn(move || {
+            let _ = ready_tx.send(());
             let (mut sock, _) = listener.accept().unwrap();
-            let mut buf = [0u8; 4096];
-            let _ = sock.read(&mut buf);
+            read_http(&mut sock);
             let _ = sock.write_all(reply);
+            hold_until_client_closes(&mut sock);
         });
+        ready_rx.recv_timeout(Duration::from_secs(5)).unwrap();
         port
     }
 
@@ -280,7 +333,7 @@ mod tests {
     #[test]
     fn reads_a_local_json_reply() {
         let port = serve(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}");
-        let body = exchange(HOST, port, "POST", "/v1/chat/completions", b"{}", REPLY_CAP, 3_000).unwrap();
+        let body = exchange(HOST, port, "POST", "/v1/chat/completions", b"{}", REPLY_CAP, 8_000).unwrap();
         assert_eq!(body, b"{}");
     }
 
@@ -295,10 +348,11 @@ mod tests {
     fn stops_when_the_reply_is_too_large() {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let port = listener.local_addr().unwrap().port();
+        let (ready_tx, ready_rx) = std::sync::mpsc::channel();
         thread::spawn(move || {
+            let _ = ready_tx.send(());
             let (mut sock, _) = listener.accept().unwrap();
-            let mut buf = [0u8; 1024];
-            let _ = sock.read(&mut buf);
+            read_http(&mut sock);
             let _ = sock.write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 400000\r\nConnection: close\r\n\r\n");
             let chunk = vec![b'a'; 8192];
             for _ in 0..40 {
@@ -307,6 +361,7 @@ mod tests {
                 }
             }
         });
+        ready_rx.recv_timeout(Duration::from_secs(5)).unwrap();
         let result = exchange(HOST, port, "GET", "/api/tags", b"", 1024, 3_000);
         assert!(matches!(result, Err(LoopStop::TooLarge)), "{result:?}");
     }
@@ -315,11 +370,14 @@ mod tests {
     fn times_out_when_the_peer_stays_quiet() {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let port = listener.local_addr().unwrap().port();
+        let (ready_tx, ready_rx) = std::sync::mpsc::channel();
         thread::spawn(move || {
+            let _ = ready_tx.send(());
             let (mut sock, _) = listener.accept().unwrap();
             thread::sleep(Duration::from_secs(3));
             let _ = sock.write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
         });
+        ready_rx.recv_timeout(Duration::from_secs(5)).unwrap();
         let result = exchange(HOST, port, "GET", "/api/tags", b"", REPLY_CAP, 400);
         assert!(matches!(result, Err(LoopStop::TimedOut)), "{result:?}");
     }

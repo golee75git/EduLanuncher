@@ -28,6 +28,36 @@ pub const FILE_CAP: usize = 5_000;
 pub const DEPTH_CAP: u32 = 12;
 pub const BYTE_CAP: u64 = 50 * 1024 * 1024;
 pub const TIME_CAP: Duration = Duration::from_secs(180);
+pub(crate) const THINK_FAIL: &str = "답을 정리하지 못했습니다";
+
+/// 답 본문에서 `<think>...</think>` 구간을 뺀다. 모델 이름은 보지 않는다.
+pub(crate) fn strip_think(content: &str) -> String {
+    const OPEN: &str = "<think>";
+    const CLOSE: &str = "</think>";
+    let mut rest = content;
+    let mut out = String::new();
+    let mut saw = false;
+    loop {
+        if let Some(start) = rest.find(OPEN) {
+            saw = true;
+            out.push_str(&rest[..start]);
+            let after = &rest[start + OPEN.len()..];
+            if let Some(end) = after.find(CLOSE) {
+                rest = &after[end + CLOSE.len()..];
+                continue;
+            }
+            return THINK_FAIL.to_string();
+        }
+        out.push_str(rest);
+        break;
+    }
+    let trimmed = out.trim();
+    if saw && trimmed.is_empty() {
+        THINK_FAIL.to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
 
 const CARD_EXTS: &[&str] = &["hwpx", "hwp", "pdf", "xlsx", "docx", "txt", "md", "csv"];
 static HALT: AtomicBool = AtomicBool::new(false);
@@ -1039,6 +1069,62 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
     }
 
+    /// git에 넣지 않는 `demo` 폴더를 읽는다. 폴더를 갖춘 PC에서 `cargo test demo_folder -- --ignored`로 돌린다.
+    #[test]
+    #[ignore = "git에 없는 demo 폴더가 필요합니다"]
+    fn demo_folder_matches_expected_cards() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("demo").join("folder").canonicalize().unwrap();
+        let stamps = [
+            ("예산편성/2024 예산요구 안내.hwpx", 2024u16, 9u16, 12u16),
+            ("예산편성/2025 예산요구 안내.hwpx", 2025, 9, 12),
+            ("계약구매/2024 물품 계약 안내.docx", 2024, 4, 8),
+            ("계약구매/2025 물품 계약 안내.docx", 2025, 4, 8),
+            ("정기행사/2024 봄 행사 계획.pdf", 2024, 5, 6),
+            ("정기행사/2025 봄 행사 계획.pdf", 2025, 5, 6),
+            ("민원처리/2024 민원 처리 안내.txt", 2024, 6, 18),
+            ("민원처리/2025 민원 처리 안내.txt", 2025, 6, 18),
+            ("민원처리/담당자 연락망.docx", 2025, 2, 5),
+            ("정보공개/2024 정보공개 처리 보고.hwpx", 2024, 7, 4),
+            ("정보공개/2025 정보공개 처리 보고.hwpx", 2025, 7, 4),
+            ("위원회운영/2024 위원회 운영 계획.hwpx", 2024, 3, 8),
+            ("위원회운영/2025 위원회 운영 계획.hwpx", 2025, 3, 8),
+            ("교육연수/2024 의무교육 이수.xlsx", 2024, 11, 5),
+            ("교육연수/2025 의무교육 이수.xlsx", 2025, 11, 5),
+            ("보안점검/2024 보안 점검 계획.hwpx", 2024, 10, 8),
+            ("보안점검/2025 보안 점검 계획.hwpx", 2025, 10, 8),
+        ];
+        for (rel, year, month, day) in stamps {
+            set_morning(&root.join(rel), year, month, day);
+        }
+        let book = GrantBook::new();
+        let id = remember_work_folder(&book, &root).unwrap();
+        let batch = read_work_cards(&book, &id).unwrap();
+        let lines: Vec<String> = batch
+            .tasks
+            .iter()
+            .map(|task| {
+                let errors: Vec<String> = task.files.iter().filter_map(|file| file.error.clone()).collect();
+                format!("{} | {} | {} | months {:?} | err {:?}", task.name, task.period, task.confidence, task.months, errors)
+            })
+            .collect();
+        let expected_path = root.parent().unwrap().join("expected.json");
+        let expected: Vec<serde_json::Value> = serde_json::from_str(&fs::read_to_string(&expected_path).unwrap()).unwrap();
+        assert_eq!(batch.tasks.len(), expected.len(), "{}", lines.join("\n"));
+        for task in &batch.tasks {
+            let want = expected.iter().find(|item| item["name"] == task.name).unwrap_or_else(|| panic!("missing {}\n{}", task.name, lines.join("\n")));
+            assert_eq!(task.months, json_months(&want["months"]), "{}\n{}", task.name, lines.join("\n"));
+            assert_eq!(collapse(&task.period), collapse(want["period"].as_str().unwrap()), "{}", task.name);
+            assert_eq!(task.confidence, want["confidence"].as_str().unwrap(), "{}", task.name);
+        }
+        let text = fs::read_to_string(root.parent().unwrap().join("시연-인계박스.edupack")).unwrap();
+        let opened = super::handover_box::open_box_text(&text).unwrap();
+        assert!(opened.folder.is_none());
+        assert!(!text.contains("C:\\Users"));
+        assert!(!text.contains("010-1234-5678"));
+        assert!(text.contains("[가림]"));
+        let _ = lines;
+    }
+
     fn scratch(name: &str) -> PathBuf {
         let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("handover-scratch").join(name);
         let _ = fs::remove_dir_all(&dir);
@@ -1193,5 +1279,16 @@ mod tests {
         let batch = read_work_cards(&book, &id).unwrap();
         let hit = batch.tasks.iter().any(|task| task.deadlines.iter().any(|item| item.month == 11 && item.day == 30));
         assert!(hit, "{:?}", batch.tasks.iter().map(|task| task.period.clone()).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn strip_think_keeps_the_answer_and_drops_unclosed() {
+        assert_eq!(strip_think("<think>추론</think>본문입니다"), "본문입니다");
+        assert_eq!(strip_think("태그가 없는 답"), "태그가 없는 답");
+        assert_eq!(strip_think("앞부분 <think>닫는 태그 없음"), THINK_FAIL);
+        assert_eq!(strip_think("  \n보이는 답\n  "), "보이는 답");
+        assert_eq!(strip_think("  \n<think>숨김</think>\n  보이는 답  \n"), "보이는 답");
+        assert_eq!(strip_think("<think>추론만</think>"), THINK_FAIL);
+        assert_eq!(strip_think("  <think></think>  "), THINK_FAIL);
     }
 }

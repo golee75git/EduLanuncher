@@ -80,11 +80,28 @@ fn ask_body(model: &str, rel: &str, text: &str) -> String {
     .to_string()
 }
 
+fn model_failed(body: &[u8]) -> bool {
+    let Ok(text) = std::str::from_utf8(body) else {
+        return false;
+    };
+    let Ok(value) = serde_json::from_str::<Value>(text) else {
+        return false;
+    };
+    let Some(content) = value.get("choices").and_then(|item| item.get(0)).and_then(|item| item.get("message")).and_then(|item| item.get("content")).and_then(|item| item.as_str()) else {
+        return false;
+    };
+    super::strip_think(content) == super::THINK_FAIL
+}
+
 fn reply_object(body: &[u8]) -> Option<Value> {
     let text = std::str::from_utf8(body).ok()?;
     let value: Value = serde_json::from_str(text).ok()?;
     let content = value.get("choices")?.get(0)?.get("message")?.get("content")?.as_str()?;
-    object_in_text(content)
+    let content = super::strip_think(content);
+    if content == super::THINK_FAIL {
+        return None;
+    }
+    object_in_text(&content)
 }
 
 pub fn object_in_text(content: &str) -> Option<Value> {
@@ -280,6 +297,10 @@ pub fn assist_batch(root: &Path, mut batch: CardBatch, port: u16, model: &str, w
             let hidden = hide_personal(&head);
             let payload = ask_body(model, &file.rel, &hidden);
             let reply = loopback::exchange("127.0.0.1", port, "POST", ASK_PATH, payload.as_bytes(), REPLY_CAP, wait_ms).map_err(loop_message)?;
+            if model_failed(&reply) {
+                batch.notice = Some(super::THINK_FAIL.to_string());
+                continue;
+            }
             let Some(object) = reply_object(&reply) else {
                 continue;
             };
@@ -367,6 +388,17 @@ mod tests {
     use std::net::{TcpListener, TcpStream};
     use std::thread;
     use std::time::Duration;
+
+    #[test]
+    fn reply_object_drops_think_then_reads_json() {
+        let wrapped = "<think>추론</think>{\"업무명\":\"안내문\",\"할일\":[],\"관련기관\":[],\"날짜\":[]}";
+        let body = serde_json::json!({"choices":[{"message":{"content": wrapped}}]}).to_string();
+        let object = reply_object(body.as_bytes()).unwrap();
+        assert_eq!(object["업무명"], "안내문");
+        let open = serde_json::json!({"choices":[{"message":{"content": "<think>닫히지 않음"}}]}).to_string();
+        assert!(model_failed(open.as_bytes()));
+        assert!(reply_object(open.as_bytes()).is_none());
+    }
 
     fn read_request(sock: &mut TcpStream) -> String {
         let _ = sock.set_read_timeout(Some(Duration::from_secs(2)));
