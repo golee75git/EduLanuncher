@@ -71,7 +71,7 @@ const ENTRIES: ComputerToolEntry[] = [
   {
     id: "window-pin",
     name: "창 앞에 고정",
-    hint: "열린 강의 창·탐색기를 골라 맨 앞에 둡니다. 떠 있는 창 안쪽에도 고정 글자가 보입니다.",
+    hint: "열린 강의 창·탐색기를 골라 맨 앞에 둡니다. 떠 있는 창 안쪽의 주황색 글자가 창을 따라갑니다.",
     type: "internal",
     view: "window-pin",
   },

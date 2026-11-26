@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.254-20261126",
+    note: "창 앞에 고정의 글자는 주황색입니다. 창을 옮기면 그 글자도 따라갑니다.",
+  },
+  {
     version: "0.1.253-20261126",
     note: "창 앞에 고정을 열면 지금 떠 있는 창 안쪽에 고정 또는 해제 글자가 보입니다. 그 글자를 눌러도 앞에 두거나 풉니다. 화면을 떠나거나 패널을 닫으면 글자는 사라집니다.",
   },

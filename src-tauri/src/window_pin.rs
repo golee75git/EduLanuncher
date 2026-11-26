@@ -53,6 +53,10 @@ pub fn clip_title(raw: &str) -> String {
 
 const WORD_W: i32 = 72;
 const WORD_H: i32 = 28;
+/// 단추 배경. `COLORREF`는 0x00BBGGRR이고, 값은 RGB(255, 140, 0)이다.
+pub fn word_fill_bgr() -> u32 {
+    0x0000_8CFF
+}
 
 pub fn word_for(state: PinState) -> &'static str {
     match state {
@@ -347,10 +351,16 @@ mod native {
         CallWindowProcW, CreateWindowExW, DefWindowProcW, DestroyWindow, EnumWindows, GetClassNameW,
         GetWindow, GetWindowLongPtrW, GetWindowRect, GetWindowTextW, GetWindowThreadProcessId,
         IsHungAppWindow, IsIconic, IsWindow, IsWindowVisible, SetWindowLongPtrW, SetWindowPos,
-        SetWindowTextW, ShowWindow, GWL_EXSTYLE, GW_OWNER, GWLP_WNDPROC, HWND_NOTOPMOST, HWND_TOPMOST,
-        MA_NOACTIVATE, SWP_ASYNCWINDOWPOS, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW,
-        SW_RESTORE, WM_LBUTTONUP, WM_MOUSEACTIVATE, WNDPROC, WS_EX_APPWINDOW, WS_EX_NOACTIVATE,
-        WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP, WS_VISIBLE,
+        GetClientRect, KillTimer, SetTimer, SetWindowTextW, ShowWindow, GWL_EXSTYLE, GW_OWNER,
+        GWLP_WNDPROC, HWND_NOTOPMOST, HWND_TOPMOST, MA_NOACTIVATE, SWP_ASYNCWINDOWPOS, SWP_NOACTIVATE,
+        SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, SW_HIDE, SW_RESTORE, WM_ERASEBKGND, WM_LBUTTONUP,
+        WM_MOUSEACTIVATE, WM_PAINT, WNDPROC, WS_EX_APPWINDOW,
+        WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP, WS_VISIBLE,
+    };
+    use windows::Win32::Graphics::Gdi::{
+        BeginPaint, CreateSolidBrush, DrawTextW, EndPaint, FillRect, GetStockObject, InvalidateRect,
+        SelectObject, SetBkMode, SetTextColor, DEFAULT_GUI_FONT, DT_CENTER, DT_SINGLELINE, DT_VCENTER,
+        HBRUSH, PAINTSTRUCT, TRANSPARENT,
     };
 
     use super::*;
@@ -566,14 +576,21 @@ mod native {
         PinBoard { rows, holding: book.holding() }
     }
 
-    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicIsize, AtomicU64, Ordering};
     use std::sync::{Mutex, OnceLock};
 
     use windows::core::{w, PCWSTR};
+    use windows::Win32::Foundation::COLORREF;
+
+    const FOLLOW_MS: u32 = 100;
+    const FOLLOW_ID: usize = 1;
 
     static HOST: OnceLock<AppHandle> = OnceLock::new();
     static WAVE: AtomicU64 = AtomicU64::new(0);
     static BUSY: AtomicBool = AtomicBool::new(false);
+    static OWNER: AtomicIsize = AtomicIsize::new(0);
+    static FOLLOW_HWND: AtomicIsize = AtomicIsize::new(0);
+    static FILL: AtomicIsize = AtomicIsize::new(0);
     static WORDS: Mutex<WordBook> = Mutex::new(WordBook { base: 0, rows: Vec::new() });
 
     struct WordBook {
@@ -586,6 +603,10 @@ mod native {
         hwnd: isize,
         id: String,
         pin_on: bool,
+        target: isize,
+        x: i32,
+        y: i32,
+        shown: bool,
     }
 
     #[derive(Clone)]
@@ -593,6 +614,7 @@ mod native {
         id: String,
         pin_on: bool,
         word: String,
+        target: isize,
         x: i32,
         y: i32,
     }
@@ -654,13 +676,15 @@ mod native {
         }
         book.reconcile(&seen, alive)
             .into_iter()
+            .zip(seen)
             .zip(corners)
-            .filter_map(|((id, state), corner)| {
+            .filter_map(|(((id, state), window), corner)| {
                 let (x, y) = corner?;
                 Some(WordSpot {
                     id,
                     pin_on: state == PinState::Free,
                     word: word_for(state).to_string(),
+                    target: window.hwnd,
                     x,
                     y,
                 })
@@ -673,6 +697,8 @@ mod native {
     }
 
     pub fn show_words(owner: isize, spots: Vec<WordSpot>) {
+        disarm_follow();
+        OWNER.store(owner, Ordering::SeqCst);
         let existing = lock_words().rows.clone();
         let mut kept = Vec::new();
         let mut made = Vec::new();
@@ -695,6 +721,10 @@ mod native {
             for (hwnd, spot) in &kept {
                 if let Some(row) = book.rows.iter_mut().find(|chip| chip.hwnd == *hwnd) {
                     row.pin_on = spot.pin_on;
+                    row.target = spot.target;
+                    row.x = spot.x;
+                    row.y = spot.y;
+                    row.shown = true;
                 }
             }
         }
@@ -707,12 +737,23 @@ mod native {
         }
         for spot in made {
             if let Some(hwnd) = open_word(owner, &spot) {
-                lock_words().rows.push(WordChip { hwnd, id: spot.id, pin_on: spot.pin_on });
+                lock_words().rows.push(WordChip {
+                    hwnd,
+                    id: spot.id,
+                    pin_on: spot.pin_on,
+                    target: spot.target,
+                    x: spot.x,
+                    y: spot.y,
+                    shown: true,
+                });
             }
         }
+        arm_follow();
     }
 
     pub fn drop_words() {
+        disarm_follow();
+        OWNER.store(0, Ordering::SeqCst);
         let rows = std::mem::take(&mut lock_words().rows);
         for chip in rows {
             let _ = unsafe { DestroyWindow(handle(chip.hwnd)) };
@@ -754,7 +795,120 @@ mod native {
 
     fn write_word(raw: isize, word: &str) {
         let wide = utf16(word);
-        let _ = unsafe { SetWindowTextW(handle(raw), PCWSTR(wide.as_ptr())) };
+        let hwnd = handle(raw);
+        let _ = unsafe { SetWindowTextW(hwnd, PCWSTR(wide.as_ptr())) };
+        let _ = unsafe { InvalidateRect(Some(hwnd), None, false) };
+    }
+
+    fn window_box(raw: isize) -> Option<(i32, i32, i32, i32)> {
+        if raw == 0 {
+            return None;
+        }
+        let mut rect = RECT::default();
+        unsafe { GetWindowRect(handle(raw), &mut rect) }.ok()?;
+        Some((rect.left, rect.top, rect.right, rect.bottom))
+    }
+
+    fn arm_follow() {
+        disarm_follow();
+        let hwnd = lock_words().rows.first().map(|chip| chip.hwnd).unwrap_or(0);
+        if hwnd == 0 {
+            return;
+        }
+        let id = unsafe { SetTimer(Some(handle(hwnd)), FOLLOW_ID, FOLLOW_MS, Some(follow_tick)) };
+        if id != 0 {
+            FOLLOW_HWND.store(hwnd, Ordering::SeqCst);
+        }
+    }
+
+    fn disarm_follow() {
+        let hwnd = FOLLOW_HWND.swap(0, Ordering::SeqCst);
+        if hwnd != 0 {
+            let _ = unsafe { KillTimer(Some(handle(hwnd)), FOLLOW_ID) };
+        }
+    }
+
+    unsafe extern "system" fn follow_tick(_hwnd: HWND, _msg: u32, _id: usize, _time: u32) {
+        slide_words();
+    }
+
+    fn slide_words() {
+        let avoid = window_box(OWNER.load(Ordering::SeqCst));
+        let chips = lock_words().rows.clone();
+        let mut moved = Vec::new();
+        for mut chip in chips {
+            let target = handle(chip.target);
+            let alive = unsafe { IsWindow(Some(target)) }.as_bool();
+            let iconic = alive && unsafe { IsIconic(target) }.as_bool();
+            let mut rect = RECT::default();
+            let corner = if !alive || iconic || unsafe { GetWindowRect(target, &mut rect) }.is_err() {
+                None
+            } else {
+                word_corner(rect.left, rect.top, rect.right, rect.bottom, avoid)
+            };
+            match corner {
+                Some((x, y)) => {
+                    if !chip.shown || chip.x != x || chip.y != y {
+                        move_word(chip.hwnd, x, y);
+                        chip.x = x;
+                        chip.y = y;
+                        chip.shown = true;
+                    }
+                }
+                None if chip.shown => {
+                    let _ = unsafe { ShowWindow(handle(chip.hwnd), SW_HIDE) };
+                    chip.shown = false;
+                }
+                None => {}
+            }
+            moved.push(chip);
+        }
+        let mut book = lock_words();
+        for fresh in moved {
+            if let Some(row) = book.rows.iter_mut().find(|row| row.hwnd == fresh.hwnd) {
+                row.x = fresh.x;
+                row.y = fresh.y;
+                row.shown = fresh.shown;
+            }
+        }
+    }
+
+    fn fill_brush() -> HBRUSH {
+        let raw = FILL.load(Ordering::SeqCst);
+        if raw != 0 {
+            return HBRUSH(raw as *mut c_void);
+        }
+        let brush = unsafe { CreateSolidBrush(COLORREF(word_fill_bgr())) };
+        FILL.store(brush.0 as isize, Ordering::SeqCst);
+        brush
+    }
+
+    fn paint_orange(hwnd: HWND) {
+        let mut paint = PAINTSTRUCT::default();
+        let dc = unsafe { BeginPaint(hwnd, &mut paint) };
+        if dc.is_invalid() {
+            return;
+        }
+        let mut rect = RECT::default();
+        let _ = unsafe { GetClientRect(hwnd, &mut rect) };
+        let mut wide = [0_u16; 8];
+        let len = unsafe { GetWindowTextW(hwnd, &mut wide) }.max(0) as usize;
+        unsafe {
+            let _ = FillRect(dc, &rect, fill_brush());
+            let _ = SetBkMode(dc, TRANSPARENT);
+            let _ = SetTextColor(dc, COLORREF(0));
+            let old = SelectObject(dc, GetStockObject(DEFAULT_GUI_FONT));
+            let _ = DrawTextW(
+                dc,
+                &mut wide[..len],
+                &mut rect,
+                DT_CENTER | DT_VCENTER | DT_SINGLELINE,
+            );
+            if !old.is_invalid() {
+                SelectObject(dc, old);
+            }
+            let _ = EndPaint(hwnd, &paint);
+        }
     }
 
     fn move_word(raw: isize, x: i32, y: i32) {
@@ -776,6 +930,13 @@ mod native {
     }
 
     unsafe extern "system" fn word_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+        if msg == WM_ERASEBKGND {
+            return LRESULT(1);
+        }
+        if msg == WM_PAINT {
+            paint_orange(hwnd);
+            return LRESULT(0);
+        }
         if msg == WM_MOUSEACTIVATE {
             return LRESULT(MA_NOACTIVATE as isize);
         }
@@ -953,6 +1114,11 @@ mod tests {
         assert_eq!(word_corner(100, 100, 500, 400, Some((400, 100, 520, 200))), Some((108, 132)));
         assert_eq!(word_corner(0, 0, 200, 200, Some((-10, -10, 400, 400))), None);
         assert_eq!(word_corner(0, 0, 40, 20, None), None);
+    }
+
+    #[test]
+    fn word_fill_is_orange() {
+        assert_eq!(word_fill_bgr(), 0x0000_8CFF);
     }
 
     #[test]
