@@ -1185,10 +1185,13 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                         selectedId === `pc-file:${hit.launchId}` ? "desk-row-active" : ""
                       }`}
                     >
-                      <ToolGlyph
-                        icon={hit.kind === "folder" ? "folder" : "file"}
-                        className={`h-4 w-4 shrink-0 ${hit.kind === "folder" ? "text-ink" : "text-quiet"}`}
-                      />
+                      <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                        <ToolGlyph
+                          icon={hit.kind === "folder" ? "folder" : "file"}
+                          iconImage={hit.iconImage}
+                          className={`h-4 w-4 ${hit.kind === "folder" ? "text-ink" : "text-quiet"}`}
+                        />
+                      </span>
                       <button
                         type="button"
                         title={hit.place}
@@ -1253,6 +1256,9 @@ export function HomePage({ onAction, search = "" }: HomePageProps) {
                       }`}
                     >
                       <div className="flex items-center gap-2">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                          <ToolGlyph icon="file" iconImage={hit.iconImage} className="h-4 w-4 text-quiet" />
+                        </span>
                         <button
                           type="button"
                           title={hit.place}

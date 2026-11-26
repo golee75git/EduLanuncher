@@ -3012,6 +3012,8 @@ struct UserFolderCard {
     place: String,
     launch_id: String,
     folder_id: String,
+    #[serde(rename = "iconImage", skip_serializing_if = "Option::is_none")]
+    icon_image: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -3042,6 +3044,7 @@ fn publish_user_hits(app: &AppHandle, found: Vec<user_folder::UserFolderHit>) ->
             folders.push((parent, id.clone()));
             id
         };
+        let icon_image = shell_icon::search_png_data_url(&path, kind == "folder");
         hits.push(UserFolderCard {
             name: item.name,
             kind: item.kind,
@@ -3049,6 +3052,7 @@ fn publish_user_hits(app: &AppHandle, found: Vec<user_folder::UserFolderHit>) ->
             place: path_grant::place_label(&path),
             launch_id,
             folder_id,
+            icon_image,
         });
     }
     UserFolderQuery {

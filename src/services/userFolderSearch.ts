@@ -7,6 +7,7 @@ export interface UserFolderHit {
   place: string;
   launchId: string;
   folderId: string;
+  iconImage?: string;
 }
 
 export interface UserFolderQuery {

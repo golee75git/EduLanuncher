@@ -24,6 +24,7 @@ export interface DocHit {
   place: string;
   launchId: string;
   folderId: string;
+  iconImage?: string;
 }
 
 export interface DocQuery {

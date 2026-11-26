@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { HighlightText } from "../components/HighlightText";
+import { ToolGlyph } from "../components/ToolGlyph";
 import { SearchBar } from "../components/SearchBar";
 import { openListed, openListedFolder } from "../services/launcherService";
 import { clearSearchGrants } from "../services/windowService";
@@ -98,6 +99,9 @@ export function DocSearchPage({ initialQuery = "", onBack }: DocSearchPageProps)
           hits.map((hit) => (
             <div key={hit.launchId || hit.name} className="desk-row flex-col items-stretch gap-1">
               <div className="flex items-center gap-2">
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                  <ToolGlyph icon="file" iconImage={hit.iconImage} className="h-4 w-4 text-quiet" />
+                </span>
                 <button
                   type="button"
                   title={hit.place}

@@ -6,6 +6,46 @@
 ---
 
 날짜: 2026-11-26
+버전: 0.1.255-20261126
+설치 파일: AILauncher_0.1.255-20261126_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-26_1524_x64-setup.exe
+작성자: 요청자
+
+요청: 런처 검색에 나오는 파일·폴더·실행 프로그램 이름 앞에, 이 PC가 보여 주는 아이콘을 표시한다.
+
+확인: 홈 검색의 이 PC 폴더, 이 PC 폴더 찾기, 내 문서 검색 줄 앞에 아이콘을 붙였다. 폴더와 PDF 같은 일반 파일은 확장자 그림을 한 번만 만들고, 실행 파일·바로가기는 그 파일 그림이다. 네트워크 경로와 1024자를 넘는 경로는 그림을 만들지 않는다. 화면에는 PNG만 가고 경로는 가지 않는다. 그림은 디스크에 쓰지 않는다. 그림을 못 만들면 폴더는 청록 아이콘, 파일은 옅은 아이콘이다. shell_icon 단위 시험 3개가 통과했다. PDF·폴더·notepad.exe 그림이 PNG로 나왔다. 화면 글꼴은 system-ui이며 OFL 글꼴 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. OFL은 저작권 라이선스이며 특허를 허용한다는 뜻이 아니다. 새 패키지 없음. windows 0.61.3은 기존 의존이며 MIT OR Apache-2.0이다. 직접 의존성 잠금 파일에서 GPL-2.0, GPL-3.0, AGPL 항목은 보이지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않았고 청구항과 구성을 대조하지 않음. 검색 줄 앞에 셸 아이콘을 두는 구성은 특허 검토가 필요할 수 있음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src-tauri/src/shell_icon.rs
+- src-tauri/src/lib.rs
+- src-tauri/src/document_search/mod.rs
+- src/services/userFolderSearch.ts
+- src/services/documentSearchService.ts
+- src/pages/HomePage.tsx
+- src/pages/PcFolderFindPage.tsx
+- src/pages/DocSearchPage.tsx
+- src/pages/SettingsPage.tsx
+- src/data/computerTools.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/버전정리.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 글꼴 파일, package.json, src-tauri/Cargo.toml, 그 외 기존 파일
+
+---
+
+날짜: 2026-11-26
 버전: 0.1.254-20261126
 설치 파일: AILauncher_0.1.254-20261126_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-26_1418_x64-setup.exe

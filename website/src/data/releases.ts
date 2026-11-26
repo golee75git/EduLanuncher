@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.255-20261126",
+    note: "홈 검색의 파일·폴더·실행 파일 이름 앞에 이 PC가 보여 주는 아이콘이 나옵니다. 내 문서 검색도 같습니다.",
+  },
+  {
     version: "0.1.254-20261126",
     note: "창 앞에 고정의 글자는 주황색입니다. 창을 옮기면 그 글자도 따라갑니다.",
   },

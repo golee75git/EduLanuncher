@@ -89,7 +89,7 @@ export function PcFolderFindPage({ initialQuery = "", onBack }: PcFolderFindPage
       />
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          이 사용자 폴더의 이름만 봅니다. 문서 내용은 읽지 않습니다. 기본은 바탕화면·문서·다운로드입니다.
+          이 사용자 폴더의 이름만 봅니다. 문서 내용은 읽지 않습니다. 이름 앞에는 이 PC가 보여 주는 아이콘이 있습니다. 기본은 바탕화면·문서·다운로드입니다.
         </p>
         <label className="flex items-center gap-2 text-sm text-desk">
           <input
@@ -113,10 +113,13 @@ export function PcFolderFindPage({ initialQuery = "", onBack }: PcFolderFindPage
         <ul className="card-surface divide-y divide-line/70">
           {hits.map((hit) => (
             <li key={hit.launchId || hit.name} className="flex items-center gap-2 px-3 py-2">
-              <ToolGlyph
-                icon={hit.kind === "folder" ? "folder" : "file"}
-                className={`h-4 w-4 shrink-0 ${hit.kind === "folder" ? "text-ink" : "text-quiet"}`}
-              />
+              <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                <ToolGlyph
+                  icon={hit.kind === "folder" ? "folder" : "file"}
+                  iconImage={hit.iconImage}
+                  className={`h-4 w-4 ${hit.kind === "folder" ? "text-ink" : "text-quiet"}`}
+                />
+              </span>
               <button
                 type="button"
                 className="min-w-0 flex-1 truncate text-left text-sm text-desk"

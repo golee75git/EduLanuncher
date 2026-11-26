@@ -97,6 +97,8 @@ pub struct DocCard {
     pub place: String,
     pub launch_id: String,
     pub folder_id: String,
+    #[serde(rename = "iconImage", skip_serializing_if = "Option::is_none")]
+    pub icon_image: Option<String>,
 }
 
 #[derive(Clone, Serialize)]
@@ -855,6 +857,7 @@ fn publish_doc_hits(app: &AppHandle, hits: Vec<DocHit>, hint: String) -> DocQuer
             folders.push((parent, id.clone()));
             id
         };
+        let icon_image = crate::shell_icon::search_png_data_url(&path, false);
         cards.push(DocCard {
             name: hit.name,
             ext: hit.ext,
@@ -864,6 +867,7 @@ fn publish_doc_hits(app: &AppHandle, hits: Vec<DocHit>, hint: String) -> DocQuer
             place: crate::path_grant::place_label(&path),
             launch_id,
             folder_id,
+            icon_image,
         });
     }
     DocQuery {

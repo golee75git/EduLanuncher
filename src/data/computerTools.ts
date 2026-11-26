@@ -127,7 +127,7 @@ const ENTRIES: ComputerToolEntry[] = [
   {
     id: "pc-folder-find",
     name: "이 PC 폴더 찾기",
-    hint: "바탕화면·문서·다운로드에서 이름을 찾습니다. 내용은 읽지 않습니다.",
+    hint: "바탕화면·문서·다운로드에서 이름을 찾습니다. 내용은 읽지 않습니다. 이름 앞에는 이 PC가 보여 주는 아이콘이 있습니다.",
     type: "internal",
     view: "pc-folder-find",
   },
