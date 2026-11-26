@@ -53,9 +53,9 @@ pub fn clip_title(raw: &str) -> String {
 
 const WORD_W: i32 = 72;
 const WORD_H: i32 = 28;
-/// 단추 배경. `COLORREF`는 0x00BBGGRR이고, 값은 RGB(255, 140, 0)이다.
-pub fn word_fill_bgr() -> u32 {
-    0x0000_8CFF
+/// 단추 배경. `COLORREF`는 0x00BBGGRR이다. 고정은 RGB(255, 140, 0), 해제는 RGB(80, 160, 255)이다.
+pub fn word_fill_bgr(release: bool) -> u32 {
+    if release { 0x00FF_A050 } else { 0x0000_8CFF }
 }
 
 pub fn word_for(state: PinState) -> &'static str {
@@ -591,6 +591,7 @@ mod native {
     static OWNER: AtomicIsize = AtomicIsize::new(0);
     static FOLLOW_HWND: AtomicIsize = AtomicIsize::new(0);
     static FILL: AtomicIsize = AtomicIsize::new(0);
+    static RELEASE_FILL: AtomicIsize = AtomicIsize::new(0);
     static WORDS: Mutex<WordBook> = Mutex::new(WordBook { base: 0, rows: Vec::new() });
 
     struct WordBook {
@@ -873,17 +874,18 @@ mod native {
         }
     }
 
-    fn fill_brush() -> HBRUSH {
-        let raw = FILL.load(Ordering::SeqCst);
+    fn fill_brush(release: bool) -> HBRUSH {
+        let slot = if release { &RELEASE_FILL } else { &FILL };
+        let raw = slot.load(Ordering::SeqCst);
         if raw != 0 {
             return HBRUSH(raw as *mut c_void);
         }
-        let brush = unsafe { CreateSolidBrush(COLORREF(word_fill_bgr())) };
-        FILL.store(brush.0 as isize, Ordering::SeqCst);
+        let brush = unsafe { CreateSolidBrush(COLORREF(word_fill_bgr(release))) };
+        slot.store(brush.0 as isize, Ordering::SeqCst);
         brush
     }
 
-    fn paint_orange(hwnd: HWND) {
+    fn paint_word(hwnd: HWND) {
         let mut paint = PAINTSTRUCT::default();
         let dc = unsafe { BeginPaint(hwnd, &mut paint) };
         if dc.is_invalid() {
@@ -893,8 +895,9 @@ mod native {
         let _ = unsafe { GetClientRect(hwnd, &mut rect) };
         let mut wide = [0_u16; 8];
         let len = unsafe { GetWindowTextW(hwnd, &mut wide) }.max(0) as usize;
+        let release = String::from_utf16_lossy(&wide[..len.min(wide.len())]) == "해제";
         unsafe {
-            let _ = FillRect(dc, &rect, fill_brush());
+            let _ = FillRect(dc, &rect, fill_brush(release));
             let _ = SetBkMode(dc, TRANSPARENT);
             let _ = SetTextColor(dc, COLORREF(0));
             let old = SelectObject(dc, GetStockObject(DEFAULT_GUI_FONT));
@@ -934,7 +937,7 @@ mod native {
             return LRESULT(1);
         }
         if msg == WM_PAINT {
-            paint_orange(hwnd);
+            paint_word(hwnd);
             return LRESULT(0);
         }
         if msg == WM_MOUSEACTIVATE {
@@ -1117,8 +1120,9 @@ mod tests {
     }
 
     #[test]
-    fn word_fill_is_orange() {
-        assert_eq!(word_fill_bgr(), 0x0000_8CFF);
+    fn word_fill_matches_the_word() {
+        assert_eq!(word_fill_bgr(false), 0x0000_8CFF);
+        assert_eq!(word_fill_bgr(true), 0x00FF_A050);
     }
 
     #[test]
