@@ -546,6 +546,7 @@ fn panel_is_open(window: &tauri::WebviewWindow) -> bool {
 }
 
 fn hide_window(app: &AppHandle) {
+    window_pin::dismiss_pin_words(app);
     file_desk::disarm(app, true);
     hide_map_window(app);
     hide_memo_pad(app);
@@ -3446,6 +3447,8 @@ pub fn run() {
             window_pin::list_pin_windows,
             window_pin::set_window_pin,
             window_pin::release_window_pins,
+            window_pin::place_pin_words,
+            window_pin::clear_pin_words,
             file_desk::privacy_enter,
             file_desk::privacy_leave,
             file_desk::privacy_reset,
@@ -3611,6 +3614,7 @@ pub fn run() {
         .run(|app, event| {
             // 트레이 종료와 업데이트 설치 모두 여기를 지난다.
             if let tauri::RunEvent::Exit = event {
+                window_pin::dismiss_pin_words_now();
                 window_pin::release_all_on_exit(&app.state::<window_pin::PinBook>());
             }
         });

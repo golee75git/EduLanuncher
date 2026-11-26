@@ -27,3 +27,11 @@ export async function setWindowPin(id: string, pinned: boolean): Promise<void> {
 export async function releaseWindowPins(): Promise<void> {
   await invoke("release_window_pins");
 }
+
+export async function placePinWords(): Promise<void> {
+  await invoke("place_pin_words");
+}
+
+export async function clearPinWords(): Promise<void> {
+  await invoke("clear_pin_words");
+}

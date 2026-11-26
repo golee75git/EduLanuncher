@@ -1,7 +1,10 @@
+import { listen } from "@tauri-apps/api/event";
 import { AppWindow, ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  clearPinWords,
   listPinWindows,
+  placePinWords,
   releaseWindowPins,
   setWindowPin,
   type PinBoard,
@@ -37,9 +40,19 @@ export function WindowPinPage({ onBack }: WindowPinPageProps) {
     try {
       setBoard(await listPinWindows());
       setReadNote("");
+      try {
+        await placePinWords();
+      } catch {
+        // 글자를 두지 못해도 목록으로 고를 수 있다.
+      }
     } catch (error) {
       setBoard(null);
       setReadNote(asMessage(error, "창 목록을 읽지 못했습니다."));
+      try {
+        await clearPinWords();
+      } catch {
+        // 목록 읽기에 실패했을 때 글자가 남아 있지 않게 한다.
+      }
     }
   }, []);
 
@@ -52,7 +65,33 @@ export function WindowPinPage({ onBack }: WindowPinPageProps) {
     };
     reload();
     window.addEventListener("focus", reload);
-    return () => window.removeEventListener("focus", reload);
+    let stop = false;
+    const unlistens: Array<() => void> = [];
+    const keep = (done: () => void) => {
+      if (stop) {
+        done();
+      } else {
+        unlistens.push(done);
+      }
+    };
+    if (desktopShell()) {
+      void listen<string>("pin-words-changed", (event) => {
+        void load().then(() => {
+          setNotice(event.payload);
+        });
+      }).then(keep);
+      void listen("panel-shown", () => {
+        void load();
+      }).then(keep);
+    }
+    return () => {
+      stop = true;
+      unlistens.forEach((done) => done());
+      window.removeEventListener("focus", reload);
+      if (desktopShell()) {
+        void clearPinWords();
+      }
+    };
   }, [load]);
 
   const act = async (work: () => Promise<void>) => {
@@ -101,8 +140,9 @@ export function WindowPinPage({ onBack }: WindowPinPageProps) {
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          고른 창을 다른 창보다 앞에 둡니다. 런처를 종료하면 런처가 고정한 창은 해제합니다. 전체 화면 프로그램은 고정한
-          창을 가릴 수 있습니다.
+          고른 창을 다른 창보다 앞에 둡니다. 떠 있는 창 안쪽에도 같은 고정·해제 글자가 보이면 그 글자로도 고릅니다.
+          최소화된 창은 목록에서 고릅니다. 이 화면을 떠나거나 패널을 닫으면 그 글자는 사라집니다. 런처를 종료하면
+          런처가 고정한 창은 해제합니다. 전체 화면 프로그램은 고정한 창을 가릴 수 있습니다.
         </p>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         {readNote ? <p className="text-sm text-desk">{readNote}</p> : null}

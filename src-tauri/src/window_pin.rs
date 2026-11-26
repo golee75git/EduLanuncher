@@ -4,7 +4,7 @@
 use std::sync::{Mutex, MutexGuard};
 
 use serde::Serialize;
-use tauri::{AppHandle, State, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, State, WebviewWindow};
 
 const CLOSED: &str = "창이 닫혔습니다.";
 const HUNG: &str = "응답이 없는 창은 바꾸지 않습니다.";
@@ -49,6 +49,48 @@ pub fn clip_title(raw: &str) -> String {
         .filter(|word| !word.is_empty())
         .collect();
     words.join(" ").chars().take(MAX_TITLE).collect()
+}
+
+const WORD_W: i32 = 72;
+const WORD_H: i32 = 28;
+
+pub fn word_for(state: PinState) -> &'static str {
+    match state {
+        PinState::Free => "고정",
+        PinState::Ours | PinState::Other => "해제",
+    }
+}
+
+/// 창 안쪽에 글자를 둘 자리. 패널과 겹치거나 창 밖으로 나가면 다른 모서리를 보고, 없으면 두지 않는다.
+pub fn word_corner(
+    left: i32,
+    top: i32,
+    right: i32,
+    bottom: i32,
+    block: Option<(i32, i32, i32, i32)>,
+) -> Option<(i32, i32)> {
+    let spots = [
+        (right - WORD_W - 8, top + 32),
+        (left + 8, top + 32),
+        (right - WORD_W - 8, top + 8),
+        (left + 8, top + 8),
+        (right - WORD_W - 8, bottom - WORD_H - 8),
+        (left + 8, bottom - WORD_H - 8),
+    ];
+    spots.into_iter().find(|(x, y)| {
+        *x >= left
+            && *y >= top
+            && *x + WORD_W <= right
+            && *y + WORD_H <= bottom
+            && !word_hits(*x, *y, block)
+    })
+}
+
+fn word_hits(x: i32, y: i32, block: Option<(i32, i32, i32, i32)>) -> bool {
+    let Some((left, top, right, bottom)) = block else {
+        return false;
+    };
+    x < right && x + WORD_W > left && y < bottom && y + WORD_H > top
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -241,6 +283,52 @@ pub fn release_window_pins(
     done
 }
 
+#[tauri::command]
+pub fn place_pin_words(
+    app: AppHandle,
+    window: WebviewWindow,
+    book: State<'_, PinBook>,
+) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err(WRONG_WINDOW.into());
+    }
+    native::remember_host(&app);
+    let avoid = native::panel_box(&window);
+    let owner = native::panel_raw(&window);
+    let spots = native::word_spots(&book, avoid);
+    let token = native::bump_wave();
+    app.run_on_main_thread(move || {
+        if native::wave_is(token) {
+            native::show_words(owner, spots);
+        }
+    })
+    .map_err(|_| "떠 있는 창에 글자를 두지 못했습니다.".to_string())
+}
+
+#[tauri::command]
+pub fn clear_pin_words(app: AppHandle, window: WebviewWindow) -> Result<(), String> {
+    if window.label() != "main" {
+        return Err(WRONG_WINDOW.into());
+    }
+    dismiss_pin_words(&app);
+    Ok(())
+}
+
+pub fn dismiss_pin_words(app: &AppHandle) {
+    let token = native::bump_wave();
+    let app = app.clone();
+    let _ = app.run_on_main_thread(move || {
+        if native::wave_is(token) {
+            native::drop_words();
+        }
+    });
+}
+
+pub fn dismiss_pin_words_now() {
+    let _ = native::bump_wave();
+    native::drop_words();
+}
+
 #[cfg(windows)]
 mod native {
     use std::collections::HashMap;
@@ -249,18 +337,20 @@ mod native {
     use std::path::PathBuf;
 
     use windows::core::{BOOL, PWSTR};
-    use windows::Win32::Foundation::{CloseHandle, HWND, LPARAM};
+    use windows::Win32::Foundation::{CloseHandle, HWND, LPARAM, LRESULT, RECT, WPARAM};
     use windows::Win32::Graphics::Dwm::{DwmGetWindowAttribute, DWMWA_CLOAKED};
     use windows::Win32::System::Threading::{
         OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32,
         PROCESS_QUERY_LIMITED_INFORMATION,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        EnumWindows, GetClassNameW, GetWindow, GetWindowLongPtrW, GetWindowTextW,
-        GetWindowThreadProcessId, IsHungAppWindow, IsIconic, IsWindow, IsWindowVisible,
-        SetWindowPos, ShowWindow, GWL_EXSTYLE, GW_OWNER, HWND_NOTOPMOST, HWND_TOPMOST,
-        SWP_ASYNCWINDOWPOS, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SW_RESTORE, WS_EX_APPWINDOW,
-        WS_EX_TOOLWINDOW, WS_EX_TOPMOST,
+        CallWindowProcW, CreateWindowExW, DefWindowProcW, DestroyWindow, EnumWindows, GetClassNameW,
+        GetWindow, GetWindowLongPtrW, GetWindowRect, GetWindowTextW, GetWindowThreadProcessId,
+        IsHungAppWindow, IsIconic, IsWindow, IsWindowVisible, SetWindowLongPtrW, SetWindowPos,
+        SetWindowTextW, ShowWindow, GWL_EXSTYLE, GW_OWNER, GWLP_WNDPROC, HWND_NOTOPMOST, HWND_TOPMOST,
+        MA_NOACTIVATE, SWP_ASYNCWINDOWPOS, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW,
+        SW_RESTORE, WM_LBUTTONUP, WM_MOUSEACTIVATE, WNDPROC, WS_EX_APPWINDOW, WS_EX_NOACTIVATE,
+        WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP, WS_VISIBLE,
     };
 
     use super::*;
@@ -475,6 +565,268 @@ mod native {
             .collect();
         PinBoard { rows, holding: book.holding() }
     }
+
+    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+    use std::sync::{Mutex, OnceLock};
+
+    use windows::core::{w, PCWSTR};
+
+    static HOST: OnceLock<AppHandle> = OnceLock::new();
+    static WAVE: AtomicU64 = AtomicU64::new(0);
+    static BUSY: AtomicBool = AtomicBool::new(false);
+    static WORDS: Mutex<WordBook> = Mutex::new(WordBook { base: 0, rows: Vec::new() });
+
+    struct WordBook {
+        base: isize,
+        rows: Vec<WordChip>,
+    }
+
+    #[derive(Clone)]
+    struct WordChip {
+        hwnd: isize,
+        id: String,
+        pin_on: bool,
+    }
+
+    #[derive(Clone)]
+    pub(super) struct WordSpot {
+        id: String,
+        pin_on: bool,
+        word: String,
+        x: i32,
+        y: i32,
+    }
+
+    pub fn remember_host(app: &AppHandle) {
+        let _ = HOST.set(app.clone());
+    }
+
+    pub fn bump_wave() -> u64 {
+        WAVE.fetch_add(1, Ordering::SeqCst) + 1
+    }
+
+    pub fn wave_is(token: u64) -> bool {
+        WAVE.load(Ordering::SeqCst) == token
+    }
+
+    pub fn panel_raw(window: &WebviewWindow) -> isize {
+        panel_hwnd(window).map(|hwnd| hwnd.0 as isize).unwrap_or(0)
+    }
+
+    pub fn panel_box(window: &WebviewWindow) -> Option<(i32, i32, i32, i32)> {
+        let hwnd = panel_hwnd(window)?;
+        let mut rect = RECT::default();
+        unsafe { GetWindowRect(hwnd, &mut rect) }.ok()?;
+        Some((rect.left, rect.top, rect.right, rect.bottom))
+    }
+
+    fn panel_hwnd(window: &WebviewWindow) -> Option<HWND> {
+        use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+        let handle = window.window_handle().ok()?;
+        match handle.as_raw() {
+            RawWindowHandle::Win32(raw) => Some(HWND(raw.hwnd.get() as *mut c_void)),
+            _ => None,
+        }
+    }
+
+    pub fn word_spots(book: &PinBook, avoid: Option<(i32, i32, i32, i32)>) -> Vec<WordSpot> {
+        let mut found: Vec<isize> = Vec::new();
+        let _ = unsafe { EnumWindows(Some(take_window), LPARAM(&mut found as *mut Vec<isize> as isize)) };
+        let mut seen = Vec::new();
+        let mut corners = Vec::new();
+        for raw in found {
+            if seen.len() >= MAX_ROWS {
+                break;
+            }
+            let Some((_, pid)) = look(raw) else {
+                continue;
+            };
+            let iconic = unsafe { IsIconic(handle(raw)) }.as_bool();
+            let mut rect = RECT::default();
+            let corner = if iconic || unsafe { GetWindowRect(handle(raw), &mut rect) }.is_err() {
+                None
+            } else {
+                word_corner(rect.left, rect.top, rect.right, rect.bottom, avoid)
+            };
+            seen.push(Seen { hwnd: raw, pid, topmost: is_topmost(raw) });
+            corners.push(corner);
+        }
+        book.reconcile(&seen, alive)
+            .into_iter()
+            .zip(corners)
+            .filter_map(|((id, state), corner)| {
+                let (x, y) = corner?;
+                Some(WordSpot {
+                    id,
+                    pin_on: state == PinState::Free,
+                    word: word_for(state).to_string(),
+                    x,
+                    y,
+                })
+            })
+            .collect()
+    }
+
+    fn lock_words() -> MutexGuard<'static, WordBook> {
+        WORDS.lock().unwrap_or_else(|broken| broken.into_inner())
+    }
+
+    pub fn show_words(owner: isize, spots: Vec<WordSpot>) {
+        let existing = lock_words().rows.clone();
+        let mut kept = Vec::new();
+        let mut made = Vec::new();
+        for spot in spots {
+            if let Some(chip) = existing.iter().find(|chip| chip.id == spot.id) {
+                kept.push((chip.hwnd, spot));
+            } else {
+                made.push(spot);
+            }
+        }
+        let kept_hwnds: Vec<isize> = kept.iter().map(|(hwnd, _)| *hwnd).collect();
+        let gone: Vec<isize> = existing
+            .iter()
+            .filter(|chip| !kept_hwnds.contains(&chip.hwnd))
+            .map(|chip| chip.hwnd)
+            .collect();
+        {
+            let mut book = lock_words();
+            book.rows.retain(|chip| kept_hwnds.contains(&chip.hwnd));
+            for (hwnd, spot) in &kept {
+                if let Some(row) = book.rows.iter_mut().find(|chip| chip.hwnd == *hwnd) {
+                    row.pin_on = spot.pin_on;
+                }
+            }
+        }
+        for hwnd in gone {
+            let _ = unsafe { DestroyWindow(handle(hwnd)) };
+        }
+        for (hwnd, spot) in &kept {
+            write_word(*hwnd, &spot.word);
+            move_word(*hwnd, spot.x, spot.y);
+        }
+        for spot in made {
+            if let Some(hwnd) = open_word(owner, &spot) {
+                lock_words().rows.push(WordChip { hwnd, id: spot.id, pin_on: spot.pin_on });
+            }
+        }
+    }
+
+    pub fn drop_words() {
+        let rows = std::mem::take(&mut lock_words().rows);
+        for chip in rows {
+            let _ = unsafe { DestroyWindow(handle(chip.hwnd)) };
+        }
+    }
+
+    fn open_word(owner: isize, spot: &WordSpot) -> Option<isize> {
+        let wide = utf16(&spot.word);
+        let parent = (owner != 0).then(|| handle(owner));
+        let hwnd = unsafe {
+            CreateWindowExW(
+                WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
+                w!("BUTTON"),
+                PCWSTR(wide.as_ptr()),
+                WS_POPUP | WS_VISIBLE,
+                spot.x,
+                spot.y,
+                WORD_W,
+                WORD_H,
+                parent,
+                None,
+                None,
+                None,
+            )
+        }
+        .ok()?;
+        hook_word(hwnd);
+        move_word(hwnd.0 as isize, spot.x, spot.y);
+        Some(hwnd.0 as isize)
+    }
+
+    fn hook_word(hwnd: HWND) {
+        let prev = unsafe { SetWindowLongPtrW(hwnd, GWLP_WNDPROC, word_proc as *const () as isize) };
+        let mut book = lock_words();
+        if book.base == 0 && prev != 0 {
+            book.base = prev;
+        }
+    }
+
+    fn write_word(raw: isize, word: &str) {
+        let wide = utf16(word);
+        let _ = unsafe { SetWindowTextW(handle(raw), PCWSTR(wide.as_ptr())) };
+    }
+
+    fn move_word(raw: isize, x: i32, y: i32) {
+        let _ = unsafe {
+            SetWindowPos(
+                handle(raw),
+                Some(HWND_TOPMOST),
+                x,
+                y,
+                WORD_W,
+                WORD_H,
+                SWP_NOACTIVATE | SWP_SHOWWINDOW,
+            )
+        };
+    }
+
+    fn utf16(text: &str) -> Vec<u16> {
+        text.encode_utf16().chain(std::iter::once(0)).collect()
+    }
+
+    unsafe extern "system" fn word_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+        if msg == WM_MOUSEACTIVATE {
+            return LRESULT(MA_NOACTIVATE as isize);
+        }
+        if msg == WM_LBUTTONUP {
+            let job = click_job(hwnd.0 as isize);
+            let drawn = call_word_base(hwnd, msg, wparam, lparam);
+            if let Some((id, pin_on)) = job {
+                press_word(id, pin_on);
+            }
+            return drawn;
+        }
+        call_word_base(hwnd, msg, wparam, lparam)
+    }
+
+    fn click_job(raw: isize) -> Option<(String, bool)> {
+        lock_words()
+            .rows
+            .iter()
+            .find(|chip| chip.hwnd == raw)
+            .map(|chip| (chip.id.clone(), chip.pin_on))
+    }
+
+    fn press_word(id: String, pin_on: bool) {
+        if BUSY.swap(true, Ordering::SeqCst) {
+            return;
+        }
+        let note = if let Some(app) = HOST.get() {
+            let book = app.state::<PinBook>();
+            let result = apply_pin(&book, &id, pin_on);
+            crate::hold_panel_above(app);
+            match result {
+                Ok(()) => String::new(),
+                Err(text) => text,
+            }
+        } else {
+            String::new()
+        };
+        if let Some(app) = HOST.get() {
+            let _ = app.emit_to("main", "pin-words-changed", note);
+        }
+        BUSY.store(false, Ordering::SeqCst);
+    }
+
+    fn call_word_base(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+        let base = lock_words().base;
+        if base == 0 {
+            return unsafe { DefWindowProcW(hwnd, msg, wparam, lparam) };
+        }
+        let prev = unsafe { std::mem::transmute::<isize, WNDPROC>(base) };
+        unsafe { CallWindowProcW(prev, hwnd, msg, wparam, lparam) }
+    }
 }
 
 #[cfg(not(windows))]
@@ -504,6 +856,32 @@ mod native {
     pub fn board(_book: &PinBook) -> PinBoard {
         PinBoard { rows: Vec::new(), holding: false }
     }
+
+    pub fn remember_host(_app: &AppHandle) {}
+
+    pub fn bump_wave() -> u64 {
+        0
+    }
+
+    pub fn wave_is(_token: u64) -> bool {
+        true
+    }
+
+    pub fn panel_raw(_window: &WebviewWindow) -> isize {
+        0
+    }
+
+    pub fn panel_box(_window: &WebviewWindow) -> Option<(i32, i32, i32, i32)> {
+        None
+    }
+
+    pub fn word_spots(_book: &PinBook, _avoid: Option<(i32, i32, i32, i32)>) -> Vec<()> {
+        Vec::new()
+    }
+
+    pub fn show_words(_owner: isize, _spots: Vec<()>) {}
+
+    pub fn drop_words() {}
 }
 
 pub use native::{raise, release_all_on_exit};
@@ -560,6 +938,21 @@ mod tests {
     fn title_is_clipped() {
         assert_eq!(clip_title("  강의\r\n창\t "), "강의 창");
         assert_eq!(clip_title(&"가".repeat(200)).chars().count(), 120);
+    }
+
+    #[test]
+    fn word_names_match_the_list() {
+        assert_eq!(word_for(PinState::Free), "고정");
+        assert_eq!(word_for(PinState::Ours), "해제");
+        assert_eq!(word_for(PinState::Other), "해제");
+    }
+
+    #[test]
+    fn word_stays_inside_and_off_the_panel() {
+        assert_eq!(word_corner(100, 100, 500, 400, None), Some((420, 132)));
+        assert_eq!(word_corner(100, 100, 500, 400, Some((400, 100, 520, 200))), Some((108, 132)));
+        assert_eq!(word_corner(0, 0, 200, 200, Some((-10, -10, 400, 400))), None);
+        assert_eq!(word_corner(0, 0, 40, 20, None), None);
     }
 
     #[test]
