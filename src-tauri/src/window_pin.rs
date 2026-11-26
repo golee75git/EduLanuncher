@@ -53,6 +53,8 @@ pub fn clip_title(raw: &str) -> String {
 
 const WORD_W: i32 = 72;
 const WORD_H: i32 = 28;
+/// 창을 따라가는 간격. Windows 타이머가 보통 한 프레임으로 지키는 값이다.
+pub const FOLLOW_MS: u32 = 16;
 /// 단추 배경. `COLORREF`는 0x00BBGGRR이다. 고정은 RGB(255, 140, 0), 해제는 RGB(80, 160, 255)이다.
 pub fn word_fill_bgr(release: bool) -> u32 {
     if release { 0x00FF_A050 } else { 0x0000_8CFF }
@@ -582,7 +584,6 @@ mod native {
     use windows::core::{w, PCWSTR};
     use windows::Win32::Foundation::COLORREF;
 
-    const FOLLOW_MS: u32 = 100;
     const FOLLOW_ID: usize = 1;
 
     static HOST: OnceLock<AppHandle> = OnceLock::new();
@@ -1117,6 +1118,11 @@ mod tests {
         assert_eq!(word_corner(100, 100, 500, 400, Some((400, 100, 520, 200))), Some((108, 132)));
         assert_eq!(word_corner(0, 0, 200, 200, Some((-10, -10, 400, 400))), None);
         assert_eq!(word_corner(0, 0, 40, 20, None), None);
+    }
+
+    #[test]
+    fn follow_interval_is_one_frame() {
+        assert_eq!(FOLLOW_MS, 16);
     }
 
     #[test]

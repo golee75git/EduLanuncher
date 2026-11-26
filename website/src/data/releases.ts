@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.257-20261126",
+    note: "창 앞에 고정의 글자는 창을 옮기면 더 바짝 따라갑니다.",
+  },
+  {
     version: "0.1.256-20261126",
     note: "창 앞에 고정의 고정 글자는 주황색, 해제 글자는 파랑색입니다.",
   },

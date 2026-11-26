@@ -6,6 +6,41 @@
 ---
 
 날짜: 2026-11-26
+버전: 0.1.257-20261126
+설치 파일: AILauncher_0.1.257-20261126_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-26_1621_x64-setup.exe
+작성자: 요청자
+
+요청: 창 앞에 고정의 고정·해제 글자가 창을 옮길 때 더 자연스럽게 따라가게, 간격을 0.1초에서 16밀리초로 줄인다.
+
+확인: 이 화면이 열려 있는 동안만 16밀리초마다 창 위치를 읽는다. 좌표가 바뀐 글자만 옮기고, 옮길 때는 맨 앞에 둔다. 화면을 떠나거나 패널을 닫으면 멈춘다. 시스템 시계는 바꾸지 않는다. 따라가기 간격 단위 시험이 통과했다. 화면 글꼴은 system-ui이며 OFL 글꼴 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. OFL은 저작권 라이선스이며 특허를 허용한다는 뜻이 아니다. 새 패키지 없음. windows 0.61.3은 기존 의존이며 MIT OR Apache-2.0이다. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않았고 청구항과 구성을 대조하지 않음. 자기 단추 창을 다른 창 위치에 더 자주 두는 구성은 특허 검토가 필요할 수 있음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src-tauri/src/window_pin.rs
+- src/pages/WindowPinPage.tsx
+- src/pages/SettingsPage.tsx
+- src/data/computerTools.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/버전정리.md
+- docs/IP_DESIGN_LOG.md
+- docs/superpowers/specs/2026-11-25-window-pin-design.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 글꼴 파일, package.json, src-tauri/Cargo.toml, src-tauri/src/lib.rs, 그 외 기존 파일
+
+---
+
+날짜: 2026-11-26
 버전: 0.1.256-20261126
 설치 파일: AILauncher_0.1.256-20261126_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-26_1557_x64-setup.exe

@@ -141,7 +141,7 @@ export function WindowPinPage({ onBack }: WindowPinPageProps) {
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
           고른 창을 다른 창보다 앞에 둡니다. 떠 있는 창 안쪽의 고정은 주황색, 해제는 파랑색입니다. 그 글자로도
-          고릅니다. 창을 옮기면 글자도 따라갑니다. 최소화된 창은 목록에서 고릅니다. 이 화면을 떠나거나 패널을 닫으면
+          고릅니다. 창을 옮기면 글자가 바짝 따라갑니다. 최소화된 창은 목록에서 고릅니다. 이 화면을 떠나거나 패널을 닫으면
           그 글자는 사라집니다. 런처를 종료하면 런처가 고정한 창은 해제합니다. 전체 화면 프로그램은 고정한 창을 가릴
           수 있습니다.
         </p>
