@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.258-20261127",
+    note: "창 앞에 고정이 있는 동안, 새로 뜨는 일반 창이 그 뒤에 겹치면 같은 화면의 빈 칸으로 한 번만 옮깁니다.",
+  },
+  {
     version: "0.1.257-20261126",
     note: "창 앞에 고정의 글자는 창을 옮기면 더 바짝 따라갑니다.",
   },

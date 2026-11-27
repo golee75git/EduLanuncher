@@ -140,10 +140,12 @@ export function WindowPinPage({ onBack }: WindowPinPageProps) {
       </header>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         <p className="text-xs leading-5 text-quiet">
-          고른 창을 다른 창보다 앞에 둡니다. 떠 있는 창 안쪽의 고정은 주황색, 해제는 파랑색입니다. 그 글자로도
-          고릅니다. 창을 옮기면 글자가 바짝 따라갑니다. 최소화된 창은 목록에서 고릅니다. 이 화면을 떠나거나 패널을 닫으면
-          그 글자는 사라집니다. 런처를 종료하면 런처가 고정한 창은 해제합니다. 전체 화면 프로그램은 고정한 창을 가릴
-          수 있습니다.
+          고른 창을 다른 창보다 앞에 둡니다. 그 창이 있는 동안 새로 뜨는 일반 창이 뒤에 겹치면, 같은 화면의 빈
+          칸으로 한 번만 옮깁니다. 빈 칸이 좁거나 새 창이 최대화면이면 그대로 둡니다. 고정한 창의 자리와 크기는
+          바꾸지 않습니다. 떠 있는 창 안쪽의 고정은 주황색, 해제는 파랑색입니다. 그 글자로도 고릅니다. 창을 옮기면
+          글자가 바짝 따라갑니다. 최소화된 창은 목록에서 고릅니다. 이 화면을 떠나거나 패널을 닫으면 그 글자는
+          사라집니다. 런처를 종료하면 런처가 고정한 창은 해제합니다. 전체 화면 프로그램은 고정한 창을 가릴 수
+          있습니다.
         </p>
         {notice ? <p className="text-sm text-desk">{notice}</p> : null}
         {readNote ? <p className="text-sm text-desk">{readNote}</p> : null}

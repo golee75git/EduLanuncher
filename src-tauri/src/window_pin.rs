@@ -99,6 +99,168 @@ fn word_hits(x: i32, y: i32, block: Option<(i32, i32, i32, i32)>) -> bool {
     x < right && x + WORD_W > left && y < bottom && y + WORD_H > top
 }
 
+/// 화면 픽셀 사각형. 오른쪽·아래는 포함하지 않는다.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Spot {
+    pub left: i32,
+    pub top: i32,
+    pub right: i32,
+    pub bottom: i32,
+}
+
+impl Spot {
+    fn width(self) -> i32 {
+        self.right.saturating_sub(self.left)
+    }
+
+    fn height(self) -> i32 {
+        self.bottom.saturating_sub(self.top)
+    }
+
+    fn hits(self, other: Self) -> bool {
+        self.left < other.right && other.left < self.right && self.top < other.bottom && other.top < self.bottom
+    }
+
+    fn area(self) -> i64 {
+        i64::from(self.width()) * i64::from(self.height())
+    }
+}
+
+const BESIDE_GAP: i32 = 8;
+const BESIDE_MIN_W: i32 = 320;
+const BESIDE_MIN_H: i32 = 240;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Band {
+    Left,
+    Right,
+    Above,
+    Below,
+}
+
+/// 고정 칸과 겹치는 새 창을, 같은 작업 영역에서 고정 칸과 겹치지 않는 자리로 옮긴다.
+/// 겹치지 않거나 빈 칸이 최소 크기보다 좁으면 `None`이다. 고정 칸은 바꾸지 않는다.
+pub fn beside_spot(work: Spot, pins: &[Spot], born: Spot) -> Option<Spot> {
+    if pins.is_empty() || !pins.iter().any(|pin| pin.hits(born)) {
+        return None;
+    }
+    let obstacles: Vec<Spot> = pins.iter().copied().filter(|pin| pin.hits(work)).collect();
+    if obstacles.is_empty() {
+        return None;
+    }
+    let mut best: Option<(u8, i64, Spot)> = None;
+    for (index, obstacle) in obstacles.iter().enumerate() {
+        for band in [Band::Left, Band::Right, Band::Above, Band::Below] {
+            let open = clip_band(side_band(work, *obstacle, band), band, &obstacles, index);
+            let Some(placed) = fit_band(open, born, band) else {
+                continue;
+            };
+            if !inside(work, placed) || obstacles.iter().any(|pin| pin.hits(placed)) {
+                continue;
+            }
+            let whole = u8::from(placed.width() == born.width() && placed.height() == born.height());
+            let side = u8::from(matches!(band, Band::Left | Band::Right));
+            let rank = whole * 2 + side;
+            let score = placed.area();
+            let take = best.is_none_or(|(kept, wide, _)| rank > kept || (rank == kept && score > wide));
+            if take {
+                best = Some((rank, score, placed));
+            }
+        }
+    }
+    best.map(|(_, _, spot)| spot)
+}
+
+fn side_band(work: Spot, obstacle: Spot, band: Band) -> Spot {
+    match band {
+        Band::Left => Spot {
+            left: work.left,
+            top: work.top,
+            right: obstacle.left - BESIDE_GAP,
+            bottom: work.bottom,
+        },
+        Band::Right => Spot {
+            left: obstacle.right + BESIDE_GAP,
+            top: work.top,
+            right: work.right,
+            bottom: work.bottom,
+        },
+        Band::Above => Spot {
+            left: work.left,
+            top: work.top,
+            right: work.right,
+            bottom: obstacle.top - BESIDE_GAP,
+        },
+        Band::Below => Spot {
+            left: work.left,
+            top: obstacle.bottom + BESIDE_GAP,
+            right: work.right,
+            bottom: work.bottom,
+        },
+    }
+}
+
+fn clip_band(mut band: Spot, edge: Band, obstacles: &[Spot], skip: usize) -> Spot {
+    for (index, other) in obstacles.iter().enumerate() {
+        if index == skip {
+            continue;
+        }
+        match edge {
+            Band::Left | Band::Right => {
+                if other.top >= band.bottom || other.bottom <= band.top {
+                    continue;
+                }
+                if edge == Band::Right && other.left > band.left && other.left < band.right {
+                    band.right = other.left - BESIDE_GAP;
+                }
+                if edge == Band::Left && other.right < band.right && other.right > band.left {
+                    band.left = other.right + BESIDE_GAP;
+                }
+            }
+            Band::Above | Band::Below => {
+                if other.left >= band.right || other.right <= band.left {
+                    continue;
+                }
+                if edge == Band::Below && other.top > band.top && other.top < band.bottom {
+                    band.bottom = other.top - BESIDE_GAP;
+                }
+                if edge == Band::Above && other.bottom < band.bottom && other.bottom > band.top {
+                    band.top = other.bottom + BESIDE_GAP;
+                }
+            }
+        }
+    }
+    band
+}
+
+fn fit_band(band: Spot, born: Spot, edge: Band) -> Option<Spot> {
+    if band.width() < BESIDE_MIN_W || band.height() < BESIDE_MIN_H {
+        return None;
+    }
+    let width = born.width().min(band.width());
+    let height = born.height().min(band.height());
+    if width < BESIDE_MIN_W || height < BESIDE_MIN_H {
+        return None;
+    }
+    let (left, top) = match edge {
+        Band::Left => (band.right - width, band.top + (band.height() - height) / 2),
+        Band::Right => (band.left, band.top + (band.height() - height) / 2),
+        Band::Above => (band.left + (band.width() - width) / 2, band.bottom - height),
+        Band::Below => (band.left + (band.width() - width) / 2, band.top),
+    };
+    let placed = Spot {
+        left,
+        top,
+        right: left + width,
+        bottom: top + height,
+    };
+    inside(band, placed).then_some(placed)
+}
+
+fn inside(outer: Spot, inner: Spot) -> bool {
+    inner.left >= outer.left && inner.top >= outer.top && inner.right <= outer.right && inner.bottom <= outer.bottom
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum PinState {
@@ -272,6 +434,7 @@ pub fn set_window_pin(
     }
     let done = native::apply_pin(&book, &id, pinned);
     crate::hold_panel_above(&app);
+    native::sync_beside(&app);
     done
 }
 
@@ -286,6 +449,7 @@ pub fn release_window_pins(
     }
     let done = native::release_ours(&book);
     crate::hold_panel_above(&app);
+    native::sync_beside(&app);
     done
 }
 
@@ -353,16 +517,17 @@ mod native {
         CallWindowProcW, CreateWindowExW, DefWindowProcW, DestroyWindow, EnumWindows, GetClassNameW,
         GetWindow, GetWindowLongPtrW, GetWindowRect, GetWindowTextW, GetWindowThreadProcessId,
         IsHungAppWindow, IsIconic, IsWindow, IsWindowVisible, SetWindowLongPtrW, SetWindowPos,
-        GetClientRect, KillTimer, SetTimer, SetWindowTextW, ShowWindow, GWL_EXSTYLE, GW_OWNER,
+        GetClientRect, IsZoomed, KillTimer, SetTimer, SetWindowTextW, ShowWindow, GWL_EXSTYLE, GW_OWNER,
         GWLP_WNDPROC, HWND_NOTOPMOST, HWND_TOPMOST, MA_NOACTIVATE, SWP_ASYNCWINDOWPOS, SWP_NOACTIVATE,
-        SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, SW_HIDE, SW_RESTORE, WM_ERASEBKGND, WM_LBUTTONUP,
-        WM_MOUSEACTIVATE, WM_PAINT, WNDPROC, WS_EX_APPWINDOW,
+        SWP_NOMOVE, SWP_NOSIZE, SWP_NOOWNERZORDER, SWP_NOZORDER, SWP_SHOWWINDOW, SW_HIDE, SW_RESTORE,
+        WM_ERASEBKGND, WM_LBUTTONUP, WM_MOUSEACTIVATE, WM_PAINT, WNDPROC, WS_EX_APPWINDOW,
         WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_POPUP, WS_VISIBLE,
     };
     use windows::Win32::Graphics::Gdi::{
-        BeginPaint, CreateSolidBrush, DrawTextW, EndPaint, FillRect, GetStockObject, InvalidateRect,
-        SelectObject, SetBkMode, SetTextColor, DEFAULT_GUI_FONT, DT_CENTER, DT_SINGLELINE, DT_VCENTER,
-        HBRUSH, PAINTSTRUCT, TRANSPARENT,
+        BeginPaint, CreateSolidBrush, DrawTextW, EndPaint, FillRect, GetMonitorInfoW, GetStockObject,
+        InvalidateRect, MonitorFromWindow, SelectObject, SetBkMode, SetTextColor, DEFAULT_GUI_FONT,
+        DT_CENTER, DT_SINGLELINE, DT_VCENTER, HBRUSH, MONITOR_DEFAULTTONEAREST, MONITORINFO, PAINTSTRUCT,
+        TRANSPARENT,
     };
 
     use super::*;
@@ -415,6 +580,7 @@ mod native {
 
     /// 런처가 끝날 때 부른다. 응답 없는 창 때문에 종료가 멈추지 않게 기다리지 않는다.
     pub fn release_all_on_exit(book: &PinBook) {
+        BESIDE_STOP.store(true, Ordering::SeqCst);
         for (raw, pid) in book.ours() {
             if alive(raw, pid) == Some(true) {
                 let _ = set_topmost(raw, false, false);
@@ -463,6 +629,209 @@ mod native {
             Err(SOME_LEFT.into())
         } else {
             Ok(())
+        }
+    }
+
+    use std::sync::atomic::AtomicBool as BesideFlag;
+    use std::time::Duration;
+
+    static BESIDE_RUN: BesideFlag = BesideFlag::new(false);
+    static BESIDE_STOP: BesideFlag = BesideFlag::new(false);
+
+    struct Fresh {
+        raw: isize,
+        spot: Spot,
+        waits: u8,
+        done: bool,
+    }
+
+    /// 고정이 남아 있으면 새 창 자리를 보고, 없으면 그 살펴보기를 멈춘다.
+    pub fn sync_beside(app: &AppHandle) {
+        if !app.state::<PinBook>().holding() {
+            BESIDE_STOP.store(true, Ordering::SeqCst);
+            return;
+        }
+        BESIDE_STOP.store(false, Ordering::SeqCst);
+        if BESIDE_RUN
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_err()
+        {
+            return;
+        }
+        let app = app.clone();
+        std::thread::spawn(move || {
+            let mut seen = Vec::new();
+            let mut fresh = Vec::new();
+            note_open_windows(&mut seen);
+            while !BESIDE_STOP.load(Ordering::SeqCst) {
+                let book = app.state::<PinBook>();
+                if !book.holding() {
+                    break;
+                }
+                let held = book.ours();
+                drop(book);
+                let pins = pin_spots(&held);
+                for (raw, _) in &held {
+                    remember(&mut seen, *raw);
+                }
+                pass_new_windows(&app, &pins, &mut seen, &mut fresh);
+                for _ in 0..8 {
+                    if BESIDE_STOP.load(Ordering::SeqCst) {
+                        break;
+                    }
+                    std::thread::sleep(Duration::from_millis(50));
+                }
+            }
+            BESIDE_RUN.store(false, Ordering::SeqCst);
+            if !BESIDE_STOP.load(Ordering::SeqCst) && app.state::<PinBook>().holding() {
+                sync_beside(&app);
+            }
+        });
+    }
+
+    fn note_open_windows(seen: &mut Vec<isize>) {
+        for raw in top_windows() {
+            if look(raw).is_some_and(|(face, _)| listable(&face)) {
+                remember(seen, raw);
+            }
+        }
+    }
+
+    fn pin_spots(held: &[(isize, u32)]) -> Vec<Spot> {
+        let mut spots = Vec::new();
+        for (raw, pid) in held {
+            if alive(*raw, *pid) != Some(true) || unsafe { IsIconic(handle(*raw)) }.as_bool() {
+                continue;
+            }
+            if let Some(spot) = window_spot(*raw) {
+                spots.push(spot);
+            }
+        }
+        spots
+    }
+
+    fn pass_new_windows(app: &AppHandle, pins: &[Spot], seen: &mut Vec<isize>, fresh: &mut Vec<Fresh>) {
+        if pins.is_empty() {
+            return;
+        }
+        let mut born = Vec::new();
+        for raw in top_windows() {
+            if born.len() >= 200 || seen.contains(&raw) {
+                continue;
+            }
+            let Some((face, _)) = look(raw) else {
+                continue;
+            };
+            if !listable(&face) {
+                if clip_title(&face.title).is_empty() && !face.tool && !face.owned && !face.cloaked {
+                    continue;
+                }
+                remember(seen, raw);
+                continue;
+            }
+            let hwnd = handle(raw);
+            if unsafe { IsIconic(hwnd) }.as_bool() {
+                continue;
+            }
+            if unsafe { IsHungAppWindow(hwnd) }.as_bool() || unsafe { IsZoomed(hwnd) }.as_bool() {
+                remember(seen, raw);
+                continue;
+            }
+            let Some(spot) = window_spot(raw) else {
+                continue;
+            };
+            born.push((raw, spot));
+        }
+        fresh.retain(|item| born.iter().any(|(raw, _)| *raw == item.raw));
+        for (raw, spot) in born {
+            if let Some(item) = fresh.iter_mut().find(|item| item.raw == raw) {
+                let stable = (item.spot.left - spot.left).abs() < 24
+                    && (item.spot.top - spot.top).abs() < 24
+                    && (item.spot.width() - spot.width()).abs() < 24
+                    && (item.spot.height() - spot.height()).abs() < 24;
+                item.spot = spot;
+                item.waits = item.waits.saturating_add(1);
+                if (stable && item.waits >= 1) || item.waits >= 4 {
+                    settle_once(app, raw, spot, pins);
+                    remember(seen, raw);
+                    item.done = true;
+                }
+            } else if fresh.len() < 32 {
+                fresh.push(Fresh { raw, spot, waits: 0, done: false });
+            } else {
+                settle_once(app, raw, spot, pins);
+                remember(seen, raw);
+            }
+        }
+        fresh.retain(|item| !item.done);
+        if seen.len() > 256 {
+            seen.retain(|raw| unsafe { IsWindow(Some(handle(*raw))) }.as_bool());
+        }
+    }
+
+    fn settle_once(app: &AppHandle, raw: isize, born: Spot, pins: &[Spot]) {
+        let Some(work) = work_spot(raw) else {
+            return;
+        };
+        let here: Vec<Spot> = pins.iter().copied().filter(|pin| pin.hits(work)).collect();
+        let Some(next) = beside_spot(work, &here, born) else {
+            return;
+        };
+        if !app.state::<PinBook>().holding() {
+            return;
+        }
+        let _ = unsafe {
+            SetWindowPos(
+                handle(raw),
+                None,
+                next.left,
+                next.top,
+                next.width(),
+                next.height(),
+                SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_ASYNCWINDOWPOS,
+            )
+        };
+    }
+
+    fn top_windows() -> Vec<isize> {
+        let mut found = Vec::new();
+        let _ = unsafe { EnumWindows(Some(take_window), LPARAM(&mut found as *mut Vec<isize> as isize)) };
+        found
+    }
+
+    fn window_spot(raw: isize) -> Option<Spot> {
+        let mut rect = RECT::default();
+        unsafe { GetWindowRect(handle(raw), &mut rect) }.ok()?;
+        (rect.right > rect.left && rect.bottom > rect.top).then_some(Spot {
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+        })
+    }
+
+    fn work_spot(raw: isize) -> Option<Spot> {
+        let monitor = unsafe { MonitorFromWindow(handle(raw), MONITOR_DEFAULTTONEAREST) };
+        if monitor.is_invalid() {
+            return None;
+        }
+        let mut info = MONITORINFO {
+            cbSize: size_of::<MONITORINFO>() as u32,
+            ..MONITORINFO::default()
+        };
+        unsafe { GetMonitorInfoW(monitor, &mut info) }.ok().ok()?;
+        let work = info.rcWork;
+        (work.right > work.left && work.bottom > work.top).then_some(Spot {
+            left: work.left,
+            top: work.top,
+            right: work.right,
+            bottom: work.bottom,
+        })
+    }
+
+    fn remember(seen: &mut Vec<isize>, raw: isize) {
+        if !seen.contains(&raw) {
+            seen.push(raw);
         }
     }
 
@@ -971,6 +1340,7 @@ mod native {
             let book = app.state::<PinBook>();
             let result = apply_pin(&book, &id, pin_on);
             crate::hold_panel_above(app);
+            sync_beside(app);
             match result {
                 Ok(()) => String::new(),
                 Err(text) => text,
@@ -1009,6 +1379,8 @@ mod native {
     pub fn raise(_raw: isize) {}
 
     pub fn release_all_on_exit(_book: &PinBook) {}
+
+    pub fn sync_beside(_app: &AppHandle) {}
 
     pub fn apply_pin(_book: &PinBook, _id: &str, _pinned: bool) -> Result<(), String> {
         Err(ONLY_HERE.into())
@@ -1262,5 +1634,73 @@ mod tests {
         assert_eq!(apply_pin(&book, &id, false), Ok(()));
         assert!(!is_topmost(raw));
         unsafe { DestroyWindow(hwnd) }.expect("시험 창 닫기");
+    }
+}
+
+#[cfg(test)]
+mod beside_tests {
+    use super::{beside_spot, Spot};
+
+    fn spot(left: i32, top: i32, right: i32, bottom: i32) -> Spot {
+        Spot { left, top, right, bottom }
+    }
+
+    fn work() -> Spot {
+        spot(0, 0, 1920, 1080)
+    }
+
+    #[test]
+    fn clear_window_stays() {
+        let pin = spot(0, 0, 800, 1080);
+        let born = spot(1000, 200, 1600, 800);
+        assert_eq!(beside_spot(work(), &[pin], born), None);
+    }
+
+    #[test]
+    fn covered_window_moves_to_the_open_side() {
+        let pin = spot(0, 0, 800, 1080);
+        let born = spot(100, 100, 900, 800);
+        let next = beside_spot(work(), &[pin], born).expect("옆 칸");
+        assert!(!next.hits(pin));
+        assert!(next.left >= pin.right);
+        assert_eq!(next.width(), born.width());
+        assert_eq!(next.height(), born.height());
+    }
+
+    #[test]
+    fn full_pin_has_no_side_room() {
+        let pin = work();
+        let born = spot(200, 200, 900, 800);
+        assert_eq!(beside_spot(work(), &[pin], born), None);
+    }
+
+    #[test]
+    fn narrow_strip_is_left_alone() {
+        let pin = spot(0, 0, 1700, 1080);
+        let born = spot(400, 200, 1200, 800);
+        assert_eq!(beside_spot(work(), &[pin], born), None);
+    }
+
+    #[test]
+    fn wide_window_shrinks_into_the_open_side() {
+        let pin = spot(0, 0, 1400, 1080);
+        let born = spot(200, 100, 1500, 900);
+        let next = beside_spot(work(), &[pin], born).expect("줄어든 칸");
+        assert!(!next.hits(pin));
+        assert!(next.width() < born.width());
+        assert!(next.width() >= 320);
+        assert!(next.right <= 1920);
+    }
+
+    #[test]
+    fn gap_between_two_pins_is_used() {
+        let left = spot(0, 80, 500, 1000);
+        let right = spot(1400, 80, 1900, 1000);
+        let born = spot(100, 200, 700, 800);
+        let next = beside_spot(work(), &[left, right], born).expect("사이 칸");
+        assert!(!next.hits(left));
+        assert!(!next.hits(right));
+        assert!(next.left >= left.right);
+        assert!(next.right <= right.left);
     }
 }
