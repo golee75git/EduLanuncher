@@ -13,7 +13,6 @@ import {
   type CountdownState,
   type StopwatchState,
 } from "../services/timerService";
-import { showPanel } from "../services/windowService";
 
 interface TimerState {
   countdown: CountdownState;
@@ -116,7 +115,7 @@ function armWatchers(): void {
     return;
   }
   const remaining = countdownRemaining(countdown, Date.now());
-  if (remaining <= 0 && countdown.showOver && countdown.rang) {
+  if (remaining <= 0 && countdown.rang) {
     return;
   }
   // 정확한 시점용. 숨겨진 창에서 늦어질 수 있어 아래 점검이 한 번 더 확인한다.
@@ -134,28 +133,14 @@ function checkDone(): void {
   if (remaining > 0) {
     return;
   }
-  if (state.countdown.showOver) {
-    if (state.countdown.rang) {
-      clearWatchers();
-      return;
-    }
+  if (state.countdown.rang) {
     clearWatchers();
-    useTimerStore.setState({ countdown: { ...state.countdown, rang: true }, alarmActive: true });
-    persist();
-    beep();
-    void showPanel().catch(() => {
-      // 브라우저 미리보기에는 패널이 없다.
-    });
     return;
   }
-  // running -> done 전환은 한 번만 일어나므로 알림도 한 번만 울린다.
   clearWatchers();
-  useTimerStore.setState({ countdown: { ...state.countdown, status: "done", endAt: 0, pausedRemainingMs: 0, rang: false }, alarmActive: true });
+  useTimerStore.setState({ countdown: { ...state.countdown, rang: true } });
   persist();
   beep();
-  void showPanel().catch(() => {
-    // 브라우저 미리보기에는 패널이 없다.
-  });
 }
 
 export const useTimerStore = create<TimerState>((set, get) => ({
@@ -174,19 +159,16 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     const next = normalizeStored(raw, now);
     const stored = (raw as { countdown?: { status?: unknown; rang?: unknown } } | undefined)?.countdown;
     const storedStatus = stored?.status;
-    // 앱이 꺼져 있는 동안 끝난 타이머는 소리 없이 안내만 한다.
-    const missed = storedStatus === "running" && next.countdown.status === "done";
-    const missedOver =
+    const crossed =
       storedStatus === "running" &&
       next.countdown.status === "running" &&
-      next.countdown.showOver &&
       next.countdown.endAt > 0 &&
       next.countdown.endAt <= now &&
       stored?.rang !== true;
-    const countdown = missedOver ? { ...next.countdown, rang: true } : next.countdown;
-    set({ countdown, stopwatch: next.stopwatch, loaded: true, alarmActive: missed || missedOver });
+    const countdown = crossed ? { ...next.countdown, rang: true } : next.countdown;
+    set({ countdown, stopwatch: next.stopwatch, loaded: true, alarmActive: false });
     armWatchers();
-    if (missed || missedOver) {
+    if (crossed) {
       persist();
     }
   },
@@ -222,7 +204,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     }
     const fromPause = countdown.status === "paused";
     const remaining = fromPause ? countdown.pausedRemainingMs : countdown.durationMs;
-    if (remaining <= 0 && !(countdown.showOver && fromPause)) {
+    if (remaining <= 0 && !fromPause) {
       return;
     }
     const rang = fromPause && remaining <= 0 ? countdown.rang : false;
@@ -253,19 +235,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     }
     const rest = countdownRemaining(countdown, Date.now());
     clearWatchers();
-    if (countdown.showOver) {
-      set({ countdown: { ...countdown, status: "paused", endAt: 0, pausedRemainingMs: rest } });
-    } else {
-      set({
-        countdown: {
-          ...countdown,
-          status: rest > 0 ? "paused" : "done",
-          endAt: 0,
-          pausedRemainingMs: rest,
-          rang: false,
-        },
-      });
-    }
+    set({ countdown: { ...countdown, status: "paused", endAt: 0, pausedRemainingMs: rest } });
     persist();
   },
   resetCountdown: () => {

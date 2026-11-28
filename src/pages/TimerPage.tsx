@@ -121,7 +121,6 @@ export function TimerPage({ onBack }: TimerPageProps) {
   const [watchSaveNote, setWatchSaveNote] = useState("");
   const countdown = useTimerStore((s) => s.countdown);
   const stopwatch = useTimerStore((s) => s.stopwatch);
-  const alarmActive = useTimerStore((s) => s.alarmActive);
   const store = useTimerStore.getState;
 
   const running = countdown.status === "running" || stopwatch.running;
@@ -182,14 +181,6 @@ export function TimerPage({ onBack }: TimerPageProps) {
 
         {tab === "countdown" ? (
           <>
-            {alarmActive ? (
-              <div className="rounded-lg border border-line bg-card px-3 py-3 text-center" role="alert">
-                <p className="text-sm font-semibold text-desk">시간이 다 되었습니다.</p>
-                <button type="button" className="btn-secondary mt-2" onClick={() => store().dismissAlarm()}>
-                  확인
-                </button>
-              </div>
-            ) : null}
             <div className={`${over ? "timer-over" : "timer-face"} rounded-lg border border-line px-3 py-6 text-center`}>
               <p
                 className={`text-5xl font-semibold tabular-nums ${over ? "timer-over-num" : "text-desk"}`}
@@ -259,16 +250,6 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 초
               </label>
             </div>
-            <label className="flex items-center gap-2 text-sm text-desk">
-              <input
-                type="checkbox"
-                className="h-4 w-4"
-                checked={countdown.showOver}
-                disabled={!editable}
-                onChange={(event) => store().setShowOver(event.target.checked)}
-              />
-              초과 시간 표시
-            </label>
             <div className="grid grid-cols-3 gap-2">
               {countdown.status === "running" ? (
                 <button type="button" className="btn-primary" onClick={() => store().pauseCountdown()}>
@@ -341,9 +322,9 @@ export function TimerPage({ onBack }: TimerPageProps) {
               onNote={(id, value) => store().setCountdownLapNote(id, value)}
             />
             <p className="text-xs leading-5 text-quiet">
-              끝나면 소리가 나고 패널이 자동으로 열립니다. 가는 동안 구간 기록을 남길 수 있고, 이름과 메모는 CSV·엑셀로
-              고른 파일에만 저장합니다. 초과 시간 표시를 켜면 0이 지난 뒤 +00:01처럼 지난 시간을 장미색으로 셉니다.
-              끄면 0에서 멈춥니다. 시계를 바꾸거나 다른 프로그램이 바빠도 정해 둔 종료 시각을 기준으로 계산합니다.
+              0이 되면 소리가 한 번 나고, 창은 그대로 둔 채 +00:01처럼 지난 시간을 장미색으로 계속 셉니다. 가는 동안
+              구간 기록을 남길 수 있고, 이름과 메모는 CSV·엑셀로 고른 파일에만 저장합니다. 시계를 바꾸거나 다른
+              프로그램이 바빠도 정해 둔 종료 시각을 기준으로 계산합니다.
             </p>
           </>
         ) : (

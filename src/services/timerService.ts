@@ -12,9 +12,9 @@ export interface CountdownState {
   durationMs: number;
   /** running일 때만 의미가 있다. 종료 시각(epoch ms). */
   endAt: number;
-  /** paused일 때 남은 시간(ms). 초과 시간 표시가 켜져 있으면 음수일 수 있다. */
+  /** paused일 때 남은 시간(ms). 0을 지나면 음수다. */
   pausedRemainingMs: number;
-  /** 켜면 0을 지난 뒤에도 지난 시간을 센다. 기본은 0에서 멈춘다. */
+  /** 예전 선택값. 지금은 0을 지나도 항상 이어서 센다. */
   showOver: boolean;
   /** 이번 회차에서 0 알림을 이미 냈다. */
   rang: boolean;
@@ -103,11 +103,10 @@ function clampSigned(ms: number): number {
 
 export function countdownRemaining(state: CountdownState, now: number): number {
   if (state.status === "running") {
-    const delta = state.endAt - now;
-    return state.showOver ? delta : Math.max(0, delta);
+    return state.endAt - now;
   }
   if (state.status === "paused") {
-    return state.showOver ? state.pausedRemainingMs : Math.max(0, state.pausedRemainingMs);
+    return state.pausedRemainingMs;
   }
   if (state.status === "done") {
     return 0;
@@ -231,7 +230,7 @@ function asNumber(value: unknown, fallback = 0): number {
 
 /**
  * 저장된 값을 믿지 않고 다시 다듬는다.
- * 재시작했을 때 이미 지난 타이머는 done으로 바꾼다(놓친 알림은 화면에서 한 번 보여 준다).
+ * 재시작했을 때 0을 지난 타이머는 그대로 이어서 센다.
  */
 export function normalizeStored(raw: unknown, now: number): StoredTimers {
   const value = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
@@ -246,25 +245,16 @@ export function normalizeStored(raw: unknown, now: number): StoredTimers {
     if (endAt > 0) {
       // 시계가 크게 뒤로 가서 남은 시간이 처음보다 길어졌으면 처음 시간까지만 인정한다.
       const capped = Math.min(endAt, now + durationMs + CLOCK_BACK_TOLERANCE_MS);
-      if (capped <= now && showOver) {
+      if (capped <= now) {
         countdown = { ...countdown, status: "running", endAt: capped, rang: c.rang === true };
-      } else if (capped <= now) {
-        countdown = { ...countdown, status: "done" };
       } else {
         countdown = { ...countdown, status: "running", endAt: capped };
       }
     }
   } else if (c.status === "paused") {
-    if (showOver) {
-      const rest = clampSigned(asNumber(c.pausedRemainingMs));
-      if (rest !== 0 || c.rang === true) {
-        countdown = { ...countdown, status: "paused", pausedRemainingMs: rest, rang: rest < 0 || c.rang === true };
-      }
-    } else {
-      const rest = clampDuration(asNumber(c.pausedRemainingMs));
-      if (rest > 0) {
-        countdown = { ...countdown, status: "paused", pausedRemainingMs: rest };
-      }
+    const rest = clampSigned(asNumber(c.pausedRemainingMs));
+    if (rest !== 0 || c.rang === true) {
+      countdown = { ...countdown, status: "paused", pausedRemainingMs: rest, rang: rest < 0 || c.rang === true };
     }
   } else if (c.status === "done") {
     countdown = { ...countdown, status: "done" };
