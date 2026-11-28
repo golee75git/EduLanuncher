@@ -6,8 +6,8 @@ import {
   MAX_COUNTDOWN_MS,
   MAX_LAP_NOTE,
   countdownRemaining,
-  formatCountdown,
   formatStopwatch,
+  formatTimerFace,
   lapTable,
   lapTableCsv,
   stopwatchElapsed,
@@ -81,6 +81,8 @@ export function TimerPage({ onBack }: TimerPageProps) {
   const remaining = countdownRemaining(countdown, now);
   const elapsed = stopwatchElapsed(stopwatch, now);
   const editable = countdown.status === "idle" || countdown.status === "done";
+  const over = remaining < 0;
+  const face = formatTimerFace(remaining);
 
   const totalSec = Math.floor(countdown.durationMs / 1000);
   const [minText, setMinText] = useState(String(Math.floor(totalSec / 60)));
@@ -139,19 +141,23 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 </button>
               </div>
             ) : null}
-            <div className="timer-face rounded-lg border border-line px-3 py-6 text-center">
+            <div className={`${over ? "timer-over" : "timer-face"} rounded-lg border border-line px-3 py-6 text-center`}>
               <p
-                className="text-5xl font-semibold tabular-nums text-desk"
+                className={`text-5xl font-semibold tabular-nums ${over ? "timer-over-num" : "text-desk"}`}
                 aria-live="off"
-                aria-label={`남은 시간 ${formatCountdown(remaining)}`}
+                aria-label={over ? `초과 시간 ${face}` : `남은 시간 ${face}`}
               >
-                {formatCountdown(remaining)}
+                {face}
               </p>
               <p className="mt-2 text-xs text-quiet">
                 {countdown.status === "running"
-                  ? "남은 시간을 세고 있습니다. 패널을 닫아도 계속 갑니다."
+                  ? over
+                    ? "초과 시간을 세고 있습니다. 패널을 닫아도 계속 갑니다."
+                    : "남은 시간을 세고 있습니다. 패널을 닫아도 계속 갑니다."
                   : countdown.status === "paused"
-                    ? "일시정지"
+                    ? over
+                      ? "초과 시간을 일시정지했습니다."
+                      : "일시정지"
                     : countdown.status === "done"
                       ? "종료"
                       : "시간을 정하고 시작을 누르세요."}
@@ -204,6 +210,16 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 초
               </label>
             </div>
+            <label className="flex items-center gap-2 text-sm text-desk">
+              <input
+                type="checkbox"
+                className="h-4 w-4"
+                checked={countdown.showOver}
+                disabled={!editable}
+                onChange={(event) => store().setShowOver(event.target.checked)}
+              />
+              초과 시간 표시
+            </label>
             <div className="grid grid-cols-2 gap-2">
               {countdown.status === "running" ? (
                 <button type="button" className="btn-primary" onClick={() => store().pauseCountdown()}>
@@ -233,7 +249,8 @@ export function TimerPage({ onBack }: TimerPageProps) {
               </button>
             </div>
             <p className="text-xs leading-5 text-quiet">
-              끝나면 소리가 나고 패널이 자동으로 열립니다. 시계를 바꾸거나 다른 프로그램이 바빠도 정해 둔 종료 시각을
+              끝나면 소리가 나고 패널이 자동으로 열립니다. 초과 시간 표시를 켜면 0이 지난 뒤 +00:01처럼 지난 시간을
+              장미색으로 셉니다. 끄면 0에서 멈춥니다. 시계를 바꾸거나 다른 프로그램이 바빠도 정해 둔 종료 시각을
               기준으로 계산합니다.
             </p>
           </>

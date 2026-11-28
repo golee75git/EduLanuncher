@@ -103,13 +103,13 @@ export function isPdfSheetTarget(target: string): boolean {
 export const TIMER_TOOL: ToolItem = {
   id: "tool-timer",
   name: "타이머·스톱워치",
-  description: "카운트다운 타이머와 스톱워치. 구간 이름과 메모를 CSV·엑셀로 저장합니다. 끝나면 소리와 함께 패널이 열립니다",
+  description: "카운트다운 타이머와 스톱워치. 구간 이름과 메모를 CSV·엑셀로 저장합니다. 끝나면 소리와 함께 패널이 열립니다. 초과 시간 표시를 켜면 0 이후를 장미색으로 셉니다",
   type: "internal",
   target: "timer",
   icon: "timer",
   category: "전산",
   favorite: true,
-  keywords: ["타이머", "스톱워치", "카운트다운", "시간", "알람", "초시계", "timer", "stopwatch"],
+  keywords: ["타이머", "스톱워치", "카운트다운", "시간", "알람", "초시계", "초과", "timer", "stopwatch"],
   usageCount: 0,
   enabled: true,
 };

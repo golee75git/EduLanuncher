@@ -5,6 +5,43 @@
 
 ---
 
+날짜: 2026-11-28
+버전: 0.1.259-20261128
+설치 파일: AILauncher_0.1.259-20261128_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-28_1038_x64-setup.exe
+작성자: 요청자
+
+요청: 타이머에 초과 시간 표시를 넣어, 0을 넘으면 +로 세고 그때 표시 색을 다르게 한다.
+
+확인: 기본은 꺼져 있어 0에서 멈춘다. 켜면 종료 시각을 유지하고, 차이가 음수이면 +00:01처럼 올린다. 소리는 0이 될 때 한 번이다. 그때 시계 칸과 숫자만 장미색이다. 화면 전체는 살구색, 스톱워치는 민트색이다. 선택은 timers.json에만 남고 서버로 보내지 않는다. 시간 계산은 기존처럼 종료 시각과 지금 시각의 차이이고, 0을 지난 뒤 250밀리초 점검은 멈춘다. 형식 확인은 통과했다. 화면 글꼴은 system-ui이며 OFL 글꼴 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. OFL은 저작권 라이선스이며 특허를 허용한다는 뜻이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않았고 청구항과 구성을 대조하지 않음. 종료 시각과 현재 시각의 차이를 부호와 함께 보여 주는 구성은 특허 검토가 필요할 수 있음. 특허 비침해를 보장하지 않으며 법적 검토가 아님.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- src/services/timerService.ts
+- src/stores/timerStore.ts
+- src/pages/TimerPage.tsx
+- src/index.css
+- src/pages/SettingsPage.tsx
+- src/data/sampleTools.ts
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- website/src/pages/IntroPage.tsx
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/버전정리.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 글꼴 파일, package.json, src-tauri/Cargo.toml, src-tauri/src/lib.rs, 그 외 기존 파일
+
+---
+
 날짜: 2026-11-27
 버전: 0.1.258-20261127
 설치 파일: AILauncher_0.1.258-20261127_x64-setup.exe

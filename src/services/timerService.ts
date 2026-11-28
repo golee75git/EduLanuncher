@@ -12,8 +12,12 @@ export interface CountdownState {
   durationMs: number;
   /** running일 때만 의미가 있다. 종료 시각(epoch ms). */
   endAt: number;
-  /** paused일 때 남은 시간(ms). */
+  /** paused일 때 남은 시간(ms). 초과 시간 표시가 켜져 있으면 음수일 수 있다. */
   pausedRemainingMs: number;
+  /** 켜면 0을 지난 뒤에도 지난 시간을 센다. 기본은 0에서 멈춘다. */
+  showOver: boolean;
+  /** 이번 회차에서 0 알림을 이미 냈다. */
+  rang: boolean;
 }
 
 export interface Lap {
@@ -69,6 +73,8 @@ export const EMPTY_COUNTDOWN: CountdownState = {
   durationMs: 5 * 60_000,
   endAt: 0,
   pausedRemainingMs: 0,
+  showOver: false,
+  rang: false,
 };
 
 export const EMPTY_STOPWATCH: StopwatchState = {
@@ -85,12 +91,20 @@ export function clampDuration(ms: number): number {
   return Math.min(Math.floor(ms), MAX_COUNTDOWN_MS);
 }
 
+function clampSigned(ms: number): number {
+  if (!Number.isFinite(ms)) {
+    return 0;
+  }
+  return Math.max(-MAX_COUNTDOWN_MS, Math.min(MAX_COUNTDOWN_MS, Math.floor(ms)));
+}
+
 export function countdownRemaining(state: CountdownState, now: number): number {
   if (state.status === "running") {
-    return Math.max(0, state.endAt - now);
+    const delta = state.endAt - now;
+    return state.showOver ? delta : Math.max(0, delta);
   }
   if (state.status === "paused") {
-    return Math.max(0, state.pausedRemainingMs);
+    return state.showOver ? state.pausedRemainingMs : Math.max(0, state.pausedRemainingMs);
   }
   if (state.status === "done") {
     return 0;
@@ -114,6 +128,14 @@ export function formatCountdown(ms: number): string {
   const mm = String(m).padStart(2, "0");
   const ss = String(s).padStart(2, "0");
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+/** 남은 시간은 01:05. 0을 지나면 +01:05. 자릿수가 늘지 않게 상한까지만 보여 준다. */
+export function formatTimerFace(remainingMs: number): string {
+  if (!(remainingMs < 0)) {
+    return formatCountdown(remainingMs);
+  }
+  return `+${formatCountdown(Math.min(MAX_COUNTDOWN_MS, -remainingMs))}`;
 }
 
 /** 1번째가 첫 줄. 열은 순서, 누적, 구간, 메모. */
@@ -178,18 +200,32 @@ export function normalizeStored(raw: unknown, now: number): StoredTimers {
   const s = (value.stopwatch && typeof value.stopwatch === "object" ? value.stopwatch : {}) as Record<string, unknown>;
 
   const durationMs = clampDuration(asNumber(c.durationMs, EMPTY_COUNTDOWN.durationMs)) || EMPTY_COUNTDOWN.durationMs;
-  let countdown: CountdownState = { ...EMPTY_COUNTDOWN, durationMs };
+  const showOver = c.showOver === true;
+  let countdown: CountdownState = { ...EMPTY_COUNTDOWN, durationMs, showOver };
   if (c.status === "running") {
     const endAt = asNumber(c.endAt);
     if (endAt > 0) {
       // 시계가 크게 뒤로 가서 남은 시간이 처음보다 길어졌으면 처음 시간까지만 인정한다.
       const capped = Math.min(endAt, now + durationMs + CLOCK_BACK_TOLERANCE_MS);
-      countdown = capped <= now ? { ...countdown, status: "done" } : { ...countdown, status: "running", endAt: capped };
+      if (capped <= now && showOver) {
+        countdown = { ...countdown, status: "running", endAt: capped, rang: c.rang === true };
+      } else if (capped <= now) {
+        countdown = { ...countdown, status: "done" };
+      } else {
+        countdown = { ...countdown, status: "running", endAt: capped };
+      }
     }
   } else if (c.status === "paused") {
-    const rest = clampDuration(asNumber(c.pausedRemainingMs));
-    if (rest > 0) {
-      countdown = { ...countdown, status: "paused", pausedRemainingMs: rest };
+    if (showOver) {
+      const rest = clampSigned(asNumber(c.pausedRemainingMs));
+      if (rest !== 0 || c.rang === true) {
+        countdown = { ...countdown, status: "paused", pausedRemainingMs: rest, rang: rest < 0 || c.rang === true };
+      }
+    } else {
+      const rest = clampDuration(asNumber(c.pausedRemainingMs));
+      if (rest > 0) {
+        countdown = { ...countdown, status: "paused", pausedRemainingMs: rest };
+      }
     }
   } else if (c.status === "done") {
     countdown = { ...countdown, status: "done" };
