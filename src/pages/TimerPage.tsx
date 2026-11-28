@@ -46,8 +46,8 @@ function saveError(error: unknown): string {
   return "저장하지 못했습니다.";
 }
 
-async function saveLapFile(kind: "csv" | "xlsx", laps: Lap[]): Promise<string> {
-  const picked = await pickSaveFile(kind, kind === "csv" ? "스톱워치.csv" : "스톱워치.xlsx");
+async function saveLapFile(kind: "csv" | "xlsx", laps: Lap[], stem: string): Promise<string> {
+  const picked = await pickSaveFile(kind, kind === "csv" ? `${stem}.csv` : `${stem}.xlsx`);
   if (!picked) {
     return "";
   }
@@ -57,6 +57,54 @@ async function saveLapFile(kind: "csv" | "xlsx", laps: Lap[]): Promise<string> {
   }
   await invoke("write_xlsx_file", { id: picked.id, rows: lapTable(laps) });
   return "엑셀 파일로 저장했습니다.";
+}
+
+function LapRows({
+  laps,
+  sheet,
+  onLabel,
+  onNote,
+}: {
+  laps: Lap[];
+  sheet: string;
+  onLabel: (id: number, value: string) => void;
+  onNote: (id: number, value: string) => void;
+}) {
+  if (laps.length === 0) {
+    return null;
+  }
+  return (
+    <ol className={`${sheet} space-y-2 rounded-lg border border-line px-3 py-2 text-sm text-desk`}>
+      {laps.map((lap, index) => {
+        const number = laps.length - index;
+        const prev = laps[index + 1]?.ms ?? 0;
+        return (
+          <li key={lap.id} className="flex items-center gap-1.5">
+            <input
+              type="text"
+              className="w-[4.5rem] shrink-0 rounded-md border border-line bg-paper px-1 py-1 text-xs text-desk"
+              placeholder={`${number}번째`}
+              maxLength={MAX_LAP_NOTE}
+              aria-label={`${number}번째 이름`}
+              value={lap.label}
+              onChange={(event) => onLabel(lap.id, event.target.value)}
+            />
+            <span className="w-[4.5rem] shrink-0 text-right tabular-nums">{formatStopwatch(lap.ms)}</span>
+            <span className="w-[4.5rem] shrink-0 text-right text-quiet tabular-nums">+{formatStopwatch(lap.ms - prev)}</span>
+            <input
+              type="text"
+              className="min-w-0 flex-1 rounded-md border border-line bg-paper px-2 py-1 text-sm text-desk"
+              placeholder="메모"
+              maxLength={MAX_LAP_NOTE}
+              aria-label={`${number}번째 구간 메모`}
+              value={lap.note}
+              onChange={(event) => onNote(lap.id, event.target.value)}
+            />
+          </li>
+        );
+      })}
+    </ol>
+  );
 }
 
 function clampInput(value: string, max: number): number {
@@ -69,7 +117,8 @@ function clampInput(value: string, max: number): number {
 
 export function TimerPage({ onBack }: TimerPageProps) {
   const [tab, setTab] = useState<Tab>("countdown");
-  const [saveNote, setSaveNote] = useState("");
+  const [timerSaveNote, setTimerSaveNote] = useState("");
+  const [watchSaveNote, setWatchSaveNote] = useState("");
   const countdown = useTimerStore((s) => s.countdown);
   const stopwatch = useTimerStore((s) => s.stopwatch);
   const alarmActive = useTimerStore((s) => s.alarmActive);
@@ -220,7 +269,7 @@ export function TimerPage({ onBack }: TimerPageProps) {
               />
               초과 시간 표시
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {countdown.status === "running" ? (
                 <button type="button" className="btn-primary" onClick={() => store().pauseCountdown()}>
                   일시정지
@@ -242,16 +291,59 @@ export function TimerPage({ onBack }: TimerPageProps) {
               <button
                 type="button"
                 className="btn-secondary"
-                disabled={countdown.status === "idle"}
+                disabled={countdown.status !== "running"}
+                onClick={() => store().lapCountdown()}
+              >
+                구간 기록
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={countdown.status === "idle" && countdown.laps.length === 0}
                 onClick={() => store().resetCountdown()}
               >
-                처음으로
+                초기화
               </button>
             </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={countdown.laps.length === 0}
+                onClick={() => {
+                  setTimerSaveNote("");
+                  void saveLapFile("csv", countdown.laps, "타이머")
+                    .then((text) => setTimerSaveNote(text))
+                    .catch((error: unknown) => setTimerSaveNote(saveError(error)));
+                }}
+              >
+                CSV 저장
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={countdown.laps.length === 0}
+                onClick={() => {
+                  setTimerSaveNote("");
+                  void saveLapFile("xlsx", countdown.laps, "타이머")
+                    .then((text) => setTimerSaveNote(text))
+                    .catch((error: unknown) => setTimerSaveNote(saveError(error)));
+                }}
+              >
+                엑셀 저장
+              </button>
+            </div>
+            {timerSaveNote ? <p className="text-xs leading-5 text-quiet">{timerSaveNote}</p> : null}
+            <LapRows
+              laps={countdown.laps}
+              sheet={over ? "timer-over" : "timer-face"}
+              onLabel={(id, value) => store().setCountdownLapLabel(id, value)}
+              onNote={(id, value) => store().setCountdownLapNote(id, value)}
+            />
             <p className="text-xs leading-5 text-quiet">
-              끝나면 소리가 나고 패널이 자동으로 열립니다. 초과 시간 표시를 켜면 0이 지난 뒤 +00:01처럼 지난 시간을
-              장미색으로 셉니다. 끄면 0에서 멈춥니다. 시계를 바꾸거나 다른 프로그램이 바빠도 정해 둔 종료 시각을
-              기준으로 계산합니다.
+              끝나면 소리가 나고 패널이 자동으로 열립니다. 가는 동안 구간 기록을 남길 수 있고, 이름과 메모는 CSV·엑셀로
+              고른 파일에만 저장합니다. 초과 시간 표시를 켜면 0이 지난 뒤 +00:01처럼 지난 시간을 장미색으로 셉니다.
+              끄면 0에서 멈춥니다. 시계를 바꾸거나 다른 프로그램이 바빠도 정해 둔 종료 시각을 기준으로 계산합니다.
             </p>
           </>
         ) : (
@@ -293,10 +385,10 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 className="btn-secondary"
                 disabled={stopwatch.laps.length === 0}
                 onClick={() => {
-                  setSaveNote("");
-                  void saveLapFile("csv", stopwatch.laps)
-                    .then((text) => setSaveNote(text))
-                    .catch((error: unknown) => setSaveNote(saveError(error)));
+                  setWatchSaveNote("");
+                  void saveLapFile("csv", stopwatch.laps, "스톱워치")
+                    .then((text) => setWatchSaveNote(text))
+                    .catch((error: unknown) => setWatchSaveNote(saveError(error)));
                 }}
               >
                 CSV 저장
@@ -306,48 +398,22 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 className="btn-secondary"
                 disabled={stopwatch.laps.length === 0}
                 onClick={() => {
-                  setSaveNote("");
-                  void saveLapFile("xlsx", stopwatch.laps)
-                    .then((text) => setSaveNote(text))
-                    .catch((error: unknown) => setSaveNote(saveError(error)));
+                  setWatchSaveNote("");
+                  void saveLapFile("xlsx", stopwatch.laps, "스톱워치")
+                    .then((text) => setWatchSaveNote(text))
+                    .catch((error: unknown) => setWatchSaveNote(saveError(error)));
                 }}
               >
                 엑셀 저장
               </button>
             </div>
-            {saveNote ? <p className="text-xs leading-5 text-quiet">{saveNote}</p> : null}
-            {stopwatch.laps.length > 0 ? (
-              <ol className="watch-face space-y-2 rounded-lg border border-line px-3 py-2 text-sm text-desk">
-                {stopwatch.laps.map((lap, index) => {
-                  const number = stopwatch.laps.length - index;
-                  const prev = stopwatch.laps[index + 1]?.ms ?? 0;
-                  return (
-                    <li key={lap.id} className="flex items-center gap-1.5">
-                      <input
-                        type="text"
-                        className="w-[4.5rem] shrink-0 rounded-md border border-line bg-paper px-1 py-1 text-xs text-desk"
-                        placeholder={`${number}번째`}
-                        maxLength={MAX_LAP_NOTE}
-                        aria-label={`${number}번째 이름`}
-                        value={lap.label}
-                        onChange={(event) => store().setLapLabel(lap.id, event.target.value)}
-                      />
-                      <span className="w-[4.5rem] shrink-0 text-right tabular-nums">{formatStopwatch(lap.ms)}</span>
-                      <span className="w-[4.5rem] shrink-0 text-right text-quiet tabular-nums">+{formatStopwatch(lap.ms - prev)}</span>
-                      <input
-                        type="text"
-                        className="min-w-0 flex-1 rounded-md border border-line bg-paper px-2 py-1 text-sm text-desk"
-                        placeholder="메모"
-                        maxLength={MAX_LAP_NOTE}
-                        aria-label={`${number}번째 구간 메모`}
-                        value={lap.note}
-                        onChange={(event) => store().setLapNote(lap.id, event.target.value)}
-                      />
-                    </li>
-                  );
-                })}
-              </ol>
-            ) : null}
+            {watchSaveNote ? <p className="text-xs leading-5 text-quiet">{watchSaveNote}</p> : null}
+            <LapRows
+              laps={stopwatch.laps}
+              sheet="watch-face"
+              onLabel={(id, value) => store().setLapLabel(id, value)}
+              onNote={(id, value) => store().setLapNote(id, value)}
+            />
           </>
         )}
       </div>

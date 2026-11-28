@@ -6,6 +6,7 @@ import {
   MAX_LAPS,
   cleanLapNote,
   clampDuration,
+  countdownElapsed,
   countdownRemaining,
   normalizeStored,
   stopwatchElapsed,
@@ -26,6 +27,9 @@ interface TimerState {
   startCountdown: () => void;
   pauseCountdown: () => void;
   resetCountdown: () => void;
+  lapCountdown: () => void;
+  setCountdownLapLabel: (id: number, label: string) => void;
+  setCountdownLapNote: (id: number, note: string) => void;
   dismissAlarm: () => void;
   startStopwatch: () => void;
   pauseStopwatch: () => void;
@@ -195,7 +199,10 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     if (durationMs <= 0) {
       return;
     }
-    set({ countdown: { ...EMPTY_COUNTDOWN, durationMs, showOver: countdown.showOver }, alarmActive: false });
+    set({
+      countdown: { ...EMPTY_COUNTDOWN, durationMs, showOver: countdown.showOver, laps: countdown.laps },
+      alarmActive: false,
+    });
     persist();
   },
   setShowOver: (on) => {
@@ -219,8 +226,19 @@ export const useTimerStore = create<TimerState>((set, get) => ({
       return;
     }
     const rang = fromPause && remaining <= 0 ? countdown.rang : false;
+    if (!fromPause && noteSave) {
+      clearTimeout(noteSave);
+      noteSave = null;
+    }
     set({
-      countdown: { ...countdown, status: "running", endAt: now + remaining, pausedRemainingMs: 0, rang },
+      countdown: {
+        ...countdown,
+        status: "running",
+        endAt: now + remaining,
+        pausedRemainingMs: 0,
+        rang,
+        laps: fromPause ? countdown.laps : [],
+      },
       alarmActive: false,
     });
     persist();
@@ -252,12 +270,59 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   },
   resetCountdown: () => {
     clearWatchers();
+    if (noteSave) {
+      clearTimeout(noteSave);
+      noteSave = null;
+    }
     const { countdown } = get();
     set({
       countdown: { ...EMPTY_COUNTDOWN, durationMs: countdown.durationMs, showOver: countdown.showOver },
       alarmActive: false,
     });
     persist();
+  },
+  lapCountdown: () => {
+    const { countdown } = get();
+    if (countdown.status !== "running") {
+      return;
+    }
+    const now = Date.now();
+    const id = Math.max(now, (countdown.laps[0]?.id ?? 0) + 1);
+    const laps = [{ id, ms: countdownElapsed(countdown, now), label: "", note: "" }, ...countdown.laps].slice(0, MAX_LAPS);
+    set({ countdown: { ...countdown, laps } });
+    persist();
+  },
+  setCountdownLapLabel: (id, label) => {
+    const { countdown } = get();
+    if (!countdown.laps.some((lap) => lap.id === id)) {
+      return;
+    }
+    const clean = cleanLapNote(label);
+    const laps = countdown.laps.map((lap) => (lap.id === id ? { ...lap, label: clean } : lap));
+    set({ countdown: { ...countdown, laps } });
+    if (noteSave) {
+      clearTimeout(noteSave);
+    }
+    noteSave = setTimeout(() => {
+      noteSave = null;
+      persist();
+    }, 400);
+  },
+  setCountdownLapNote: (id, note) => {
+    const { countdown } = get();
+    if (!countdown.laps.some((lap) => lap.id === id)) {
+      return;
+    }
+    const clean = cleanLapNote(note);
+    const laps = countdown.laps.map((lap) => (lap.id === id ? { ...lap, note: clean } : lap));
+    set({ countdown: { ...countdown, laps } });
+    if (noteSave) {
+      clearTimeout(noteSave);
+    }
+    noteSave = setTimeout(() => {
+      noteSave = null;
+      persist();
+    }, 400);
   },
   dismissAlarm: () => {
     set({ alarmActive: false });

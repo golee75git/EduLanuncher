@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.260-20261128",
+    note: "타이머도 가는 동안 구간 기록을 남기고 CSV·엑셀로 저장합니다. 처음으로 단추는 초기화입니다.",
+  },
+  {
     version: "0.1.259-20261128",
     note: "타이머의 초과 시간 표시를 켜면 0 이후를 +로 세고, 그때 시계 칸과 숫자는 장미색입니다. 끄면 0에서 멈춥니다.",
   },

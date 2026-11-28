@@ -18,6 +18,8 @@ export interface CountdownState {
   showOver: boolean;
   /** 이번 회차에서 0 알림을 이미 냈다. */
   rang: boolean;
+  /** 최신이 앞. 값은 시작한 뒤 흐른 시간(ms). */
+  laps: Lap[];
 }
 
 export interface Lap {
@@ -75,6 +77,7 @@ export const EMPTY_COUNTDOWN: CountdownState = {
   pausedRemainingMs: 0,
   showOver: false,
   rang: false,
+  laps: [],
 };
 
 export const EMPTY_STOPWATCH: StopwatchState = {
@@ -110,6 +113,14 @@ export function countdownRemaining(state: CountdownState, now: number): number {
     return 0;
   }
   return state.durationMs;
+}
+
+/** 시작한 뒤 흐른 시간. 초과 시간은 맞춘 시간에 더한다. 시작 전에는 0이다. */
+export function countdownElapsed(state: CountdownState, now: number): number {
+  if (state.status === "idle") {
+    return 0;
+  }
+  return Math.max(0, state.durationMs - countdownRemaining(state, now));
 }
 
 export function stopwatchElapsed(state: StopwatchState, now: number): number {
@@ -186,6 +197,34 @@ export function formatStopwatch(ms: number): string {
   return h > 0 ? `${h}:${mm}:${ss}.${cc}` : `${mm}:${ss}.${cc}`;
 }
 
+function readStoredLaps(raw: unknown): Lap[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const laps: Lap[] = [];
+  const total = Math.min(raw.length, MAX_LAPS);
+  for (let i = 0; i < total; i += 1) {
+    const item: unknown = raw[i];
+    if (typeof item === "number") {
+      if (Number.isFinite(item) && item >= 0) {
+        laps.push({ id: total - i, ms: item, label: "", note: "" });
+      }
+    } else if (item && typeof item === "object") {
+      const entry = item as Record<string, unknown>;
+      const ms = asNumber(entry.ms, -1);
+      if (ms >= 0) {
+        laps.push({
+          id: asNumber(entry.id, total - i),
+          ms,
+          label: cleanLapNote(entry.label),
+          note: cleanLapNote(entry.note),
+        });
+      }
+    }
+  }
+  return laps;
+}
+
 function asNumber(value: unknown, fallback = 0): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
@@ -201,7 +240,7 @@ export function normalizeStored(raw: unknown, now: number): StoredTimers {
 
   const durationMs = clampDuration(asNumber(c.durationMs, EMPTY_COUNTDOWN.durationMs)) || EMPTY_COUNTDOWN.durationMs;
   const showOver = c.showOver === true;
-  let countdown: CountdownState = { ...EMPTY_COUNTDOWN, durationMs, showOver };
+  let countdown: CountdownState = { ...EMPTY_COUNTDOWN, durationMs, showOver, laps: readStoredLaps(c.laps) };
   if (c.status === "running") {
     const endAt = asNumber(c.endAt);
     if (endAt > 0) {
@@ -232,31 +271,8 @@ export function normalizeStored(raw: unknown, now: number): StoredTimers {
   }
 
   const accumulatedMs = Math.max(0, asNumber(s.accumulatedMs));
-  const laps: Lap[] = [];
-  if (Array.isArray(s.laps)) {
-    // 예전 버전은 숫자만 저장했다. 숫자도 받아서 메모 없는 구간으로 바꾼다.
-    const total = Math.min(s.laps.length, MAX_LAPS);
-    for (let i = 0; i < total; i += 1) {
-      const item: unknown = s.laps[i];
-      if (typeof item === "number") {
-        if (Number.isFinite(item) && item >= 0) {
-          laps.push({ id: total - i, ms: item, label: "", note: "" });
-        }
-      } else if (item && typeof item === "object") {
-        const entry = item as Record<string, unknown>;
-        const ms = asNumber(entry.ms, -1);
-        if (ms >= 0) {
-          laps.push({
-            id: asNumber(entry.id, total - i),
-            ms,
-            label: cleanLapNote(entry.label),
-            note: cleanLapNote(entry.note),
-          });
-        }
-      }
-    }
-  }
-  let stopwatch: StopwatchState = { ...EMPTY_STOPWATCH, accumulatedMs, laps };
+  // 예전 스톱워치는 숫자만 저장했다. 숫자도 받아서 메모 없는 구간으로 바꾼다.
+  let stopwatch: StopwatchState = { ...EMPTY_STOPWATCH, accumulatedMs, laps: readStoredLaps(s.laps) };
   if (s.running === true) {
     const startedAt = asNumber(s.startedAt);
     // 시작 시각이 미래이면(시계가 뒤로 갔을 때) 지금으로 맞춘다.
