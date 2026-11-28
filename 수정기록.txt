@@ -6,6 +6,38 @@
 ---
 
 날짜: 2026-11-28
+버전: 0.1.262-20261128
+설치 파일: AILauncher_0.1.262-20261128_x64-setup.exe
+날짜 복사본: AILauncher_2026-11-28_1555_x64-setup.exe
+작성자: 요청자
+
+요청: 소개 페이지 주요 기능에 빠진 기능을 더하고 메뉴 이름을 굵게 표시한다. 업무 인수인계와 개인정보 보호는 맨 아래에 둔다. 설정의 사용 방법도 메뉴 이름을 굵게 표시한다.
+
+확인: 프론트 타입 검사는 통과했다. 사용 방법의 문장과 순서는 유지했다. 화면 글꼴은 system-ui이며 OFL 글꼴 파일을 넣지 않음. 이 글꼴은 OFL이 아니다. OFL은 저작권 라이선스이며 특허를 허용한다는 뜻이 아니다. package.json과 Rust 꾸러미를 바꾸지 않음. 새 패키지 없음. 직접 의존성에 GPL을 추가하지 않음. 라이선스 준수를 보장하지 않음. 검증된 특허 청구항 원문은 보지 않았고 청구항과 구성을 대조하지 않음. 메뉴 이름을 굵게 하는 표시는 새 기술 구성이 아님. 특허 비침해를 보장하지 않으며 법적 검토가 아님. 입력값을 HTML로 넣지 않고 React 글자 노드로만 표시함.
+
+새로 쓴 파일:
+- 없음
+
+다시 쓴 파일:
+- website/src/pages/IntroPage.tsx
+- src/pages/SettingsPage.tsx
+- src/config/app.ts
+- src-tauri/tauri.conf.json
+- website/src/config.ts
+- website/src/data/releases.ts
+- docs/HANDOFF.md
+- docs/PLAN.md
+- docs/PRD.md
+- docs/버전정리.md
+- docs/IP_DESIGN_LOG.md
+- 수정기록.txt
+
+그대로 둔 파일:
+- 글꼴 파일, package.json, src-tauri/Cargo.toml, src-tauri/src/lib.rs, 그 외 기존 파일
+
+---
+
+날짜: 2026-11-28
 버전: 0.1.261-20261128
 설치 파일: AILauncher_0.1.261-20261128_x64-setup.exe
 날짜 복사본: AILauncher_2026-11-28_1242_x64-setup.exe

@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.262-20261128",
+    note: "소개 페이지 주요 기능에 업무 인수인계와 개인정보 보호를 맨 아래에 두고, 메뉴 이름을 굵게 표시합니다. 설정의 사용 방법도 메뉴 이름을 굵게 표시합니다.",
+  },
+  {
     version: "0.1.261-20261128",
     note: "타이머는 0이 되어도 확인 상자 없이 +로 계속 세고, 그때 시계 칸과 숫자는 장미색입니다.",
   },
