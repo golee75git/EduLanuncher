@@ -5,7 +5,10 @@ import {
   COUNTDOWN_PRESETS,
   MAX_COUNTDOWN_MS,
   MAX_LAP_NOTE,
+  countdownLapTable,
+  countdownLapTableCsv,
   countdownRemaining,
+  formatElapsedSeconds,
   formatStopwatch,
   formatTimerFace,
   lapTable,
@@ -46,27 +49,31 @@ function saveError(error: unknown): string {
   return "저장하지 못했습니다.";
 }
 
-async function saveLapFile(kind: "csv" | "xlsx", laps: Lap[], stem: string): Promise<string> {
+async function saveLapFile(kind: "csv" | "xlsx", laps: Lap[], stem: string, countdown: boolean): Promise<string> {
   const picked = await pickSaveFile(kind, kind === "csv" ? `${stem}.csv` : `${stem}.xlsx`);
   if (!picked) {
     return "";
   }
+  const rows = countdown ? countdownLapTable(laps) : lapTable(laps);
   if (kind === "csv") {
-    await invoke("write_csv_file", { id: picked.id, contents: lapTableCsv(laps) });
+    const contents = countdown ? countdownLapTableCsv(laps) : lapTableCsv(laps);
+    await invoke("write_csv_file", { id: picked.id, contents });
     return "CSV로 저장했습니다.";
   }
-  await invoke("write_xlsx_file", { id: picked.id, rows: lapTable(laps) });
+  await invoke("write_xlsx_file", { id: picked.id, rows });
   return "엑셀 파일로 저장했습니다.";
 }
 
 function LapRows({
   laps,
   sheet,
+  countdown = false,
   onLabel,
   onNote,
 }: {
   laps: Lap[];
   sheet: string;
+  countdown?: boolean;
   onLabel: (id: number, value: string) => void;
   onNote: (id: number, value: string) => void;
 }) {
@@ -78,6 +85,8 @@ function LapRows({
       {laps.map((lap, index) => {
         const number = laps.length - index;
         const prev = laps[index + 1]?.ms ?? 0;
+        const clock = countdown && typeof lap.markMs === "number" ? formatTimerFace(lap.markMs) : "";
+        const passed = countdown ? formatElapsedSeconds(lap.ms) : "";
         return (
           <li key={lap.id} className="flex items-center gap-1.5">
             <input
@@ -89,8 +98,20 @@ function LapRows({
               value={lap.label}
               onChange={(event) => onLabel(lap.id, event.target.value)}
             />
-            <span className="w-[4.5rem] shrink-0 text-right tabular-nums">{formatStopwatch(lap.ms)}</span>
-            <span className="w-[4.5rem] shrink-0 text-right text-quiet tabular-nums">+{formatStopwatch(lap.ms - prev)}</span>
+            {countdown ? (
+              <span className="w-[4.5rem] shrink-0 text-right tabular-nums" aria-label={`${number}번째 시계 ${clock}`}>
+                {clock}
+              </span>
+            ) : (
+              <span className="w-[4.5rem] shrink-0 text-right tabular-nums">{formatStopwatch(lap.ms)}</span>
+            )}
+            {countdown ? (
+              <span className="w-[4.5rem] shrink-0 text-right text-quiet tabular-nums" aria-label={`${number}번째 지난 시간 ${passed}`}>
+                {passed}
+              </span>
+            ) : (
+              <span className="w-[4.5rem] shrink-0 text-right text-quiet tabular-nums">+{formatStopwatch(lap.ms - prev)}</span>
+            )}
             <input
               type="text"
               className="min-w-0 flex-1 rounded-md border border-line bg-paper px-2 py-1 text-sm text-desk"
@@ -293,7 +314,7 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 disabled={countdown.laps.length === 0}
                 onClick={() => {
                   setTimerSaveNote("");
-                  void saveLapFile("csv", countdown.laps, "타이머")
+                  void saveLapFile("csv", countdown.laps, "타이머", true)
                     .then((text) => setTimerSaveNote(text))
                     .catch((error: unknown) => setTimerSaveNote(saveError(error)));
                 }}
@@ -306,7 +327,7 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 disabled={countdown.laps.length === 0}
                 onClick={() => {
                   setTimerSaveNote("");
-                  void saveLapFile("xlsx", countdown.laps, "타이머")
+                  void saveLapFile("xlsx", countdown.laps, "타이머", true)
                     .then((text) => setTimerSaveNote(text))
                     .catch((error: unknown) => setTimerSaveNote(saveError(error)));
                 }}
@@ -317,13 +338,15 @@ export function TimerPage({ onBack }: TimerPageProps) {
             {timerSaveNote ? <p className="text-xs leading-5 text-quiet">{timerSaveNote}</p> : null}
             <LapRows
               laps={countdown.laps}
+              countdown
               sheet={over ? "timer-over" : "timer-face"}
               onLabel={(id, value) => store().setCountdownLapLabel(id, value)}
               onNote={(id, value) => store().setCountdownLapNote(id, value)}
             />
             <p className="text-xs leading-5 text-quiet">
               0이 되면 소리가 한 번 나고, 창은 그대로 둔 채 +00:01처럼 지난 시간을 장미색으로 계속 셉니다. 가는 동안
-              구간 기록을 남길 수 있고, 이름과 메모는 CSV·엑셀로 고른 파일에만 저장합니다. 시계를 바꾸거나 다른
+              구간 기록을 남길 수 있습니다. 첫 시간은 누른 순간의 시계이고, 다음 시간은 시작부터 흐른 시간입니다. 이름과
+              메모는 CSV·엑셀로 고른 파일에만 저장합니다. 시계를 바꾸거나 다른
               프로그램이 바빠도 정해 둔 종료 시각을 기준으로 계산합니다.
             </p>
           </>
@@ -367,7 +390,7 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 disabled={stopwatch.laps.length === 0}
                 onClick={() => {
                   setWatchSaveNote("");
-                  void saveLapFile("csv", stopwatch.laps, "스톱워치")
+                  void saveLapFile("csv", stopwatch.laps, "스톱워치", false)
                     .then((text) => setWatchSaveNote(text))
                     .catch((error: unknown) => setWatchSaveNote(saveError(error)));
                 }}
@@ -380,7 +403,7 @@ export function TimerPage({ onBack }: TimerPageProps) {
                 disabled={stopwatch.laps.length === 0}
                 onClick={() => {
                   setWatchSaveNote("");
-                  void saveLapFile("xlsx", stopwatch.laps, "스톱워치")
+                  void saveLapFile("xlsx", stopwatch.laps, "스톱워치", false)
                     .then((text) => setWatchSaveNote(text))
                     .catch((error: unknown) => setWatchSaveNote(saveError(error)));
                 }}

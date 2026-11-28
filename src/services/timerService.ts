@@ -25,8 +25,10 @@ export interface CountdownState {
 export interface Lap {
   /** 구간을 찍은 순서대로 커지는 번호. 메모를 붙일 구간을 가리킬 때 쓴다. */
   id: number;
-  /** 스톱워치를 시작한 뒤 누적 경과(ms). */
+  /** 시작한 뒤 흐른 시간(ms). 타이머는 초과 시간을 맞춘 시간에 더한다. */
   ms: number;
+  /** 타이머에서 구간을 남긴 순간의 남은 시간(ms). 0을 지나면 음수다. 스톱워치는 두지 않는다. */
+  markMs?: number;
   /** 비어 있으면 화면의 N번째를 그대로 쓴다. */
   label: string;
   note: string;
@@ -148,7 +150,49 @@ export function formatTimerFace(remainingMs: number): string {
   return `+${formatCountdown(Math.min(MAX_COUNTDOWN_MS, -remainingMs))}`;
 }
 
-/** 1번째가 첫 줄. 열은 순서, 누적, 구간, 메모. */
+/** 타이머 구간을 남긴다. 시계는 그 순간의 남은 시간이다. */
+export function countdownLap(state: CountdownState, now: number, id: number): Lap {
+  return {
+    id,
+    ms: countdownElapsed(state, now),
+    markMs: clampSigned(countdownRemaining(state, now)),
+    label: "",
+    note: "",
+  };
+}
+
+/** 지난 시간을 초 단위로 내린다. 01:05 또는 1:02:03 꼴이고 +는 붙이지 않는다. */
+export function formatElapsedSeconds(ms: number): string {
+  const totalSec = Math.floor(Math.max(0, ms) / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const mm = String(m).padStart(2, "0");
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+function countdownClock(lap: Lap): string {
+  return typeof lap.markMs === "number" ? formatTimerFace(lap.markMs) : "";
+}
+
+/** 1번째가 첫 줄. 타이머 열은 순서, 시계, 지난시간, 메모. */
+export function countdownLapTable(laps: Lap[]): string[][] {
+  const ordered = [...laps].reverse();
+  const rows: string[][] = [["순서", "시계", "지난시간", "메모"]];
+  for (let i = 0; i < ordered.length; i += 1) {
+    const name = cleanLapNote(ordered[i].label);
+    rows.push([
+      name || `${i + 1}번째`,
+      countdownClock(ordered[i]),
+      formatElapsedSeconds(ordered[i].ms),
+      cleanLapNote(ordered[i].note),
+    ]);
+  }
+  return rows;
+}
+
+/** 1번째가 첫 줄. 스톱워치 열은 순서, 누적, 구간, 메모. */
 export function lapTable(laps: Lap[]): string[][] {
   const ordered = [...laps].reverse();
   const rows: string[][] = [["순서", "누적", "구간", "메모"]];
@@ -179,7 +223,15 @@ function csvCell(value: string): string {
 }
 
 export function lapTableCsv(laps: Lap[]): string {
-  return lapTable(laps).map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+  return rowsToCsv(lapTable(laps));
+}
+
+export function countdownLapTableCsv(laps: Lap[]): string {
+  return rowsToCsv(countdownLapTable(laps));
+}
+
+function rowsToCsv(rows: string[][]): string {
+  return rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
 /** 00:12.34 또는 1:02:03.45 꼴. 내림해서 실제 경과보다 앞서 보이지 않게 한다. */
@@ -212,12 +264,16 @@ function readStoredLaps(raw: unknown): Lap[] {
       const entry = item as Record<string, unknown>;
       const ms = asNumber(entry.ms, -1);
       if (ms >= 0) {
-        laps.push({
+        const lap: Lap = {
           id: asNumber(entry.id, total - i),
           ms,
           label: cleanLapNote(entry.label),
           note: cleanLapNote(entry.note),
-        });
+        };
+        if (typeof entry.markMs === "number" && Number.isFinite(entry.markMs)) {
+          lap.markMs = clampSigned(entry.markMs);
+        }
+        laps.push(lap);
       }
     }
   }

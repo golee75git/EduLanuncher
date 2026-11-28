@@ -6,6 +6,10 @@ export interface SiteReleaseNote {
 /** 소개 페이지용 짧은 기록. 최신이 위. 설치 파일은 GitHub Releases. */
 export const SITE_RELEASE_NOTES: SiteReleaseNote[] = [
   {
+    version: "0.1.263-20261128",
+    note: "타이머 구간 목록은 누른 순간의 시계와 시작부터의 지난 시간을 보여 줍니다. 스톱워치 구간은 그대로입니다.",
+  },
+  {
     version: "0.1.262-20261128",
     note: "소개 페이지 주요 기능에 업무 인수인계와 개인정보 보호를 맨 아래에 두고, 메뉴 이름을 굵게 표시합니다. 설정의 사용 방법도 메뉴 이름을 굵게 표시합니다.",
   },

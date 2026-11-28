@@ -6,7 +6,7 @@ import {
   MAX_LAPS,
   cleanLapNote,
   clampDuration,
-  countdownElapsed,
+  countdownLap,
   countdownRemaining,
   normalizeStored,
   stopwatchElapsed,
@@ -258,7 +258,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     }
     const now = Date.now();
     const id = Math.max(now, (countdown.laps[0]?.id ?? 0) + 1);
-    const laps = [{ id, ms: countdownElapsed(countdown, now), label: "", note: "" }, ...countdown.laps].slice(0, MAX_LAPS);
+    const laps = [countdownLap(countdown, now, id), ...countdown.laps].slice(0, MAX_LAPS);
     set({ countdown: { ...countdown, laps } });
     persist();
   },

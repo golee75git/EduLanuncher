@@ -56,7 +56,7 @@ const HOLDS: { key: string; body: ReactNode }[] = [
     key: "timer",
     body: (
       <>
-        <FeatureWord>타이머·스톱워치</FeatureWord>. 0 이후도 장미색으로 계속 세고, 타이머 구간도 <FeatureWord>CSV 저장</FeatureWord>·<FeatureWord>엑셀 저장</FeatureWord>
+        <FeatureWord>타이머·스톱워치</FeatureWord>. 0 이후도 장미색으로 계속 세고, 타이머 구간은 누른 순간의 시계와 시작부터의 지난 시간을 <FeatureWord>CSV 저장</FeatureWord>·<FeatureWord>엑셀 저장</FeatureWord>
       </>
     ),
   },
